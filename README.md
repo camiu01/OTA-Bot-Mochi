@@ -1,4 +1,4 @@
-# OTA Bot Watch UI ⌚
+# OTA Bot Mochi⌚
 
 Interfaccia utente per smartwatch basato su **ESP32 + display ST7789**, con supporto a **ChronosESP32** per notifiche, meteo, navigazione e chiamate.
 
