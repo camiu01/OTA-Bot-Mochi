@@ -22,7 +22,6 @@
 #include "FreeSansBold12pt7b.h"
 #include <ChronosESP32.h>
 #include "pin_config.h"
-#include "font.h"
 #include "images.h"
 
 #define BACKGROUND BLACK
