@@ -1,50 +1,54 @@
-# OTA Bot Mochi
+# ⌚ OTA Bot Mochi
 
-Interfaccia utente per smartwatch basato su **ESP32 + display ST7789**, con supporto a **ChronosESP32** per notifiche, meteo, navigazione e chiamate.
-
----
-
-## 📂 Struttura del progetto
-
-- `main.ino` → codice principale con setup/loop, callback Chronos e gestione UI  
-- `images.h` → icone e bitmap per interfaccia grafica  
-- `FreeSansBold12pt7b.h` → font principale usato nella UI  
-- `README.md` → questo file  
+User interface for a smartwatch based on **ESP32 + ST7789 display**, with **ChronosESP32** support for notifications, weather, navigation, and calls.
 
 ---
 
-## 🚀 Funzionalità
+## 📂 Project Structure
 
-- Splash screen personalizzato all’avvio  
-- Header con titolo, icona e stato Bluetooth  
-- Schermate dedicate a:
-  - 🕒 Orologio (`BASE`)
-  - 🌦️ Meteo (`WEATHER`)
-  - 🗺️ Navigazione (`NAVIGATION`)
-  - 🔔 Notifiche (`NOTIFICATION`)
-- Callbacks per:
-  - Notifiche push (titolo, messaggio, app, icona)  
-  - Chiamate in arrivo  
-  - Stato connessione  
-  - Aggiornamenti meteo e navigazione  
+- `main.ino` → main firmware with setup/loop, Chronos callbacks, and UI handling  
+- `images.h` → icons and bitmaps for the graphical interface  
+- `FreeSansBold12pt7b.h` → main font used in the UI  
+- `README.md` → this file  
 
 ---
 
-## 🛠️ Requisiti
+## 🚀 Features
 
-- **Scheda**: ESP32  
+- Custom splash screen at startup  
+- Header with title, icon, and Bluetooth status  
+- Dedicated screens:
+  -     Base (`BASE`)
+  - 🕒 Clock (`CLOCK`)
+  - 🌦️ Weather (`WEATHER`)
+  - 🗺️ Navigation (`NAVIGATION`)
+  - 🔔 Notifications (`NOTIFICATION`)
+- Chronos callbacks for:
+  - Push notifications (title, message, app, icon)  
+  - Incoming calls  
+  - Connection status  
+  - Weather and navigation updates  
+
+---
+
+## 🛠️ Requirements
+
+- **Board**: ESP32  
 - **Display**: ST7789 (SPI)  
-- **Librerie Arduino necessarie**:
+- **Arduino Libraries**:
   - [Arduino_GFX_Library](https://github.com/moononournation/Arduino_GFX)
   - [ChronosESP32](https://github.com/OpenChronos/ChronosESP32)
-  - Driver standard ESP32 (`SPI`, `Wire`, ecc.)
+  - Standard ESP32 drivers (`SPI`, `Wire`, etc.)  
 
 ---
-## ▶️ Utilizzo
 
-Dopo l’avvio:
-Lo splash screen mostra l’animazione/logo.
-La UI cicla tra le schermate configurate (BASE, WEATHER, NAVIGATION, NOTIFICATION).
-Le notifiche, meteo e navigazione arrivano tramite ChronosESP32 via BLE.
+## ▶️ Usage
+
+At startup:  
+The custom splash screen is displayed.  
+
+During runtime:  
+The UI cycles through the configured screens (`BASE`, `WEATHER`, `NAVIGATION`, `NOTIFICATION`).  
+Notifications, weather data, and navigation info are received via **ChronosESP32** over BLE.  
 
 ---
