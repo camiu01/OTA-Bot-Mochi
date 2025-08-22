@@ -40,9 +40,11 @@ Interfaccia utente per smartwatch basato su **ESP32 + display ST7789**, con supp
   - Driver standard ESP32 (`SPI`, `Wire`, ecc.)
 
 ---
-▶️ Utilizzo
+## ▶️ Utilizzo
 
 Dopo l’avvio:
 Lo splash screen mostra l’animazione/logo.
 La UI cicla tra le schermate configurate (BASE, WEATHER, NAVIGATION, NOTIFICATION).
 Le notifiche, meteo e navigazione arrivano tramite ChronosESP32 via BLE.
+
+---
