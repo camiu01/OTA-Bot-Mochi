@@ -370,6 +370,7 @@ void draw_header(String text, const uint8_t bitmap[]) {
 /** @brief Available screens. */
 enum screen_type {
   BASE,
+  CLOCK,
   NAVIGATION,
   NOTIFICATION,
   WEATHER
@@ -392,9 +393,13 @@ void start_screen() {
   delay(3000);
   gfx->fillScreen(BACKGROUND);
 }
-
 /** @brief Base screen. */
-void base_screen() {
+void base_screen(){
+  //TODO read gif and visualize them
+}
+
+/** @brief Clock screen. */
+void clock_screen() {
   draw_header("clock", image_clock_bits);
 }
 
@@ -432,6 +437,7 @@ void setup() {
 void loop() {
   switch (current_screen) {
     case BASE: base_screen(); break;
+    case CLOCK: clock_screen(); break;
     case WEATHER: weather_screen(); break;
     case NAVIGATION: navigation_screen(); break;
     case NOTIFICATION: notification_screen(); break;
