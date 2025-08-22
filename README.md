@@ -18,7 +18,7 @@ User interface for a smartwatch based on **ESP32 + ST7789 display**, with **Chro
 - Custom splash screen at startup  
 - Header with title, icon, and Bluetooth status  
 - Dedicated screens:
-  -     Base (`BASE`)
+  - 📎 Base (`BASE`)
   - 🕒 Clock (`CLOCK`)
   - 🌦️ Weather (`WEATHER`)
   - 🗺️ Navigation (`NAVIGATION`)
