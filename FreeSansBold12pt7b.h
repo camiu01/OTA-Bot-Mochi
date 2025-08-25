@@ -15,7 +15,27 @@
 #else
 #define PROGMEM
 #endif
-
+/**
+ * @brief Font definition for FreeSansBold12pt7b.
+ *
+ * This structure ties together the font's bitmap data and glyph metrics
+ * for rendering text with the Arduino GFX library.
+ *
+ * The font is composed of three parts:
+ * - FreeSansBold12pt7bBitmaps[] : Raw pixel data for all characters.
+ * - FreeSansBold12pt7bGlyphs[]  : Glyph metrics describing each character.
+ * - FreeSansBold12pt7b          : Font object linking bitmaps and glyphs.
+ *
+ * Character range:
+ * - Start: 0x20 (ASCII space ' ')
+ * - End:   0x7E (ASCII tilde '~')
+ *
+ * Line spacing:
+ * - yAdvance = 28 pixels
+ *
+ * @note Generated automatically from the FreeSans Bold font and provided by
+ *       moononournation/ArduinoFreeFontFile.
+ */
 const uint8_t FreeSansBold12pt7bBitmaps[] PROGMEM = {
   0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0x76, 0x66, 0x60, 0xFF, 0xF0, 0xF3, 0xFC,
   0xFF, 0x3F, 0xCF, 0x61, 0x98, 0x60, 0x0E, 0x70, 0x73, 0x83, 0x18, 0xFF,
@@ -201,6 +221,12 @@ const uint8_t FreeSansBold12pt7bBitmaps[] PROGMEM = {
   0x1C, 0x71, 0xC7, 0x1C, 0xF3, 0xCE, 0x00, 0x78, 0x0F, 0xE0, 0xCF, 0x30,
   0x7F, 0x01, 0xE0 };
 
+/**
+ * @brief Glyph metrics for the FreeSansBold12pt7b font.
+ *
+ * Each entry defines the size, offset, and positioning
+ * information for a single character.
+ */
 const GFXglyph FreeSansBold12pt7bGlyphs[] PROGMEM = {
   {     0,   1,   1,   7,    0,    0 },   // 0x20 ' '
   {     1,   4,  17,   8,    3,  -16 },   // 0x21 '!'
@@ -298,6 +324,12 @@ const GFXglyph FreeSansBold12pt7bGlyphs[] PROGMEM = {
   {  2161,   6,  23,   9,    3,  -17 },   // 0x7D '}'
   {  2179,  12,   5,  12,    0,   -7 } }; // 0x7E '~'
 
+/**
+ * @brief Font structure for FreeSansBold12pt7b.
+ *
+ * Contains bitmap pointer, glyph pointer, supported character range,
+ * and line spacing (yAdvance).
+ */
 const GFXfont FreeSansBold12pt7b PROGMEM = {
   (uint8_t  *)FreeSansBold12pt7bBitmaps,
   (GFXglyph *)FreeSansBold12pt7bGlyphs,
