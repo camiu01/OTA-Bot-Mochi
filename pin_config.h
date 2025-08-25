@@ -18,6 +18,9 @@
  *   [S8] RTC
  *   [S9] System Control & Power
  *   [S10] Extra GPIO / Test Points
+ *
+ * @note Pin reference:
+ *       https://www.waveshare.com/wiki/ESP32-S3-Touch-LCD-1.69
  */
 
 /* ==================================== [S1] LCD ==================================== */
@@ -127,3 +130,4 @@
 #define TP_GND     -1  /**< Ground (TP2) */
 #define TP_5V      -1  /**< 5V supply (TP1) */
 /** @} */  // end of gpio_extra
+
