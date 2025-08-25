@@ -8,9 +8,8 @@
  *   [S2] Globals & objects
  *   [S3] Chronos callbacks
  *   [S4] Initialization
- *   [S5] Text alignment helpers
- *   [S6] UI header & screens
- *   [S7] Arduino setup/loop
+ *   [S5] UI header & screens 
+ *   [S6] Arduino setup/loop
  */
 
 /* =============================== [S1] Includes & compile-time config =============================== */
@@ -21,15 +20,10 @@
 #include <Arduino_GFX_Library.h>
 #include "FreeSansBold12pt7b.h"
 #include <ChronosESP32.h>
+#include "gfx_helper.h"
 #include "pin_config.h"
 #include "images.h"
 
-#define BACKGROUND BLACK
-#define TEXT_COLOR WHITE
-#define ELEMENT_COLOR WHITE
-#define MARGIN 10
-#define HEADER_MARGIN_TOP 15
-#define TOP_SPACER_Y 55
 /** @} */  // end of config
 
 /* =================================== [S2] Globals & objects ======================================= */
@@ -45,9 +39,7 @@ uint32_t nav_crc = 0xFFFFFFFF;
 
 Arduino_DataBus *bus = new Arduino_ESP32SPI(LCD_DC, LCD_CS, LCD_SCK, LCD_MOSI);
 
-Arduino_GFX *gfx = new Arduino_ST7789(
-  bus, LCD_RST,
-  0 /* rotation */, true /* IPS */, LCD_WIDTH, LCD_HEIGHT, 0, 20, 0, 0);
+Arduino_GFX *gfx = new Arduino_ST7789(bus, LCD_RST,0 /* rotation */, true /* IPS */, LCD_WIDTH, LCD_HEIGHT, 0, 20, 0, 0);
 /** @} */  // end of globals
 
 /* =================================== [S3] Chronos callbacks ======================================= */
@@ -216,127 +208,7 @@ void init_screen() {
 }
 /** @} */  // end of init
 
-/* ============================== [S5] Text alignment helpers ====================================== */
-/** @defgroup text_helpers Text alignment helpers
- *  @brief Utilities for text placement on screen.
- *  @{
- */
-
-/**
- * @brief Calculate X position to horizontally center text.
- * @param str Text string.
- * @return X coordinate for centered placement.
- */
-int16_t get_align_horizontal(String str) {
-  int16_t x1, y1;
-  uint16_t w, h;
-  gfx->getTextBounds(str, 0, 0, &x1, &y1, &w, &h);
-  return (LCD_WIDTH - w) / 2;
-}
-
-/**
- * @brief Calculate Y position to vertically center text.
- * @param str Text string.
- * @return Y coordinate (baseline) for centered placement.
- */
-int16_t get_align_vertical(String str) {
-  int16_t x1, y1;
-  uint16_t w, h;
-  gfx->getTextBounds(str, 0, 0, &x1, &y1, &w, &h);
-  return (LCD_HEIGHT + h) / 2;
-}
-
-/**
- * @brief Draw text horizontally centered.
- * @param str Text string.
- * @param y   Baseline Y coordinate.
- */
-void draw_align_horizontal(String str, int16_t y) {
-  int16_t x = get_align_horizontal(str);
-  gfx->setCursor(x, y);
-  gfx->print(str);
-}
-
-/**
- * @brief Draw text vertically centered.
- * @param str Text string.
- * @param x   X coordinate.
- */
-void draw_align_vertical(String str, int16_t x) {
-  int16_t y = get_align_vertical(str);
-  gfx->setCursor(x, y);
-  gfx->print(str);
-}
-
-/**
- * @brief Draw text centered in X and Y.
- * @param str Text string.
- */
-void draw_align_center(String str) {
-  int16_t x = get_align_horizontal(str);
-  int16_t y = get_align_vertical(str);
-  gfx->setCursor(x, y);
-  gfx->print(str);
-}
-
-/** @brief Draw text aligned left at given Y (with margin). */
-void draw_align_left(String str, int16_t y) {
-  gfx->setCursor(MARGIN, y);
-  gfx->print(str);
-}
-
-/** @brief Draw text aligned right at given Y (with margin). */
-void draw_align_right(String str, int16_t y) {
-  int16_t x1, y1;
-  uint16_t w, h;
-  gfx->getTextBounds(str, 0, 0, &x1, &y1, &w, &h);
-  gfx->setCursor(LCD_WIDTH - w - MARGIN, y);
-  gfx->print(str);
-}
-
-/** @brief Draw text aligned at top (baseline adjusted). */
-void draw_align_top(String str, int16_t x) {
-  int16_t x1, y1;
-  uint16_t w, h;
-  gfx->getTextBounds(str, 0, 0, &x1, &y1, &w, &h);
-  gfx->setCursor(x, h + MARGIN);
-  gfx->print(str);
-}
-
-/** @brief Draw text aligned at bottom with margin. */
-void draw_align_bottom(String str, int16_t x) {
-  gfx->setCursor(x, LCD_HEIGHT - MARGIN);
-  gfx->print(str);
-}
-
-/** @brief Draw text top-centered with a top margin. */
-void draw_align_top_centered(String str, int16_t margin) {
-  int16_t x1, y1;
-  uint16_t w, h;
-  gfx->getTextBounds(str, 0, 0, &x1, &y1, &w, &h);
-
-  int16_t x = (LCD_WIDTH - w) / 2;
-  int16_t y = margin - y1;  // align top of bounding box
-
-  gfx->setCursor(x, y);
-  gfx->print(str);
-}
-
-/** @brief Draw text bottom-centered with a bottom margin. */
-void draw_align_bottom_centered(String str, int16_t margin) {
-  int16_t x1, y1;
-  uint16_t w, h;
-  gfx->getTextBounds(str, 0, 0, &x1, &y1, &w, &h);
-
-  int16_t x = (LCD_WIDTH - w) / 2;
-  int16_t y = (LCD_HEIGHT - margin) - (y1 + h);  // align bottom
-
-  gfx->setCursor(x, y);
-  gfx->print(str);
-}
-/** @} */  // end of text_helpers
-
-/* ============================== [S6] UI header & screens ========================================= */
+/* ============================== [S5] UI header & screens ========================================= */
 /** @defgroup ui UI drawing
  *  @brief Header and screen renderers.
  *  @{
@@ -356,7 +228,7 @@ void draw_header(String text, const uint8_t bitmap[]) {
   gfx->drawBitmap(0, TOP_SPACER_Y, image_Unplug_bg_bottom_bits, 128, 10, ELEMENT_COLOR);
 
   // Centered title
-  draw_align_top_centered(text, HEADER_MARGIN_TOP);
+  draw_align_top_centered(gfx,text, HEADER_MARGIN_TOP);
 
   
   // Right BT status
@@ -387,7 +259,7 @@ void start_screen() {
   gfx->setTextSize(2);
 
   // Anchor title above spacer line
-  draw_align_bottom_centered("OTA BOT", 10 + HEADER_MARGIN_TOP);
+  draw_align_bottom_centered(gfx,"OTA BOT", 10 + HEADER_MARGIN_TOP);
 
   delay(3000);
   gfx->fillScreen(BACKGROUND);
@@ -418,7 +290,7 @@ void notification_screen() {
 }
 /** @} */  // end of ui
 
-/* ================================ [S7] Arduino setup/loop ========================================= */
+/* ================================ [S6] Arduino setup/loop ========================================= */
 /** @defgroup arduino Arduino runtime
  *  @brief setup() and loop() entry points.
  *  @{
