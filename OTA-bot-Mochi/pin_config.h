@@ -3,7 +3,7 @@
 #define XPOWERS_CHIP_AXP2101
 
 /**
- * @file pins.h
+ * @file pin_config.h
  * @brief Pin definitions for Waveshare ESP32-S3-Touch-LCD-1.69.
  *
  * @details

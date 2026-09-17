@@ -1,3 +1,7 @@
+/**
+ * @file gfx_helper.h
+ * @brief Text alignment helpers for Arduino_GFX display.
+ */
 #ifndef GFX_HELPER_H
 #define GFX_HELPER_H
 
