@@ -5,7 +5,7 @@
 
 A ChronosESP32 smartwatch UI for ST7789 240x280 with vector eyes inspired by bloub and Dasai Mochi.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![License: GPLv3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![Arduino](https://img.shields.io/badge/Arduino-IDE_2.x-teal.svg)](https://www.arduino.cc/)
 [![ESP32-S3](https://img.shields.io/badge/ESP32--S3-Touch--LCD--1.69-red.svg)](https://www.waveshare.com/wiki/ESP32-S3-Touch-LCD-1.69)
 [![Status](https://img.shields.io/badge/Status-Active-success.svg)](#)
@@ -155,7 +155,7 @@ Canonical build path is `#include "src/eyes/eyes_api.h"`.
 
 Contributions are welcome. Please read the governance docs before opening issues or pull requests.
 
-* **[LICENSE](LICENSE)** - Defines MIT reuse, modification, and redistribution terms.
+* **[LICENSE](LICENSE)** - Defines GPLv3 reuse, modification, and redistribution terms.
 * **[CONTRIBUTING.md](CONTRIBUTING.md)** - Describes workflow, code style, and pull request requirements.
 * **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)** - Sets expected behavior and reporting process for participants.
 * **[SECURITY.md](SECURITY.md)** - Explains supported versions and vulnerability disclosure process.
@@ -164,4 +164,4 @@ Contributions are welcome. Please read the governance docs before opening issues
 
 ## License & Authors
 
-Maintained by **Lorenzo Camuso**. Distributed under the [MIT License](LICENSE). Built on Arduino GFX and ChronosESP32, inspired by bloub eyes and Dasai Mochi.
+Copyright (c) 2026 [Camiu](https://github.com/camiu01). Distributed under the [GNU General Public License v3.0 (GPLv3)](LICENSE). Built on Arduino GFX and ChronosESP32, inspired by bloub eyes and Dasai Mochi.
