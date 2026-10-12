@@ -43,7 +43,8 @@
 #include "gfx_helper.h"
 #include "pin_config.h"
 #include "images.h"
-#include "eyes/eyes_api.h"
+#include "src/eyes/eyes_api.h"
+#include "src/touch/touch.h"
 
 /** @} */  // end of config
 
@@ -60,7 +61,11 @@ uint32_t nav_crc = 0xFFFFFFFF;
 
 Arduino_DataBus *bus = new Arduino_ESP32SPI(LCD_DC, LCD_CS, LCD_SCK, LCD_MOSI);
 
-Arduino_GFX *gfx = new Arduino_ST7789(bus, LCD_RST,0 /* rotation */, true /* IPS */, LCD_WIDTH, LCD_HEIGHT, 0, 20, 0, 0);
+Arduino_GFX *display = new Arduino_ST7789(bus, LCD_RST,0 /* rotation */, true /* IPS */, LCD_WIDTH, LCD_HEIGHT, 0, 20, 0, 0);
+Arduino_GFX *gfx = new Arduino_Canvas(LCD_WIDTH, LCD_HEIGHT, display);
+bool screen_ready = false;
+uint32_t last_frame_ms = 0;
+constexpr uint32_t FRAME_INTERVAL_MS = 33;
 /** @} */  // end of globals
 
 /* =================================== [S3] Chronos callbacks ======================================= */
@@ -220,9 +225,12 @@ void init_chronos() {
  */
 void init_screen() {
   if (!gfx->begin()) {
-    Serial.println("gfx->begin() failed!");
+    Serial.println("Display/framebuffer initialization failed");
+    return;
   }
+  screen_ready = true;
   gfx->fillScreen(BACKGROUND);
+  gfx->flush();
 
   pinMode(LCD_BL, OUTPUT);
   digitalWrite(LCD_BL, HIGH);  // turn on backlight
@@ -265,10 +273,26 @@ enum screen_type {
   CLOCK,
   NAVIGATION,
   NOTIFICATION,
-  WEATHER
+  WEATHER,
+  SCREEN_COUNT
 };
 
 screen_type current_screen = BASE;
+
+/**
+ * @brief Switch screens once for each horizontal swipe.
+ * @param now Current timestamp in milliseconds.
+ */
+void handle_swipe(uint32_t now) {
+	int8_t step = touch_poll(now);
+	if (step == 0) {
+		return;
+	}
+	current_screen = static_cast<screen_type>((current_screen + step + SCREEN_COUNT) % SCREEN_COUNT);
+	gfx->fillScreen(BACKGROUND);
+	eyes_state().dirtyInit = false;
+	last_frame_ms = now - FRAME_INTERVAL_MS;
+}
 
 /** @brief Show splash screen at boot. */
 void start_screen() {
@@ -319,15 +343,32 @@ void notification_screen() {
 /** @brief Arduino setup: init subsystems and show splash. */
 void setup() {
   Serial.begin(115200);
-  init_chronos();
   init_screen();
+  init_chronos();
+  if (!screen_ready) {
+    return;
+  }
   start_screen();
   eyes_init(gfx);
   eyes_imu_init();
+  touch_init();
+  last_frame_ms = millis() - FRAME_INTERVAL_MS;
+  Serial.printf("UI ready, free heap: %u bytes\n", ESP.getFreeHeap());
 }
 
 /** @brief Arduino loop: draw current screen and service Chronos. */
 void loop() {
+	watch.loop();  // service BLE even between frames
+	delay(1);  // yield to ESP32 background tasks
+	if (!screen_ready) {
+		return;
+	}
+	uint32_t now = millis();
+	handle_swipe(now);
+	if ((uint32_t)(now - last_frame_ms) < FRAME_INTERVAL_MS) {
+		return;
+	}
+	last_frame_ms = now;
   switch (current_screen) {
     case BASE: base_screen(); break;
     case CLOCK: clock_screen(); break;
@@ -336,6 +377,6 @@ void loop() {
     case NOTIFICATION: notification_screen(); break;
     default: base_screen(); break;
   }
-  watch.loop();  // must be called regularly to handle events & BLE
+	gfx->flush();  // send the completed frame, never the intermediate clear
 }
 /** @} */  // end of arduino

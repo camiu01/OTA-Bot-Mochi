@@ -27,6 +27,8 @@ Instead of a generic smartwatch interface, the core experience is the **Living E
 * **BLE Turn-by-Turn Navigation:** Receives live route directions, distance, ETA, and direction icons directly from your smartphone.
 * **Chronos BLE Core:** Background BLE service managing phone notifications, incoming call rings, time synchronization, and weather forecasts.
 * **Modular Screen State Machine:** Built-in UI screens for `BASE` (Eyes), `CLOCK`, `NAVIGATION`, `WEATHER`, and `NOTIFICATION`.
+* **Buffered Display:** Frames are composed in RAM and sent to the LCD at up to 30 FPS. BLE and touch polling continue between frames.
+* **Swipe Navigation:** Swipe left for the next screen or right for the previous screen. Navigation wraps around at either end.
 
 ---
 

@@ -31,17 +31,17 @@
 /**
  * @brief Default background color for the screen.
  */
-#define BACKGROUND BLACK
+#define BACKGROUND RGB565_BLACK
 
 /**
  * @brief Default text color.
  */
-#define TEXT_COLOR WHITE
+#define TEXT_COLOR RGB565_WHITE
 
 /**
  * @brief Default color for graphic elements.
  */
-#define ELEMENT_COLOR WHITE
+#define ELEMENT_COLOR RGB565_WHITE
 
 /**
  * @brief Default margin (in pixels) used for alignment.

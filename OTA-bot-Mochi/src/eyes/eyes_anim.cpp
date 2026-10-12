@@ -119,10 +119,10 @@ void eyes_init(Arduino_GFX *display) {
 	s_gfx = display;
 	s_cfg.style = BLOUB;
 	s_cfg.expression = NEUTRAL;
-	s_cfg.bgColor = BLACK;
-	s_cfg.fgColor = WHITE;
-	s_cfg.pupilColor = BLACK;
-	s_cfg.highlightColor = WHITE;
+	s_cfg.bgColor = RGB565_BLACK;
+	s_cfg.fgColor = RGB565_WHITE;
+	s_cfg.pupilColor = RGB565_BLACK;
+	s_cfg.highlightColor = RGB565_WHITE;
 	s_cfg.eyeW = 64;
 	s_cfg.eyeH = 96;
 	s_cfg.eyeGap = 28;
