@@ -17,14 +17,14 @@ uint8_t first_row = 0;
 bool grid_open = false;
 uint8_t grid_first_row = 0;
 
-/** Expression grid geometry: three columns of large touch targets. */
+/** Expression grid geometry: three columns of large touch targets, five rows of full-pitch cells. */
 constexpr uint8_t GRID_COLS = 3;
-constexpr uint8_t GRID_ROWS = 6;
-constexpr uint8_t GRID_ROW_PX = 21;
+constexpr uint8_t GRID_ROWS = 5;
+constexpr uint8_t GRID_ROW_PX = 26;
 constexpr int16_t GRID_X0 = 8;
 constexpr int16_t GRID_Y0 = 94;
 constexpr int16_t GRID_W = 72;
-constexpr int16_t GRID_H = 19;
+constexpr int16_t GRID_H = 24;
 constexpr uint8_t GRID_ROWS_TOTAL = (EXPRESSION_COUNT + GRID_COLS - 1) / GRID_COLS;
 constexpr uint8_t GRID_MAX_FIRST = GRID_ROWS_TOTAL > GRID_ROWS ? GRID_ROWS_TOTAL - GRID_ROWS : 0;
 
@@ -157,7 +157,7 @@ void grid_draw(Arduino_GFX *gfx) {
 		int16_t y = int16_t(GRID_Y0 + (cell / GRID_COLS) * GRID_ROW_PX);
 		bool selected = index == p.mood;
 		gfx->fillRoundRect(x, y, GRID_W, GRID_H, 6, selected ? UI_ACCENT : UI_CARD);
-		ui_label(gfx, tr_expression(uint8_t(index)), x + 3, y + 6, GRID_W - 6, 1,
+		ui_label(gfx, tr_expression(uint8_t(index)), x + 3, y + 8, GRID_W - 6, 1,
 			selected ? UI_BG : UI_TEXT);
 	}
 	if (GRID_MAX_FIRST) {
@@ -174,7 +174,8 @@ void grid_draw(Arduino_GFX *gfx) {
 }
 
 /**
- * @brief Apply a tapped grid cell, ignoring the gutters between touch targets.
+ * @brief Apply a tapped grid cell; rows are contiguous full-height targets
+ * and only the thin column gutters stay inert.
  * @param x X. @param y Y. @return True when a real cell was hit.
  */
 bool grid_cell(int16_t x, int16_t y) {
@@ -183,7 +184,7 @@ bool grid_cell(int16_t x, int16_t y) {
 	uint8_t col = uint8_t(local_x / (GRID_W + 4));
 	uint8_t row = uint8_t(local_y / GRID_ROW_PX);
 	if (col >= GRID_COLS || row >= GRID_ROWS) { return false; }
-	if (local_x % (GRID_W + 4) >= GRID_W || local_y % GRID_ROW_PX >= GRID_H) { return false; }
+	if (local_x % (GRID_W + 4) >= GRID_W) { return false; }
 	uint16_t index = uint16_t(grid_first_row + row) * GRID_COLS + col;
 	if (index >= EXPRESSION_COUNT) { return false; }
 	CompanionSettings p = settings_get();
@@ -243,8 +244,8 @@ MenuAction settings_menu_tap(int16_t x, int16_t y) {
 			return MenuAction::Changed;
 		}
 	}
-	if (y >= 90 && y < 222) {
-		uint8_t index = first_row + (y - 90) / 44;
+	if (y >= 94 && y < 222) {
+		uint8_t index = first_row + (y - 94) / 44;
 		uint8_t count = row_count();
 		if (index < count) { change_row(index); return MenuAction::Changed; }
 	}

@@ -54,11 +54,13 @@ This percentage is **brightness, not battery charge**.
 - Settings show three larger rows at a time. Swipe vertically to reach remaining
   rows; the scroll indicator shows the position. Tabs and SAVE/EYES stay fixed.
   Vertical scrolling neither changes a value nor advances the page carousel.
-- Touch targets include the gutters between settings rows/tabs and split buttons.
-  Settings categories use previous/next arrows with 72x38-pixel targets below
-  the title, a central category name and a 1/5 position indicator. They wrap
-  around and reset panel scrolling; tapping the name does nothing.
-  SAVE/Back each owns a 120x58-pixel
+  Every row card owns its own 44-pixel touch zone aligned to the visible card,
+  so touching the bottom of a row never activates the next one. The Mood grid
+  shows five rows of 72x24-pixel cells as contiguous full-height targets; only
+  the thin column gutters stay inert. Settings categories use previous/next
+  arrows with 72x38-pixel targets below the title, a central category name and
+  a 1/5 position indicator. They wrap around and reset panel scrolling; tapping
+  the name does nothing. SAVE/Back each owns a 120x58-pixel
   target extending to the bottom edge. Their visible buttons are enlarged too,
   with no overlapping actions. Short taps tolerate up to 18 pixels of movement
   and 800ms contact time; longer stationary holds still use 1.2 seconds.

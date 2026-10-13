@@ -41,11 +41,12 @@ label completeness and layout, out-of-order weather packets/sync throttling,
 animated dirty regions, sound notes/priorities/mute/rollover/failures, and actual
 PWM adapters against core-2/core-3 shared-timer mocks.
 Additional checks exercise all six shared color palettes, filled touch gutters,
-row/tab/footer edges, bounded menu scrolling, vertical/horizontal axis isolation,
-tap tolerance, explicit audio-test mute/category behavior, randomized face-tone
-family pitch bands with the faces switch, the battery voltage curve, divider
-plausibility window, and consecutive-sample trust policy, plus the petting
-heart marker's dirty-region wipe and clamped placement.
+row/tab/footer edges with row hits aligned to their visible cards, contiguous
+grid-cell rows, 30-pixel buttons, bounded menu scrolling, vertical/horizontal
+axis isolation, tap tolerance, explicit audio-test mute/category behavior,
+randomized face-tone family pitch bands with the faces switch, the battery
+voltage curve, divider plausibility window, and consecutive-sample trust policy,
+plus the petting heart marker's dirty-region wipe and clamped placement.
 Mocks do not verify physical LCD rendering, BLE protocol interoperability, physical
 pin assignments, or electrical behavior.
 
@@ -175,7 +176,10 @@ for sleepy faces, high bounce for surprised ones), not one fixed note.
 Use AUDIO → Test sound or USB `sound test`, then `sound`, to distinguish mute
 from PWM failure. PWM-ready status alone cannot establish physical audibility.
 Check three-row scrolling, fixed tabs/actions, edge taps, and no value changes
-during vertical gestures. Cycle every eye color and verify all utility pages
+during vertical gestures. Tap near the bottom edge of a visible row card: it
+must change that row, not the one below. In the Mood grid, confirm five rows of
+larger cells whose rows are fully tappable with only the column gutters inert.
+Cycle every eye color and verify all utility pages
 follow it, without losing text readability.
 Switch EN/IT, SAVE, reboot, and check language persistence. Verify smooth face
 handoffs and all idle gestures. For the reported weather failure, inspect USB

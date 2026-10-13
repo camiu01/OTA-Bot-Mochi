@@ -29,6 +29,9 @@ Open Clock and tap **DESK TOOLS**, then select:
 | TIMER / POMODORO | Local 5-minute or 15-minute timer, or one 25-minute focus/5-minute rest pair |
 | DEVICE STATUS | BLE connection, backlight percentage, IMU initialization, clock sync, preference save state, sound state, and battery estimate |
 
+Each tool card is 34 pixels high inside its own 38-pixel touch zone, so any
+tap inside a card row selects that tool.
+
 BACK TO DESK returns to the tool menu; BACK TO CLOCK closes it. A swipe from a
 tool goes to the previous/next primary page relative to Clock, so there is no
 eleven-page swipe sequence. The Clock position dot stays selected in these tools.
@@ -43,7 +46,8 @@ and the conversion is native-tested but physically unvalidated.
 ## Local timer
 
 MODE cycles 5 minutes, 15 minutes, and Pomodoro, resetting paused. START/PAUSE
-controls the countdown; RESET resets the chosen mode paused. Pomodoro automatically
+controls the countdown; RESET resets the chosen mode paused. All three buttons
+are 30 pixels high with matching touch zones. Pomodoro automatically
 enters a five-minute rest after the focus phase, then stops at DONE.
 
 The timer runs while other pages or call overlays are visible and does not need

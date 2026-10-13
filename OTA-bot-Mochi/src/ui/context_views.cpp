@@ -20,8 +20,8 @@
 namespace {
 /** @brief Draw a bounded action button. @param gfx Canvas. @param x Left. @param y Top. @param w Width. @param label Text. */
 void button(Arduino_GFX *gfx, int16_t x, int16_t y, int16_t w, const char *label) {
-	gfx->fillRoundRect(x, y, w, 24, 8, UI_CARD);
-	ui_label(gfx, label, x + 10, y + 8, w - 20, 1, UI_ACCENT);
+	gfx->fillRoundRect(x, y, w, 30, 8, UI_CARD);
+	ui_label(gfx, label, x + 10, y + 11, w - 20, 1, UI_ACCENT);
 }
 /** @brief Return valid or waiting time. @param watch Clock. @return HH:MM. */
 String time_text(ChronosESP32 &watch) {
@@ -31,8 +31,8 @@ String time_text(ChronosESP32 &watch) {
 void hub(Arduino_GFX *gfx) {
 	static const Text labels[] = {Text::BigClock, Text::Overview, Text::TimerMenu, Text::Device};
 	for (uint8_t i = 0; i < 4; ++i) {
-		ui_card(gfx, 64 + i * 38, 32);
-		ui_label(gfx, tr(labels[i]), 28, 75 + i * 38, 184, 1, UI_TEXT);
+		ui_card(gfx, 64 + i * 38, 34);
+		ui_label(gfx, tr(labels[i]), 28, 77 + i * 38, 184, 1, UI_TEXT);
 	}
 }
 /** @brief Render large synchronized time. @param gfx Canvas. @param watch Clock. */
@@ -64,9 +64,9 @@ void timer_screen(Arduino_GFX *gfx) {
 	ui_label(gfx, tr(timer.finished ? Text::DoneQuiet : (timer.resting ? Text::Rest : Text::Focus)),
 		28, 77, 184, 1, UI_ACCENT);
 	ui_label(gfx, text, 60, 105, 120, 4, UI_TEXT);
-	button(gfx, 12, 170, 102, tr(timer.running ? Text::Pause : Text::Start));
-	button(gfx, 126, 170, 102, tr(Text::Reset));
-	button(gfx, 12, 202, 216, tr(timer.mode == 0 ? Text::Timer5 :
+	button(gfx, 12, 166, 102, tr(timer.running ? Text::Pause : Text::Start));
+	button(gfx, 126, 166, 102, tr(Text::Reset));
+	button(gfx, 12, 198, 216, tr(timer.mode == 0 ? Text::Timer5 :
 		(timer.mode == 1 ? Text::Timer15 : Text::Pomodoro)));
 }
 /** @brief Render non-sensitive device information. @param gfx Canvas. @param data Snapshot. */
@@ -128,7 +128,7 @@ void context_draw(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, const UiSn
 /** @brief Dispatch contextual controls without persisting session choices. @param page Page. @param x X. @param y Y. @param now Time. @return Target. */
 UiPage screens_tap(UiPage page, int16_t x, int16_t y, uint32_t now) {
 	if (x < 0 || x >= 240 || y < 0 || y >= 280) { return page; }
-	if (y >= 230 && y < 258) {
+	if (y >= 230 && y < 262) {
 		if (page == UiPage::Clock) { return UiPage::Desk; }
 		if (page == UiPage::Weather) { weather_request(); screens_invalidate(); }
 		if (page == UiPage::Desk) { return UiPage::Clock; }

@@ -22,7 +22,7 @@
 
 /** @brief Mirrors of the Settings expression grid layout, so adding expressions never needs a test edit. */
 constexpr uint8_t GRID_COLS_HINT = 3;
-constexpr uint8_t GRID_PAGE_ROWS_HINT = 6;
+constexpr uint8_t GRID_PAGE_ROWS_HINT = 5;
 
 /** @brief Test explicit persistence, malformed blobs, and unavailable storage. */
 static void persistence_tests() {
@@ -219,15 +219,15 @@ static void menu_tests() {
 	assert(!settings_get().route_large);
 	assert(settings_menu_tap(210, 65) == MenuAction::Changed);
 	settings_menu_draw(&gfx);
-	settings_menu_tap(20, 134);
+	settings_menu_tap(20, 155);
 	assert(settings_get().night);
 	// The LIGHT panel has a fifth row: Screen flip reaches the rotation toggle by scrolling.
 	assert(settings_menu_scroll(1) && settings_menu_scroll(1) && !settings_menu_scroll(1));
-	assert(settings_menu_tap(20, 178) == MenuAction::Changed);
+	assert(settings_menu_tap(20, 200) == MenuAction::Changed);
 	assert(settings_get().flipped);
 	assert(settings_menu_tap(210, 65) == MenuAction::Changed);
 	settings_menu_draw(&gfx);
-	settings_menu_tap(20, 134);
+	settings_menu_tap(20, 140);
 	assert(settings_get().shake);
 	settings_menu_tap(20, 185);
 	assert(settings_menu_scroll(1));
@@ -248,7 +248,7 @@ static void menu_tests() {
 	assert(!settings_menu_scroll(1));
 	settings_menu_tap(20, 100);
 	assert(settings_get().animation == 2);
-	settings_menu_tap(20, 134);
+	settings_menu_tap(20, 140);
 	assert(settings_get().language == 1 && strcmp(tr(Text::Settings), "IMPOSTAZIONI") == 0);
 	settings_menu_draw(&gfx);
 	settings_menu_tap(210, 65);
@@ -281,10 +281,9 @@ static void menu_tests() {
 	assert(settings_menu_grid_open());
 	settings_menu_draw(&gfx);
 	assert(std::find(gfx.text.begin(), gfx.text.end(), "neutro") != gfx.text.end());
-	// Gutters between touch targets and empty tail cells stay inert.
+	// Column gutters and out-of-range columns stay inert.
 	assert(settings_menu_tap(81, 103) == MenuAction::None);
-	assert(settings_menu_tap(44, 113) == MenuAction::None);
-	assert(settings_menu_tap(44, 220) == MenuAction::None);
+	assert(settings_menu_tap(238, 100) == MenuAction::None);
 	// A real cell selects and applies the expression without writing flash.
 	unsigned int grid_writes = test_flash_writes;
 	assert(settings_menu_tap(196, 103) == MenuAction::Changed);
@@ -294,6 +293,8 @@ static void menu_tests() {
 	uint8_t max_first = uint8_t((EXPRESSION_COUNT + GRID_COLS_HINT - 1) / GRID_COLS_HINT - GRID_PAGE_ROWS_HINT);
 	for (uint8_t step = 0; step < max_first; ++step) { assert(settings_menu_scroll(1)); }
 	assert(!settings_menu_scroll(1));
+	// Empty tail cells on the final page stay inert.
+	assert(settings_menu_tap(120, 208) == MenuAction::None);
 	// The header reports real cell indices, not page numbers, and clamps to the final face.
 	settings_menu_draw(&gfx);
 	std::string range = std::to_string(uint16_t(max_first * GRID_COLS_HINT + 1)) + "-" +

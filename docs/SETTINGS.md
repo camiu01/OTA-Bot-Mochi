@@ -15,7 +15,7 @@ rows. Changes are live in RAM and do not write flash while browsing.
 | --- | --- | --- |
 | LOOK | Eyes | normal, mochi, bloub, trapez |
 | LOOK | Color | white, mint, cyan, amber, pink, blue |
-| LOOK | Mood | opens a 3-column grid of all 73 expressions; tap a cell, swipe to scroll |
+| LOOK | Mood | opens a 3-column grid of all 73 expressions in five full-height rows; tap a cell, swipe to scroll |
 | LOOK | Route default | large / details |
 | LIGHT | Day level | 5, 10, 20, 30, 50, 70, 90% |
 | LIGHT | Night | off / on |
@@ -37,7 +37,9 @@ rows. Changes are live in RAM and do not write flash while browsing.
 Three 44-pixel row targets are visible at a time. Swipe up/down to reach the
 remaining rows; AUDIO's test is the final row. Tabs and bottom actions stay fixed.
 Scrolling does not edit or save preferences. Horizontal swipes still change the
-main page. Gaps between adjacent controls belong to one unambiguous target.
+main page. Each row card is one unambiguous 44-pixel target aligned to its
+visible bounds, so the bottom of a card never activates the next row; grid rows
+are contiguous full-height targets with only the thin column gutters inert.
 
 The selected eye color also drives the entire UI palette immediately: text,
 icons, active buttons, and tinted cards. SAVE persists this through the same color
