@@ -20,6 +20,9 @@ inline void delay(uint32_t ms) { test_now += ms; }
 constexpr uint8_t INPUT_PULLUP = 2;
 inline long random(long maximum) { return maximum > 0 ? std::rand() % maximum : 0; }
 inline long random(long minimum, long maximum) { return minimum + random(maximum - minimum); }
+/** @brief Controlled ADC samples for native battery tests; zero models an unfitted divider. */
+inline int test_analog_read = 0;
+inline int analogRead(int) { return test_analog_read; }
 
 struct FakeSerial {
 	std::string input, output;
@@ -36,9 +39,17 @@ struct FakeSerial {
 		output += buffer;
 	}
 	void feed(const std::string &text) { input += text; }
+	void flush() {}
 	void clear() { input.clear(); output.clear(); position = 0; }
 };
 inline FakeSerial Serial;
+
+/** @brief Observe restart requests without leaving the host process. */
+struct FakeEsp {
+	bool restarted = false;
+	void restart() { restarted = true; }
+};
+inline FakeEsp ESP;
 
 class String {
 	std::string value;

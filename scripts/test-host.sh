@@ -7,6 +7,7 @@ trap 'rm -rf "$output"' EXIT
 runtime=(
 	"$root/OTA-bot-Mochi/src/settings/settings.cpp"
 	"$root/OTA-bot-Mochi/src/settings/usb_commands.cpp"
+	"$root/OTA-bot-Mochi/src/power/battery.cpp"
 	"$root/OTA-bot-Mochi/src/eyes/eyes_anim.cpp"
 	"$root/OTA-bot-Mochi/src/eyes/eyes_expression.cpp"
 	"$root/OTA-bot-Mochi/src/eyes/eyes_faces.cpp"

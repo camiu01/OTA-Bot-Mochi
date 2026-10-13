@@ -62,6 +62,8 @@
 	X(ClockWaiting, "CLOCK: WAITING", "OROLOGIO: IN ATTESA") \
 	X(PrefsUnsaved, "PREFERENCES: UNSAVED", "PREFERENZE: NON SALVATE") \
 	X(PrefsSaved, "PREFERENCES: SAVED", "PREFERENZE: SALVATE") \
+	X(BatteryPrefix, "BATTERY: ", "BATTERIA: ") \
+	X(BatteryMissing, "NOT MEASURED", "NON MISURATA") \
 	X(ViewLarge, "VIEW: LARGE / TAP DETAILS", "GRANDE / TOCCA: DETTAGLI") \
 	X(ViewDetails, "VIEW: DETAILS / TAP LARGE", "DETTAGLI / TOCCA: GRANDE") \
 	X(LookTab, "LOOK", "OCCHI") \
@@ -79,6 +81,7 @@
 	X(Night, "Night", "Notte") \
 	X(NightLevel, "Night level", "Luce notte") \
 	X(IdleDim, "Idle dim", "Luce inattiva") \
+	X(ScreenFlip, "Screen flip", "Ruota schermo") \
 	X(Dashboard, "Dashboard", "Dashboard") \
 	X(Shake, "Shake dizzy", "Scossa") \
 	X(RandomMood, "Random mood", "Facce casuali") \
@@ -105,6 +108,7 @@
 	X(EyesButton, "EYES", "OCCHI") \
 	X(Back, "BACK", "INDIETRO") \
 	X(Normal, "normal", "normale") \
+	X(Flipped, "flipped", "girato") \
 	X(Mochi, "mochi", "mochi") \
 	X(Bloub, "bloub", "bloub") \
 	X(Trapez, "trapez", "trapez") \
