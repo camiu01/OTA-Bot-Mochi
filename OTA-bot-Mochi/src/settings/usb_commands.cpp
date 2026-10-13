@@ -161,6 +161,10 @@ void execute(const UsbCommand &command) {
 			Serial.printf("weather: current-packets=%lu forecast-packets=%lu city-packets=%lu items=%u available=%s\n",
 				(unsigned long)data.weather_packets, (unsigned long)data.forecast_packets,
 				(unsigned long)data.city_packets, data.weather_count, data.has_weather ? "yes" : "no");
+			bool linked = false, ready = false;
+			weather_sync_link(linked, ready);
+			Serial.printf("weather-link: ble=%s sync=%s\n", linked ? "connected" : "disconnected",
+				ready ? "ready" : "waiting");
 			break;
 		}
 		case UsbAction::WeatherSync: weather_request(); Serial.println("App sync queued; requires connection/subscription"); break;

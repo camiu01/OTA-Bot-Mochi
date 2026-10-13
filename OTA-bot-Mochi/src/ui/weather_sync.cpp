@@ -9,3 +9,5 @@ static WeatherSyncPolicy sync;
 void weather_request() { sync.request(); }
 /** @brief Apply debounce/subscription policy. @param now Time. @param connected BLE. @param subscribed Ready. @return Send. */
 bool weather_sync_due(uint32_t now, bool connected, bool subscribed) { return sync.update(now, connected, subscribed); }
+/** @brief Expose the last observed BLE/subscription state for diagnostics. @param connected Output BLE. @param subscribed Output subscription. */
+void weather_sync_link(bool &connected, bool &subscribed) { sync.link(connected, subscribed); }
