@@ -19,6 +19,10 @@ const Note call[] = {{2200, 100}, {0, 80}, {2200, 100}};
 const Note rest[] = {{2400, 90}, {0, 45}, {2000, 110}};
 const Note done[] = {{1600, 90}, {0, 50}, {2000, 90}, {0, 50}, {2600, 140}};
 const Note test[] = {{1800, 250}, {0, 80}, {2400, 250}};
+Note face_notes[3] = {{2400, 55}, {0, 25}, {2800, 70}};
+/** @brief Tone bands per family: bright, warm, soft, bouncy, or flat. */
+const uint16_t tone_base[] = {2300, 1600, 1000, 2600, 800};
+const uint16_t tone_span[] = {700, 500, 300, 700, 250};
 SoundCue queued = SoundCue::Count, active = SoundCue::Count;
 uint32_t queued_at = 0, started = 0, ambient_since = 0, ambient_delay = 60000;
 uint32_t last[uint8_t(SoundCue::Count)] = {};
@@ -31,6 +35,7 @@ Sequence sequence(SoundCue cue) {
 		case SoundCue::Ambient: return {ambient, 4};
 		case SoundCue::Mood: return {mood, 2};
 		case SoundCue::Tap: return {tap, 3};
+		case SoundCue::Face: return {face_notes, 3};
 		case SoundCue::Notification: return {notification, 3};
 		case SoundCue::Call: return {call, 3};
 		case SoundCue::Rest: return {rest, 3};
@@ -45,7 +50,7 @@ bool allowed(SoundCue cue) {
 	if (!p.sound || (p.night && p.sound_night_mute)) { return false; }
 	if (cue == SoundCue::Test) { return true; }
 	if (cue == SoundCue::Ambient) { return p.sound_ambient; }
-	if (cue == SoundCue::Tap || cue == SoundCue::Mood) { return p.sound_faces; }
+	if (cue == SoundCue::Tap || cue == SoundCue::Mood || cue == SoundCue::Face) { return p.sound_faces; }
 	if (cue == SoundCue::Notification || cue == SoundCue::Call) { return p.sound_alerts; }
 	return (cue == SoundCue::Rest || cue == SoundCue::Done) && p.sound_timer;
 }
@@ -81,11 +86,25 @@ void sound_init(uint32_t now) {
 void sound_request(SoundCue cue, uint32_t now) {
 	if (cue >= SoundCue::Count || !allowed(cue) || failed) { return; }
 	uint8_t index = uint8_t(cue);
-	uint32_t cooldown = cue == SoundCue::Ambient ? 60000 : (cue == SoundCue::Tap ? 250 : 1500);
+	uint32_t cooldown = 1500;
+	if (cue == SoundCue::Ambient) { cooldown = 60000; }
+	else if (cue == SoundCue::Tap) { cooldown = 250; }
+	else if (cue == SoundCue::Face) { cooldown = 300; }
 	if (seen[index] && uint32_t(now - last[index]) < cooldown) { return; }
 	if ((active != SoundCue::Count && cue < active) || (queued != SoundCue::Count && cue < queued)) { return; }
 	seen[index] = true; last[index] = now;
 	queued = cue; queued_at = now;
+}
+
+/** @brief Build a family-shaped random chirp, then queue it like a tap-tier cue. @param tone Tone family. @param now Time. */
+void sound_request_face(FaceTone tone, uint32_t now) {
+	uint8_t family = uint8_t(tone) < uint8_t(FaceTone::Count) ? uint8_t(tone) : uint8_t(FaceTone::Bright);
+	uint16_t hz = tone_base[family] + uint16_t(random(long(tone_span[family])));
+	face_notes[0] = {hz, uint16_t(family == uint8_t(FaceTone::Soft) ? 100 : 55)};
+	face_notes[1] = {0, 25};
+	face_notes[2] = {uint16_t(hz + (family == uint8_t(FaceTone::Flat) ? 0 : 400)),
+		uint16_t(family == uint8_t(FaceTone::Bounce) ? 50 : 70)};
+	sound_request(SoundCue::Face, now);
 }
 /** @brief Service coherent events, keeping spontaneous sounds on idle eyes only. @param now Time. @param events Counters. @param eyesVisible Eyes context. @param resting Rest phase. @param done Timer end. */
 void sound_poll(uint32_t now, const UiPageEvents &events, bool eyesVisible, bool resting, bool done) {

@@ -35,6 +35,39 @@ static void note_tests() {
 	sound_poll(1220, events, false, false, false);
 	assert(test_pwm[2].duty == 0);
 }
+/** @brief Face chirps stay inside family pitch bands and follow the faces switch. */
+static void face_tone_tests() {
+	sound_init(0); events = {};
+	auto p = settings_get(); p.sound = true; p.night = false; p.sound_faces = true; settings_update(p);
+	sound_request_face(FaceTone::Soft, 3000);
+	sound_poll(3000, events, false, false, false);
+	sound_poll(3010, events, false, false, false);
+	assert(test_pwm[2].frequency >= 1000 && test_pwm[2].frequency <= 1300);
+	sound_poll(3110, events, false, false, false);
+	assert(test_pwm[2].duty == 0);
+	sound_poll(3130, events, false, false, false);
+	assert(test_pwm[2].frequency >= 1400 && test_pwm[2].frequency <= 1700);
+	sound_poll(3210, events, false, false, false);
+	assert(test_pwm[2].duty == 0);
+	// Family bands differ: a flat blip stays low and does not rise.
+	sound_request_face(FaceTone::Flat, 4000);
+	sound_poll(4000, events, false, false, false);
+	sound_poll(4010, events, false, false, false);
+	assert(test_pwm[2].frequency >= 800 && test_pwm[2].frequency <= 1049);
+	sound_poll(4070, events, false, false, false);
+	assert(test_pwm[2].duty == 0);
+	sound_poll(4090, events, false, false, false);
+	assert(test_pwm[2].frequency >= 800 && test_pwm[2].frequency <= 1049);
+	sound_poll(4160, events, false, false, false);
+	assert(test_pwm[2].duty == 0);
+	// The faces switch silences every family without touching the master switch.
+	uint32_t quiet = test_pwm[2].frequency;
+	p.sound_faces = false; settings_update(p);
+	sound_request_face(FaceTone::Bright, 5000);
+	sound_poll(5000, events, false, false, false);
+	sound_poll(5010, events, false, false, false);
+	assert(test_pwm[2].frequency == quiet && test_pwm[2].duty == 0);
+}
 /** @brief Manual bench test ignores category switches, but never bypasses master/night mute. */
 static void manual_test() {
 	sound_init(0); events = {};
@@ -136,6 +169,6 @@ static void context_tests() {
 /** @brief Run native sound regressions, never emit actual sound. @return Success. */
 int main() {
 	assert(settings_init());
-	note_tests(); mute_tests(); failure_tests(); context_tests(); manual_test();
+	note_tests(); mute_tests(); failure_tests(); context_tests(); manual_test(); face_tone_tests();
 	std::cout << "Sound notes, priority, categories, night mute, failure handling, and rollover passed\n";
 }
