@@ -29,8 +29,9 @@ Open Clock and tap **DESK TOOLS**, then select:
 | TIMER / POMODORO | Local 5-minute or 15-minute timer, or one 25-minute focus/5-minute rest pair |
 | DEVICE STATUS | BLE connection, backlight percentage, IMU initialization, clock sync, preference save state, sound state, and battery estimate |
 
-Each tool card is 34 pixels high inside its own 38-pixel touch zone, so any
-tap inside a card row selects that tool.
+Each tool card is 38 pixels high inside its own 40-pixel touch zone, so any
+tap inside a card row selects that tool. The bottom action row (BACK TO CLOCK,
+BACK TO DESK) is the same 236x54-pixel target as the Settings actions.
 
 BACK TO DESK returns to the tool menu; BACK TO CLOCK closes it. A swipe from a
 tool goes to the previous/next primary page relative to Clock, so there is no

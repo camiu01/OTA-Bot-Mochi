@@ -57,17 +57,17 @@ bool clock_draw(Arduino_GFX *gfx, ChronosESP32 &watch, bool connected) {
 	previous_ready = ready;
 	bool changed = invalidated;
 	if (invalidated) {
-		ui_card(gfx, 62, 186);
-		ui_label(gfx, tr(ready ? Text::LocalTime : Text::PhoneSync), 28, 82, 180, 1, UI_ACCENT);
+		ui_card(gfx, 62, 152);
+		ui_label(gfx, tr(ready ? Text::LocalTime : Text::PhoneSync), 28, 78, 180, 1, UI_ACCENT);
 	}
 	String time = ready ? watch.getHourZ() + watch.getTime(":%M") : "--:--";
 	String seconds = ready ? watch.getTime(":%S") + " " + watch.getAmPmC() : tr(Text::Waiting);
 	String date = ready ? watch.getTime("%d / %m / %Y") : tr(Text::OpenChronos);
 	String status = tr(connected ? Text::Connected : Text::Offline);
-	changed |= field(gfx, time, 0, 114, 4, UI_TEXT);
-	changed |= field(gfx, seconds, 1, 158, 1, UI_ACCENT);
-	changed |= field(gfx, date, 2, 186, 1, UI_TEXT);
-	changed |= field(gfx, status, 3, 218, 1, UI_MUTED);
+	changed |= field(gfx, time, 0, 108, 4, UI_TEXT);
+	changed |= field(gfx, seconds, 1, 150, 1, UI_ACCENT);
+	changed |= field(gfx, date, 2, 172, 1, UI_TEXT);
+	changed |= field(gfx, status, 3, 196, 1, UI_MUTED);
 	invalidated = false;
 	return changed;
 }

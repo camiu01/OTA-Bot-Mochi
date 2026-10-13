@@ -102,9 +102,9 @@ static void alert_tests(Arduino_GFX &gfx, ChronosESP32 &watch) {
 	ui_notification(notification);
 	assert(ui_snapshot().notification.message.length() == 1024);
 	screens_draw(&gfx, watch, UiPage::Notification, test_now);
-	assert(gfx.text.back() == "1 / 7");
+	assert(gfx.text.back() == "1 / 14");
 	screens_draw(&gfx, watch, UiPage::Notification, test_now + 6000);
-	assert(gfx.text.back() == "2 / 7");
+	assert(gfx.text.back() == "2 / 14");
 	ui_ringer("Test caller", true);
 	screens_draw(&gfx, watch, UiPage::Eyes, test_now + 6033);
 	assert(!screens_calling() && !screens_keep_awake());
@@ -213,21 +213,21 @@ static void context_tests(Arduino_GFX &gfx, ChronosESP32 &watch) {
 	assert(screens_tap(UiPage::Clock, 20, 240, 0) == UiPage::Desk);
 	for (uint8_t i = 0; i < 4; ++i) {
 		UiPage page = static_cast<UiPage>(uint8_t(UiPage::BigClock) + i);
-		assert(screens_tap(UiPage::Desk, 20, 70 + i * 38, 0) == page);
+		assert(screens_tap(UiPage::Desk, 20, 74 + i * 40, 0) == page);
 		assert(screens_parent(page) == UiPage::Clock);
 		assert(screens_swipe(page, 1) == UiPage::Navigation);
 		assert(screens_swipe(page, -1) == UiPage::Eyes);
 		assert(screens_tap(page, 20, 240, 0) == UiPage::Desk);
 		assert(screens_draw(&gfx, watch, page, 20000000 + i * 1000));
 	}
-	assert(screens_tap(UiPage::Desk, 20, 97, 0) == UiPage::BigClock);
+	assert(screens_tap(UiPage::Desk, 20, 70, 0) == UiPage::BigClock);
 	assert(screens_tap(UiPage::Desk, 0, 98, 0) == UiPage::Overview);
 	assert(screens_tap(UiPage::Desk, 239, 211, 0) == UiPage::Device);
 	assert(screens_tap(UiPage::Desk, 240, 98, 0) == UiPage::Desk);
 	assert(screens_tap(UiPage::Desk, 20, 212, 0) == UiPage::Desk);
 	assert(screens_tap(UiPage::Clock, 0, 257, 0) == UiPage::Desk);
-	assert(screens_tap(UiPage::Clock, 0, 261, 0) == UiPage::Desk);
-	assert(screens_tap(UiPage::Clock, 0, 262, 0) == UiPage::Clock);
+	assert(screens_tap(UiPage::Clock, 0, 222, 0) == UiPage::Desk);
+	assert(screens_tap(UiPage::Clock, 0, 221, 0) == UiPage::Clock);
 	assert(screens_tap(UiPage::Timer, 120, 180, 0) == UiPage::Timer);
 	assert(!view_timer().running);
 	screens_tap(UiPage::Timer, 20, 180, 0);
@@ -236,6 +236,8 @@ static void context_tests(Arduino_GFX &gfx, ChronosESP32 &watch) {
 	assert(view_timer().remaining == 1499000 && view_timer().running);
 	screens_tap(UiPage::Timer, 150, 180, 1000);
 	assert(!view_timer().running && view_timer().remaining == 1500000);
+	screens_tap(UiPage::Timer, 20, 200, 0);
+	assert(view_timer().mode == 0 && view_timer().remaining == 300000);
 	view_route_temporary(0);
 	screens_draw(&gfx, watch, UiPage::Navigation, 20005000);
 	view_route_temporary(1);

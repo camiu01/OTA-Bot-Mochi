@@ -42,7 +42,8 @@ animated dirty regions, sound notes/priorities/mute/rollover/failures, and actua
 PWM adapters against core-2/core-3 shared-timer mocks.
 Additional checks exercise all six shared color palettes, filled touch gutters,
 row/tab/footer edges with row hits aligned to their visible cards, contiguous
-grid-cell rows, 30-pixel buttons, bounded menu scrolling, vertical/horizontal
+grid-cell rows, 30-pixel timer buttons, 54-pixel bottom action rows, bounded
+menu scrolling, vertical/horizontal
 axis isolation, tap tolerance, explicit audio-test mute/category behavior,
 randomized face-tone family pitch bands with the faces switch, the battery
 voltage curve, divider plausibility window, and consecutive-sample trust policy,
@@ -117,9 +118,10 @@ Do not make the device world-writable. Close other serial monitors before upload
 3. Connect Chronos and verify the clock transitions from waiting to synchronized
    time. Test 12/24-hour mode, disconnect, and reconnect.
 4. Send a long notification while Eyes is selected and confirm Alerts opens
-   automatically. Check six-second message pagination and accented
-   text. The font approximates common lowercase Latin accents; other unsupported
-   glyphs, including emoji, appear as `?`.
+   automatically. Check that app name, title, and message render at double
+   scale, and check six-second message pagination with its page counter and
+   accented text. The font approximates common lowercase Latin accents; other
+   unsupported glyphs, including emoji, appear as `?`.
 5. With dashboard mode on, ring the phone on each page. Confirm it does not cover
    Eyes, Clock, Route, Weather, or Settings. Select Alerts to see the call, then
    dismiss it. Check optional full-screen behavior only after explicitly turning
@@ -156,6 +158,9 @@ Do not make the device world-writable. Close other serial monitors before upload
 
 Also test Clock → DESK TOOLS and all four tools. Verify large clock legibility,
 timer continuation while viewing other pages, default-silent completion, and reboot reset.
+On each page, confirm the bottom action row is a large Settings-style target:
+accent fill for DESK TOOLS, VIEW, and SYNC / REFRESH, dim fill for back actions,
+with the position dots visible directly above it.
 Switch Route layout temporarily, SAVE a different setting, and reboot: the saved
 route default must win. Test `route default`, a Route hold, and LOOK → Route default.
 A short eye tap must react for three seconds, glance toward the touch point,

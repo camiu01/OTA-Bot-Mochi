@@ -47,6 +47,12 @@ This percentage is **brightness, not battery charge**.
   to be released, avoiding a page change underneath a settings tap.
 - Hold still for 1.2 seconds on the eyes screen to open Settings. A swipe or
   moving finger is not also treated as a tap or hold.
+- Clock, Route, Weather, and the desk pages place their main action in a
+  full-width bottom action row in the Settings overflow style: a 236x54-pixel
+  target anchored to the bottom edge, so DESK TOOLS, the VIEW toggle, and
+  SYNC / REFRESH are as easy to tap as SAVE/EYES. The page's main action uses
+  the accent fill; back actions use the dim card fill. The carousel position
+  dots sit directly above this row.
 - Use settings only while parked. The firmware cannot determine whether the
   vehicle is stationary and does not lock controls based on vehicle speed.
 - Tap LOOK, LIGHT, DRIVE, MOVE, and AUDIO to change appearance and comfort options.

@@ -34,14 +34,17 @@ UiPage previous_page = UiPage::Eyes;
  * @param y Top edge.
  * @param count Maximum lines.
  * @param color Foreground.
+ * @param size Font scale.
+ * @param columns Wrap width in characters for the chosen scale.
  */
 void paragraph(Arduino_GFX *gfx, const String &text, int16_t y,
-	uint8_t count, uint16_t color) {
-	TextLines lines = wrap_text(ui_ascii(text).c_str(), 30);
+	uint8_t count, uint16_t color, uint8_t size = 1, uint8_t columns = 30) {
+	TextLines lines = wrap_text(ui_ascii(text).c_str(), columns);
+	int16_t pitch = int16_t(7 * size + 7);
 	for (uint8_t i = 0; i < lines.count && i < count; ++i) {
 		String line = lines.line[i];
-		if (i + 1 == count && lines.count > count) { line = line.substring(0, 27) + "..."; }
-		ui_label(gfx, line, 28, y + i * 14, 184, 1, color);
+		if (i + 1 == count && lines.count > count) { line = line.substring(0, columns - 3) + "..."; }
+		ui_label(gfx, line, 28, y + i * pitch, 184, size, color);
 	}
 }
 
@@ -55,19 +58,19 @@ void notification_screen(Arduino_GFX *gfx, uint32_t now) {
 		ui_empty(gfx, tr(Text::Quiet), tr(Text::AlertHint));
 		return;
 	}
-	ui_card(gfx, 62, 186);
+	ui_card(gfx, 62, 152);
 	const Notification &n = cached.notification;
-	ui_label(gfx, n.app.length() ? n.app : tr(Text::Phone), 28, 78, 126, 1, UI_ACCENT);
-	ui_label(gfx, n.time, 164, 78, 48, 1, UI_MUTED);
-	paragraph(gfx, n.title, 102, 2, UI_TEXT);
-	gfx->drawFastHLine(28, 133, 184, UI_MUTED);
-	TextLines lines = wrap_text(ui_ascii(n.message).c_str(), 30);
-	uint8_t pages = lines.count ? (lines.count + 4) / 5 : 1;
+	ui_label(gfx, n.app.length() ? n.app : tr(Text::Phone), 28, 70, 126, 2, UI_ACCENT);
+	ui_label(gfx, n.time, 164, 74, 48, 1, UI_MUTED);
+	paragraph(gfx, n.title, 90, 2, UI_TEXT, 2, 15);
+	gfx->drawFastHLine(28, 134, 184, UI_MUTED);
+	TextLines lines = wrap_text(ui_ascii(n.message).c_str(), 15);
+	uint8_t pages = lines.count ? (lines.count + 2) / 3 : 1;
 	uint8_t page = ((uint32_t)(now - cached.notification_received) / 6000) % pages;
-	for (uint8_t i = 0; i < 5 && page * 5 + i < lines.count; ++i) {
-		ui_label(gfx, lines.line[page * 5 + i], 28, 145 + i * 14, 184);
+	for (uint8_t i = 0; i < 3 && page * 3 + i < lines.count; ++i) {
+		ui_label(gfx, lines.line[page * 3 + i], 28, 142 + i * 21, 184, 2, UI_TEXT);
 	}
-	ui_label(gfx, String(page + 1) + " / " + String(pages), 28, 228, 100, 1, UI_MUTED);
+	ui_label(gfx, String(page + 1) + " / " + String(pages), 28, 234, 100, 1, UI_MUTED);
 }
 
 /**
@@ -75,11 +78,11 @@ void notification_screen(Arduino_GFX *gfx, uint32_t now) {
  * @param gfx Canvas.
  */
 void call_screen(Arduino_GFX *gfx) {
-	ui_card(gfx, 62, 186);
-	gfx->drawCircle(120, 103, 22, UI_WARM);
-	ui_label(gfx, tr(Text::CallTag), 108, 100, 30, 1, UI_WARM);
-	ui_label(gfx, tr(Text::Incoming), 28, 145, 184, 2, UI_TEXT);
-	paragraph(gfx, cached.caller.length() ? cached.caller : tr(Text::UnknownCaller), 176, 3, UI_WARM);
+	ui_card(gfx, 62, 152);
+	gfx->drawCircle(120, 95, 22, UI_WARM);
+	ui_label(gfx, tr(Text::CallTag), 108, 92, 30, 1, UI_WARM);
+	ui_label(gfx, tr(Text::Incoming), 28, 137, 184, 2, UI_TEXT);
+	paragraph(gfx, cached.caller.length() ? cached.caller : tr(Text::UnknownCaller), 172, 3, UI_WARM);
 	ui_label(gfx, tr(Text::AnswerPhone), 28, 226, 184, 1, UI_MUTED);
 }
 
@@ -94,19 +97,19 @@ void navigation_screen(Arduino_GFX *gfx) {
 		ui_empty(gfx, tr(Text::NoRoute), tr(Text::RouteHint));
 		return;
 	}
-	ui_card(gfx, 62, 104);
+	ui_card(gfx, 62, 98);
 	if (nav.hasIcon && cached.has_icon && cached.icon_crc == nav.iconCRC) {
-		gfx->drawBitmap(28, 83, cached.icon, 48, 48, UI_ACCENT);
+		gfx->drawBitmap(28, 80, cached.icon, 48, 48, UI_ACCENT);
 	} else {
-		gfx->drawRoundRect(28, 83, 48, 48, 10, UI_MUTED);
-		ui_label(gfx, "...", 42, 104, 24, 1, UI_MUTED);
+		gfx->drawRoundRect(28, 80, 48, 48, 10, UI_MUTED);
+		ui_label(gfx, "...", 42, 101, 24, 1, UI_MUTED);
 	}
-	ui_label(gfx, nav.title, 88, 83, 124, 2, UI_TEXT);
-	ui_label(gfx, nav.distance, 88, 114, 124, 1, UI_ACCENT);
-	ui_label(gfx, nav.speed, 88, 139, 124, 1, UI_MUTED);
-	ui_card(gfx, 174, 74);
-	paragraph(gfx, nav.directions, 187, 2, UI_TEXT);
-	ui_label(gfx, "ETA " + nav.eta + " / " + nav.duration, 28, 229, 184, 1, UI_MUTED);
+	ui_label(gfx, nav.title, 88, 80, 124, 2, UI_TEXT);
+	ui_label(gfx, nav.distance, 88, 110, 124, 1, UI_ACCENT);
+	ui_label(gfx, nav.speed, 88, 132, 124, 1, UI_MUTED);
+	ui_card(gfx, 164, 50);
+	paragraph(gfx, nav.directions, 174, 2, UI_TEXT);
+	ui_label(gfx, "ETA " + nav.eta + " / " + nav.duration, 28, 204, 184, 1, UI_MUTED);
 }
 
 /**
@@ -136,16 +139,16 @@ void weather_screen(Arduino_GFX *gfx, uint32_t now) {
 	ui_weather_icon(gfx, w.icon, 184, 124);
 	ui_label(gfx, weather_stale(now, cached.weather_received) ? tr(Text::Stale) :
 		tr(Text::Updated) + cached.weather_time, 28, 151, 184, 1, UI_MUTED);
-	ui_card(gfx, 180, 48);
+	ui_card(gfx, 176, 38);
 	if (!cached.has_forecast) {
-		ui_label(gfx, tr(Text::ForecastPending), 28, 209, 184, 1, UI_MUTED);
+		ui_label(gfx, tr(Text::ForecastPending), 28, 188, 184, 1, UI_MUTED);
 		return;
 	}
 	for (uint8_t i = 0; i < cached.weather_count; ++i) {
 		const Weather &day = cached.weather[i];
 		int16_t x = 26 + i * 66;
-		ui_label(gfx, weekday(day.day), x, 193, 60, 1, UI_MUTED);
-		ui_label(gfx, String(day.high) + "/" + String(day.low), x, 220, 60, 1, UI_TEXT);
+		ui_label(gfx, weekday(day.day), x, 184, 60, 1, UI_MUTED);
+		ui_label(gfx, String(day.high) + "/" + String(day.low), x, 200, 60, 1, UI_TEXT);
 	}
 }
 
@@ -156,9 +159,9 @@ void content(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, uint32_t now) {
 	else if (page == UiPage::Notification) { notification_screen(gfx, now); }
 	else if (page == UiPage::Navigation) {
 		navigation_screen(gfx);
-		context_footer(gfx, tr(view_route_large(settings_get().route_large) ? Text::ViewLarge : Text::ViewDetails));
+		context_footer(gfx, tr(view_route_large(settings_get().route_large) ? Text::ViewLarge : Text::ViewDetails), true);
 	}
-	else if (page == UiPage::Weather) { weather_screen(gfx, now); context_footer(gfx, tr(Text::SyncWeather)); }
+	else if (page == UiPage::Weather) { weather_screen(gfx, now); context_footer(gfx, tr(Text::SyncWeather), true); }
 	else if (page == UiPage::Settings) { settings_menu_draw(gfx); }
 	else if (uint8_t(page) >= uint8_t(UiPage::Desk)) { context_draw(gfx, watch, page, cached, now); }
 }
@@ -218,7 +221,7 @@ bool screens_draw(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, uint32_t n
 	if (page == UiPage::Clock && !overlay_active) {
 		bool painted = clock_draw(gfx, watch, cached.connected);
 		bool frame = invalidated || changed || painted;
-		if (frame) { context_footer(gfx, tr(Text::Desk)); }
+		if (frame) { context_footer(gfx, tr(Text::Desk), true); }
 		invalidated = false;
 		return frame;
 	}

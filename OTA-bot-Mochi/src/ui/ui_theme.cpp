@@ -130,9 +130,8 @@ void ui_chrome(Arduino_GFX *gfx, const char *title, bool connected, uint8_t page
 	gfx->fillCircle(220, 16, 3, connected ? UI_ACCENT : UI_MUTED);
 	ui_sound_badge(gfx, 150, 11);
 	ui_label(gfx, title, 16, 30, 198, 2, UI_TEXT);
-	gfx->fillRect(0, 258, LCD_WIDTH, 22, UI_BG);
 	for (uint8_t i = 0; i < 6; ++i) {
-		gfx->fillCircle(90 + i * 12, 267, i == page ? 3 : 2,
+		gfx->fillCircle(90 + i * 12, 218, i == page ? 3 : 2,
 			i == page ? UI_ACCENT : UI_MUTED);
 	}
 }
