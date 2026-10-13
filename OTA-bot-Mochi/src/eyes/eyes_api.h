@@ -46,7 +46,7 @@ void eyes_set_style(EyeStyle style);
 
 /**
  * @brief Change emotional expression.
- * @param expr One of NEUTRAL, HAPPY, SAD, ANGRY, SURPRISED, SLEEPY, LOVE, DIZZY, GLEE, WORRIED, FOCUSED, ANNOYED, SKEPTIC, FRUSTRATED, UNIMPRESSED, SUSPICIOUS, SQUINT, FURIOUS, SCARED, AWE, SLEEPY_EYES, SAD_DOWN, SAD_UP.
+ * @param expr Any value of Expression; see eyes_expression_name() for the full stable list.
  */
 void eyes_set_expression(Expression expr);
 
@@ -70,7 +70,7 @@ void eyes_set_asym(uint8_t asym);
 
 /**
  * @brief Set expression by case-insensitive name string.
- * @param name One of neutral, happy, glee, worried, focused, annoyed, surprised, skeptic, frustrated, unimpressed, sleepy, suspicious, squint, angry, furious, scared, awe, love, dizzy, sad, sad_down, sad_up, sleepy_eyes.
+ * @param name Stable name from eyes_expression_name(), plus the aliases "saddown" and "sadup".
  * @return True when name matched, false otherwise.
  */
 bool eyes_set_expression_by_name(const char *name);

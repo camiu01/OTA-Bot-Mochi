@@ -44,7 +44,7 @@ static void dirty_region_tests() {
 	eyes_set_eye_colors(0, 0xFFFF, 0xF800, 0x07E0);
 	for (uint8_t style = 0; style < 4; ++style) {
 		eyes_set_style(static_cast<EyeStyle>(style));
-		for (uint8_t expression = 0; expression < 23; ++expression) {
+		for (uint8_t expression = 0; expression < EXPRESSION_COUNT; ++expression) {
 			for (bool blinking : {false, true}) {
 				eyes_set_expression(static_cast<Expression>(expression));
 				EyeState &st = eyes_state();
@@ -65,6 +65,57 @@ static void dirty_region_tests() {
 			}
 		}
 	}
+}
+
+/**
+ * @brief Every expression must look different from NEUTRAL on every one of the four styles.
+ *
+ * The bounds and pupil-free tests only prove a new face is legal, not that it is visible.
+ * This is the guard for "must work on all face styles": a face that silently degrades to
+ * NEUTRAL on one style fails here instead of shipping unnoticed.
+ */
+static void distinct_expression_tests() {
+	Arduino_GFX gfx;
+	eyes_init(&gfx);
+	eyes_set_eye_colors(0, 0xFFFF, 0xF800, 0x07E0);
+	for (uint8_t style = 0; style < 4; ++style) {
+		eyes_set_style(static_cast<EyeStyle>(style));
+		std::vector<uint16_t> baseline;
+		for (uint8_t expression = 0; expression < EXPRESSION_COUNT; ++expression) {
+			EyeState &st = eyes_state();
+			st.saccadeX = st.saccadeY = st.tiltX = st.tiltY = 0;
+			st.blinking = false;
+			eyes_set_expression(static_cast<Expression>(expression));
+			st.dirtyInit = false;
+			eyes_draw();
+			if (expression == NEUTRAL) { baseline = gfx.pixels; continue; }
+			assert(!baseline.empty() && gfx.pixels != baseline);
+		}
+	}
+}
+
+/**
+ * @brief A sustained lateral load rolls and shifts the eye pair, which is what reads as cornering.
+ *
+ * Regression guard for the IMU lean: without it the gaze would only ever translate, and a
+ * sign slip in the mount-relative mapping would go unnoticed by the bounds tests.
+ */
+static void bank_tests() {
+	eyes_init(nullptr);
+	EyeConfig cfg = eyes_config();
+	cfg.expression = NEUTRAL;
+	cfg.asym = 0;
+	EyeState rest{};
+	EyeLayout centre = eye_layout(cfg, rest);
+	EyeState leaning = rest;
+	leaning.tiltX = 12;
+	EyeLayout right_turn = eye_layout(cfg, leaning);
+	assert(right_turn.left.y < centre.left.y && right_turn.right.y > centre.right.y);
+	assert(right_turn.left.x > centre.left.x);
+	leaning.tiltX = -12;
+	EyeLayout left_turn = eye_layout(cfg, leaning);
+	assert(left_turn.left.y > left_turn.right.y && left_turn.left.x < centre.left.x);
+	assert(centre.left.y == centre.right.y);
 }
 
 /** @brief Random reactions are temporary, avoid the base, respect flags, and survive rollover. */
@@ -194,6 +245,8 @@ int main() {
 	assert(settings_init());
 	style_tests();
 	dirty_region_tests();
+	distinct_expression_tests();
+	bank_tests();
 	random_tests();
 	imu_face_tests();
 	integration_tests();

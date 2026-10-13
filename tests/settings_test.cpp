@@ -17,6 +17,11 @@
 #include <assert.h>
 #include <iostream>
 #include <algorithm>
+#include <string>
+
+/** @brief Mirrors of the Settings expression grid layout, so adding expressions never needs a test edit. */
+constexpr uint8_t GRID_COLS_HINT = 3;
+constexpr uint8_t GRID_PAGE_ROWS_HINT = 6;
 
 /** @brief Test explicit persistence, malformed blobs, and unavailable storage. */
 static void persistence_tests() {
@@ -78,6 +83,32 @@ static void migration_tests() {
 	settings_defaults();
 }
 
+/** @brief Version four keeps its byte layout, so old mood indices stay valid. */
+static void mood_range_tests() {
+	assert(EXPRESSION_COUNT > 5);
+	CompanionSettings legacy; legacy.mood = LOVE;
+	uint8_t legacy_bytes[SETTINGS_BYTES];
+	settings_encode(legacy, legacy_bytes);
+	assert(legacy_bytes[0] == 4);
+	CompanionSettings decoded;
+	assert(settings_decode(legacy_bytes, sizeof(legacy_bytes), decoded) && decoded.mood == LOVE);
+	// The wider expression range reuses the same byte, so no new profile version is needed.
+	CompanionSettings wide; wide.mood = CAT;
+	uint8_t wide_bytes[SETTINGS_BYTES];
+	settings_encode(wide, wide_bytes);
+	assert(settings_decode(wide_bytes, sizeof(wide_bytes), decoded) && decoded.mood == CAT);
+	assert(settings_valid(wide));
+	CompanionSettings invalid = wide; invalid.mood = EXPRESSION_COUNT;
+	assert(!settings_valid(invalid));
+	assert(!settings_update(invalid));
+	// A freshly written wide profile reloads from flash unchanged.
+	assert(settings_init() && settings_save());
+	CompanionSettings candidate = settings_get(); candidate.mood = CAT;
+	assert(settings_update(candidate) && settings_save());
+	assert(settings_init() && settings_get().mood == CAT && eyes_config().expression == CAT);
+	settings_defaults();
+}
+
 /** @brief Test strict values, partial lines, overflow recovery, and explicit USB save. */
 static void usb_tests() {
 	CompanionSettings current;
@@ -102,6 +133,13 @@ static void usb_tests() {
 	assert(settings_parse("set sound-level 31", current).action == UsbAction::Invalid);
 	assert(settings_parse("set animation playful", current).profile.animation == 2);
 	assert(settings_parse("set animation invalid", current).action == UsbAction::Invalid);
+	assert(settings_parse("mood names", current).action == UsbAction::MoodNames);
+	assert(settings_parse("mood list", current).action == UsbAction::Invalid);
+	assert(settings_parse("set mood star", current).profile.mood == STAR);
+	assert(settings_parse("set mood cat", current).profile.mood == CAT);
+	assert(settings_parse("set mood sleepy_eyes", current).profile.mood == SLEEPY_EYES);
+	assert(settings_parse("set mood not-a-face", current).action == UsbAction::Invalid);
+	assert(settings_parse("set mood names", current).action == UsbAction::Invalid);
 	assert(settings_parse("set language it", current).profile.language == 1);
 	assert(settings_parse("set language fr", current).action == UsbAction::Invalid);
 	assert(settings_parse("weather", current).action == UsbAction::WeatherStatus);
@@ -213,7 +251,35 @@ static void menu_tests() {
 	assert(settings_menu_tap(239, 131) == MenuAction::Changed);
 	assert(settings_get().style == (style + 1) % 4);
 	assert(settings_menu_tap(0, 132) == MenuAction::Changed);
+	// The LOOK tab's Mood row opens the expression grid instead of cycling five moods.
 	assert(settings_menu_tap(239, 221) == MenuAction::Changed);
+	assert(settings_menu_grid_open());
+	settings_menu_draw(&gfx);
+	assert(std::find(gfx.text.begin(), gfx.text.end(), "neutro") != gfx.text.end());
+	// Gutters between touch targets and empty tail cells stay inert.
+	assert(settings_menu_tap(81, 103) == MenuAction::None);
+	assert(settings_menu_tap(44, 113) == MenuAction::None);
+	assert(settings_menu_tap(44, 220) == MenuAction::None);
+	// A real cell selects and applies the expression without writing flash.
+	unsigned int grid_writes = test_flash_writes;
+	assert(settings_menu_tap(196, 103) == MenuAction::Changed);
+	assert(settings_get().mood == SAD && eyes_config().expression == SAD);
+	assert(test_flash_writes == grid_writes);
+	// Scrolling is bounded and the final page still reaches the last expression.
+	uint8_t max_first = uint8_t((EXPRESSION_COUNT + GRID_COLS_HINT - 1) / GRID_COLS_HINT - GRID_PAGE_ROWS_HINT);
+	for (uint8_t step = 0; step < max_first; ++step) { assert(settings_menu_scroll(1)); }
+	assert(!settings_menu_scroll(1));
+	// The header reports real cell indices, not page numbers, and clamps to the final face.
+	settings_menu_draw(&gfx);
+	std::string range = std::to_string(uint16_t(max_first * GRID_COLS_HINT + 1)) + "-" +
+		std::to_string(EXPRESSION_COUNT) + "/" + std::to_string(EXPRESSION_COUNT);
+	assert(std::find(gfx.text.begin(), gfx.text.end(), range) != gfx.text.end());
+	assert(settings_menu_tap(44, 208) == MenuAction::Changed);
+	assert(settings_get().mood == EXPRESSION_COUNT - 1 && eyes_config().expression == EXPRESSION_COUNT - 1);
+	assert(settings_menu_scroll(-1));
+	// BACK closes the grid and restores the tab rows.
+	assert(settings_menu_tap(160, 240) == MenuAction::Changed);
+	assert(!settings_menu_grid_open());
 	assert(settings_menu_tap(20, 222) == MenuAction::Changed);
 	assert(settings_menu_tap(239, 257) == MenuAction::Exit);
 	assert(settings_menu_tap(239, 258) == MenuAction::Exit);
@@ -329,13 +395,28 @@ static void motion_tests() {
 int main() {
 	persistence_tests();
 	migration_tests();
+	mood_range_tests();
 	usb_tests();
 	menu_tests();
 	touch_tests();
 	motion_tests();
 	format_tests();
 	assert(eyes_set_expression_by_name("SADDOWN"));
+	assert(eyes_set_expression_by_name("star"));
+	assert(eyes_set_expression_by_name("CAT"));
+	assert(eyes_set_expression_by_name("Swirly"));
+	assert(eyes_config().expression == SWIRLY);
 	assert(!eyes_set_expression_by_name(nullptr));
 	assert(!eyes_set_expression_by_name("not-an-expression"));
+	assert(!eyes_set_expression_by_name("starr"));
+	// Every expression has a stable name that parses back to the same value.
+	for (uint8_t i = 0; i < EXPRESSION_COUNT; ++i) {
+		assert(eyes_set_expression_by_name(eyes_expression_name(static_cast<Expression>(i))));
+		assert(eyes_config().expression == static_cast<Expression>(i));
+		assert(strcmp(settings_mood_name(i), eyes_expression_name(static_cast<Expression>(i))) == 0);
+		assert(strcmp(tr_expression(i), "?") != 0 && strlen(tr_expression(i)) > 0);
+	}
+	assert(strcmp(eyes_expression_name(static_cast<Expression>(EXPRESSION_COUNT)), "unknown") == 0);
+	assert(strcmp(tr_expression(EXPRESSION_COUNT), "?") == 0);
 	std::cout << "Settings persistence, menu, USB parsing, touch, and motion tests passed\n";
 }

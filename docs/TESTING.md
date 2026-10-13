@@ -26,10 +26,12 @@ mount-relative gaze, bump rejection, shake opt-in/cooldown/restoration, preferen
 validation/save failures, USB command limits, automatic notification/route pages,
 preservation of manual page choices on route refresh, and touch-delayed switching.
 The real eye renderer also runs against a native raster substitute: all four
-styles, all 23 expressions, and both blink states (184 combinations), solid-style
-pupil/highlight exclusion, trapezoid symmetry, radius limits, and dirty-region
-erasure are checked. Automatic-face tests cover random timing, restoration,
-sustained IMU thresholds, cooldowns, and version-one preference migration.
+styles, all 73 expressions, and both blink states (584 combinations), a proof that
+every expression renders differently from NEUTRAL on every style, solid-style
+pupil/highlight exclusion, trapezoid symmetry, IMU gaze/roll bounds, radius limits,
+and dirty-region erasure are checked. Automatic-face tests cover random timing,
+restoration, sustained IMU thresholds, cooldowns, and version-one preference
+migration.
 Additional checks cover contextual tools without extra carousel pages, temporary
 route layout versus saved defaults, version-two migration, local timer rollover/
 pause/Pomodoro completion, and eye-tap reactions with automation disabled.
@@ -121,10 +123,13 @@ Do not make the device world-writable. Close other serial monitors before upload
    bench only, opt into shake, perform repeated opposing impulses, and confirm
    reaction, cooldown, and mood restoration. Disable shake for road use.
    Test missing sensors and allocation failure.
-   Check MOCHI/TRAPEZ have no pupils/highlights, BLOUB is visibly wider, and TRAPEZ
-   eyes are mirrored without protruding spikes. Enable Random mood and check
-   temporary expressions and restoration; enable IMU mood on the bench to test
-   sustained X/Y/Z deflections rather than isolated bumps.
+   Check MOCHI/TRAPEZ have no pupils/highlights, BLOUB is visibly wider, and
+   TRAPEZ eyes are mirrored with rounded corners and no protruding spikes.
+   Enable Random mood and check temporary expressions and restoration; enable
+   IMU mood on the bench to test sustained X/Y/Z deflections rather than isolated
+   bumps. Finally, drive a gentle curve and confirm the gaze holds through the bend
+   and the pair leans; flip the sign in `eye_geometry.h` if the roll goes the wrong
+   way for that mounting.
 10. Run an extended BLE session and measure heap, power, and battery runtime.
 
 Also test Clock → DESK TOOLS and all four tools. Verify large clock legibility,

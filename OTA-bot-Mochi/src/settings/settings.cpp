@@ -41,11 +41,10 @@ const CompanionSettings &settings_get() { return profile; }
 /** @brief Apply preset eye colors on black and the selected backlight profile. */
 void settings_apply() {
 	static const uint16_t colors[] = {0xFFFF, 0x6FBA, 0x07FF, 0xFD6C, 0xF9D6, 0x4D7F};
-	static const Expression moods[] = {NEUTRAL, HAPPY, FOCUSED, SLEEPY, LOVE};
 	ui_theme_color(colors[profile.color]);
 	eyes_set_style(static_cast<EyeStyle>(profile.style));
 	if (!profile.shake) { eyes_state().dizzyUntilMs = 0; }
-	eyes_set_expression(moods[profile.mood]);
+	eyes_set_expression(static_cast<Expression>(profile.mood));
 	eyes_set_eye_colors(0x0000, colors[profile.color], 0x0000, 0xFFFF);
 	eyes_state().dirtyInit = false;
 	backlight_configure(profile.night ? profile.night_brightness : profile.brightness, profile.dim);

@@ -18,9 +18,16 @@ class FacePolicy {
 
 	/** @brief Start a bounded random reaction. @param now Time. @param choice Random input. @param tapped Explicit request. */
 	void random_reaction(uint32_t now, uint32_t choice, bool tapped) {
-		static const Expression pool[] = {HAPPY, GLEE, FOCUSED, SKEPTIC, LOVE, AWE, SLEEPY_EYES};
-		uint8_t index = choice % 7;
-		while (pool[index] == base || pool[index] == previous || pool[index] == face) { index = (index + 1) % 7; }
+		static const Expression pool[] = {
+			HAPPY, GLEE, FOCUSED, SKEPTIC, LOVE, AWE, SLEEPY_EYES,
+			EXCITED, GRIN, CURIOUS, WONDERING, STAR, SMUG, CONFUSED, SHY,
+			SPARKLE, BEAMING, MILD_HAPPY, SMIRK, DAYDREAM, CHEEKY, ZEN
+		};
+		constexpr uint8_t pool_size = uint8_t(sizeof(pool) / sizeof(pool[0]));
+		uint8_t index = uint8_t(choice % pool_size);
+		while (pool[index] == base || pool[index] == previous || pool[index] == face) {
+			index = uint8_t((index + 1) % pool_size);
+		}
 		face = previous = pool[index]; started = last_random = now;
 		duration = 3000; random_delay = 12000 + choice % 18001;
 		active = true; motion = false; manual = tapped; qualifying = false;

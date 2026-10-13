@@ -49,7 +49,7 @@ bool assign_choice(const char *field, const char *value, CompanionSettings &prof
 		index = choice(value, 6, settings_color_name);
 		if (index >= 0) { profile.color = index; return true; }
 	} else if (strcmp(field, "mood") == 0) {
-		index = choice(value, 5, settings_mood_name);
+		index = choice(value, EXPRESSION_COUNT, settings_mood_name);
 		if (index >= 0) { profile.mood = index; return true; }
 	} else if (strcmp(field, "animation") == 0) {
 		index = choice(value, 3, settings_animation_name);
@@ -111,11 +111,18 @@ void show() {
 	Serial.printf("sound-status=%s gpio=%u\n", sound_status_name(), unsigned(BUZZER));
 }
 
+/** @brief Print every accepted mood name for the USB vocabulary. */
+void mood_names() {
+	for (uint8_t i = 0; i < EXPRESSION_COUNT; ++i) {
+		Serial.printf("%s%s", settings_mood_name(i), i + 1 < EXPRESSION_COUNT ? " " : "\n");
+	}
+}
+
 /** @brief Explain strict USB vocabulary, unchanged by display locale. */
 void help() {
-	Serial.println("show | save | defaults | set <field> <value>");
+	Serial.println("show | save | defaults | mood names | set <field> <value>");
 	Serial.println("style normal/mochi/bloub/trapez; color white/mint/cyan/amber/pink/blue");
-	Serial.println("mood neutral/happy/focused/sleepy/love; brightness 5..90; night-brightness 1..20");
+	Serial.println("mood <name>: any expression from neutral to cat; brightness 5..90; night-brightness 1..20");
 	Serial.println("dashboard/night/shake/dim/random/imu-face on/off. Use controls only while parked.");
 	Serial.println("set route large/details + save: default; route large/details/default: session only");
 	Serial.println("animation calm/dasai/playful; language en/it; sound-level 1..30");
@@ -133,6 +140,7 @@ void execute(const UsbCommand &command) {
 			break;
 		case UsbAction::Save: Serial.println(settings_save() ? "OK, saved" : "ERROR, save failed"); break;
 		case UsbAction::Defaults: settings_defaults(); Serial.println("Defaults applied; use save to persist"); break;
+		case UsbAction::MoodNames: mood_names(); break;
 		case UsbAction::RouteView:
 			view_route_temporary(command.route_mode);
 			Serial.println("OK, temporary route view; saved default unchanged");
@@ -190,6 +198,8 @@ UsbCommand settings_parse(const char *input, const CompanionSettings &current) {
 		if (strcmp(field, "large") == 0) { result.action = UsbAction::RouteView; result.route_mode = 1; }
 		if (strcmp(field, "details") == 0) { result.action = UsbAction::RouteView; result.route_mode = 0; }
 		if (strcmp(field, "default") == 0) { result.action = UsbAction::RouteView; result.route_mode = -1; }
+	} else if (tokens == 2 && strcmp(verb, "mood") == 0 && strcmp(field, "names") == 0) {
+		result.action = UsbAction::MoodNames;
 	} else if (tokens == 2 && strcmp(verb, "weather") == 0 && strcmp(field, "sync") == 0) {
 		result.action = UsbAction::WeatherSync;
 	} else if (tokens == 2 && strcmp(verb, "sound") == 0 && strcmp(field, "test") == 0) {

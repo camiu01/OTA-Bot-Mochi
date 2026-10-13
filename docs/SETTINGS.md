@@ -15,7 +15,7 @@ rows. Changes are live in RAM and do not write flash while browsing.
 | --- | --- | --- |
 | LOOK | Eyes | normal, mochi, bloub, trapez |
 | LOOK | Color | white, mint, cyan, amber, pink, blue |
-| LOOK | Mood | neutral, happy, focused, sleepy, love |
+| LOOK | Mood | opens a 3-column grid of all 73 expressions; tap a cell, swipe to scroll |
 | LOOK | Route default | large / details |
 | LIGHT | Day level | 5, 10, 20, 30, 50, 70, 90% |
 | LIGHT | Night | off / on |
@@ -138,8 +138,10 @@ expressions only, not the selected eye style or color.
 
 - **Random:** The first change is after 12 seconds; subsequent intervals are
   12–30 seconds. Each reaction lasts three seconds and returns to the selected
-  base mood. Choices are happy, glee, focused, skeptic, love, awe, and sleepy eyes,
-  avoiding the base mood and consecutive duplicates.
+  base mood. The pool holds 22 choices (happy, glee, focused, skeptic, love, awe,
+  sleepy eyes, excited, grin, curious, wondering, star, smug, confused, shy,
+  sparkle, beaming, mild happy, smirk, daydream, cheeky, zen), avoiding the base
+  mood and consecutive duplicates.
 - **IMU lateral axis:** A mount-relative X deflection of at least 0.25g in one
   direction for 350ms produces a brief skeptic expression.
 - **IMU longitudinal axis:** A mount-relative Y deflection of at least 0.25g
@@ -155,14 +157,23 @@ responses, **not** detection of turns, braking, potholes, or driver fatigue.
 Start the device while parked. Thresholds need testing on the actual mounting;
 keep IMU/shake reactions off if rough-road motion is distracting.
 
+The same sensor also drives a bounded decorative gaze, separate from the mood
+reactions above. It is clamped to ±14 pixels, damped, and only recenters below
+about 0.1g of sustained load, so a gentle curve keeps the eyes displaced for the
+whole bend instead of averaging back to centre. The eye pair also rolls by up to
+4 pixels while leaning. Both effects are decorative and remain unverified on real
+hardware; see `TODO.md`.
+
+For solid MOCHI/TRAPEZ, love, dizzy and star draw whole-eye hearts, crosses and
+stars, while crying and the ten symbol faces (halo, devil, fire, moon, sparkle,
+bolt, diamond, ring, target, money) engrave their mark into the body. None of them
+inserts a pupil or highlight inside another eye body.
+
 A short tap on Eyes requests a three-second random expression even when Random
 mood is off. Repeated taps select a different expression without changing the
 saved base, style, or color. The tap reaction takes priority over ordinary IMU
 moods; an active dizzy reaction keeps priority and ignores the tap. A hold still
 opens Settings and a swipe does not also trigger a random face.
-
-For solid MOCHI/TRAPEZ, love draws whole-eye hearts and dizzy draws whole-eye
-crosses. Neither inserts a pupil, highlight, or symbol inside another eye body.
 
 The full profile is stored as a validated twelve-byte version-four NVS blob with
 a checksum. Eight-byte versions one/two/three retain their existing choices,

@@ -25,8 +25,8 @@ class MotionFilter {
 
 	/** @brief Bound gaze excursion. @param value Pixels. @return Clamped integer. */
 	static int16_t bounded(float value) {
-		if (value > 8) { return 8; }
-		if (value < -8) { return -8; }
+		if (value > 14) { return 14; }
+		if (value < -14) { return -14; }
 		return int16_t(value);
 	}
 
@@ -78,13 +78,15 @@ public:
 			delta[i] = axes[i] - baseline[i];
 			energy += delta[i] * delta[i];
 		}
-		if (energy < 0.0225f) {
+		// Recenter only while nearly parked: a sustained cornering load above ~0.1g must
+		// keep driving the gaze instead of being averaged away within a few seconds.
+		if (energy < 0.01f) {
 			for (uint8_t i = 0; i < 3; ++i) { baseline[i] += delta[i] * 0.01f; }
 		}
-		float target_x = fabsf(delta[0]) < 0.035f ? 0 : delta[0] * 18;
-		float target_y = fabsf(delta[1]) < 0.035f ? 0 : -delta[1] * 12;
-		gaze_x += (target_x - gaze_x) * 0.12f;
-		gaze_y += (target_y - gaze_y) * 0.12f;
+		float target_x = fabsf(delta[0]) < 0.035f ? 0 : delta[0] * 22;
+		float target_y = fabsf(delta[1]) < 0.035f ? 0 : -delta[1] * 16;
+		gaze_x += (target_x - gaze_x) * 0.15f;
+		gaze_y += (target_y - gaze_y) * 0.15f;
 		sample.x = bounded(gaze_x); sample.y = bounded(gaze_y);
 		sample.delta_x = delta[0]; sample.delta_y = delta[1]; sample.delta_z = delta[2];
 		sample.shake = detect(delta, now, shake_enabled);

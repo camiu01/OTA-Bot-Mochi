@@ -14,8 +14,25 @@ uint8_t tab = 0;
 bool save_failed = false;
 bool sound_options = false;
 uint8_t first_row = 0;
+bool grid_open = false;
+uint8_t grid_first_row = 0;
+
+/** Expression grid geometry: three columns of large touch targets. */
+constexpr uint8_t GRID_COLS = 3;
+constexpr uint8_t GRID_ROWS = 6;
+constexpr uint8_t GRID_ROW_PX = 21;
+constexpr int16_t GRID_X0 = 8;
+constexpr int16_t GRID_Y0 = 94;
+constexpr int16_t GRID_W = 72;
+constexpr int16_t GRID_H = 19;
+constexpr uint8_t GRID_ROWS_TOTAL = (EXPRESSION_COUNT + GRID_COLS - 1) / GRID_COLS;
+constexpr uint8_t GRID_MAX_FIRST = GRID_ROWS_TOTAL > GRID_ROWS ? GRID_ROWS_TOTAL - GRID_ROWS : 0;
+
 /** @brief Number of rows in the current panel. */
 uint8_t row_count() { return tab == 3 ? 2 : (tab == 4 && !sound_options ? 5 : 4); }
+
+/** @brief Close the grid and restore the tab rows. */
+void grid_close() { grid_open = false; grid_first_row = 0; first_row = 0; }
 
 /** @brief Draw one editable row. @param gfx Canvas. @param index Row. @param label Field. @param value Choice. */
 void row(Arduino_GFX *gfx, uint8_t index, const char *label, const String &value) {
@@ -42,7 +59,12 @@ void change_row(uint8_t index) {
 	if (tab == 0) {
 		if (index == 0) { p.style = (p.style + 1) % 4; }
 		if (index == 1) { p.color = (p.color + 1) % 6; }
-		if (index == 2) { p.mood = (p.mood + 1) % 5; }
+		if (index == 2) {
+			uint8_t focus = uint8_t(p.mood / GRID_COLS);
+			grid_open = true;
+			grid_first_row = focus > GRID_MAX_FIRST ? GRID_MAX_FIRST : focus;
+			return;
+		}
 		if (index == 3) { p.route_large = !p.route_large; }
 	} else if (tab == 1) {
 		if (index == 0) { p.brightness = next_brightness(p.brightness, false); }
@@ -115,10 +137,64 @@ void extra_rows(Arduino_GFX *gfx, const CompanionSettings &p) {
 		row(gfx, 4, tr(Text::TestSound), tr(value));
 	}
 }
+
+/** @brief Draw the expression grid overlay, replacing the tab rows. @param gfx Canvas. */
+void grid_draw(Arduino_GFX *gfx) {
+	const CompanionSettings &p = settings_get();
+	uint8_t first = uint8_t(grid_first_row * GRID_COLS + 1);
+	uint8_t last = uint8_t(first + GRID_ROWS * GRID_COLS - 1);
+	if (last > EXPRESSION_COUNT) { last = EXPRESSION_COUNT; }
+	gfx->fillRoundRect(2, 52, 236, 36, 8, UI_CARD);
+	ui_label(gfx, tr(Text::MoodLabel), 14, 66, 110, 1, UI_ACCENT);
+	ui_label(gfx, String(first) + "-" + String(last) + "/" +
+		String(EXPRESSION_COUNT), 150, 66, 76, 1, UI_MUTED);
+	for (uint8_t cell = 0; cell < GRID_ROWS * GRID_COLS; ++cell) {
+		uint16_t index = uint16_t(grid_first_row) * GRID_COLS + cell;
+		if (index >= EXPRESSION_COUNT) { break; }
+		int16_t x = int16_t(GRID_X0 + (cell % GRID_COLS) * (GRID_W + 4));
+		int16_t y = int16_t(GRID_Y0 + (cell / GRID_COLS) * GRID_ROW_PX);
+		bool selected = index == p.mood;
+		gfx->fillRoundRect(x, y, GRID_W, GRID_H, 6, selected ? UI_ACCENT : UI_CARD);
+		ui_label(gfx, tr_expression(uint8_t(index)), x + 3, y + 6, GRID_W - 6, 1,
+			selected ? UI_BG : UI_TEXT);
+	}
+	if (GRID_MAX_FIRST) {
+		int16_t track = int16_t(GRID_ROWS * GRID_ROW_PX) - 2;
+		gfx->fillRect(234, GRID_Y0, 3, track, UI_CARD);
+		gfx->fillRect(234, int16_t(GRID_Y0 + grid_first_row * (track - 40) / GRID_MAX_FIRST),
+			3, 40, UI_ACCENT);
+	}
+	gfx->fillRoundRect(2, 224, 116, 54, 8, UI_ACCENT);
+	gfx->fillRoundRect(122, 224, 116, 54, 8, UI_CARD);
+	ui_label(gfx, tr(save_failed ? Text::Failed : (settings_dirty() ? Text::Save : Text::Saved)),
+		36, 247, 72, 1, UI_BG);
+	ui_label(gfx, tr(Text::Back), 147, 247, 72, 1, UI_TEXT);
+}
+
+/**
+ * @brief Apply a tapped grid cell, ignoring the gutters between touch targets.
+ * @param x X. @param y Y. @return True when a real cell was hit.
+ */
+bool grid_cell(int16_t x, int16_t y) {
+	if (x < GRID_X0 || y < GRID_Y0) { return false; }
+	int16_t local_x = int16_t(x - GRID_X0), local_y = int16_t(y - GRID_Y0);
+	uint8_t col = uint8_t(local_x / (GRID_W + 4));
+	uint8_t row = uint8_t(local_y / GRID_ROW_PX);
+	if (col >= GRID_COLS || row >= GRID_ROWS) { return false; }
+	if (local_x % (GRID_W + 4) >= GRID_W || local_y % GRID_ROW_PX >= GRID_H) { return false; }
+	uint16_t index = uint16_t(grid_first_row + row) * GRID_COLS + col;
+	if (index >= EXPRESSION_COUNT) { return false; }
+	CompanionSettings p = settings_get();
+	p.mood = uint8_t(index);
+	save_failed = false;
+	settings_update(p);
+	return true;
+}
 }
 
 /** @brief Draw compact appearance, lighting, and car-mode tabs. @param gfx Canvas. */
 void settings_menu_draw(Arduino_GFX *gfx) {
+	if (grid_open) { grid_draw(gfx); return; }
 	const CompanionSettings &p = settings_get();
 	static const Text tabs[] = {Text::LookTab, Text::LightTab, Text::DriveTab, Text::MoveTab, Text::AudioTab};
 	gfx->fillRoundRect(2, 52, 68, 36, 8, UI_CARD);
@@ -143,6 +219,11 @@ void settings_menu_draw(Arduino_GFX *gfx) {
 /** @brief Interpret tap coordinates without conflating swipes/holds. @param x X. @param y Y. @return Action. */
 MenuAction settings_menu_tap(int16_t x, int16_t y) {
 	if (x < 0 || x >= 240 || y < 0 || y >= 280) { return MenuAction::None; }
+	if (grid_open) {
+		if (y >= 224 && x < 120) { save_failed = !settings_save(); return MenuAction::Changed; }
+		if (y >= 224) { grid_close(); return MenuAction::Changed; }
+		return grid_cell(x, y) ? MenuAction::Changed : MenuAction::None;
+	}
 	if (y >= 52 && y < 90) {
 		if (x >= 72 && x < 168) { return MenuAction::None; }
 		tab = (tab + (x < 72 ? 4 : 1)) % 5;
@@ -152,6 +233,7 @@ MenuAction settings_menu_tap(int16_t x, int16_t y) {
 	if (y >= 222) {
 		if (x >= 120) {
 			if (tab == 4 && sound_options) { sound_options = false; first_row = 0; return MenuAction::Changed; }
+			grid_close();
 			return MenuAction::Exit;
 		}
 		if (x < 120) {
@@ -168,6 +250,14 @@ MenuAction settings_menu_tap(int16_t x, int16_t y) {
 }
 
 bool settings_menu_scroll(int8_t direction) {
+	if (grid_open) {
+		uint8_t next = grid_first_row;
+		if (direction > 0 && next < GRID_MAX_FIRST) { ++next; }
+		if (direction < 0 && next > 0) { --next; }
+		if (next == grid_first_row) { return false; }
+		grid_first_row = next;
+		return true;
+	}
 	uint8_t limit = row_count() > 3 ? row_count() - 3 : 0;
 	uint8_t next = first_row;
 	if (direction > 0 && next < limit) { ++next; }
@@ -176,3 +266,6 @@ bool settings_menu_scroll(int8_t direction) {
 	first_row = next;
 	return true;
 }
+
+/** @brief Report whether the expression grid overlay currently replaces the tabs. @return Grid visible. */
+bool settings_menu_grid_open() { return grid_open; }

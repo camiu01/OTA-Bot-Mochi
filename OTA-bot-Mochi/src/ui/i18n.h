@@ -114,11 +114,79 @@
 	X(Amber, "amber", "ambra") \
 	X(Pink, "pink", "rosa") \
 	X(Blue, "blue", "blu") \
-	X(Neutral, "neutral", "neutro") \
-	X(Happy, "happy", "felice") \
-	X(Focused, "focused", "attento") \
-	X(Sleepy, "sleepy", "assonnato") \
-	X(Love, "love", "amore") \
+	X(ExprNeutral, "neutral", "neutro") \
+	X(ExprHappy, "happy", "felice") \
+	X(ExprSad, "sad", "triste") \
+	X(ExprAngry, "angry", "arrabbiato") \
+	X(ExprSurprised, "surprised", "sorpreso") \
+	X(ExprSleepy, "sleepy", "assonnato") \
+	X(ExprLove, "love", "amore") \
+	X(ExprDizzy, "dizzy", "girato") \
+	X(ExprGlee, "glee", "gioia") \
+	X(ExprWorried, "worried", "inquieto") \
+	X(ExprFocused, "focused", "attento") \
+	X(ExprAnnoyed, "annoyed", "seccato") \
+	X(ExprSkeptic, "skeptic", "scettico") \
+	X(ExprFrustrated, "frustrated", "frustrato") \
+	X(ExprUnimpressed, "unimpressed", "noioso") \
+	X(ExprSuspicious, "suspicious", "sospettoso") \
+	X(ExprSquint, "squint", "strizzata") \
+	X(ExprFurious, "furious", "furioso") \
+	X(ExprScared, "scared", "spaventato") \
+	X(ExprAwe, "awe", "stupore") \
+	X(ExprSleepyEyes, "sleepy eyes", "assonnati") \
+	X(ExprSadDown, "sad down", "triste giu") \
+	X(ExprSadUp, "sad up", "triste su") \
+	X(ExprExcited, "excited", "esaltato") \
+	X(ExprTerrified, "terrified", "terrore") \
+	X(ExprDisgusted, "disgusted", "disgustato") \
+	X(ExprShy, "shy", "timido") \
+	X(ExprProud, "proud", "orgoglioso") \
+	X(ExprTired, "tired", "stanco") \
+	X(ExprGrin, "grin", "ghigno") \
+	X(ExprPanicked, "panicked", "in panico") \
+	X(ExprGlum, "glum", "mesto") \
+	X(ExprSmug, "smug", "sdegno") \
+	X(ExprDeadpan, "deadpan", "impassibile") \
+	X(ExprZombie, "zombie", "zombie") \
+	X(ExprConfused, "confused", "confuso") \
+	X(ExprCurious, "curious", "curioso") \
+	X(ExprWink, "wink", "occhiolino") \
+	X(ExprWondering, "wondering", "perplesso") \
+	X(ExprStar, "star", "stella") \
+	X(ExprCrying, "crying", "piange") \
+	X(ExprSwirly, "swirly", "vortice") \
+	X(ExprCat, "cat", "gatto") \
+	X(ExprHalo, "halo", "alone") \
+	X(ExprDevil, "devil", "diavolo") \
+	X(ExprFire, "fire", "fuoco") \
+	X(ExprMoon, "moon", "luna") \
+	X(ExprSparkle, "sparkle", "scintilla") \
+	X(ExprBolt, "bolt", "fulmine") \
+	X(ExprDiamond, "diamond", "diamante") \
+	X(ExprRing, "ring", "anello") \
+	X(ExprTarget, "target", "bersaglio") \
+	X(ExprMoney, "money", "soldi") \
+	X(ExprMildHappy, "mild happy", "soddisfatto") \
+	X(ExprSmirk, "smirk", "smorfia") \
+	X(ExprPout, "pout", "muso") \
+	X(ExprKiss, "kiss", "bacio") \
+	X(ExprNervous, "nervous", "nervoso") \
+	X(ExprShocked, "shocked", "sorpreso") \
+	X(ExprMelting, "melting", "scioglie") \
+	X(ExprLazy, "lazy", "pigro") \
+	X(ExprDoze, "doze", "pisolino") \
+	X(ExprGroggy, "groggy", "stordito") \
+	X(ExprDaydream, "daydream", "sognante") \
+	X(ExprGrumpy, "grumpy", "brontolo") \
+	X(ExprSassy, "sassy", "sfacciato") \
+	X(ExprCheeky, "cheeky", "birichino") \
+	X(ExprFlirt, "flirt", "lusinga") \
+	X(ExprZen, "zen", "zen") \
+	X(ExprMerciful, "merciful", "pietoso") \
+	X(ExprManic, "manic", "frenetico") \
+	X(ExprSideEye, "side eye", "di traverso") \
+	X(ExprBeaming, "beaming", "raggiante") \
 	X(Calm, "calm", "calmo") \
 	X(Dasai, "dasai", "dasai") \
 	X(Playful, "playful", "vivace") \
@@ -147,3 +215,5 @@ const char *tr(Text key);
 const char *tr_language(Text key, uint8_t language);
 /** @brief Localize preset groups without changing USB names. @param group 0 style/1 color/2 mood/3 animation. @param index Choice. @return Label. */
 const char *tr_choice(uint8_t group, uint8_t index);
+/** @brief Localize an eye expression by its stable Expression value. @param index Expression value. @return Label, or "?" when out of range. */
+const char *tr_expression(uint8_t index);

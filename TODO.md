@@ -78,9 +78,13 @@ and will be performed by the user.
 - [x] Check IMU identity and acknowledged configuration; explicitly match range to scaling.
 - [ ] Verify QMI8658C detection, wiring, and accelerometer configuration.
 - [ ] Confirm that tilting the device moves the pupils in the expected direction.
+- [ ] Confirm the cornering gaze: the ±14 px clamp, the ±12/±16 px gains, the 0.1 g
+  recenter threshold, and the sign of the ±4 px eye-pair roll all depend on how the
+  board is mounted, so they need tuning on the actual mounting.
 - [ ] Confirm shake-to-dizzy activation and restoration of the previous expression.
 - [ ] Test swipe direction, edge touches, and repeated gestures on the device.
-- [ ] Verify all eye styles and expressions.
+- [ ] Verify all 73 eye styles and expressions on the physical LCD; native mocks only
+  prove bounds, symmetry, and distinctness.
 - [ ] Test framebuffer allocation failure and missing touch-controller handling.
 - [ ] Run an extended session with BLE connected and check for crashes or heap loss.
 

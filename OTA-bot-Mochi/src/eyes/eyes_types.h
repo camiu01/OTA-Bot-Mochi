@@ -66,8 +66,90 @@ enum Expression : uint8_t {
 	AWE = 19,	/**< Huge round wonder eyes. */
 	SLEEPY_EYES = 20,	/**< Heavy asymmetric drooping lids. */
 	SAD_DOWN = 21,	/**< Sad gaze looking downward. */
-	SAD_UP = 22	/**< Sad gaze looking upward. */
+	SAD_UP = 22,	/**< Sad gaze looking upward. */
+	EXCITED = 23,	/**< Wide eyes with raised lower lids. */
+	TERRIFIED = 24,	/**< Very tall eyes under a thin upper lid. */
+	DISGUSTED = 25,	/**< Angled upper lid over a raised lower lid. */
+	SHY = 26,	/**< Small lowered eyes, downward gaze. */
+	PROUD = 27,	/**< Smug half-lids, mildly asymmetric. */
+	TIRED = 28,	/**< Heavy droop on both lids. */
+	GRIN = 29,	/**< Wide eyes behind a deep lower lid. */
+	PANICKED = 30,	/**< Tall eyes pinched by two thin lids. */
+	GLUM = 31,	/**< Small eyes under a double sad slope. */
+	SMUG = 32,	/**< One eye far more closed than the other. */
+	DEADPAN = 33,	/**< Flat centered line, a permanent deadpan. */
+	ZOMBIE = 34,	/**< One sagging eye, reduced overall height. */
+	CONFUSED = 35,	/**< One wide eye beside one squinting eye. */
+	CURIOUS = 36,	/**< One raised eye beside one lowered eye. */
+	WINK = 37,	/**< One eye closed, the other open. */
+	WONDERING = 38,	/**< One raised brow over an open gaze. */
+	STAR = 39,	/**< Star-shaped pupils. */
+	CRYING = 40,	/**< Sad lids above a falling tear. */
+	SWIRLY = 41,	/**< Spiral pupils, a dizzy-drunk look. */
+	CAT = 42,	/**< Vertical slit pupils. */
+	HALO = 43,	/**< A halo ring set into the upper eye. */
+	DEVIL = 44,	/**< Paired horns in the upper eye. */
+	FIRE = 45,	/**< Flame-shaped pupils. */
+	MOON = 46,	/**< Crescent-shaped pupils. */
+	SPARKLE = 47,	/**< Four-point sparkle pupils. */
+	BOLT = 48,	/**< Lightning bolt pupils. */
+	DIAMOND = 49,	/**< Rhombus pupils. */
+	RING = 50,	/**< Hollow ring pupils. */
+	TARGET = 51,	/**< Crosshair pupils. */
+	MONEY = 52,	/**< Currency-mark pupils. */
+	MILD_HAPPY = 53,	/**< Gentle lidded smile, softer than HAPPY. */
+	SMIRK = 54,	/**< One raised corner over a flat lid. */
+	POUT = 55,	/**< Puffed, low, and deliberately wide. */
+	KISS = 56,	/**< Narrow centered pucker. */
+	NERVOUS = 57,	/**< Small uneasy eyes with a raised inner lid. */
+	SHOCKED = 58,	/**< Wider and taller than SURPRISED. */
+	MELTING = 59,	/**< Heavy downward droop on one side. */
+	LAZY = 60,	/**< Symmetric half-mast with a low lift. */
+	DOZE = 61,	/**< Almost fully closed, a thin resting slit. */
+	GROGGY = 62,	/**< One eye far more open than the other. */
+	DAYDREAM = 63,	/**< Wide, soft, and unfocused. */
+	GRUMPY = 64,	/**< Frowning slope under a half-lid. */
+	SASSY = 65,	/**< One raised brow over a flat lid. */
+	CHEEKY = 66,	/**< A wink paired with a wide grin. */
+	FLIRT = 67,	/**< Soft half-lids with a light lower lift. */
+	ZEN = 68,	/**< Calm, narrow, and deeply relaxed. */
+	MERCIFUL = 69,	/**< A kind, uneasy sadness. */
+	MANIC = 70,	/**< Very wide eyes with tight pupils. */
+	SIDE_EYE = 71,	/**< Both pupils pressed to one side. */
+	BEAMING = 72	/**< Wide joyful arcs, brighter than GLEE. */
 };
+
+/** @brief Number of defined expressions, bounding menus, parsers, and lookups. */
+constexpr uint8_t EXPRESSION_COUNT = uint8_t(BEAMING) + 1;
+static_assert(EXPRESSION_COUNT == 73,
+	"Expression enum, names, i18n labels and documentation must be extended together");
+
+/**
+ * @brief Canonical lowercase name of an expression, shared by USB, menus, and parsing.
+ *
+ * Single source of truth: the index of each entry equals its Expression value, so a
+ * mismatch between the table and the enum cannot go unnoticed.
+ *
+ * @param expr Expression value.
+ * @return Stable ASCII name, or "unknown" when out of range.
+ */
+inline const char *eyes_expression_name(Expression expr) {
+	static const char *const names[EXPRESSION_COUNT] = {
+		"neutral", "happy", "sad", "angry", "surprised", "sleepy", "love", "dizzy",
+		"glee", "worried", "focused", "annoyed", "skeptic", "frustrated", "unimpressed",
+		"suspicious", "squint", "furious", "scared", "awe", "sleepy_eyes", "sad_down", "sad_up",
+		"excited", "terrified", "disgusted", "shy", "proud", "tired", "grin", "panicked",
+		"glum", "smug", "deadpan", "zombie", "confused", "curious", "wink", "wondering",
+		"star", "crying", "swirly", "cat", "halo", "devil", "fire", "moon", "sparkle",
+		"bolt", "diamond", "ring", "target", "money", "mild_happy", "smirk", "pout",
+		"kiss", "nervous", "shocked", "melting", "lazy", "doze", "groggy", "daydream",
+		"grumpy", "sassy", "cheeky", "flirt", "zen", "merciful", "manic", "side_eye",
+		"beaming"
+	};
+	static_assert(sizeof(names) / sizeof(names[0]) == EXPRESSION_COUNT,
+		"eyes_expression_name() entries must match Expression values one for one");
+	return uint8_t(expr) < EXPRESSION_COUNT ? names[uint8_t(expr)] : "unknown";
+}
 
 /**
  * @brief Persistent configuration singleton.

@@ -76,6 +76,19 @@ int main() {
 	eyes_update(2350);
 	assert(state.dizzyUntilMs == 0 && config.expression == HAPPY);
 	assert(state.floatY >= -1 && state.floatY <= 1);
+	// A gentle sustained cornering load stays inside the old recenter window, so it used to
+	// average itself back to centre; it must now keep the gaze displaced for the whole turn.
+	i2c_bus().read_ok = true;
+	axis(0x35, 246);
+	for (uint32_t now = 10000; now <= 15000; now += 50) { eyes_imu_poll(now); }
+	assert(state.tiltX > 0 && state.tiltY == 0);
+	// A hard launch saturates instead of throwing the gaze out of its bounded socket.
+	axis(0x35, 8192);
+	for (uint32_t now = 15050; now <= 16000; now += 50) { eyes_imu_poll(now); }
+	assert(state.tiltX == 14);
+	axis(0x35, -8192);
+	for (uint32_t now = 16050; now <= 17000; now += 50) { eyes_imu_poll(now); }
+	assert(state.tiltX == -14);
 	std::cout << "IMU setup, mount-relative gaze, shake opt-in/cooldown, and restoration passed\n";
 	return 0;
 }

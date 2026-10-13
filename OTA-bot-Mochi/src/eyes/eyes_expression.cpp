@@ -27,13 +27,9 @@ static bool match_name(const char *input, const char *name) {
 
 /** @brief Resolve all existing expression aliases. @param name Input. @param out Output. @return Known name. */
 static bool lookup_expression(const char *name, Expression &out) {
-	static const char *names[] = {
-		"neutral", "happy", "sad", "angry", "surprised", "sleepy", "love", "dizzy",
-		"glee", "worried", "focused", "annoyed", "skeptic", "frustrated", "unimpressed",
-		"suspicious", "squint", "furious", "scared", "awe", "sleepy_eyes", "sad_down", "sad_up"
-	};
-	for (uint8_t i = 0; i < sizeof(names) / sizeof(names[0]); ++i) {
-		if (match_name(name, names[i])) { out = static_cast<Expression>(i); return true; }
+	for (uint8_t i = 0; i < EXPRESSION_COUNT; ++i) {
+		Expression candidate = static_cast<Expression>(i);
+		if (match_name(name, eyes_expression_name(candidate))) { out = candidate; return true; }
 	}
 	if (match_name(name, "saddown")) { out = SAD_DOWN; return true; }
 	if (match_name(name, "sadup")) { out = SAD_UP; return true; }

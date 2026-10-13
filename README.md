@@ -22,10 +22,10 @@ Instead of a generic smartwatch interface, the core experience is the **Living E
 
 ### Key Highlights
 
-* **Living Eyes Companion:** 4 eye styles (`MOCHI`, `BLOUB`, `NORMAL`, `TRAPEZ`) and 23 expressive facial moods with dirty-rect redrawing.
+* **Living Eyes Companion:** 4 eye styles (`MOCHI`, `BLOUB`, `NORMAL`, `TRAPEZ`) and 73 expressive facial moods with dirty-rect redrawing, every one of them verified native against all four styles.
 * **Automatic Faces:** Optional timed random expressions and sustained-motion IMU reactions, with cooldowns and automatic restoration of the selected mood.
 * **Expressive Motion and Audio:** Soft face handoffs and gaze, double blinks/winks/nods, and optional non-blocking buzzer chirps with night mute and separate categories. English/Italian UI and [controls](docs/SOUND.md).
-* **Quiet IMU Reactivity:** Mount-relative, damped pupil motion with a noise dead zone. Optional deliberate shake reactions require repeated opposing impulses, not a single bump.
+* **Quiet IMU Reactivity:** Mount-relative, damped gaze clamped to ±14 px with a noise dead zone; sustained lateral load keeps the eyes displaced through a bend and rolls the pair by up to 4 px. Optional deliberate shake reactions require repeated opposing impulses, not a single bump.
 * **BLE Turn-by-Turn Navigation:** Receives live route directions, distance, ETA, and direction icons directly from your smartphone.
 * **Chronos BLE Core:** Background BLE service managing phone notifications, incoming call rings, time synchronization, and weather forecasts.
 * **Modular Screen State Machine:** Eyes, Clock, Navigation, Weather, Alerts, and Settings.

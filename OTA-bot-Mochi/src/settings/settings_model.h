@@ -6,6 +6,7 @@
 #pragma once
 #include <stdint.h>
 #include <string.h>
+#include "../eyes/eyes_types.h"
 constexpr uint8_t SETTINGS_BYTES = 12;
 
 struct CompanionSettings {
@@ -41,10 +42,9 @@ inline const char *settings_color_name(uint8_t index) {
 	return index < 6 ? names[index] : "unknown";
 }
 
-/** @brief Name a quiet expression. @param index Choice index. @return Stable USB/menu name. */
+/** @brief Name the selected expression. @param index Choice index. @return Stable USB/menu name. */
 inline const char *settings_mood_name(uint8_t index) {
-	static const char *names[] = {"neutral", "happy", "focused", "sleepy", "love"};
-	return index < 5 ? names[index] : "unknown";
+	return eyes_expression_name(static_cast<Expression>(index));
 }
 /** @brief Name a motion preset for stable USB commands. @param index Choice. @return Name. */
 inline const char *settings_animation_name(uint8_t index) {
@@ -56,7 +56,7 @@ inline const char *settings_language_name(uint8_t index) { return index == 0 ? "
 
 /** @brief Validate persisted or incoming values. @param value Settings. @return All fields valid. */
 inline bool settings_valid(const CompanionSettings &value) {
-	return value.style < 4 && value.color < 6 && value.mood < 5 &&
+	return value.style < 4 && value.color < 6 && value.mood < EXPRESSION_COUNT &&
 		value.brightness >= 5 && value.brightness <= 90 &&
 		value.night_brightness >= 1 && value.night_brightness <= 20 &&
 		value.sound_level >= 1 && value.sound_level <= 30 && value.animation < 3 && value.language < 2;
