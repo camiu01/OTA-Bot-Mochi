@@ -12,15 +12,16 @@ Large mode shows a 96x96 received turn icon, emphasized distance, and two larger
 instruction lines. Missing/incomplete icons remain placeholders, never guessed
 turn arrows. Details retains speed, ETA/duration, and the smaller turn card.
 
-Tap VIEW to switch temporarily. Hold on Route for 1.2 seconds to restore the
-configured default. Choose and SAVE **Settings → LOOK → Route default** for future
+Swipe down on Route to switch temporarily between large and details. Hold on
+Route for 1.2 seconds to restore the configured default. Choose and SAVE
+**Settings → LOOK → Route default** for future
 boots. [Settings](SETTINGS.md) documents USB commands and session/save separation.
 Starting real navigation in Chronos opens Route as before; repeated route updates
 do not pull you back after a manual page change.
 
 ## Desk tools
 
-Open Clock and tap **DESK TOOLS**, then select:
+Swipe down on Clock to open Scrivania, then select:
 
 | Tool | Content |
 | --- | --- |
@@ -29,13 +30,13 @@ Open Clock and tap **DESK TOOLS**, then select:
 | TIMER / POMODORO | Local 5-minute or 15-minute timer, or one 25-minute focus/5-minute rest pair |
 | DEVICE STATUS | BLE connection, backlight percentage, IMU initialization, clock sync, preference save state, sound state, and battery estimate |
 
-Each tool card is 38 pixels high inside its own 40-pixel touch zone, so any
-tap inside a card row selects that tool. The bottom action row (BACK TO CLOCK,
-BACK TO DESK) is the same 236x54-pixel target as the Settings actions.
+The hub shows four large 108x92-pixel cards in a 2x2 grid, each an
+unambiguous parked-use tap target of its own.
 
-BACK TO DESK returns to the tool menu; BACK TO CLOCK closes it. A swipe from a
-tool goes to the previous/next primary page relative to Clock, so there is no
-eleven-page swipe sequence. The Clock position dot stays selected in these tools.
+Swipe up from a tool to return to the hub; swipe up from the hub to return to
+Clock. A horizontal swipe from a tool goes to the previous/next primary page
+relative to Clock, so there is no eleven-page swipe sequence. The Clock
+position dot stays selected in these tools.
 
 Time requires a Chronos sync after boot and then continues while disconnected.
 Weather uses received phone data and has missing/stale states; it is not measured
@@ -47,8 +48,9 @@ and the conversion is native-tested but physically unvalidated.
 ## Local timer
 
 MODE cycles 5 minutes, 15 minutes, and Pomodoro, resetting paused. START/PAUSE
-controls the countdown; RESET resets the chosen mode paused. All three buttons
-are 30 pixels high with matching touch zones. Pomodoro automatically
+controls the countdown; RESET resets the chosen mode paused. START/PAUSE is a
+full-width 50-pixel accent button; RESET and MODE are 48-pixel buttons beside
+each other, all with matching touch zones. Pomodoro automatically
 enters a five-minute rest after the focus phase, then stops at DONE.
 
 The timer runs while other pages or call overlays are visible and does not need

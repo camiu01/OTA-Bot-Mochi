@@ -107,9 +107,9 @@ void navigation_screen(Arduino_GFX *gfx) {
 	ui_label(gfx, nav.title, 88, 80, 124, 2, UI_TEXT);
 	ui_label(gfx, nav.distance, 88, 110, 124, 1, UI_ACCENT);
 	ui_label(gfx, nav.speed, 88, 132, 124, 1, UI_MUTED);
-	ui_card(gfx, 164, 50);
-	paragraph(gfx, nav.directions, 174, 2, UI_TEXT);
-	ui_label(gfx, "ETA " + nav.eta + " / " + nav.duration, 28, 204, 184, 1, UI_MUTED);
+	ui_card(gfx, 174, 60);
+	paragraph(gfx, nav.directions, 178, 3, UI_TEXT);
+	ui_label(gfx, "ETA " + nav.eta + " / " + nav.duration, 28, 220, 184, 1, UI_MUTED);
 }
 
 /**
@@ -139,16 +139,16 @@ void weather_screen(Arduino_GFX *gfx, uint32_t now) {
 	ui_weather_icon(gfx, w.icon, 184, 124);
 	ui_label(gfx, weather_stale(now, cached.weather_received) ? tr(Text::Stale) :
 		tr(Text::Updated) + cached.weather_time, 28, 151, 184, 1, UI_MUTED);
-	ui_card(gfx, 176, 38);
+	ui_card(gfx, 176, 50);
 	if (!cached.has_forecast) {
-		ui_label(gfx, tr(Text::ForecastPending), 28, 188, 184, 1, UI_MUTED);
+		ui_label(gfx, tr(Text::ForecastPending), 28, 190, 184, 1, UI_MUTED);
 		return;
 	}
 	for (uint8_t i = 0; i < cached.weather_count; ++i) {
 		const Weather &day = cached.weather[i];
 		int16_t x = 26 + i * 66;
-		ui_label(gfx, weekday(day.day), x, 184, 60, 1, UI_MUTED);
-		ui_label(gfx, String(day.high) + "/" + String(day.low), x, 200, 60, 1, UI_TEXT);
+		ui_label(gfx, weekday(day.day), x, 186, 60, 1, UI_MUTED);
+		ui_label(gfx, String(day.high) + "/" + String(day.low), x, 206, 60, 1, UI_TEXT);
 	}
 }
 
@@ -157,11 +157,8 @@ void content(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, uint32_t now) {
 	gfx->fillRect(0, 52, LCD_WIDTH, 206, UI_BG);
 	if (overlay_active) { call_screen(gfx); }
 	else if (page == UiPage::Notification) { notification_screen(gfx, now); }
-	else if (page == UiPage::Navigation) {
-		navigation_screen(gfx);
-		context_footer(gfx, tr(view_route_large(settings_get().route_large) ? Text::ViewLarge : Text::ViewDetails), true);
-	}
-	else if (page == UiPage::Weather) { weather_screen(gfx, now); context_footer(gfx, tr(Text::SyncWeather), true); }
+	else if (page == UiPage::Navigation) { navigation_screen(gfx); }
+	else if (page == UiPage::Weather) { weather_screen(gfx, now); }
 	else if (page == UiPage::Settings) { settings_menu_draw(gfx); }
 	else if (uint8_t(page) >= uint8_t(UiPage::Desk)) { context_draw(gfx, watch, page, cached, now); }
 }
@@ -221,7 +218,6 @@ bool screens_draw(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, uint32_t n
 	if (page == UiPage::Clock && !overlay_active) {
 		bool painted = clock_draw(gfx, watch, cached.connected);
 		bool frame = invalidated || changed || painted;
-		if (frame) { context_footer(gfx, tr(Text::Desk), true); }
 		invalidated = false;
 		return frame;
 	}

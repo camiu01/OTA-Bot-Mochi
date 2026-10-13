@@ -11,16 +11,21 @@ This percentage is **brightness, not battery charge**.
 ## Controls
 
 - Swipe left/right through Eyes, Clock, Route, Alerts, Weather, and Settings.
-- Swipe **down** on Clock, Route, Alerts, Weather, or any desk tool to return
-  straight to Eyes. Vertical strokes still pet Mochi on Eyes and still scroll
-  rows inside Settings.
+- Vertical swipes follow the contextual layers: swipe **down** on Clock to open
+  Scrivania (desk tools), swipe **up** on Scrivania to return to Clock, and
+  swipe **up** on any desk tool to return to Scrivania. Swipe **down** on Route
+  toggles the large/details layout and swipe **down** on Weather requests a
+  phone sync. A downward swipe anywhere else still returns straight to Eyes.
+  Vertical strokes still pet Mochi on Eyes and still scroll rows inside
+  Settings.
 - Tap the top status strip, above the page title, on Clock, Route, Alerts,
   Weather, or any desk tool to mute or unmute every sound for the session;
   unmuting chirps once. The strip is inactive on Eyes (where taps are face
   reactions) and inside Settings. This edits the RAM profile like the AUDIO
   tab does, so a Settings SAVE persists it too.
-- Clock → DESK TOOLS opens the large clock, overview, local timer, and device
-  status without adding them to the primary swipe carousel. See [Desk tools](DESK.md).
+- A downward swipe on Clock opens Scrivania: the large clock, overview, local
+  timer, and device status, without adding them to the primary swipe
+  carousel. See [Desk tools](DESK.md).
 - A short tap on Eyes requests a temporary random face and makes the eyes
   glance toward the touch point for a couple of seconds. It does not change
   saved preferences or require automatic random moods to be enabled.
@@ -47,12 +52,10 @@ This percentage is **brightness, not battery charge**.
   to be released, avoiding a page change underneath a settings tap.
 - Hold still for 1.2 seconds on the eyes screen to open Settings. A swipe or
   moving finger is not also treated as a tap or hold.
-- Clock, Route, Weather, and the desk pages place their main action in a
-  full-width bottom action row in the Settings overflow style: a 236x54-pixel
-  target anchored to the bottom edge, so DESK TOOLS, the VIEW toggle, and
-  SYNC / REFRESH are as easy to tap as SAVE/EYES. The page's main action uses
-  the accent fill; back actions use the dim card fill. The carousel position
-  dots sit directly above this row.
+- The desk hub presents four large 108x92-pixel cards in a 2x2 grid, and the
+  local timer uses a full-width 50-pixel START/PAUSE accent button with
+  48-pixel RESET and MODE buttons, so every desk control is a comfortable
+  parked-use target.
 - Use settings only while parked. The firmware cannot determine whether the
   vehicle is stationary and does not lock controls based on vehicle speed.
 - Tap LOOK, LIGHT, DRIVE, MOVE, and AUDIO to change appearance and comfort options.

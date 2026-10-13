@@ -42,7 +42,8 @@ animated dirty regions, sound notes/priorities/mute/rollover/failures, and actua
 PWM adapters against core-2/core-3 shared-timer mocks.
 Additional checks exercise all six shared color palettes, filled touch gutters,
 row/tab/footer edges with row hits aligned to their visible cards, contiguous
-grid-cell rows, 30-pixel timer buttons, 54-pixel bottom action rows, bounded
+grid-cell rows, 92-pixel desk hub cards, 50-pixel timer buttons, contextual
+vertical-swipe targets, bounded
 menu scrolling, vertical/horizontal
 axis isolation, tap tolerance, explicit audio-test mute/category behavior,
 randomized face-tone family pitch bands with the faces switch, the battery
@@ -107,9 +108,11 @@ Do not make the device world-writable. Close other serial monitors before upload
    face that returns to the selected mood within three seconds. Touch, RTC, and the
    IMU share one I2C bus at SDA=11/SCL=10; if touch answers but `IMU unavailable`
    persists, suspect the sensor identity or wiring rather than the bus pins.
-2. Swipe through all screens and test repeated/edge gestures. Swipe down on Clock,
-   Route, Alerts, Weather, and a desk tool to confirm the quick return to Eyes;
-   confirm vertical strokes still pet on Eyes and still scroll rows in Settings.
+2. Swipe through all screens and test repeated/edge gestures. Swipe down on Clock
+   to open Scrivania, down on Route to toggle the layout, down on Weather to
+   request a sync, and down on Alerts or a desk tool to confirm the quick return
+   to Eyes; confirm upward swipes walk back through Scrivania to Clock, and
+   vertical strokes still pet on Eyes and still scroll rows in Settings.
    Tap the top status strip on Clock, Route, Alerts, Weather, or a desk tool to
    toggle sound: unmuting must chirp once, the strip must do nothing on Eyes and
    in Settings, the header speaker icon must follow the state, and a
@@ -156,11 +159,13 @@ Do not make the device world-writable. Close other serial monitors before upload
     multimeter across the discharge curve; do not treat the native conversion
     tests as physical validation.
 
-Also test Clock → DESK TOOLS and all four tools. Verify large clock legibility,
-timer continuation while viewing other pages, default-silent completion, and reboot reset.
-On each page, confirm the bottom action row is a large Settings-style target:
-accent fill for DESK TOOLS, VIEW, and SYNC / REFRESH, dim fill for back actions,
-with the position dots visible directly above it.
+Also test a downward swipe on Clock into Scrivania and all four tools. Verify
+large clock legibility, timer continuation while viewing other pages,
+default-silent completion, and reboot reset. Confirm every hub card and timer
+button is an easy parked-use target, a downward swipe on Route toggles the
+layout, a downward swipe on Weather requests a sync, and upward swipes walk
+back from tools to Scrivania to Clock; other pages keep the downward-swipe
+home to Eyes.
 Switch Route layout temporarily, SAVE a different setting, and reboot: the saved
 route default must win. Test `route default`, a Route hold, and LOOK → Route default.
 A short eye tap must react for three seconds, glance toward the touch point,

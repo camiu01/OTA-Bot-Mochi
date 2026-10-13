@@ -154,7 +154,7 @@ void toggle_quick_sound(uint32_t now) {
 
 /**
  * @brief Handle parked-use taps, a utility-page mute toggle, double taps, petting
- * strokes, a hold-to-settings shortcut, a swipe-down home gesture, and page swipes.
+ * strokes, a hold-to-settings shortcut, contextual vertical gestures, and page swipes.
  * @param now Millisecond timestamp.
  */
 void handle_touch(uint32_t now) {
@@ -171,11 +171,13 @@ void handle_touch(uint32_t now) {
 		toggle_quick_sound(now);
 		return;
 	}
-	if (scroll && current_screen == UiPage::Settings && !screens_calling() &&
-		settings_menu_scroll(scroll)) { screens_invalidate(); }
-	if (scroll == -1 && current_screen != UiPage::Eyes && current_screen != UiPage::Settings &&
-		!screens_calling()) {
-		switch_screen(UiPage::Eyes, now);
+	if (scroll && current_screen != UiPage::Eyes && !screens_calling()) {
+		if (current_screen == UiPage::Settings) {
+			if (settings_menu_scroll(scroll)) { screens_invalidate(); }
+			return;
+		}
+		UiPage target = screens_scroll(current_screen, scroll);
+		if (target != current_screen) { switch_screen(target, now); }
 		return;
 	}
 	if (hold && current_screen == UiPage::Eyes && !screens_calling()) {

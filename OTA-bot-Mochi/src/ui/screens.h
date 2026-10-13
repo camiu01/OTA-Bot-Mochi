@@ -24,6 +24,9 @@ inline UiPage screens_swipe(UiPage page, int8_t step) {
 /** @brief Dispatch short parked-use utility taps. @param page Page. @param x X. @param y Y. @param now Time. @return Target. */
 UiPage screens_tap(UiPage page, int16_t x, int16_t y, uint32_t now);
 
+/** @brief Dispatch vertical gestures through the contextual layers. @param page Page. @param scroll +1 up, -1 down. @return Target. */
+UiPage screens_scroll(UiPage page, int8_t scroll);
+
 /** @brief Force utility screen redraw on entry. */
 void screens_invalidate();
 /**
