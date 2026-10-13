@@ -4,16 +4,38 @@ The living eyes remain the default screen. Utility screens use a black backgroun
 rounded tinted cards, eye-colored text and icons, and dimmer secondary labels.
 The eye color is the shared primary color, including controls, calls, and weather.
 Six position dots indicate the selected
-screen; the header shows Bluetooth state and the configured backlight percentage.
+screen; the header shows a speaker icon (crossed out while sound is off or
+night-muted), Bluetooth state, and the configured backlight percentage.
 This percentage is **brightness, not battery charge**.
 
 ## Controls
 
 - Swipe left/right through Eyes, Clock, Route, Alerts, Weather, and Settings.
+- Swipe **down** on Clock, Route, Alerts, Weather, or any desk tool to return
+  straight to Eyes. Vertical strokes still pet Mochi on Eyes and still scroll
+  rows inside Settings.
+- Tap the top status strip, above the page title, on Clock, Route, Alerts,
+  Weather, or any desk tool to mute or unmute every sound for the session;
+  unmuting chirps once. The strip is inactive on Eyes (where taps are face
+  reactions) and inside Settings. This edits the RAM profile like the AUDIO
+  tab does, so a Settings SAVE persists it too.
 - Clock → DESK TOOLS opens the large clock, overview, local timer, and device
   status without adding them to the primary swipe carousel. See [Desk tools](DESK.md).
-- A short tap on Eyes requests a temporary random face. It does not change
+- A short tap on Eyes requests a temporary random face and makes the eyes
+  glance toward the touch point for a couple of seconds. It does not change
   saved preferences or require automatic random moods to be enabled.
+- Double-tap quickly on Eyes for a playful face from a separate excited/star
+  pool, with the same glance toward your finger. Dizzy keeps priority.
+- Stroke vertically up and down on Eyes to pet Mochi: rubbing the screen
+  without drifting sideways requests a temporary affectionate face from the
+  happy/love family. Continued strokes keep the same face and extend it up
+  to six seconds. Petting never changes saved preferences, leaves Eyes,
+  or opens Settings. Use vertical strokes; horizontal motion pages away.
+- Settings → LIGHT → **Screen flip** mounts the whole interface upside down
+  for bottom-up installations. Touch targets and the IMU gaze follow the
+  180-degree rotation, and the choice is saved with the profile.
+- On startup, Mochi greets with a brief three-second temporary face played
+  silently; the selected mood returns automatically.
 - New notifications automatically open Alerts, including while a route is active.
   Starting actual phone navigation automatically opens Route. Regular route/icon
   updates do not pull you back after a manual swipe. If both events arrive in the
@@ -132,5 +154,7 @@ driving-maneuver classifier; repeated rough-road motion can still resemble a
 shake, so leave it disabled in the car. The reaction lasts two seconds and
 restores the selected mood. Disabling shake cancels a pending reaction.
 
-No AXP2101 presence, battery ADC ratio, battery charge, or charger status is
-assumed. Legacy power-pin candidates in `pin_config.h` remain unused.
+No AXP2101 presence or charger status is assumed. Battery percentage is a
+best-effort, plausibility-gated estimate from `BAT_ADC`; without plausible
+hardware the Device status page shows NOT MEASURED. Legacy power-pin candidates
+in `pin_config.h` remain unused.

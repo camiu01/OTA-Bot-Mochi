@@ -21,6 +21,7 @@ rows. Changes are live in RAM and do not write flash while browsing.
 | LIGHT | Night | off / on |
 | LIGHT | Night level | 1, 3, 5, 8, 12, 20% |
 | LIGHT | Idle dim | off / on |
+| LIGHT | Screen flip | normal / flipped |
 | DRIVE | Dashboard | on / off |
 | DRIVE | Shake dizzy | off / on |
 | DRIVE | Random mood | off / on |
@@ -41,6 +42,12 @@ main page. Gaps between adjacent controls belong to one unambiguous target.
 The selected eye color also drives the entire UI palette immediately: text,
 icons, active buttons, and tinted cards. SAVE persists this through the same color
 preference; no separate theme setting or profile migration is needed.
+
+**Screen flip** rotates the whole interface by 180 degrees so the device can be
+mounted with its buttons at the top. The canvas renders rotated, touch
+coordinates are mirrored to match, and the IMU gaze re-baselines so tilting
+still reads in the viewer's frame. The change applies immediately in RAM and
+persists only after SAVE; `set flip on|off` is the USB equivalent.
 
 The background stays black. MOCHI and TRAPEZ are solid eyes without pupils or
 highlights; BLOUB has black pupils and white highlights, and NORMAL has black
@@ -72,6 +79,7 @@ set shake off
 set dim off
 set random on
 set imu-face on
+set flip on
 set route large
 set animation dasai
 set language it
@@ -79,15 +87,19 @@ set sound on
 set sound-level 10
 set sound-night-mute on
 save
+reboot
 ```
 
 `set brightness` accepts 5–90%; `set night-brightness` accepts 1–20%.
 Style/color/mood choices are the names listed in the table. All switches
 accept only `on` or `off`. Unknown commands, extra arguments, out-of-range numbers,
 and oversized lines are rejected without changing the active settings.
+`reboot` restarts the device after confirming; unsaved RAM changes are lost.
 
-`show` prints the selected preferences and whether changes are unsaved, never
-notification or caller data. `defaults` restores defaults in RAM; use `save`
+`show` prints the selected preferences, whether changes are unsaved, the sound
+backend status, and the best-effort battery estimate (`battery=unavailable`
+without plausible hardware), never notification or caller data. `defaults`
+restores defaults in RAM; use `save`
 only if you also want to replace the saved profile.
 USB commands and replies remain English in both display languages.
 `weather` prints non-sensitive packet counters; `weather sync` queues an app
@@ -129,6 +141,7 @@ Default firmware preferences:
 - Shake reaction off; ordinary IMU gaze remains active.
 - Random and IMU expression changes off until explicitly enabled.
 - Large navigation layout by default.
+- Screen flip off: touch and IMU use the panel's native orientation.
 - Dasai-inspired motion preset, English UI, sound off, PWM level 10%, night mute on.
 
 ## Automatic expressions
@@ -170,15 +183,24 @@ bolt, diamond, ring, target, money) engrave their mark into the body. None of th
 inserts a pupil or highlight inside another eye body.
 
 A short tap on Eyes requests a three-second random expression even when Random
-mood is off. Repeated taps select a different expression without changing the
-saved base, style, or color. The tap reaction takes priority over ordinary IMU
-moods; an active dizzy reaction keeps priority and ignores the tap. A hold still
-opens Settings and a swipe does not also trigger a random face.
+mood is off, and holds the gaze toward the touch point for about 2.5 seconds.
+A quick double tap instead requests a 3.5-second playful face (awe, excited,
+star, sparkle, glee, beaming, manic) with the same glance. Repeated taps select
+a different expression without changing the saved base, style, or color. The tap
+reactions take priority over ordinary IMU moods; an active dizzy reaction keeps
+priority and ignores them. Petting still requests affectionate faces, and
+further strokes extend the same face up to six seconds from the first stroke.
+Each reaction chirps with a fresh random pitch drawn from its face family's
+tone band (see [Audio and motion](SOUND.md)).
+A hold still opens Settings and a swipe does not also trigger a random face.
+These reactions remain available in dashboard mode, which only calms idle motion.
 
-The full profile is stored as a validated twelve-byte version-four NVS blob with
-a checksum. Eight-byte versions one/two/three retain their existing choices,
-with new sound options disabled by the master switch, English UI, and Dasai motion.
-Versions one/two default the new route layout to large; version-one automatic
+The full profile is stored as a validated thirteen-byte version-five NVS blob
+with a checksum; version five adds the Screen flip flag. Twelve-byte
+version-four and eight-byte versions one/two/three profiles retain their
+existing choices, with Screen flip defaulting off, sound options disabled by
+the master switch, English UI, and Dasai motion. Versions one/two default the new
+route layout to large; version-one automatic
 face options remain off. The next explicit SAVE upgrades a legacy profile.
 Unknown/corrupt blobs fall back to defaults. If storage is
 unavailable, settings still work in RAM but SAVE reports failure. Already saved,

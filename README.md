@@ -64,7 +64,7 @@ The runtime loop handles BLE updates alongside a clean screen dispatcher:
 ```
 
 * **BASE:** Non-blocking rendering loop updating eye saccades, blinks, and IMU-driven pupil offsets.
-* **CLOCK:** Synced time/date, 12/24-hour mode, waiting state, and BLE indicator. Battery charge is not yet measured.
+* **CLOCK:** Synced time/date, 12/24-hour mode, waiting state, and BLE indicator. Battery charge is estimated best-effort and reads NOT MEASURED without plausible hardware.
 * **NAVIGATION:** Turn directions, speed, distance, and turn icon CRC tracking.
 * **WEATHER:** City, temperature, condition icon, up to three high/low forecasts, receipt time, and stale-data indication.
 * **NOTIFICATION:** Phone notifications and incoming call (ringer) display.
@@ -86,12 +86,14 @@ board revision; dashboard settings leave them unchanged:
 | **RTC / Time** | External I2C RTC (shared I2C bus) | `SDA=11, SCL=10, INT=41` |
 | **Buzzer** | PWM/tone output; electrical model unverified | `BUZZER=33` |
 | **Backlight** | GPIO/PWM | `BL=15` |
-| **Battery / Power** | Circuit and sensing path not yet verified | Legacy candidates `SYS_EN=35, SYS_OUT=36, BAT_ADC=1` remain unused |
+| **Battery / Power** | Circuit and sensing path not yet verified | `BAT_ADC=1` sampled best-effort with plausibility gating; `SYS_EN=35, SYS_OUT=36` remain unused |
 
 Touch probes the CST816 family at `0x15` and FT6X36 family at `0x38`; the startup
 log reports the responding address. This is not an exact chip-model identification.
-Do not assume that an AXP2101 exists on this board or that `BAT_ADC` has a known
-battery divider ratio.
+Do not assume that an AXP2101 exists on this board. Battery percentage uses a
+guessed 2:1 divider ratio on `BAT_ADC` with a plausibility window, so missing
+hardware reports NOT MEASURED instead of a wrong value; the ratio and the
+percentages are not physically validated yet.
 
 ---
 

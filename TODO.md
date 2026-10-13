@@ -64,7 +64,11 @@ and will be performed by the user.
 ## 5. Battery and power
 
 - [ ] Verify the board's battery sensing and power-management hardware.
-- [ ] Read and display a measured battery charge level.
+- [x] Start battery percentage scaffolding: plausibility-gated `BAT_ADC` reading,
+  Device status row, and USB `show` battery line, reporting NOT MEASURED when the
+  divider/battery is absent or implausible.
+- [ ] Confirm the divider ratio and calibrate the percentage against a known pack;
+  native conversion tests are not physical validation.
 - [ ] Display charging state when supported by the hardware.
 - [x] Add adjustable backlight brightness.
 - [x] Add idle dimming and define how touch wakes the device, without stopping BLE.
@@ -121,8 +125,18 @@ and will be performed by the user.
   and non-sensitive device status, without lengthening the six-page carousel.
 - [x] Add touch/USB settings and explicit NVS saves with legacy profile migration.
 - [x] Add English/Italian UI labels and saved language selection.
-- [ ] Verify all gesture styles, languages, touch targets, and preference
-  persistence on the LCD; validate the proposed flash/OPI PSRAM profile.
+- [x] Add petting affection reactions, double-tap playful faces, tap-directed
+  glances, and six-second extended petting on Eyes.
+- [x] Add the version-five Screen flip setting for 180-degree mounting, with the
+  canvas, touch coordinates, and IMU gaze following the rotation.
+- [x] Add a session-only status-bar sound toggle, a swipe-down quick return to
+  Eyes, a silent startup greeting, and a USB reboot verb.
+- [ ] Validate petting, double-tap, glance, Screen flip, status-bar mute,
+  swipe-down home, boot greeting, and USB reboot on the physical board.
+- [x] Validate the build memory profile on the physical board: OPI PSRAM is
+  rejected because it claims the OLD revision's buzzer (GPIO33) and
+  power-control (GPIO35/GPIO36) pins, causing continuous beeping and I2C
+  driver crashes; the shipped profile keeps PSRAM disabled.
 
 ## 10. Buzzer and delivery
 

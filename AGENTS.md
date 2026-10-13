@@ -42,10 +42,14 @@ Firmware compilation/upload currently belongs to the user; do not perform it
 unless explicitly requested. The reproducible build command is:
 
 ```sh
-arduino-cli compile --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=opi,FlashSize=16M" OTA-bot-Mochi
+arduino-cli compile --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=disabled,FlashSize=16M" OTA-bot-Mochi
 ```
 
-Confirm memory options before using this profile. CI pins Arduino CLI 1.2.0,
+Do not enable OPI PSRAM on this board: the OLD revision routes the buzzer to
+GPIO33 and the power-control lines to GPIO35/GPIO36, which the octal PSRAM
+interface claims on the ESP32-S3. That build beeped continuously and crashed
+in the shared I2C driver on 2026-10-13; PSRAM must stay disabled. CI pins
+Arduino CLI 1.2.0,
 ESP32 core 3.3.11, ChronosESP32 1.9.1, GFX Library for Arduino 1.6.9,
 ESP32Time 2.0.6, and NimBLE-Arduino 2.5.1. Setup commands are in
 `docs/TESTING.md`. `.github/workflows/checks.yml` gates firmware compilation
@@ -69,7 +73,8 @@ on native tests and provides downloadable binaries, not automatic OTA deployment
   geometry source is authoritative; `src/eyes/README.md` contains legacy geometry.
 - Settings update RAM immediately, apply colors/brightness/eye preferences,
   and increment a renderer revision. Only explicit SAVE writes the NVS profile.
-  Version four is twelve bytes; preserve validated eight-byte v1–v3 migration.
+  Version five is thirteen bytes; preserve validated twelve-byte v4 and
+  eight-byte v1–v3 migration.
   Session route overrides and local timer state are deliberately not persisted.
 - `ui_theme.*` owns the shared palette/primitives; `i18n.*` owns built-in EN/IT
   labels. USB vocabulary remains English, and received phone content is not

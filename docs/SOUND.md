@@ -10,6 +10,11 @@ booted.
 In Settings → AUDIO, enable Sound, choose a level, and optionally open Sound
 options for independent face, timer, notification/call, and ambient switches.
 BACK returns from these options. SAVE explicitly persists the profile.
+Outside the menu, tapping the top status strip on Clock, Route, Alerts, Weather,
+or desk tools toggles the same master switch for the session and chirps once
+when unmuting; the strip is inactive on Eyes and in Settings, and SAVE persists
+that RAM value with the rest of the profile. The header speaker icon is crossed
+out whenever sound is off, night-muted, or unusable after a PWM failure.
 
 ```text
 set sound on
@@ -27,7 +32,12 @@ and audibility depend on the buzzer/driver. These are generated short chirps,
 not recordings or synthesized speech. Verify the OLD board's buzzer on the bench
 before using it in the car.
 
-- Eye taps and automatic facial reactions can chirp.
+- Eye taps, double taps, pets, and automatic facial reactions can chirp with a
+  **randomized two-note tone shaped by the face family**: bright/playful faces
+  get an ascending mid-high warble, affectionate faces a warm mid-range chirp,
+  sleepy/calm faces a slow low one, surprised/excited faces a quick high bounce,
+  and negative/uneasy faces a short low blip that stays flat. Every chirp picks
+  a fresh pitch inside its family band, so no two reactions sound identical.
 - Pomodoro rest and timer completion can signal once.
 - New notifications/calls can signal once, not continuously ring.
 - Ambient chirps are quieter, rate-limited to at least a minute, and restricted

@@ -34,14 +34,17 @@ restoration, sustained IMU thresholds, cooldowns, and version-one preference
 migration.
 Additional checks cover contextual tools without extra carousel pages, temporary
 route layout versus saved defaults, version-two migration, local timer rollover/
-pause/Pomodoro completion, and eye-tap reactions with automation disabled.
-Expanded tests cover version-four twelve-byte profiles/legacy migration, EN/IT
+pause/Pomodoro completion, and eye-tap/double-tap/glance/greeting reactions with
+automation disabled. Expanded tests cover version-five thirteen-byte profiles with
+version-four and older migration, the reboot verb, EN/IT
 label completeness and layout, out-of-order weather packets/sync throttling,
 animated dirty regions, sound notes/priorities/mute/rollover/failures, and actual
 PWM adapters against core-2/core-3 shared-timer mocks.
 Additional checks exercise all six shared color palettes, filled touch gutters,
 row/tab/footer edges, bounded menu scrolling, vertical/horizontal axis isolation,
-tap tolerance, and explicit audio-test mute/category behavior.
+tap tolerance, explicit audio-test mute/category behavior, randomized face-tone
+family pitch bands with the faces switch, and the battery voltage curve, divider
+plausibility window, and consecutive-sample trust policy.
 Mocks do not verify physical LCD rendering, BLE protocol interoperability, physical
 pin assignments, or electrical behavior.
 
@@ -62,15 +65,18 @@ arduino-cli core install esp32:esp32@3.3.11 --additional-urls https://espressif.
 arduino-cli lib install "ESP32Time@2.0.6" "NimBLE-Arduino@2.5.1"
 arduino-cli lib install --no-deps "ChronosESP32@1.9.1" "GFX Library for Arduino@1.6.9"
 arduino-cli board list
-arduino-cli compile --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=opi,FlashSize=16M" OTA-bot-Mochi
-arduino-cli upload --port COM3 --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=opi,FlashSize=16M" OTA-bot-Mochi
+arduino-cli compile --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=disabled,FlashSize=16M" OTA-bot-Mochi
+arduino-cli upload --port COM3 --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=disabled,FlashSize=16M" OTA-bot-Mochi
 arduino-cli monitor --port COM3 --config baudrate=115200
 ```
 
-The profile selects ESP32S3 Dev Module, native USB CDC on boot, OPI PSRAM,
-and 16 MB flash for the Waveshare ESP32-S3-Touch-LCD-1.69 OLD reference board. The
-user confirmed the pin assignments, not this complete memory profile. Confirm those memory
-options match your own board before building. Upload replaces existing firmware.
+The profile selects ESP32S3 Dev Module, native USB CDC on boot, no PSRAM,
+and 16 MB flash for the Waveshare ESP32-S3-Touch-LCD-1.69 OLD reference board.
+PSRAM stays disabled: the OLD revision routes the buzzer to GPIO33 and the
+power-control lines SYS_EN/SYS_OUT to GPIO35/GPIO36, which the ESP32-S3 octal
+PSRAM interface claims. A build with `PSRAM=opi` beeped the buzzer continuously
+and crashed in the shared I2C driver on 2026-10-13. The 8 MB onboard PSRAM
+therefore remains unused. Upload replaces existing firmware.
 On Linux, replace `COM3` with the port reported by `board list`, often `/dev/ttyACM0`.
 
 The core and library versions above were found installed on the workstation on
@@ -94,10 +100,18 @@ Do not make the device world-writable. Close other serial monitors before upload
 ## Device validation checklist
 
 1. Confirm startup reports `UI ready`, a touch controller address, and `IMU ready`
-   or an explicit missing-sensor diagnostic. Touch, RTC, and the IMU share one I2C
-   bus at SDA=11/SCL=10; if touch answers but `IMU unavailable` persists, suspect
-   the sensor identity or wiring rather than the bus pins.
-2. Swipe through all screens and test repeated/edge gestures.
+   or an explicit missing-sensor diagnostic. Mochi must greet with a brief silent
+   face that returns to the selected mood within three seconds. Touch, RTC, and the
+   IMU share one I2C bus at SDA=11/SCL=10; if touch answers but `IMU unavailable`
+   persists, suspect the sensor identity or wiring rather than the bus pins.
+2. Swipe through all screens and test repeated/edge gestures. Swipe down on Clock,
+   Route, Alerts, Weather, and a desk tool to confirm the quick return to Eyes;
+   confirm vertical strokes still pet on Eyes and still scroll rows in Settings.
+   Tap the top status strip on Clock, Route, Alerts, Weather, or a desk tool to
+   toggle sound: unmuting must chirp once, the strip must do nothing on Eyes and
+   in Settings, the header speaker icon must follow the state, and a
+   Settings SAVE must keep the new state across reboot. Send `reboot` over USB and
+   confirm the acknowledgment followed by a restart.
 3. Connect Chronos and verify the clock transitions from waiting to synchronized
    time. Test 12/24-hour mode, disconnect, and reconnect.
 4. Send a long notification while Eyes is selected and confirm Alerts opens
@@ -131,16 +145,30 @@ Do not make the device world-writable. Close other serial monitors before upload
    and the pair leans; flip the sign in `eye_geometry.h` if the roll goes the wrong
    way for that mounting.
 10. Run an extended BLE session and measure heap, power, and battery runtime.
+11. Battery reading is best-effort on unverified hardware. Open Clock → DESK
+    TOOLS → DEVICE STATUS with no battery fitted: the row must read NOT MEASURED
+    and USB `show` must report `battery=unavailable`. With a known charged LiPo
+    and the expected divider on `BAT_ADC`, compare the shown percentage against a
+    multimeter across the discharge curve; do not treat the native conversion
+    tests as physical validation.
 
 Also test Clock → DESK TOOLS and all four tools. Verify large clock legibility,
 timer continuation while viewing other pages, default-silent completion, and reboot reset.
 Switch Route layout temporarily, SAVE a different setting, and reboot: the saved
 route default must win. Test `route default`, a Route hold, and LOOK → Route default.
-A short eye tap must react for three seconds and restore the selected mood; holds
-and swipes must not trigger it.
+A short eye tap must react for three seconds, glance toward the touch point,
+and restore the selected mood; a quick double tap must show a playful face for
+3.5 seconds; holds and swipes must trigger neither. Petting must keep the same
+affectionate face while stroking continues and end within six seconds of the
+first stroke. Flip LIGHT → Screen flip while parked: the interface, touch
+targets, and menus must rotate together, tilting must still read in your frame,
+SAVE plus reboot must keep it, and `set flip off` must restore the panel
+orientation.
 
 Enable sound only on the bench first. Check tone/level, category switches,
 night mute, timer cues, and no backlight flicker while changing tone frequency.
+Eye reactions must chirp in varied pitches inside their family band (low and slow
+for sleepy faces, high bounce for surprised ones), not one fixed note.
 Use AUDIO → Test sound or USB `sound test`, then `sound`, to distinguish mute
 from PWM failure. PWM-ready status alone cannot establish physical audibility.
 Check three-row scrolling, fixed tabs/actions, edge taps, and no value changes
@@ -151,5 +179,7 @@ handoffs and all idle gestures. For the reported weather failure, inspect USB
 `weather` counters and try `weather sync` plus app weather configuration; do not
 mark the physical weather issue resolved from native tests alone.
 
-Battery percentage and charging state are deliberately unavailable until the
-actual power circuit, ADC path, divider ratio, and calibration are verified.
+Battery percentage is a plausibility-gated best-effort estimate, deliberately
+reported as NOT MEASURED when readings are implausible. Charging state remains
+unavailable until the actual power circuit, ADC path, divider ratio, and
+calibration are verified.

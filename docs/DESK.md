@@ -27,7 +27,7 @@ Open Clock and tap **DESK TOOLS**, then select:
 | BIG CLOCK | Large hours/minutes, seconds, AM/PM when applicable, and date |
 | DESK OVERVIEW | Time, phone connection, temperature/city, and weather freshness |
 | TIMER / POMODORO | Local 5-minute or 15-minute timer, or one 25-minute focus/5-minute rest pair |
-| DEVICE STATUS | BLE connection, backlight percentage, IMU initialization, clock sync, and preference save state |
+| DEVICE STATUS | BLE connection, backlight percentage, IMU initialization, clock sync, preference save state, sound state, and battery estimate |
 
 BACK TO DESK returns to the tool menu; BACK TO CLOCK closes it. A swipe from a
 tool goes to the previous/next primary page relative to Clock, so there is no
@@ -35,7 +35,10 @@ eleven-page swipe sequence. The Clock position dot stays selected in these tools
 
 Time requires a Chronos sync after boot and then continues while disconnected.
 Weather uses received phone data and has missing/stale states; it is not measured
-by the board. Device status shows initialization, not vehicle telemetry or battery.
+by the board. Device status shows initialization, not vehicle telemetry. The
+battery row is a best-effort LiPo estimate from an unverified ADC divider on
+`BAT_ADC`; implausible readings (no battery fitted) are reported as NOT MEASURED,
+and the conversion is native-tested but physically unvalidated.
 
 ## Local timer
 
