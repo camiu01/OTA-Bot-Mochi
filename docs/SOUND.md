@@ -14,7 +14,9 @@ Outside the menu, tapping the top status strip on Clock, Route, Alerts, Weather,
 or desk tools toggles the same master switch for the session and chirps once
 when unmuting; the strip is inactive on Eyes and in Settings, and SAVE persists
 that RAM value with the rest of the profile. The header speaker icon is crossed
-out whenever sound is off, night-muted, or unusable after a PWM failure.
+out whenever sound is off, night-muted, or unusable after a PWM failure; on
+Eyes, which has no header, the same glyph appears in the top-right corner only
+in those silent states.
 
 ```text
 set sound on

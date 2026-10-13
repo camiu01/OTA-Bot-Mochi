@@ -41,6 +41,15 @@ void ui_card(Arduino_GFX *gfx, int16_t y, int16_t height);
  */
 void ui_chrome(Arduino_GFX *gfx, const char *title, bool connected, uint8_t page);
 /**
+ * @brief Draw a compact speaker glyph showing whether audio can sound.
+ * @param gfx Canvas.
+ * @param x Left edge; glyph spans x..x+21 and y..y+12.
+ * @param y Top edge.
+ */
+void ui_sound_badge(Arduino_GFX *gfx, int16_t x, int16_t y);
+/** @brief Erase the sound badge rectangle. @param gfx Canvas. @param x Left edge. @param y Top edge. */
+void ui_sound_badge_clear(Arduino_GFX *gfx, int16_t x, int16_t y);
+/**
  * @brief Draw a calm empty state.
  * @param gfx Canvas.
  * @param title Primary message.

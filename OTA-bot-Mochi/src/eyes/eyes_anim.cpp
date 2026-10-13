@@ -146,6 +146,7 @@ void eyes_init(Arduino_GFX *display) {
 	s_state.blinkDurMs = 150;
 	s_state.dizzyUntilMs = 0;
 	s_state.glanceUntilMs = 0;
+	s_state.heartUntilMs = 0;
 	s_state.savedExpr = NEUTRAL;
 	s_state.dirtyInit = false;
 	anim_arm_saccade(s_state.lastMs, 1500, 1000);
@@ -380,5 +381,8 @@ void eyes_update(uint32_t nowMs) {
 	eyes_imu_poll(nowMs);
 	eyes_faces_step(nowMs);
 	eyes_life_step(nowMs, dt);
+	if (s_state.heartUntilMs != 0 && (int32_t)(nowMs - s_state.heartUntilMs) >= 0) {
+		s_state.heartUntilMs = 0;
+	}
 	eyes_draw();
 }

@@ -305,16 +305,26 @@ static void integration_tests() {
 	assert(eyes_config().expression == NEUTRAL);
 	eyes_faces_tap(19001, 120, 140);
 	assert(eyes_config().expression != tapped);
-	eyes_faces_pet(19002);
+	eyes_faces_pet(19002, 120, 180);
 	Expression petted = eyes_config().expression;
 	assert(petted == HAPPY || petted == LOVE || petted == GLEE ||
 		petted == BEAMING || petted == MILD_HAPPY || petted == EXCITED);
 	assert(settings_get().mood == 0);
+	assert(eyes_state().heartUntilMs == 19902 && eyes_state().heartX == 120 && eyes_state().heartY == 180);
+	// Continued stroking extends the affection face, and out-of-range points clamp on screen.
+	eyes_faces_pet(19002, 2, 2);
+	assert(eyes_config().expression == petted);
+	assert(eyes_state().heartUntilMs == 19902 && eyes_state().heartX == 7 && eyes_state().heartY == 20);
 	eyes_state().dizzyUntilMs = 21001;
 	eyes_config().expression = DIZZY;
 	eyes_faces_tap(19002, 120, 140);
 	assert(eyes_config().expression == DIZZY);
 	eyes_state().dizzyUntilMs = 0;
+	// The heart marker survives until its expiry, then the dirty union drops it.
+	eyes_update(19901);
+	assert(eyes_state().heartUntilMs == 19902);
+	eyes_update(19902);
+	assert(eyes_state().heartUntilMs == 0);
 }
 
 /** @brief Face handoffs occur while closed; damped gaze and soft blinking remain bounded. */
@@ -345,6 +355,9 @@ static void animated_raster_tests() {
 	for (uint8_t style = 0; style < 4; ++style) {
 		eyes_init(&gfx); eyes_set_style(static_cast<EyeStyle>(style));
 		eyes_set_eye_colors(0, 0xFFFF, 0xF800, 0x07E0);
+		// Keep a heart marker active so the wipe/redraw invariant covers it every frame.
+		eyes_state().heartUntilMs = 40001;
+		eyes_state().heartX = 120; eyes_state().heartY = 60;
 		for (uint32_t now = 0; now <= 40000; now += 16) {
 			if (now % 4000 == 0) { eyes_set_expression(now % 8000 ? LOVE : HAPPY); }
 			eyes_life_step(now, 16);

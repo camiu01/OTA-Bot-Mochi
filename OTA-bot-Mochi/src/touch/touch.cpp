@@ -142,3 +142,6 @@ bool touch_take_hold() {
 
 /** @brief Consume a vertical petting stroke. @return Pending pet. */
 bool touch_take_pet() { return s_actions.take_pet(); }
+
+/** @brief Consume a vertical petting stroke with the contact position. @param x Output X. @param y Output Y. @return Pending pet. */
+bool touch_take_pet(int16_t &x, int16_t &y) { return s_actions.take_pet(x, y); }

@@ -187,6 +187,9 @@ struct EyeState {
 	uint32_t blinkDurMs;	/**< Duration of current blink. */
 	uint32_t dizzyUntilMs;	/**< Expiry time of DIZZY override, 0 when inactive. */
 	uint32_t glanceUntilMs;	/**< Expiry of the tap-directed gaze hold, 0 when idle. */
+	uint32_t heartUntilMs;	/**< Expiry of the petting heart marker, 0 when idle. */
+	int16_t heartX;		/**< Center X of the petting heart marker. */
+	int16_t heartY;		/**< Top Y of the petting heart marker. */
 	bool blinking;	/**< True while eyelids are closed. */
 	Expression savedExpr;	/**< Expression to restore after DIZZY. */
 	int16_t prevX;	/**< X of dirty region union from last frame. */

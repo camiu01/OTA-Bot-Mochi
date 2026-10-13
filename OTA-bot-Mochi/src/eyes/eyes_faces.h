@@ -25,8 +25,8 @@ void eyes_faces_tap(uint32_t now, int16_t x, int16_t y);
  * @param y Tap Y in logical screen coordinates.
  */
 void eyes_faces_double(uint32_t now, int16_t x, int16_t y);
-/** @brief React to a petting stroke without modifying the base/preferences. @param now Timestamp. */
-void eyes_faces_pet(uint32_t now);
+/** @brief React to a petting stroke without modifying the base/preferences. @param now Timestamp. @param x Stroke X in logical screen coordinates. @param y Stroke Y in logical screen coordinates. */
+void eyes_faces_pet(uint32_t now, int16_t x, int16_t y);
 /** @brief Silent startup greeting face that preserves the selected mood. @param now Timestamp. */
 void eyes_faces_greet(uint32_t now);
 /** @brief Apply automatic mood unless dizzy has priority. @param now Timestamp. */

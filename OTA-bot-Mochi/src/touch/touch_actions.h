@@ -58,6 +58,17 @@ struct TouchActions {
 	}
 
 	/**
+	 * @brief Consume a recognized petting stroke with the current contact position.
+	 * @param px Output stroke X.
+	 * @param py Output stroke Y.
+	 * @return True once per stroke.
+	 */
+	bool take_pet(int16_t &px, int16_t &py) {
+		px = x; py = y;
+		return take_pet();
+	}
+
+	/**
 	 * @brief Track one vertical sample for an up-down petting stroke.
 	 * @param now Timestamp.
 	 */

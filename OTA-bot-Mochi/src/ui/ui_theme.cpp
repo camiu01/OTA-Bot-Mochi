@@ -92,22 +92,28 @@ void ui_card(Arduino_GFX *gfx, int16_t y, int16_t height) {
 }
 
 /**
- * @brief Draw the header speaker glyph, crossed out whenever audio cannot sound.
+ * @brief Draw the compact speaker glyph, crossed out whenever audio cannot sound.
  * @param gfx Canvas.
+ * @param x Left edge.
+ * @param y Top edge.
  */
-static void sound_icon(Arduino_GFX *gfx) {
+void ui_sound_badge(Arduino_GFX *gfx, int16_t x, int16_t y) {
 	SoundStatus audio = sound_status();
 	bool audible = audio == SoundStatus::Armed || audio == SoundStatus::Ready;
 	uint16_t color = audible ? UI_ACCENT : UI_MUTED;
-	gfx->fillRect(150, 14, 4, 6, color);
-	gfx->fillTriangle(154, 11, 154, 23, 161, 17, color);
+	gfx->fillRect(x, y + 3, 4, 7, color);
+	gfx->fillTriangle(x + 4, y, x + 4, y + 12, x + 11, y + 6, color);
 	if (audible) {
-		gfx->drawLine(164, 13, 164, 21, color);
-		gfx->drawLine(167, 15, 167, 19, color);
+		gfx->drawLine(x + 14, y + 2, x + 14, y + 10, color);
+		gfx->drawLine(x + 17, y + 4, x + 17, y + 8, color);
 	} else {
-		gfx->drawLine(164, 13, 170, 21, color);
-		gfx->drawLine(170, 13, 164, 21, color);
+		gfx->drawLine(x + 14, y + 2, x + 20, y + 10, color);
+		gfx->drawLine(x + 20, y + 2, x + 14, y + 10, color);
 	}
+}
+
+void ui_sound_badge_clear(Arduino_GFX *gfx, int16_t x, int16_t y) {
+	gfx->fillRect(x, y, 22, 13, UI_BG);
 }
 
 /**
@@ -122,7 +128,7 @@ void ui_chrome(Arduino_GFX *gfx, const char *title, bool connected, uint8_t page
 	ui_label(gfx, "MOCHI / COMPANION", 16, 12, 180, 1, UI_MUTED);
 	ui_label(gfx, String(backlight_brightness()) + "%", 182, 12, 30, 1, UI_MUTED);
 	gfx->fillCircle(220, 16, 3, connected ? UI_ACCENT : UI_MUTED);
-	sound_icon(gfx);
+	ui_sound_badge(gfx, 150, 11);
 	ui_label(gfx, title, 16, 30, 198, 2, UI_TEXT);
 	gfx->fillRect(0, 258, LCD_WIDTH, 22, UI_BG);
 	for (uint8_t i = 0; i < 6; ++i) {

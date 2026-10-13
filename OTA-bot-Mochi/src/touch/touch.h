@@ -34,5 +34,7 @@ bool touch_take_double();
 bool touch_take_hold();
 /** @brief Consume one vertical petting stroke. @return Pet available. */
 bool touch_take_pet();
+/** @brief Consume one vertical petting stroke with the current contact position. @param x Output X. @param y Output Y. @return Pet available. */
+bool touch_take_pet(int16_t &x, int16_t &y);
 /** @brief Consume one vertical gesture: +1 up, -1 down. @return Scroll direction. */
 int8_t touch_take_scroll();

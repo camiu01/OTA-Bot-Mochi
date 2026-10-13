@@ -42,6 +42,7 @@ UiPage current_screen = UiPage::Eyes;
 AutoPagePolicy auto_page;
 bool screen_ready = false;
 bool applied_flip = false;
+bool eyes_badge_visible = false;
 uint32_t last_frame_ms = 0;
 uint32_t activity_revision = 0;
 constexpr uint32_t FRAME_INTERVAL_MS = 33;
@@ -110,8 +111,22 @@ void switch_screen(UiPage page, uint32_t now) {
 	current_screen = page;
 	gfx->fillScreen(UI_BG);
 	screens_invalidate();
+	eyes_badge_visible = false;
 	eyes_state().dirtyInit = false;
 	last_frame_ms = now - FRAME_INTERVAL_MS;
+}
+
+/**
+ * @brief Keep the Eyes corner speaker glyph in sync; this page has no chrome.
+ * @param gfx Canvas.
+ */
+void update_eyes_badge(Arduino_GFX *gfx) {
+	SoundStatus audio = sound_status();
+	bool wanted = audio != SoundStatus::Armed && audio != SoundStatus::Ready;
+	if (wanted == eyes_badge_visible) { return; }
+	if (wanted) { ui_sound_badge(gfx, 216, 8); }
+	else { ui_sound_badge_clear(gfx, 216, 8); }
+	eyes_badge_visible = wanted;
 }
 
 /**
@@ -148,7 +163,8 @@ void handle_touch(uint32_t now) {
 	int16_t x, y;
 	bool tap = touch_take_tap(x, y);
 	bool dbl = touch_take_double();
-	bool pet = touch_take_pet();
+	int16_t pet_x = 0, pet_y = 0;
+	bool pet = touch_take_pet(pet_x, pet_y);
 	int8_t scroll = touch_take_scroll();
 	if (tap && y < 50 && !screens_calling() && current_screen != UiPage::Eyes &&
 		current_screen != UiPage::Settings) {
@@ -171,7 +187,7 @@ void handle_touch(uint32_t now) {
 		screens_invalidate();
 		return;
 	}
-	if (pet && current_screen == UiPage::Eyes && !screens_calling()) { eyes_faces_pet(now); }
+	if (pet && current_screen == UiPage::Eyes && !screens_calling()) { eyes_faces_pet(now, pet_x, pet_y); }
 	if (tap && current_screen == UiPage::Settings && !screens_calling()) {
 		MenuAction action = settings_menu_tap(x, y);
 		if (action == MenuAction::Exit) { switch_screen(UiPage::Eyes, now); }
@@ -259,6 +275,7 @@ void loop() {
 	if (current_screen == UiPage::Eyes && !screens_calling()) {
 		if (changed) { eyes_state().dirtyInit = false; }
 		eyes_update(now);
+		update_eyes_badge(gfx);
 		changed = true;
 	}
 	if (changed) { gfx->flush(); }

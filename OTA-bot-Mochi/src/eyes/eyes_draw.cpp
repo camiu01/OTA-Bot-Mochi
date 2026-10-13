@@ -30,6 +30,25 @@ static void store_union(EyeState &st, const EyeLayout &layout) {
 	st.prevH = eye_limit(bottom, st.prevY + 1, LCD_HEIGHT) - st.prevY;
 }
 
+/** @brief Expand the stored union with the petting heart box. @param st State. */
+static void extend_heart(EyeState &st) {
+	int16_t left = eye_limit(int16_t(st.heartX - 7), 0, LCD_WIDTH - 1);
+	int16_t top = eye_limit(int16_t(st.heartY - 1), 0, LCD_HEIGHT - 1);
+	int16_t right = eye_limit(int16_t(st.heartX + 8), int16_t(left + 1), int16_t(LCD_WIDTH));
+	int16_t bottom = eye_limit(int16_t(st.heartY + 13), int16_t(top + 1), int16_t(LCD_HEIGHT));
+	if (left < st.prevX) { st.prevW = int16_t(st.prevW + (st.prevX - left)); st.prevX = left; }
+	if (top < st.prevY) { st.prevH = int16_t(st.prevH + (st.prevY - top)); st.prevY = top; }
+	if (right > int16_t(st.prevX + st.prevW)) { st.prevW = int16_t(right - st.prevX); }
+	if (bottom > int16_t(st.prevY + st.prevH)) { st.prevH = int16_t(bottom - st.prevY); }
+}
+
+/** @brief Draw the heart marker; box spans cx-6..cx+6 and top..top+11. @param gfx Canvas. @param color RGB565. @param cx Center X. @param top Top Y. */
+static void paint_heart(Arduino_GFX *gfx, uint16_t color, int16_t cx, int16_t top) {
+	gfx->fillCircle(cx - 3, top + 3, 3, color);
+	gfx->fillCircle(cx + 3, top + 3, 3, color);
+	gfx->fillTriangle(cx - 6, top + 4, cx + 6, top + 4, cx, top + 11, color);
+}
+
 /** @brief Paint one eye, keeping blink/symbol logic separate from pupil rendering. @param gfx Canvas. @param cfg Config. @param st State. @param box Eye. */
 static void paint(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeState &st, const EyeBox &box) {
 	if (st.blinking || box.h <= 13) {
@@ -69,5 +88,7 @@ void eyes_draw() {
 	wipe(gfx, cfg, st);
 	paint(gfx, cfg, drawing, layout.left);
 	paint(gfx, cfg, drawing, layout.right);
+	if (st.heartUntilMs != 0) { paint_heart(gfx, cfg.fgColor, st.heartX, st.heartY); }
 	store_union(st, layout);
+	if (st.heartUntilMs != 0) { extend_heart(st); }
 }

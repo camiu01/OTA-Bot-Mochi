@@ -43,8 +43,9 @@ PWM adapters against core-2/core-3 shared-timer mocks.
 Additional checks exercise all six shared color palettes, filled touch gutters,
 row/tab/footer edges, bounded menu scrolling, vertical/horizontal axis isolation,
 tap tolerance, explicit audio-test mute/category behavior, randomized face-tone
-family pitch bands with the faces switch, and the battery voltage curve, divider
-plausibility window, and consecutive-sample trust policy.
+family pitch bands with the faces switch, the battery voltage curve, divider
+plausibility window, and consecutive-sample trust policy, plus the petting
+heart marker's dirty-region wipe and clamped placement.
 Mocks do not verify physical LCD rendering, BLE protocol interoperability, physical
 pin assignments, or electrical behavior.
 
@@ -159,8 +160,10 @@ route default must win. Test `route default`, a Route hold, and LOOK → Route d
 A short eye tap must react for three seconds, glance toward the touch point,
 and restore the selected mood; a quick double tap must show a playful face for
 3.5 seconds; holds and swipes must trigger neither. Petting must keep the same
-affectionate face while stroking continues and end within six seconds of the
-first stroke. Flip LIGHT → Screen flip while parked: the interface, touch
+affectionate face while stroking continues, show the heart marker near the
+finger on each recognized stroke, and end within six seconds of the
+first stroke. On Eyes, confirm the corner speaker glyph appears only while
+audio is off/night-muted and disappears after unmuting elsewhere. Flip LIGHT → Screen flip while parked: the interface, touch
 targets, and menus must rotate together, tilting must still read in your frame,
 SAVE plus reboot must keep it, and `set flip off` must restore the panel
 orientation.

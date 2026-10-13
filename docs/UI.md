@@ -28,9 +28,13 @@ This percentage is **brightness, not battery charge**.
   pool, with the same glance toward your finger. Dizzy keeps priority.
 - Stroke vertically up and down on Eyes to pet Mochi: rubbing the screen
   without drifting sideways requests a temporary affectionate face from the
-  happy/love family. Continued strokes keep the same face and extend it up
-  to six seconds. Petting never changes saved preferences, leaves Eyes,
-  or opens Settings. Use vertical strokes; horizontal motion pages away.
+  happy/love family, and a small heart marker appears near your finger for
+  under a second as confirmation. Continued strokes keep the same face and
+  extend it up to six seconds. Petting never changes saved preferences,
+  leaves Eyes, or opens Settings. Use vertical strokes; horizontal motion
+  pages away.
+- Eyes has no header, so a small speaker glyph appears in its top-right
+  corner only while audio cannot sound (off, night-muted, or PWM failure).
 - Settings → LIGHT → **Screen flip** mounts the whole interface upside down
   for bottom-up installations. Touch targets and the IMU gaze follow the
   180-degree rotation, and the choice is saved with the profile.
