@@ -6,6 +6,7 @@
 #include "ui_theme.h"
 #include "../../pin_config.h"
 #include "../power/backlight.h"
+#include "../sound/sound.h"
 
 uint16_t UI_CARD = 0x18C3;
 uint16_t UI_TEXT = 0xFFFF;
@@ -91,6 +92,25 @@ void ui_card(Arduino_GFX *gfx, int16_t y, int16_t height) {
 }
 
 /**
+ * @brief Draw the header speaker glyph, crossed out whenever audio cannot sound.
+ * @param gfx Canvas.
+ */
+static void sound_icon(Arduino_GFX *gfx) {
+	SoundStatus audio = sound_status();
+	bool audible = audio == SoundStatus::Armed || audio == SoundStatus::Ready;
+	uint16_t color = audible ? UI_ACCENT : UI_MUTED;
+	gfx->fillRect(150, 14, 4, 6, color);
+	gfx->fillTriangle(154, 11, 154, 23, 161, 17, color);
+	if (audible) {
+		gfx->drawLine(164, 13, 164, 21, color);
+		gfx->drawLine(167, 15, 167, 19, color);
+	} else {
+		gfx->drawLine(164, 13, 170, 21, color);
+		gfx->drawLine(170, 13, 164, 21, color);
+	}
+}
+
+/**
  * @brief Render header and pagination with the selected eye-color accent.
  * @param gfx Canvas.
  * @param title Screen title.
@@ -102,6 +122,7 @@ void ui_chrome(Arduino_GFX *gfx, const char *title, bool connected, uint8_t page
 	ui_label(gfx, "MOCHI / COMPANION", 16, 12, 180, 1, UI_MUTED);
 	ui_label(gfx, String(backlight_brightness()) + "%", 182, 12, 30, 1, UI_MUTED);
 	gfx->fillCircle(220, 16, 3, connected ? UI_ACCENT : UI_MUTED);
+	sound_icon(gfx);
 	ui_label(gfx, title, 16, 30, 198, 2, UI_TEXT);
 	gfx->fillRect(0, 258, LCD_WIDTH, 22, UI_BG);
 	for (uint8_t i = 0; i < 6; ++i) {

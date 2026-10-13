@@ -28,6 +28,7 @@
 #include "src/sound/sound.h"
 #include "src/ui/ui_theme.h"
 #include "src/power/backlight.h"
+#include "src/power/battery.h"
 #include "src/settings/settings.h"
 #include "src/settings/settings_menu.h"
 #include "src/settings/usb_commands.h"
@@ -40,6 +41,7 @@ Arduino_GFX *gfx = new Arduino_Canvas(LCD_WIDTH, LCD_HEIGHT, display);
 UiPage current_screen = UiPage::Eyes;
 AutoPagePolicy auto_page;
 bool screen_ready = false;
+bool applied_flip = false;
 uint32_t last_frame_ms = 0;
 uint32_t activity_revision = 0;
 constexpr uint32_t FRAME_INTERVAL_MS = 33;
@@ -91,6 +93,9 @@ void init_screen() {
 		return;
 	}
 	screen_ready = true;
+	applied_flip = settings_get().flipped;
+	gfx->setRotation(applied_flip ? 2 : 0);
+	touch_set_flipped(applied_flip);
 	gfx->fillScreen(UI_BG);
 	gfx->flush();
 	backlight_init(millis());
@@ -110,7 +115,31 @@ void switch_screen(UiPage page, uint32_t now) {
 }
 
 /**
- * @brief Handle parked-use taps, a hold-to-settings shortcut, and page swipes.
+ * @brief Apply the saved 180-degree mounting orientation and repaint the whole canvas.
+ * @param flip True when the device is mounted upside down.
+ * @param now Millisecond timestamp.
+ */
+void apply_display_flip(bool flip, uint32_t now) {
+	applied_flip = flip;
+	gfx->setRotation(flip ? 2 : 0);
+	touch_set_flipped(flip);
+	switch_screen(current_screen, now);
+}
+
+/**
+ * @brief Toggle master sound from the status-bar strip; RAM-only until SAVE.
+ * @param now Millisecond timestamp.
+ */
+void toggle_quick_sound(uint32_t now) {
+	CompanionSettings value = settings_get();
+	value.sound = !value.sound;
+	if (!settings_update(value)) { return; }
+	if (value.sound) { sound_request(SoundCue::Tap, now); }
+}
+
+/**
+ * @brief Handle parked-use taps, a utility-page mute toggle, double taps, petting
+ * strokes, a hold-to-settings shortcut, a swipe-down home gesture, and page swipes.
  * @param now Millisecond timestamp.
  */
 void handle_touch(uint32_t now) {
@@ -118,9 +147,21 @@ void handle_touch(uint32_t now) {
 	bool hold = touch_take_hold();
 	int16_t x, y;
 	bool tap = touch_take_tap(x, y);
+	bool dbl = touch_take_double();
+	bool pet = touch_take_pet();
 	int8_t scroll = touch_take_scroll();
+	if (tap && y < 50 && !screens_calling() && current_screen != UiPage::Eyes &&
+		current_screen != UiPage::Settings) {
+		toggle_quick_sound(now);
+		return;
+	}
 	if (scroll && current_screen == UiPage::Settings && !screens_calling() &&
 		settings_menu_scroll(scroll)) { screens_invalidate(); }
+	if (scroll == -1 && current_screen != UiPage::Eyes && current_screen != UiPage::Settings &&
+		!screens_calling()) {
+		switch_screen(UiPage::Eyes, now);
+		return;
+	}
 	if (hold && current_screen == UiPage::Eyes && !screens_calling()) {
 		switch_screen(UiPage::Settings, now);
 		return;
@@ -130,13 +171,16 @@ void handle_touch(uint32_t now) {
 		screens_invalidate();
 		return;
 	}
+	if (pet && current_screen == UiPage::Eyes && !screens_calling()) { eyes_faces_pet(now); }
 	if (tap && current_screen == UiPage::Settings && !screens_calling()) {
 		MenuAction action = settings_menu_tap(x, y);
 		if (action == MenuAction::Exit) { switch_screen(UiPage::Eyes, now); }
 		else if (action == MenuAction::Changed) { screens_invalidate(); }
 	} else if (tap && !screens_calling()) {
-		if (current_screen == UiPage::Eyes) { eyes_faces_tap(now); }
-		else {
+		if (current_screen == UiPage::Eyes) {
+			if (dbl) { eyes_faces_double(now, x, y); }
+			else { eyes_faces_tap(now, x, y); }
+		} else {
 			UiPage target = screens_tap(current_screen, x, y, now);
 			if (target != current_screen) { switch_screen(target, now); }
 		}
@@ -168,6 +212,7 @@ void setup() {
 	if (!screen_ready) { return; }
 	eyes_init(gfx);
 	settings_apply();
+	eyes_faces_greet(millis());
 	eyes_imu_init();
 	Serial.println(eyes_imu_ready() ? "IMU ready" : "IMU unavailable; using idle eyes");
 	touch_init();
@@ -198,8 +243,12 @@ void loop() {
 	if (!screen_ready) { return; }
 	uint32_t now = millis();
 	handle_touch(now);
+	if (!touch_pressed() && settings_get().flipped != applied_flip) {
+		apply_display_flip(settings_get().flipped, now);
+	}
 	handle_auto_page(now);
 	if (weather_sync_due(now, watch.isConnected(), watch.isSubscribed())) { watch.syncRequest(); }
+	battery_sample(now);
 	view_timer().tick(now);
 	sound_poll(now, ui_page_events(), current_screen == UiPage::Eyes && !screens_calling(),
 		view_timer().resting, view_timer().finished);

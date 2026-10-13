@@ -14,6 +14,7 @@
 #include "../eyes/eyes_api.h"
 #include "../settings/settings.h"
 #include "../power/backlight.h"
+#include "../power/battery.h"
 #include <stdio.h>
 
 namespace {
@@ -70,14 +71,18 @@ void timer_screen(Arduino_GFX *gfx) {
 }
 /** @brief Render non-sensitive device information. @param gfx Canvas. @param data Snapshot. */
 void device(Arduino_GFX *gfx, const UiSnapshot &data) {
-	ui_card(gfx, 62, 158);
-	ui_label(gfx, tr(data.connected ? Text::BleConnected : Text::BleOffline), 28, 80, 184, 1, UI_TEXT);
-	ui_label(gfx, tr(Text::LightPrefix) + String(backlight_brightness()) + "%", 28, 106, 184, 1, UI_TEXT);
-	ui_label(gfx, tr(eyes_imu_ready() ? Text::ImuReady : Text::ImuMissing), 28, 132, 184, 1, UI_TEXT);
-	ui_label(gfx, tr(clock_ready() ? Text::ClockSynced : Text::ClockWaiting), 28, 158, 184, 1, UI_TEXT);
-	ui_label(gfx, tr(settings_dirty() ? Text::PrefsUnsaved : Text::PrefsSaved), 28, 184, 184, 1, UI_MUTED);
+	ui_card(gfx, 62, 166);
+	ui_label(gfx, tr(data.connected ? Text::BleConnected : Text::BleOffline), 28, 74, 184, 1, UI_TEXT);
+	ui_label(gfx, tr(Text::LightPrefix) + String(backlight_brightness()) + "%", 28, 96, 184, 1, UI_TEXT);
+	ui_label(gfx, tr(eyes_imu_ready() ? Text::ImuReady : Text::ImuMissing), 28, 118, 184, 1, UI_TEXT);
+	ui_label(gfx, tr(clock_ready() ? Text::ClockSynced : Text::ClockWaiting), 28, 140, 184, 1, UI_TEXT);
+	ui_label(gfx, tr(settings_dirty() ? Text::PrefsUnsaved : Text::PrefsSaved), 28, 162, 184, 1, UI_MUTED);
 	static const Text audio[] = {Text::SoundOff, Text::SoundNight, Text::SoundArmed, Text::SoundReady, Text::SoundError};
-	ui_label(gfx, tr(audio[uint8_t(sound_status())]), 28, 210, 184, 1, UI_MUTED);
+	ui_label(gfx, tr(audio[uint8_t(sound_status())]), 28, 184, 184, 1, UI_MUTED);
+	uint8_t charge = battery_percent();
+	ui_label(gfx, tr(Text::BatteryPrefix) +
+		(charge == BATTERY_UNAVAILABLE ? tr(Text::BatteryMissing) : String(charge) + "%"),
+		28, 206, 184, 1, charge == BATTERY_UNAVAILABLE ? UI_MUTED : UI_TEXT);
 }
 }
 
