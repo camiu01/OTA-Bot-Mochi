@@ -8,6 +8,8 @@
 #include "../ui/view_state.h"
 #include "../ui/ui_state.h"
 #include "../ui/weather_sync.h"
+#include "../sound/sound.h"
+#include "../../pin_config.h"
 #include <Arduino.h>
 #include <ctype.h>
 #include <stdlib.h>
@@ -106,6 +108,7 @@ void show() {
 	Serial.printf("sound-faces=%s sound-timer=%s sound-alerts=%s sound-ambient=%s\n",
 		p.sound_faces ? "on" : "off", p.sound_timer ? "on" : "off",
 		p.sound_alerts ? "on" : "off", p.sound_ambient ? "on" : "off");
+	Serial.printf("sound-status=%s gpio=%u\n", sound_status_name(), unsigned(BUZZER));
 }
 
 /** @brief Explain strict USB vocabulary, unchanged by display locale. */
@@ -118,6 +121,7 @@ void help() {
 	Serial.println("animation calm/dasai/playful; language en/it; sound-level 1..30");
 	Serial.println("sound/sound-faces/sound-timer/sound-alerts/sound-ambient/sound-night-mute on/off");
 	Serial.println("weather: packet counters only; weather sync: request app synchronization");
+	Serial.println("sound: mute/PWM status; sound test: two bench tones (master/night mute respected)");
 }
 /** @brief Execute a parsed command with explicit success/failure feedback. @param command Action. */
 void execute(const UsbCommand &command) {
@@ -141,6 +145,19 @@ void execute(const UsbCommand &command) {
 			break;
 		}
 		case UsbAction::WeatherSync: weather_request(); Serial.println("App sync queued; requires connection/subscription"); break;
+		case UsbAction::SoundStatus:
+			Serial.printf("sound-status=%s gpio=%u level=%u\n", sound_status_name(), unsigned(BUZZER), settings_get().sound_level);
+			break;
+		case UsbAction::SoundTest: {
+			SoundStatus status = sound_status();
+			if (status == SoundStatus::Off || status == SoundStatus::Night || status == SoundStatus::Error) {
+				Serial.printf("Sound test blocked: %s\n", sound_status_name());
+			} else {
+				sound_request(SoundCue::Test, millis());
+				Serial.println("Sound test requested; type sound after one second for PWM status");
+			}
+			break;
+		}
 		default: Serial.println("ERROR, invalid command; type help"); break;
 	}
 }
@@ -165,6 +182,7 @@ UsbCommand settings_parse(const char *input, const CompanionSettings &current) {
 		if (strcmp(verb, "save") == 0) { result.action = UsbAction::Save; }
 		if (strcmp(verb, "defaults") == 0) { result.action = UsbAction::Defaults; }
 		if (strcmp(verb, "weather") == 0) { result.action = UsbAction::WeatherStatus; }
+		if (strcmp(verb, "sound") == 0) { result.action = UsbAction::SoundStatus; }
 	} else if (tokens == 3 && strcmp(verb, "set") == 0 &&
 		assign(field, value, result.profile) && settings_valid(result.profile)) {
 		result.action = UsbAction::Set;
@@ -174,6 +192,8 @@ UsbCommand settings_parse(const char *input, const CompanionSettings &current) {
 		if (strcmp(field, "default") == 0) { result.action = UsbAction::RouteView; result.route_mode = -1; }
 	} else if (tokens == 2 && strcmp(verb, "weather") == 0 && strcmp(field, "sync") == 0) {
 		result.action = UsbAction::WeatherSync;
+	} else if (tokens == 2 && strcmp(verb, "sound") == 0 && strcmp(field, "test") == 0) {
+		result.action = UsbAction::SoundTest;
 	}
 	return result;
 }

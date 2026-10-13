@@ -11,6 +11,8 @@ function Invoke-HostTest([string] $Name, [string[]] $Sources, [string[]] $Flags 
 	if ($LASTEXITCODE -ne 0) { throw "$Name tests failed" }
 }
 try {
+	& g++ -std=c++17 -Wall -Wextra -Werror -I "$root\tests\stubs" -fsyntax-only "$root\OTA-bot-Mochi\src\touch\touch.cpp"
+	if ($LASTEXITCODE -ne 0) { throw 'Touch driver syntax check failed' }
 	$runtime = @(
 		"$root\OTA-bot-Mochi\src\settings\settings.cpp",
 		"$root\OTA-bot-Mochi\src\settings\usb_commands.cpp",
@@ -19,6 +21,7 @@ try {
 		"$root\OTA-bot-Mochi\src\eyes\eyes_faces.cpp",
 		"$root\OTA-bot-Mochi\src\eyes\eye_life.cpp",
 		"$root\OTA-bot-Mochi\src\ui\view_state.cpp",
+		"$root\OTA-bot-Mochi\src\ui\ui_theme.cpp",
 		"$root\OTA-bot-Mochi\src\ui\ui_state.cpp",
 		"$root\OTA-bot-Mochi\src\ui\i18n.cpp",
 		"$root\OTA-bot-Mochi\src\ui\weather_sync.cpp",
@@ -29,7 +32,6 @@ try {
 	)
 	$ui = @(
 		"$root\tests\ui_test.cpp",
-		"$root\OTA-bot-Mochi\src\ui\ui_theme.cpp",
 		"$root\OTA-bot-Mochi\src\ui\screens.cpp",
 		"$root\OTA-bot-Mochi\src\ui\context_views.cpp",
 		"$root\OTA-bot-Mochi\src\clock\clock_ui.cpp",
@@ -38,9 +40,10 @@ try {
 	)
 	Invoke-HostTest 'swipe' @("$root\tests\swipe_test.cpp")
 	Invoke-HostTest 'ui' ($runtime + $ui)
-	Invoke-HostTest 'imu' ($runtime + @("$root\tests\imu_test.cpp", "$root\OTA-bot-Mochi\src\eyes\eyes_imu.cpp"))
+	Invoke-HostTest 'imu' ($runtime + @("$root\tests\imu_test.cpp", "$root\OTA-bot-Mochi\src\eyes\eyes_imu.cpp",
+		"$root\OTA-bot-Mochi\src\bus\i2c_bus.cpp"))
 	$settings = @("$root\tests\settings_test.cpp", "$root\OTA-bot-Mochi\src\settings\settings_menu.cpp",
-		"$root\OTA-bot-Mochi\src\ui\ui_theme.cpp", "$root\tests\stubs\imu_noop.cpp")
+		"$root\tests\stubs\imu_noop.cpp")
 	Invoke-HostTest 'settings' ($runtime + $settings)
 	$renderRuntime = @($runtime | Where-Object { $_ -ne "$root\tests\stubs\eyes_draw.cpp" })
 	$render = @("$root\tests\eyes_test.cpp", "$root\OTA-bot-Mochi\src\eyes\eyes_draw.cpp",

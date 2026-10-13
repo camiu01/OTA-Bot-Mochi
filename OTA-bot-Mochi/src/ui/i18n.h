@@ -90,6 +90,8 @@
 	X(Level, "Level", "Livello") \
 	X(NightMute, "Night mute", "Muto notte") \
 	X(SoundOptions, "Sound options", "Opzioni suoni") \
+	X(TestSound, "Test sound", "Prova suoni") \
+	X(Test, "test", "prova") \
 	X(Open, "open", "apri") \
 	X(Faces, "Faces", "Facce") \
 	X(TimerLabel, "Timer", "Timer") \

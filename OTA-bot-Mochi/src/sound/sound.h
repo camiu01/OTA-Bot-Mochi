@@ -6,7 +6,7 @@
 #pragma once
 #include <stdint.h>
 #include "../ui/ui_state.h"
-enum class SoundCue : uint8_t { Ambient, Mood, Tap, Notification, Rest, Done, Call, Count };
+enum class SoundCue : uint8_t { Ambient, Mood, Tap, Notification, Rest, Done, Call, Test, Count };
 enum class SoundStatus : uint8_t { Off, Night, Armed, Ready, Error };
 /** @brief Reset session audio without changing preferences. @param now Time. */
 void sound_init(uint32_t now);
@@ -16,3 +16,5 @@ void sound_request(SoundCue cue, uint32_t now);
 void sound_poll(uint32_t now, const UiPageEvents &events, bool eyesVisible, bool resting, bool done);
 /** @brief Report configuration/backend status, not physical audibility. @return Status. */
 SoundStatus sound_status();
+/** @brief Stable USB diagnostic name; not a measurement of audibility. @return Status label. */
+const char *sound_status_name();

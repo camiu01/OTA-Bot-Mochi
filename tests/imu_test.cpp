@@ -5,6 +5,7 @@
  */
 #include "../OTA-bot-Mochi/src/eyes/eyes_api.h"
 #include "../OTA-bot-Mochi/src/settings/settings.h"
+#include "../OTA-bot-Mochi/src/bus/i2c_bus.h"
 #include <Wire.h>
 #include <assert.h>
 #include <iostream>
@@ -15,31 +16,31 @@
  * @param value Raw reading.
  */
 static void axis(uint8_t reg, int16_t value) {
-	Wire.registers[0x6A][reg] = uint16_t(value) & 0xFF;
-	Wire.registers[0x6A][reg + 1] = uint16_t(value) >> 8;
+	i2c_bus().registers[0x6A][reg] = uint16_t(value) & 0xFF;
+	i2c_bus().registers[0x6A][reg + 1] = uint16_t(value) >> 8;
 }
 
 /** @brief Test absent sensors, identity, failed writes, and the explicit accelerometer range. */
 static void detection_tests() {
 	eyes_imu_init();
 	assert(!eyes_imu_ready());
-	Wire.present[0x6B] = true;
-	Wire.registers[0x6B][0] = 0xFF;
+	i2c_bus().present[0x6B] = true;
+	i2c_bus().registers[0x6B][0] = 0xFF;
 	eyes_imu_init();
 	assert(!eyes_imu_ready());
-	Wire.registers[0x6B][0] = 0x05;
-	Wire.fail_write_register = 3;
+	i2c_bus().registers[0x6B][0] = 0x05;
+	i2c_bus().fail_write_register = 3;
 	eyes_imu_init();
 	assert(!eyes_imu_ready());
-	Wire.fail_write_register = -1;
-	Wire.present[0x6B] = false;
-	Wire.present[0x6A] = true;
-	Wire.registers[0x6A][0] = 0x05;
+	i2c_bus().fail_write_register = -1;
+	i2c_bus().present[0x6B] = false;
+	i2c_bus().present[0x6A] = true;
+	i2c_bus().registers[0x6A][0] = 0x05;
 	eyes_imu_init();
 	assert(eyes_imu_ready());
-	assert(Wire.registers[0x6A][2] == 0x40);
-	assert(Wire.registers[0x6A][3] == 0x36);
-	assert(Wire.registers[0x6A][8] == 0x01);
+	assert(i2c_bus().registers[0x6A][2] == 0x40);
+	assert(i2c_bus().registers[0x6A][3] == 0x36);
+	assert(i2c_bus().registers[0x6A][8] == 0x01);
 }
 
 /** @brief Test scale, road-noise handling, shake opt-in, and restoration. @return Success. */
@@ -71,7 +72,7 @@ int main() {
 	assert(config.expression == DIZZY && state.savedExpr == HAPPY && state.dizzyUntilMs == 2350);
 	eyes_imu_poll(400);
 	assert(state.dizzyUntilMs == 2350);
-	Wire.read_ok = false;
+	i2c_bus().read_ok = false;
 	eyes_update(2350);
 	assert(state.dizzyUntilMs == 0 && config.expression == HAPPY);
 	assert(state.floatY >= -1 && state.floatY <= 1);

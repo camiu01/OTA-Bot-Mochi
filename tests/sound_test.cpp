@@ -35,6 +35,41 @@ static void note_tests() {
 	sound_poll(1220, events, false, false, false);
 	assert(test_pwm[2].duty == 0);
 }
+/** @brief Manual bench test ignores category switches, but never bypasses master/night mute. */
+static void manual_test() {
+	sound_init(0); events = {};
+	settings_defaults();
+	sound_request(SoundCue::Test, 0);
+	sound_poll(10, events, false, false, false);
+	assert(sound_status() == SoundStatus::Off && test_pwm_pins[BUZZER] == -1);
+	auto p = settings_get(); p.sound = true; p.night = true;
+	p.sound_faces = p.sound_timer = p.sound_alerts = p.sound_ambient = false;
+	settings_update(p);
+	sound_request(SoundCue::Test, 100);
+	sound_poll(110, events, false, false, false);
+	assert(sound_status() == SoundStatus::Night && test_pwm_pins[BUZZER] == -1);
+	p.night = false; settings_update(p);
+	sound_request(SoundCue::Test, 200);
+	sound_poll(200, events, false, false, false);
+	sound_poll(210, events, false, false, false);
+	assert(test_pwm[2].frequency == 1800 && test_pwm[2].duty > 0);
+	assert(strcmp(sound_status_name(), "pwm-ready") == 0);
+	sound_poll(470, events, false, false, false);
+	assert(test_pwm[2].duty == 0);
+	sound_poll(550, events, false, false, false);
+	assert(test_pwm[2].frequency == 2400 && test_pwm[2].duty > 0);
+	sound_poll(800, events, false, false, false);
+	assert(test_pwm[2].duty == 0);
+	sound_request(SoundCue::Test, 900);
+	sound_poll(910, events, false, false, false);
+	assert(test_pwm[2].duty == 0);
+	sound_request(SoundCue::Test, 2000);
+	sound_poll(2000, events, false, false, false);
+	sound_poll(2010, events, false, false, false);
+	p.sound = false; settings_update(p);
+	sound_poll(2020, events, false, false, false);
+	assert(test_pwm_pins[BUZZER] == -1 && strcmp(sound_status_name(), "off") == 0);
+}
 /** @brief Higher-priority events preempt taps; disabling a category or night mode immediately silences it. */
 static void mute_tests() {
 	sound_request(SoundCue::Tap, 1300); sound_poll(1300, events, false, false, false);
@@ -101,6 +136,6 @@ static void context_tests() {
 /** @brief Run native sound regressions, never emit actual sound. @return Success. */
 int main() {
 	assert(settings_init());
-	note_tests(); mute_tests(); failure_tests(); context_tests();
+	note_tests(); mute_tests(); failure_tests(); context_tests(); manual_test();
 	std::cout << "Sound notes, priority, categories, night mute, failure handling, and rollover passed\n";
 }

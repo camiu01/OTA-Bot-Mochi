@@ -31,6 +31,16 @@ rows. Changes are live in RAM and do not write flash while browsing.
 | AUDIO | Level | PWM duty level, 1–30% by USB |
 | AUDIO | Night mute | on / off |
 | AUDIO | Sound options | open separate face/timer/alert/ambient switches |
+| AUDIO | Test sound | two short bench tones; reports off/night mute/PWM failure |
+
+Three 44-pixel row targets are visible at a time. Swipe up/down to reach the
+remaining rows; AUDIO's test is the final row. Tabs and bottom actions stay fixed.
+Scrolling does not edit or save preferences. Horizontal swipes still change the
+main page. Gaps between adjacent controls belong to one unambiguous target.
+
+The selected eye color also drives the entire UI palette immediately: text,
+icons, active buttons, and tinted cards. SAVE persists this through the same color
+preference; no separate theme setting or profile migration is needed.
 
 The background stays black. MOCHI and TRAPEZ are solid eyes without pupils or
 highlights; BLOUB has black pupils and white highlights, and NORMAL has black

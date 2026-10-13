@@ -2,9 +2,10 @@
 
 ## Optional buzzer
 
-The existing `BUZZER` pin is GPIO34. The user confirmed PWM/tone use; no pin
-mapping was changed. Sound is **off by default** and never allocates PWM/GPIO
-merely because firmware booted.
+The `BUZZER` pin is GPIO33, the `Buzz` net of the OLD board revision, matching the
+official Waveshare schematic and demo (`beePin = 33`; the new revision uses GPIO42).
+Sound is **off by default** and never allocates PWM/GPIO merely because firmware
+booted.
 
 In Settings → AUDIO, enable Sound, choose a level, and optionally open Sound
 options for independent face, timer, notification/call, and ambient switches.
@@ -85,3 +86,39 @@ Chronos app, weather enablement, internet, and manual city/location permission.
 The firmware cannot fetch provider data itself or grant phone permissions.
 The user-reported weather failure remains a **device-validation TODO**, not a
 confirmed fix on the board.
+
+## No audible sound
+
+Sound is opt-in. Enabling it does not continuously play a tone; ambient cues are
+infrequent and suppressed outside idle Eyes. In AUDIO, turn Sound on, check
+Night mute, scroll down to **Test sound**, and tap it while testing on the bench.
+This explicit two-tone test ignores category switches but respects master/night
+mute, duty limits, cooldown, and PWM failures. It does not save anything.
+
+Alternatively use USB at 115200 baud:
+
+```text
+show
+set sound on
+set night off
+set sound-level 15
+sound test
+sound
+```
+
+Wait one second between `sound test` and `sound`. These changes stay in RAM until
+`save`. The `sound` reply shows GPIO, level, and one of:
+
+- `off`: master switch disabled.
+- `night-mute`: night mode and Night mute enabled.
+- `armed`: enabled, no PWM allocated yet.
+- `pwm-ready`: PWM allocated, **not a measurement of audible sound**.
+- `pwm-error`: allocation/write failed. Disable sound, allow a loop to process
+  mute, then re-enable before retrying.
+
+If PWM is ready but the test is silent, the electrical buzzer path still needs
+physical verification: confirm audible output on GPIO33 before using it in the
+car. The buzzer pin was corrected from GPIO34 to GPIO33 on 2026-10-13 after
+checking the official Waveshare schematic and demo. Do not infer an
+active/passive buzzer model from the PWM-capability description or substitute
+GPIO HIGH without confirming the circuit.

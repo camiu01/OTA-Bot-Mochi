@@ -7,6 +7,25 @@
 #include "../../pin_config.h"
 #include "../power/backlight.h"
 
+uint16_t UI_CARD = 0x18C3;
+uint16_t UI_TEXT = 0xFFFF;
+uint16_t UI_MUTED = 0xA514;
+uint16_t UI_ACCENT = 0xFFFF;
+uint16_t UI_WARM = 0xFFFF;
+
+/** @brief Scale RGB565 components independently, preserving their hue. */
+static uint16_t shade(uint16_t color, uint8_t percent) {
+	return (((color >> 11) * percent / 100) << 11) |
+		((((color >> 5) & 63) * percent / 100) << 5) |
+		((color & 31) * percent / 100);
+}
+
+void ui_theme_color(uint16_t color) {
+	UI_TEXT = UI_ACCENT = UI_WARM = color;
+	UI_MUTED = shade(color, 65);
+	UI_CARD = shade(color, 10);
+}
+
 /**
  * @brief Convert text to safe ASCII, approximating common Latin accents.
  * @param text UTF-8 source.
@@ -72,7 +91,7 @@ void ui_card(Arduino_GFX *gfx, int16_t y, int16_t height) {
 }
 
 /**
- * @brief Render header and pagination with a restrained mint accent.
+ * @brief Render header and pagination with the selected eye-color accent.
  * @param gfx Canvas.
  * @param title Screen title.
  * @param connected Bluetooth flag.

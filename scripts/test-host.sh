@@ -12,6 +12,7 @@ runtime=(
 	"$root/OTA-bot-Mochi/src/eyes/eyes_faces.cpp"
 	"$root/OTA-bot-Mochi/src/eyes/eye_life.cpp"
 	"$root/OTA-bot-Mochi/src/ui/view_state.cpp"
+	"$root/OTA-bot-Mochi/src/ui/ui_theme.cpp"
 	"$root/OTA-bot-Mochi/src/ui/ui_state.cpp"
 	"$root/OTA-bot-Mochi/src/ui/i18n.cpp"
 	"$root/OTA-bot-Mochi/src/ui/weather_sync.cpp"
@@ -27,21 +28,22 @@ build_test() {
 	g++ -std=c++17 -Wall -Wextra -Werror -I "$root/tests/stubs" "$@" -o "$output/$name"
 	"$output/$name"
 }
+g++ -std=c++17 -Wall -Wextra -Werror -I "$root/tests/stubs" -fsyntax-only "$root/OTA-bot-Mochi/src/touch/touch.cpp"
 build_test swipe "$root/tests/swipe_test.cpp"
 build_test ui "${runtime[@]}" \
 	"$root/tests/ui_test.cpp" \
-	"$root/OTA-bot-Mochi/src/ui/ui_theme.cpp" \
 	"$root/OTA-bot-Mochi/src/ui/screens.cpp" \
 	"$root/OTA-bot-Mochi/src/ui/context_views.cpp" \
 	"$root/OTA-bot-Mochi/src/clock/clock_ui.cpp" \
 	"$root/OTA-bot-Mochi/src/settings/settings_menu.cpp" "$root/tests/stubs/imu_noop.cpp"
 build_test imu "${runtime[@]}" \
 	"$root/tests/imu_test.cpp" \
-	"$root/OTA-bot-Mochi/src/eyes/eyes_imu.cpp"
+	"$root/OTA-bot-Mochi/src/eyes/eyes_imu.cpp" \
+	"$root/OTA-bot-Mochi/src/bus/i2c_bus.cpp"
 build_test settings "${runtime[@]}" \
 	"$root/tests/settings_test.cpp" \
 	"$root/OTA-bot-Mochi/src/settings/settings_menu.cpp" \
-	"$root/OTA-bot-Mochi/src/ui/ui_theme.cpp" "$root/tests/stubs/imu_noop.cpp"
+	"$root/tests/stubs/imu_noop.cpp"
 render_runtime=()
 for source in "${runtime[@]}"; do
 	if [[ "$source" != "$root/tests/stubs/eyes_draw.cpp" ]]; then render_runtime+=("$source"); fi

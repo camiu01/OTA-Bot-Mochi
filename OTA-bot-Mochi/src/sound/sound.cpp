@@ -18,10 +18,11 @@ const Note notification[] = {{2500, 75}, {0, 40}, {3000, 75}};
 const Note call[] = {{2200, 100}, {0, 80}, {2200, 100}};
 const Note rest[] = {{2400, 90}, {0, 45}, {2000, 110}};
 const Note done[] = {{1600, 90}, {0, 50}, {2000, 90}, {0, 50}, {2600, 140}};
+const Note test[] = {{1800, 250}, {0, 80}, {2400, 250}};
 SoundCue queued = SoundCue::Count, active = SoundCue::Count;
 uint32_t queued_at = 0, started = 0, ambient_since = 0, ambient_delay = 60000;
-uint32_t last[7] = {};
-bool seen[7] = {}, attached = false, failed = false, last_rest = false, last_done = false;
+uint32_t last[uint8_t(SoundCue::Count)] = {};
+bool seen[uint8_t(SoundCue::Count)] = {}, attached = false, failed = false, last_rest = false, last_done = false;
 uint32_t notifications = 0, calls = 0;
 
 /** @brief Select immutable notes. @param cue Cue. @return Sequence. */
@@ -34,6 +35,7 @@ Sequence sequence(SoundCue cue) {
 		case SoundCue::Call: return {call, 3};
 		case SoundCue::Rest: return {rest, 3};
 		case SoundCue::Done: return {done, 5};
+		case SoundCue::Test: return {test, 3};
 		default: return {nullptr, 0};
 	}
 }
@@ -41,6 +43,7 @@ Sequence sequence(SoundCue cue) {
 bool allowed(SoundCue cue) {
 	const auto &p = settings_get();
 	if (!p.sound || (p.night && p.sound_night_mute)) { return false; }
+	if (cue == SoundCue::Test) { return true; }
 	if (cue == SoundCue::Ambient) { return p.sound_ambient; }
 	if (cue == SoundCue::Tap || cue == SoundCue::Mood) { return p.sound_faces; }
 	if (cue == SoundCue::Notification || cue == SoundCue::Call) { return p.sound_alerts; }
@@ -70,7 +73,7 @@ void play(uint32_t now) {
 /** @brief Reset audio session; never initialize a pin merely because firmware booted. @param now Time. */
 void sound_init(uint32_t now) {
 	stop(); failed = false;
-	for (uint8_t i = 0; i < 7; ++i) { seen[i] = false; last[i] = 0; }
+	for (uint8_t i = 0; i < uint8_t(SoundCue::Count); ++i) { seen[i] = false; last[i] = 0; }
 	notifications = calls = 0; last_rest = last_done = false;
 	ambient_since = now; ambient_delay = 60000;
 }
@@ -112,4 +115,9 @@ SoundStatus sound_status() {
 	if (!p.sound) { return SoundStatus::Off; }
 	if (p.night && p.sound_night_mute) { return SoundStatus::Night; }
 	return failed ? SoundStatus::Error : (attached ? SoundStatus::Ready : SoundStatus::Armed);
+}
+
+const char *sound_status_name() {
+	static const char *names[] = {"off", "night-mute", "armed", "pwm-ready", "pwm-error"};
+	return names[uint8_t(sound_status())];
 }

@@ -24,3 +24,5 @@ bool touch_pressed();
 bool touch_take_tap(int16_t &x, int16_t &y);
 /** @brief Consume one stationary 1.2-second hold. @return Hold available. */
 bool touch_take_hold();
+/** @brief Consume one vertical gesture: +1 up, -1 down. @return Scroll direction. */
+int8_t touch_take_scroll();

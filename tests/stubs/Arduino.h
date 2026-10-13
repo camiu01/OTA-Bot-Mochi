@@ -16,6 +16,8 @@
 inline uint32_t test_now = 0;
 /** @brief Supply a controlled clock. @return Test timestamp. */
 inline uint32_t millis() { return test_now; }
+inline void delay(uint32_t ms) { test_now += ms; }
+constexpr uint8_t INPUT_PULLUP = 2;
 inline long random(long maximum) { return maximum > 0 ? std::rand() % maximum : 0; }
 inline long random(long minimum, long maximum) { return minimum + random(maximum - minimum); }
 

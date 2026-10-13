@@ -12,6 +12,7 @@
 #include "../OTA-bot-Mochi/src/power/backlight.h"
 #include "../OTA-bot-Mochi/src/ui/view_state.h"
 #include "../OTA-bot-Mochi/src/ui/i18n.h"
+#include "../OTA-bot-Mochi/src/ui/ui_theme.h"
 #include <Preferences.h>
 #include <assert.h>
 #include <iostream>
@@ -106,6 +107,9 @@ static void usb_tests() {
 	assert(settings_parse("weather", current).action == UsbAction::WeatherStatus);
 	assert(settings_parse("weather sync", current).action == UsbAction::WeatherSync);
 	assert(settings_parse("weather sync extra", current).action == UsbAction::Invalid);
+	assert(settings_parse("sound", current).action == UsbAction::SoundStatus);
+	assert(settings_parse("SOUND TEST", current).action == UsbAction::SoundTest);
+	assert(settings_parse("sound test extra", current).action == UsbAction::Invalid);
 	assert(settings_parse("save extra", current).action == UsbAction::Invalid);
 	assert(settings_parse(nullptr, current).action == UsbAction::Invalid);
 	assert(settings_parse(std::string(96, 'x').c_str(), current).action == UsbAction::Invalid);
@@ -132,6 +136,11 @@ static void usb_tests() {
 	Serial.feed("route default\n");
 	while (Serial.available()) { settings_usb_poll(); }
 	assert(view_route_large(saved_default) == saved_default);
+	Serial.clear();
+	Serial.feed("sound test\nsound\n");
+	while (Serial.available()) { settings_usb_poll(); }
+	assert(Serial.output.find("Sound test blocked: off") != std::string::npos);
+	assert(Serial.output.find("sound-status=off gpio=33") != std::string::npos);
 }
 
 /** @brief Test menu tabs, touch bounds, and explicit saving. */
@@ -141,23 +150,28 @@ static void menu_tests() {
 	settings_menu_draw(&gfx);
 	assert(settings_menu_tap(20, 100) == MenuAction::Changed);
 	assert(settings_get().style == 2);
-	assert(settings_menu_tap(20, 130) == MenuAction::Changed);
+	assert(settings_menu_tap(20, 150) == MenuAction::Changed);
 	assert(settings_get().color == 1);
+	assert(UI_ACCENT == 0x6FBA && UI_TEXT == UI_ACCENT && UI_WARM == UI_ACCENT);
+	assert(UI_CARD != UI_BG && UI_MUTED != UI_TEXT);
+	assert(settings_menu_scroll(1));
+	assert(!settings_menu_scroll(1));
 	settings_menu_tap(20, 202);
 	assert(!settings_get().route_large);
-	assert(settings_menu_tap(75, 65) == MenuAction::Changed);
+	assert(settings_menu_tap(210, 65) == MenuAction::Changed);
 	settings_menu_draw(&gfx);
 	settings_menu_tap(20, 134);
 	assert(settings_get().night);
-	assert(settings_menu_tap(120, 65) == MenuAction::Changed);
+	assert(settings_menu_tap(210, 65) == MenuAction::Changed);
 	settings_menu_draw(&gfx);
 	settings_menu_tap(20, 134);
 	assert(settings_get().shake);
-	settings_menu_tap(20, 165);
+	settings_menu_tap(20, 185);
+	assert(settings_menu_scroll(1));
 	settings_menu_tap(20, 202);
 	assert(settings_get().random_faces && settings_get().imu_faces);
 	assert(settings_menu_tap(-1, 100) == MenuAction::None);
-	assert(settings_menu_tap(20, 119) == MenuAction::None);
+	assert(settings_menu_tap(240, 119) == MenuAction::None);
 	settings_menu_tap(20, 240);
 	assert(!settings_dirty());
 	settings_menu_tap(20, 100);
@@ -167,7 +181,8 @@ static void menu_tests() {
 	assert(std::find(gfx.text.begin(), gfx.text.end(), "FAILED") != gfx.text.end());
 	test_save_fails = false;
 	assert(settings_menu_tap(160, 240) == MenuAction::Exit);
-	settings_menu_tap(160, 65);
+	settings_menu_tap(210, 65);
+	assert(!settings_menu_scroll(1));
 	settings_menu_tap(20, 100);
 	assert(settings_get().animation == 2);
 	settings_menu_tap(20, 134);
@@ -176,13 +191,52 @@ static void menu_tests() {
 	settings_menu_tap(210, 65);
 	settings_menu_tap(20, 100);
 	assert(settings_get().sound);
+	assert(settings_menu_scroll(1));
 	settings_menu_tap(20, 202);
 	settings_menu_tap(20, 100);
 	assert(!settings_get().sound_faces);
 	settings_menu_draw(&gfx);
 	assert(settings_menu_tap(160, 240) == MenuAction::Changed);
 	settings_menu_draw(&gfx);
+	assert(settings_menu_scroll(1) && settings_menu_scroll(1));
+	assert(!settings_menu_scroll(1));
+	settings_menu_draw(&gfx);
+	assert(std::find(gfx.text.begin(), gfx.text.end(), "Prova suoni") != gfx.text.end());
+	unsigned int writes = test_flash_writes;
+	assert(settings_menu_tap(20, 200) == MenuAction::Changed);
+	assert(test_flash_writes == writes);
+	assert(settings_menu_scroll(-1) && settings_menu_scroll(-1));
 	assert(settings_menu_tap(160, 240) == MenuAction::Exit);
+	settings_menu_tap(239, 52);
+	assert(!settings_menu_scroll(-1));
+	uint8_t style = settings_get().style;
+	assert(settings_menu_tap(239, 131) == MenuAction::Changed);
+	assert(settings_get().style == (style + 1) % 4);
+	assert(settings_menu_tap(0, 132) == MenuAction::Changed);
+	assert(settings_menu_tap(239, 221) == MenuAction::Changed);
+	assert(settings_menu_tap(20, 222) == MenuAction::Changed);
+	assert(settings_menu_tap(239, 257) == MenuAction::Exit);
+	assert(settings_menu_tap(239, 258) == MenuAction::Exit);
+	assert(settings_menu_tap(120, 279) == MenuAction::Exit);
+	assert(settings_menu_tap(119, 279) == MenuAction::Changed);
+	assert(settings_menu_tap(120, 280) == MenuAction::None);
+	assert(settings_menu_tap(0, 51) == MenuAction::None);
+	assert(settings_menu_tap(72, 52) == MenuAction::None);
+	assert(settings_menu_tap(167, 89) == MenuAction::None);
+	assert(settings_menu_tap(71, 52) == MenuAction::Changed);
+	assert(settings_menu_tap(168, 89) == MenuAction::Changed);
+	assert(settings_menu_scroll(1));
+	assert(settings_menu_scroll(-1));
+	assert(!settings_menu_scroll(-1));
+	settings_defaults();
+	settings_apply();
+	assert(UI_TEXT == 0xFFFF && UI_ACCENT == 0xFFFF);
+	static const uint16_t colors[] = {0xFFFF, 0x6FBA, 0x07FF, 0xFD6C, 0xF9D6, 0x4D7F};
+	for (uint8_t color = 0; color < 6; ++color) {
+		CompanionSettings profile = settings_get(); profile.color = color;
+		assert(settings_update(profile));
+		assert(UI_TEXT == colors[color] && UI_ACCENT == colors[color] && UI_WARM == colors[color]);
+	}
 }
 
 /** @brief Reject truncated/future/corrupt preferences without modifying the supplied output. */
@@ -220,6 +274,33 @@ static void touch_tests() {
 	assert(!input.hold);
 	input.update(false, 0, 0, 2100);
 	assert(!input.tap);
+	input.cancel();
+	input.update(true, 100, 160, 3000);
+	input.update(true, 104, 120, 3100);
+	assert(input.scroll == 1 && input.vertical && !input.horizontal);
+	input.scroll = 0;
+	input.update(true, 100, 70, 3200);
+	input.update(false, 0, 0, 3300);
+	assert(!input.scroll && !input.tap && !input.hold);
+	input.update(true, 100, 100, 3400);
+	input.update(true, 105, 140, 3500);
+	assert(input.scroll == -1 && input.vertical);
+	input.cancel();
+	input.update(true, 100, 100, 3600);
+	input.update(true, 150, 102, 3700);
+	input.update(true, 150, 220, 3800);
+	assert(input.horizontal && !input.vertical && !input.scroll);
+	input.cancel();
+	input.update(true, 100, 100, 4000);
+	input.update(true, 116, 116, 4500);
+	input.update(false, 0, 0, 4700);
+	assert(input.tap);
+	input.cancel();
+	input.update(true, 100, 100, UINT32_MAX - 20);
+	input.update(true, 100, 60, 20);
+	assert(input.scroll == 1);
+	input.cancel();
+	assert(!input.scroll && !input.vertical && !input.active);
 }
 
 /** @brief Reject single bumps and vibration, require deliberate repeated reversals. */

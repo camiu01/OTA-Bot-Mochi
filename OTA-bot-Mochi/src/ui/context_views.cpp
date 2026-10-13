@@ -122,8 +122,8 @@ void context_draw(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, const UiSn
 
 /** @brief Dispatch contextual controls without persisting session choices. @param page Page. @param x X. @param y Y. @param now Time. @return Target. */
 UiPage screens_tap(UiPage page, int16_t x, int16_t y, uint32_t now) {
-	if (x < 12 || x >= 228) { return page; }
-	if (y >= 230 && y < 254) {
+	if (x < 0 || x >= 240 || y < 0 || y >= 280) { return page; }
+	if (y >= 230 && y < 258) {
 		if (page == UiPage::Clock) { return UiPage::Desk; }
 		if (page == UiPage::Weather) { weather_request(); screens_invalidate(); }
 		if (page == UiPage::Desk) { return UiPage::Clock; }
@@ -133,13 +133,13 @@ UiPage screens_tap(UiPage page, int16_t x, int16_t y, uint32_t now) {
 			screens_invalidate();
 		}
 	}
-	if (page == UiPage::Desk && y >= 64 && y < 210 && (y - 64) % 38 < 32) {
-		return static_cast<UiPage>(uint8_t(UiPage::BigClock) + (y - 64) / 38);
+	if (page == UiPage::Desk && y >= 60 && y < 212) {
+		return static_cast<UiPage>(uint8_t(UiPage::BigClock) + (y - 60) / 38);
 	}
 	if (page == UiPage::Timer) {
-		if (y >= 170 && y < 194 && x < 114) { view_timer().toggle(now); screens_invalidate(); }
-		if (y >= 170 && y < 194 && x >= 126) { view_timer().reset(now); screens_invalidate(); }
-		if (y >= 202 && y < 226) { view_timer().cycle(now); screens_invalidate(); }
+		if (y >= 164 && y < 198 && x < 120) { view_timer().toggle(now); screens_invalidate(); }
+		if (y >= 164 && y < 198 && x >= 120) { view_timer().reset(now); screens_invalidate(); }
+		if (y >= 198 && y < 230) { view_timer().cycle(now); screens_invalidate(); }
 	}
 	return page;
 }

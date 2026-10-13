@@ -6,6 +6,7 @@
 #include "settings.h"
 #include "../eyes/eyes_api.h"
 #include "../power/backlight.h"
+#include "../ui/ui_theme.h"
 #include <Preferences.h>
 
 namespace {
@@ -41,6 +42,7 @@ const CompanionSettings &settings_get() { return profile; }
 void settings_apply() {
 	static const uint16_t colors[] = {0xFFFF, 0x6FBA, 0x07FF, 0xFD6C, 0xF9D6, 0x4D7F};
 	static const Expression moods[] = {NEUTRAL, HAPPY, FOCUSED, SLEEPY, LOVE};
+	ui_theme_color(colors[profile.color]);
 	eyes_set_style(static_cast<EyeStyle>(profile.style));
 	if (!profile.shake) { eyes_state().dizzyUntilMs = 0; }
 	eyes_set_expression(moods[profile.mood]);

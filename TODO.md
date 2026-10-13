@@ -72,6 +72,9 @@ and will be performed by the user.
 
 ## 6. IMU and hardware validation
 
+- [x] Correct the IMU to the shared I2C bus (SDA=11, SCL=10) after the official
+  schematic showed QMI8658C on the touch/RTC bus and GPIO9/GPIO12 unconnected;
+  the previous SDA=12/SCL=9 mapping made startup report "IMU unavailable".
 - [x] Check IMU identity and acknowledged configuration; explicitly match range to scaling.
 - [ ] Verify QMI8658C detection, wiring, and accelerometer configuration.
 - [ ] Confirm that tilting the device moves the pupils in the expected direction.
@@ -96,7 +99,8 @@ and will be performed by the user.
 
 ## 8. Visual design
 
-- [x] Use shared black/charcoal cards, high-contrast text, mint accents, and screen dots.
+- [x] Use shared dark cards, eye-color text/icons/controls, and screen dots.
+- [x] Enlarge touch targets, fill control gutters, and scroll larger settings rows vertically.
 - [x] Use consistent spacing and bounded text across all utility screens.
 - [x] In dashboard mode, keep calls on Alerts; optionally overlay other pages.
 - [x] Use neutral placeholders rather than inventing missing navigation or battery data.
@@ -118,13 +122,16 @@ and will be performed by the user.
 
 ## 10. Buzzer and delivery
 
-- [x] Add opt-in, non-blocking PWM/tone cues on existing GPIO34.
+- [x] Add opt-in, non-blocking PWM/tone cues on the board buzzer GPIO33.
 - [x] Add face tap/automatic reaction, timer/rest/end, notification/call, and
   rate-limited spontaneous sound categories with separate switches.
 - [x] Default sound off; default automatic night mute on; bound the duty level.
 - [x] Keep audio/backlight PWM allocations separate; cover core 2/3 API branches
   with host tests and stop silently on allocation/write failures.
+- [x] Add explicit AUDIO/USB bench tones and off/night-mute/PWM diagnostics.
 - [x] Add cached GitHub Actions builds and downloadable firmware artifacts.
+- [x] Correct the buzzer pin from GPIO34 to GPIO33, the `Buzz` net of the OLD
+  board schematic and the `beePin = 33` value in the official demo.
 - [ ] Verify buzzer audibility, pitch, duty level, and lack of backlight
   interference on the actual OLD board before enabling sound in the car.
 - [ ] Confirm a green remote firmware CI run, then build/upload and validate the

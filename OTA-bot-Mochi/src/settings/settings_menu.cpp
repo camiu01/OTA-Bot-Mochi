@@ -7,18 +7,23 @@
 #include "settings.h"
 #include "../ui/ui_theme.h"
 #include "../ui/i18n.h"
+#include "../sound/sound.h"
 
 namespace {
 uint8_t tab = 0;
 bool save_failed = false;
 bool sound_options = false;
+uint8_t first_row = 0;
+/** @brief Number of rows in the current panel. */
+uint8_t row_count() { return tab == 3 ? 2 : (tab == 4 && !sound_options ? 5 : 4); }
 
 /** @brief Draw one editable row. @param gfx Canvas. @param index Row. @param label Field. @param value Choice. */
 void row(Arduino_GFX *gfx, uint8_t index, const char *label, const String &value) {
-	int16_t y = 90 + index * 34;
-	ui_card(gfx, y, 28);
-	ui_label(gfx, label, 24, y + 10, 84, 1, UI_MUTED);
-	ui_label(gfx, value, 116, y + 10, 100, 1, UI_ACCENT);
+	if (index < first_row || index >= first_row + 3) { return; }
+	int16_t y = 90 + (index - first_row) * 44;
+	ui_card(gfx, y, 40);
+	ui_label(gfx, label, 24, y + 16, 84, 1, UI_MUTED);
+	ui_label(gfx, value, 116, y + 16, 100, 1, UI_ACCENT);
 }
 
 /** @brief Cycle to the next bounded brightness preset. @param value Current. @param night Night range. @return Next. */
@@ -61,7 +66,8 @@ void change_row(uint8_t index) {
 		if (index == 0) { p.sound = !p.sound; }
 		if (index == 1) { p.sound_level = p.sound_level < 5 ? 5 : (p.sound_level >= 30 ? 5 : (p.sound_level >= 25 ? 30 : p.sound_level + 5)); }
 		if (index == 2) { p.sound_night_mute = !p.sound_night_mute; }
-		if (index == 3) { sound_options = true; return; }
+		if (index == 3) { sound_options = true; first_row = 0; return; }
+		if (index == 4) { sound_request(SoundCue::Test, millis()); return; }
 	}
 	settings_update(p);
 	save_failed = false;
@@ -92,7 +98,7 @@ void extra_rows(Arduino_GFX *gfx, const CompanionSettings &p) {
 	if (tab == 3) {
 		row(gfx, 0, tr(Text::Animation), tr_choice(3, p.animation));
 		row(gfx, 1, tr(Text::Language), p.language ? "Italiano" : "English");
-		ui_label(gfx, tr(Text::MotionHint), 24, 177, 192, 1, UI_MUTED);
+		ui_label(gfx, tr(Text::MotionHint), 24, 190, 192, 1, UI_MUTED);
 	} else if (sound_options) {
 		row(gfx, 0, tr(Text::Faces), on_off(p.sound_faces));
 		row(gfx, 1, tr(Text::TimerLabel), on_off(p.sound_timer));
@@ -103,6 +109,10 @@ void extra_rows(Arduino_GFX *gfx, const CompanionSettings &p) {
 		row(gfx, 1, tr(Text::Level), String(p.sound_level) + "%");
 		row(gfx, 2, tr(Text::NightMute), on_off(p.sound_night_mute));
 		row(gfx, 3, tr(Text::SoundOptions), tr(Text::Open));
+		SoundStatus status = sound_status();
+		Text value = status == SoundStatus::Off ? Text::Off :
+			(status == SoundStatus::Night ? Text::NightMute : (status == SoundStatus::Error ? Text::Failed : Text::Test));
+		row(gfx, 4, tr(Text::TestSound), tr(value));
 	}
 }
 }
@@ -111,38 +121,58 @@ void extra_rows(Arduino_GFX *gfx, const CompanionSettings &p) {
 void settings_menu_draw(Arduino_GFX *gfx) {
 	const CompanionSettings &p = settings_get();
 	static const Text tabs[] = {Text::LookTab, Text::LightTab, Text::DriveTab, Text::MoveTab, Text::AudioTab};
-	for (uint8_t i = 0; i < 5; ++i) {
-		gfx->fillRoundRect(12 + i * 44, 57, 40, 25, 8, i == tab ? UI_ACCENT : UI_CARD);
-		ui_label(gfx, tr(tabs[i]), 16 + i * 44, 66, 32, 1, i == tab ? UI_BG : UI_TEXT);
-	}
+	gfx->fillRoundRect(2, 52, 68, 36, 8, UI_CARD);
+	gfx->fillRoundRect(170, 52, 68, 36, 8, UI_CARD);
+	ui_label(gfx, "<", 30, 62, 24, 2, UI_TEXT);
+	ui_label(gfx, ">", 198, 62, 24, 2, UI_TEXT);
+	ui_label(gfx, tr(tabs[tab]), 84, 58, 72, 1, UI_ACCENT);
+	ui_label(gfx, String(tab + 1) + "/5", 108, 74, 24, 1, UI_MUTED);
 	if (tab < 3) { basic_rows(gfx, p); } else { extra_rows(gfx, p); }
-	gfx->fillRoundRect(12, 230, 102, 24, 8, UI_ACCENT);
-	gfx->fillRoundRect(126, 230, 102, 24, 8, UI_CARD);
+	if (tab != 3) {
+		uint8_t max_scroll = row_count() - 3;
+		gfx->fillRect(232, 92, 3, 128, UI_CARD);
+		gfx->fillRect(232, 92 + first_row * (128 - 60) / max_scroll, 3, 60, UI_ACCENT);
+	}
+	gfx->fillRoundRect(2, 224, 116, 54, 8, UI_ACCENT);
+	gfx->fillRoundRect(122, 224, 116, 54, 8, UI_CARD);
 	ui_label(gfx, tr(save_failed ? Text::Failed : (settings_dirty() ? Text::Save : Text::Saved)),
-		36, 238, 72, 1, UI_BG);
-	ui_label(gfx, tr(tab == 4 && sound_options ? Text::Back : Text::EyesButton), 147, 238, 72, 1, UI_TEXT);
+		36, 247, 72, 1, UI_BG);
+	ui_label(gfx, tr(tab == 4 && sound_options ? Text::Back : Text::EyesButton), 147, 247, 72, 1, UI_TEXT);
 }
 
 /** @brief Interpret tap coordinates without conflating swipes/holds. @param x X. @param y Y. @return Action. */
 MenuAction settings_menu_tap(int16_t x, int16_t y) {
-	if (y >= 57 && y < 82 && x >= 12 && x < 228) {
-		uint8_t next = (x - 12) / 44;
-		if (next < 5 && (x - 12) % 44 < 40) { tab = next; sound_options = false; return MenuAction::Changed; }
+	if (x < 0 || x >= 240 || y < 0 || y >= 280) { return MenuAction::None; }
+	if (y >= 52 && y < 90) {
+		if (x >= 72 && x < 168) { return MenuAction::None; }
+		tab = (tab + (x < 72 ? 4 : 1)) % 5;
+		sound_options = false; first_row = 0;
+		return MenuAction::Changed;
 	}
-	if (y >= 230 && y < 254) {
-		if (x >= 126 && x < 228) {
-			if (tab == 4 && sound_options) { sound_options = false; return MenuAction::Changed; }
+	if (y >= 222) {
+		if (x >= 120) {
+			if (tab == 4 && sound_options) { sound_options = false; first_row = 0; return MenuAction::Changed; }
 			return MenuAction::Exit;
 		}
-		if (x >= 12 && x < 114) {
+		if (x < 120) {
 			save_failed = !settings_save();
 			return MenuAction::Changed;
 		}
 	}
-	if (x >= 12 && x < 228 && y >= 90 && y < 220) {
-		uint8_t index = (y - 90) / 34;
-		uint8_t count = tab == 3 ? 2 : 4;
-		if (index < count && (y - 90) % 34 < 28) { change_row(index); return MenuAction::Changed; }
+	if (y >= 90 && y < 222) {
+		uint8_t index = first_row + (y - 90) / 44;
+		uint8_t count = row_count();
+		if (index < count) { change_row(index); return MenuAction::Changed; }
 	}
 	return MenuAction::None;
+}
+
+bool settings_menu_scroll(int8_t direction) {
+	uint8_t limit = row_count() > 3 ? row_count() - 3 : 0;
+	uint8_t next = first_row;
+	if (direction > 0 && next < limit) { ++next; }
+	if (direction < 0 && next > 0) { --next; }
+	if (next == first_row) { return false; }
+	first_row = next;
+	return true;
 }

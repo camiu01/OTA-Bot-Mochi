@@ -6,11 +6,11 @@
 #include "touch.h"
 #include "swipe.h"
 #include "touch_actions.h"
+#include "../bus/i2c_bus.h"
 #include "../../pin_config.h"
 #include <Arduino.h>
 #include <Wire.h>
 
-static TwoWire s_touchBus(1);
 static SwipeTracker s_swipe;
 static uint8_t s_address = 0;
 static uint32_t s_lastPoll = 0;
@@ -23,16 +23,17 @@ static TouchActions s_actions;
  * @return True only when the complete block was received.
  */
 static bool read_contact(uint8_t *data) {
-	s_touchBus.beginTransmission(s_address);
-	s_touchBus.write((uint8_t)0x02);
-	if (s_touchBus.endTransmission(false) != 0) {
+	TwoWire &bus = i2c_bus();
+	bus.beginTransmission(s_address);
+	bus.write((uint8_t)0x02);
+	if (bus.endTransmission(false) != 0) {
 		return false;
 	}
-	if (s_touchBus.requestFrom(s_address, (uint8_t)5) != 5) {
+	if (bus.requestFrom(s_address, (uint8_t)5) != 5) {
 		return false;
 	}
 	for (uint8_t i = 0; i < 5; ++i) {
-		data[i] = s_touchBus.read();
+		data[i] = bus.read();
 	}
 	return true;
 }
@@ -45,14 +46,14 @@ void touch_init() {
 	delay(10);
 	digitalWrite(TP_RST, HIGH);
 	delay(50);
-	if (!s_touchBus.begin(TP_SDA, TP_SCL, 400000)) {
+	if (!i2c_bus_begin(TP_SDA, TP_SCL, 400000)) {
 		Serial.println("Touch I2C initialization failed");
 		return;
 	}
-	s_touchBus.setTimeOut(5);
+	TwoWire &bus = i2c_bus();
 	for (uint8_t address : {0x15, 0x38}) {
-		s_touchBus.beginTransmission(address);
-		if (s_touchBus.endTransmission() == 0) {
+		bus.beginTransmission(address);
+		if (bus.endTransmission() == 0) {
 			s_address = address;
 			break;
 		}
@@ -62,10 +63,10 @@ void touch_init() {
 		return;
 	}
 	if (s_address == 0x15) {
-		s_touchBus.beginTransmission(s_address);
-		s_touchBus.write((uint8_t)0xFE);  // CST816: disable automatic sleep
-		s_touchBus.write((uint8_t)0x01);
-		if (s_touchBus.endTransmission() != 0) {
+		bus.beginTransmission(s_address);
+		bus.write((uint8_t)0xFE);  // CST816: disable automatic sleep
+		bus.write((uint8_t)0x01);
+		if (bus.endTransmission() != 0) {
 			Serial.println("Touch automatic-sleep configuration failed");
 		}
 	}
@@ -97,7 +98,17 @@ int8_t touch_poll(uint32_t now) {
 	}
 	s_pressed = touching;
 	s_actions.update(touching, x, y, now);
+	if (s_actions.vertical) {
+		s_swipe.update(false, 0, 0, now);
+		return 0;
+	}
 	return s_swipe.update(touching, x, y, now);
+}
+
+int8_t touch_take_scroll() {
+	int8_t scroll = s_actions.scroll;
+	s_actions.scroll = 0;
+	return scroll;
 }
 
 /** @brief Return the most recent valid touch state. @return Finger contact state. */

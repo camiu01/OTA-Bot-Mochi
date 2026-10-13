@@ -11,3 +11,5 @@ enum class MenuAction { None, Changed, Exit };
 void settings_menu_draw(Arduino_GFX *gfx);
 /** @brief Process a released tap. @param x X. @param y Y. @return Menu action. */
 MenuAction settings_menu_tap(int16_t x, int16_t y);
+/** @brief Scroll rows without changing values or saving. @param direction +1 up, -1 down. @return View changed. */
+bool settings_menu_scroll(int8_t direction);

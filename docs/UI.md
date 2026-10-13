@@ -1,8 +1,9 @@
 # Companion UI
 
 The living eyes remain the default screen. Utility screens use a black background,
-rounded charcoal cards, warm white text, muted secondary labels, mint highlights,
-and an amber accent for calls and the sun. Six position dots indicate the selected
+rounded tinted cards, eye-colored text and icons, and dimmer secondary labels.
+The eye color is the shared primary color, including controls, calls, and weather.
+Six position dots indicate the selected
 screen; the header shows Bluetooth state and the configured backlight percentage.
 This percentage is **brightness, not battery charge**.
 
@@ -24,6 +25,17 @@ This percentage is **brightness, not battery charge**.
   vehicle is stationary and does not lock controls based on vehicle speed.
 - Tap LOOK, LIGHT, DRIVE, MOVE, and AUDIO to change appearance and comfort options.
   Tap SAVE to persist them, then EYES to return. Changes apply immediately in RAM.
+- Settings show three larger rows at a time. Swipe vertically to reach remaining
+  rows; the scroll indicator shows the position. Tabs and SAVE/EYES stay fixed.
+  Vertical scrolling neither changes a value nor advances the page carousel.
+- Touch targets include the gutters between settings rows/tabs and split buttons.
+  Settings categories use previous/next arrows with 72x38-pixel targets below
+  the title, a central category name and a 1/5 position indicator. They wrap
+  around and reset panel scrolling; tapping the name does nothing.
+  SAVE/Back each owns a 120x58-pixel
+  target extending to the bottom edge. Their visible buttons are enlarged too,
+  with no overlapping actions. Short taps tolerate up to 18 pixels of movement
+  and 800ms contact time; longer stationary holds still use 1.2 seconds.
 - The default is MOCHI, white on black, neutral mood, dashboard mode, 30% day
   brightness, shake disabled, and idle dimming disabled.
 - Night mode is manually selected, with a separate 1–20% brightness (default 5%).

@@ -37,6 +37,9 @@ Expanded tests cover version-four twelve-byte profiles/legacy migration, EN/IT
 label completeness and layout, out-of-order weather packets/sync throttling,
 animated dirty regions, sound notes/priorities/mute/rollover/failures, and actual
 PWM adapters against core-2/core-3 shared-timer mocks.
+Additional checks exercise all six shared color palettes, filled touch gutters,
+row/tab/footer edges, bounded menu scrolling, vertical/horizontal axis isolation,
+tap tolerance, and explicit audio-test mute/category behavior.
 Mocks do not verify physical LCD rendering, BLE protocol interoperability, physical
 pin assignments, or electrical behavior.
 
@@ -89,7 +92,9 @@ Do not make the device world-writable. Close other serial monitors before upload
 ## Device validation checklist
 
 1. Confirm startup reports `UI ready`, a touch controller address, and `IMU ready`
-   or an explicit missing-sensor diagnostic.
+   or an explicit missing-sensor diagnostic. Touch, RTC, and the IMU share one I2C
+   bus at SDA=11/SCL=10; if touch answers but `IMU unavailable` persists, suspect
+   the sensor identity or wiring rather than the bus pins.
 2. Swipe through all screens and test repeated/edge gestures.
 3. Connect Chronos and verify the clock transitions from waiting to synchronized
    time. Test 12/24-hour mode, disconnect, and reconnect.
@@ -123,7 +128,7 @@ Do not make the device world-writable. Close other serial monitors before upload
 10. Run an extended BLE session and measure heap, power, and battery runtime.
 
 Also test Clock → DESK TOOLS and all four tools. Verify large clock legibility,
-timer continuation while viewing other pages, silent completion, and reboot reset.
+timer continuation while viewing other pages, default-silent completion, and reboot reset.
 Switch Route layout temporarily, SAVE a different setting, and reboot: the saved
 route default must win. Test `route default`, a Route hold, and LOOK → Route default.
 A short eye tap must react for three seconds and restore the selected mood; holds
@@ -131,6 +136,11 @@ and swipes must not trigger it.
 
 Enable sound only on the bench first. Check tone/level, category switches,
 night mute, timer cues, and no backlight flicker while changing tone frequency.
+Use AUDIO → Test sound or USB `sound test`, then `sound`, to distinguish mute
+from PWM failure. PWM-ready status alone cannot establish physical audibility.
+Check three-row scrolling, fixed tabs/actions, edge taps, and no value changes
+during vertical gestures. Cycle every eye color and verify all utility pages
+follow it, without losing text readability.
 Switch EN/IT, SAVE, reboot, and check language persistence. Verify smooth face
 handoffs and all idle gestures. For the reported weather failure, inspect USB
 `weather` counters and try `weather sync` plus app weather configuration; do not

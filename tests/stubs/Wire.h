@@ -13,12 +13,13 @@ class TwoWire {
 	uint8_t pointer = 0;
 	std::vector<uint8_t> sent;
 public:
+	explicit TwoWire(uint8_t = 0) {}
 	bool begin_ok = true;
 	bool read_ok = true;
 	int fail_write_register = -1;
 	std::array<bool, 128> present{};
 	std::array<std::array<uint8_t, 256>, 128> registers{};
-	bool begin(int, int) { return begin_ok; }
+	bool begin(int, int, uint32_t = 0) { return begin_ok; }
 	void setTimeOut(int) {}
 	void beginTransmission(uint8_t target) { address = target; sent.clear(); }
 	void write(uint8_t data) { sent.push_back(data); }

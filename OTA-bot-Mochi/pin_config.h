@@ -99,16 +99,18 @@
  *  @brief Active buzzer control pin.
  *  @{
  */
-#define BUZZER     34  /**< Buzzer pin */
+#define BUZZER     33  /**< Buzzer pin (OLD board net "Buzz"; the new revision uses GPIO42) */
 /** @} */  // end of buzzer
 
 /* =============================== [S7] IMU QMI8658C ================================ */
 /** @defgroup imu IMU
  *  @brief QMI8658C accelerometer/gyroscope I²C pins.
+ *  @details The sensor sits on the board I²C bus shared with the touch controller
+ *           and the RTC, so it is driven through the same bus instance.
  *  @{
  */
-#define QMI_SDA    12  /**< IMU SDA */
-#define QMI_SCL    9   /**< IMU SCL */
+#define QMI_SDA    11  /**< IMU SDA, shared with touch and RTC */
+#define QMI_SCL    10  /**< IMU SCL, shared with touch and RTC */
 /** @} */  // end of imu
 
 /* ================================== [S8] RTC ====================================== */

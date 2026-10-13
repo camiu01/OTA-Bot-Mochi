@@ -220,7 +220,13 @@ static void context_tests(Arduino_GFX &gfx, ChronosESP32 &watch) {
 		assert(screens_tap(page, 20, 240, 0) == UiPage::Desk);
 		assert(screens_draw(&gfx, watch, page, 20000000 + i * 1000));
 	}
-	assert(screens_tap(UiPage::Desk, 20, 97, 0) == UiPage::Desk);
+	assert(screens_tap(UiPage::Desk, 20, 97, 0) == UiPage::BigClock);
+	assert(screens_tap(UiPage::Desk, 0, 98, 0) == UiPage::Overview);
+	assert(screens_tap(UiPage::Desk, 239, 211, 0) == UiPage::Device);
+	assert(screens_tap(UiPage::Desk, 240, 98, 0) == UiPage::Desk);
+	assert(screens_tap(UiPage::Desk, 20, 212, 0) == UiPage::Desk);
+	assert(screens_tap(UiPage::Clock, 0, 257, 0) == UiPage::Desk);
+	assert(screens_tap(UiPage::Clock, 0, 258, 0) == UiPage::Clock);
 	assert(screens_tap(UiPage::Timer, 120, 180, 0) == UiPage::Timer);
 	assert(!view_timer().running);
 	screens_tap(UiPage::Timer, 20, 180, 0);

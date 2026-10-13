@@ -32,7 +32,7 @@ Instead of a generic smartwatch interface, the core experience is the **Living E
 * **Contextual Views:** Large/detail route layouts and a Clock desk-tools menu with large clock, overview, silent timer/Pomodoro, and device status. Extra tools do not lengthen the main carousel; [details](docs/DESK.md).
 * **Buffered Display:** Frames are composed in RAM and sent to the LCD at up to 30 FPS. BLE and touch polling continue between frames.
 * **Swipe Navigation:** Swipe left for the next screen or right for the previous screen. Navigation wraps around at either end.
-* **Companion Cards:** Dark rounded utility cards, mint accents, bounded text, screen position dots, and clear empty states.
+* **Companion Cards:** Dark rounded utility cards with a shared eye-color palette, bounded text, screen position dots, and clear empty states.
 * **Dashboard First:** MOCHI eyes by default, calmer idle motion, no unsolicited full-screen calls, and no notification/caller payload logging.
 * **Automatic Event Pages:** New notifications open Alerts; starting phone navigation opens Route. Regular navigation updates do not override a later manual page change.
 * **Saved Preferences:** Parked-use touch menu and USB commands for eye shapes, colors, moods, day/night brightness, and behavior. Flash writes require an explicit save.
@@ -68,22 +68,23 @@ The runtime loop handles BLE updates alongside a clean screen dispatcher:
 * **NAVIGATION:** Turn directions, speed, distance, and turn icon CRC tracking.
 * **WEATHER:** City, temperature, condition icon, up to three high/low forecasts, receipt time, and stale-data indication.
 * **NOTIFICATION:** Phone notifications and incoming call (ringer) display.
-* **SETTINGS:** LOOK, LIGHT, and DRIVE tabs. Hold still on Eyes for 1.2 seconds to open the menu; tap SAVE to persist changes. Use only while parked.
+* **SETTINGS:** LOOK, LIGHT, DRIVE, MOVE, and AUDIO tabs with larger touch targets and vertical row scrolling. Hold still on Eyes for 1.2 seconds to open the menu; tap SAVE to persist changes. Use only while parked.
 
 ---
 
 ## Supported Hardware
 
 Default target is the **Waveshare ESP32-S3-Touch-LCD-1.69 OLD** (240x280 ST7789).
-The user confirmed the mappings in `pin_config.h`; dashboard settings leave them unchanged:
+The mappings in `pin_config.h` follow the official Waveshare schematic for that
+board revision; dashboard settings leave them unchanged:
 
 | Category | Component | Default Pins |
 | :--- | :--- | :--- |
 | **Display** | ST7789 SPI LCD (240x280) | `DC=4, CS=5, SCK=6, MOSI=7, RST=8, BL=15` |
 | **Touch** | Auto-probed CST816 / FT6X36 family | `SDA=11, SCL=10, RST=13, INT=14` |
-| **Motion** | QMI8658C 6-Axis IMU | `SDA=12, SCL=9` |
-| **RTC / Time** | External I2C RTC | `SDA=11, SCL=10, INT=41` |
-| **Buzzer** | Active buzzer GPIO | `BUZZER=34` |
+| **Motion** | QMI8658C 6-Axis IMU (shared I2C bus) | `SDA=11, SCL=10` |
+| **RTC / Time** | External I2C RTC (shared I2C bus) | `SDA=11, SCL=10, INT=41` |
+| **Buzzer** | PWM/tone output; electrical model unverified | `BUZZER=33` |
 | **Backlight** | GPIO/PWM | `BL=15` |
 | **Battery / Power** | Circuit and sensing path not yet verified | Legacy candidates `SYS_EN=35, SYS_OUT=36, BAT_ADC=1` remain unused |
 

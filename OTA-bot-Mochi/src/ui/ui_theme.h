@@ -7,11 +7,14 @@
 #include <Arduino_GFX_Library.h>
 
 constexpr uint16_t UI_BG = 0x0000;
-constexpr uint16_t UI_CARD = 0x1082;
-constexpr uint16_t UI_TEXT = 0xEF5D;
-constexpr uint16_t UI_MUTED = 0x8C71;
-constexpr uint16_t UI_ACCENT = 0x6FBA;
-constexpr uint16_t UI_WARM = 0xFD6C;
+extern uint16_t UI_CARD;
+extern uint16_t UI_TEXT;
+extern uint16_t UI_MUTED;
+extern uint16_t UI_ACCENT;
+extern uint16_t UI_WARM;
+
+/** @brief Apply the eye color to text, icons, controls and tinted cards. @param color RGB565 eye color. */
+void ui_theme_color(uint16_t color);
 
 /** @brief Sanitize UTF-8 for the built-in font. @param text Source text. @return Displayable text. */
 String ui_ascii(const String &text);

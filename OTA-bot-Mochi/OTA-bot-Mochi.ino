@@ -118,6 +118,9 @@ void handle_touch(uint32_t now) {
 	bool hold = touch_take_hold();
 	int16_t x, y;
 	bool tap = touch_take_tap(x, y);
+	int8_t scroll = touch_take_scroll();
+	if (scroll && current_screen == UiPage::Settings && !screens_calling() &&
+		settings_menu_scroll(scroll)) { screens_invalidate(); }
 	if (hold && current_screen == UiPage::Eyes && !screens_calling()) {
 		switch_screen(UiPage::Settings, now);
 		return;

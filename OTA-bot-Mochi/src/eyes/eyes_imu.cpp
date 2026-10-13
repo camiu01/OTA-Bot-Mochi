@@ -26,9 +26,9 @@
 #include "motion_filter.h"
 #include "eyes_faces.h"
 #include "../settings/settings.h"
+#include "../bus/i2c_bus.h"
 #include "../../pin_config.h"
 #include <Arduino.h>
-#include <Wire.h>
 #include <math.h>
 
 #define QMI_REG_WHOAMI 0x00	/**< Chip ID register. */
@@ -50,10 +50,11 @@ static MotionFilter s_motion;
  * @return True on a successful acknowledged write.
  */
 static bool imu_write(uint8_t reg, uint8_t val) {
-	Wire.beginTransmission(s_address);
-	Wire.write(reg);
-	Wire.write(val);
-	return Wire.endTransmission() == 0;
+	TwoWire &bus = i2c_bus();
+	bus.beginTransmission(s_address);
+	bus.write(reg);
+	bus.write(val);
+	return bus.endTransmission() == 0;
 }
 
 /**
@@ -64,20 +65,21 @@ static bool imu_write(uint8_t reg, uint8_t val) {
  * @return True on successful 6-byte read, false on I2C error.
  */
 static bool imu_read_acc(int16_t *ax, int16_t *ay, int16_t *az) {
-	Wire.beginTransmission(s_address);
-	Wire.write((uint8_t)QMI_REG_AX_L);
-	if (Wire.endTransmission(false) != 0) {
+	TwoWire &bus = i2c_bus();
+	bus.beginTransmission(s_address);
+	bus.write((uint8_t)QMI_REG_AX_L);
+	if (bus.endTransmission(false) != 0) {
 		return false;
 	}
-	if (Wire.requestFrom(s_address, (uint8_t)6) != 6) {
+	if (bus.requestFrom(s_address, (uint8_t)6) != 6) {
 		return false;
 	}
-	uint8_t xl = Wire.read();
-	uint8_t xh = Wire.read();
-	uint8_t yl = Wire.read();
-	uint8_t yh = Wire.read();
-	uint8_t zl = Wire.read();
-	uint8_t zh = Wire.read();
+	uint8_t xl = bus.read();
+	uint8_t xh = bus.read();
+	uint8_t yl = bus.read();
+	uint8_t yh = bus.read();
+	uint8_t zl = bus.read();
+	uint8_t zh = bus.read();
 	*ax = (int16_t)((xh << 8) | xl);
 	*ay = (int16_t)((yh << 8) | yl);
 	*az = (int16_t)((zh << 8) | zl);
@@ -85,20 +87,20 @@ static bool imu_read_acc(int16_t *ax, int16_t *ay, int16_t *az) {
 }
 
 /**
- * @brief Init QMI8658C on QMI_SDA/QMI_SCL.
+ * @brief Init QMI8658C on the shared board I2C bus at QMI_SDA/QMI_SCL.
  */
 void eyes_imu_init() {
 	s_imuOk = false;
 	s_motion = MotionFilter{};
 	eyes_imu_set_tilt(0, 0);
-	if (!Wire.begin(QMI_SDA, QMI_SCL)) { return; }
-	Wire.setTimeOut(5);
+	if (!i2c_bus_begin(QMI_SDA, QMI_SCL, 400000)) { return; }
+	TwoWire &bus = i2c_bus();
 	for (uint8_t address : {0x6B, 0x6A}) {
 		s_address = address;
-		Wire.beginTransmission(s_address);
-		Wire.write((uint8_t)QMI_REG_WHOAMI);
-		if (Wire.endTransmission(false) != 0) { continue; }
-		if (Wire.requestFrom(s_address, (uint8_t)1) != 1 || Wire.read() != 0x05) { continue; }
+		bus.beginTransmission(s_address);
+		bus.write((uint8_t)QMI_REG_WHOAMI);
+		if (bus.endTransmission(false) != 0) { continue; }
+		if (bus.requestFrom(s_address, (uint8_t)1) != 1 || bus.read() != 0x05) { continue; }
 		// Auto-increment, +/-16g at 125 Hz (2048 LSB/g), accelerometer only.
 		s_imuOk = imu_write(QMI_REG_CTRL1, 0x40) &&
 			imu_write(QMI_REG_CTRL2, 0x36) && imu_write(QMI_REG_CTRL7, 0x01);
