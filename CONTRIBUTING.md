@@ -10,11 +10,11 @@ git clone https://github.com/lorenzocamuso/OTA-Bot-Mochi.git
 cd OTA-Bot-Mochi
 ```
 
-2. Install Arduino IDE 2.x plus the ESP32 core by Espressif, and install `Arduino_GFX_Library` and `ChronosESP32` from the Library Manager.
+2. Install Arduino IDE 2.x plus the ESP32 core by Espressif, and install `GFX Library for Arduino` and `ChronosESP32` from the Library Manager.
 
-3. Open `OTA-Bot-Mochi.ino` in Arduino IDE. Project tabs auto-load `pin_config.h`, `gfx_helper.*`, `images.h`, and `src/eyes/`.
+3. Open `OTA-bot-Mochi/OTA-bot-Mochi.ino` in Arduino IDE. Arduino builds the modules under `src/` recursively.
 
-4. Select board Waveshare ESP32-S3-Touch-LCD-1.69, enable USB CDC On Boot, then build and upload.
+4. Select `ESP32S3 Dev Module`, enable USB CDC On Boot, and verify your board's flash/PSRAM options before building and uploading. See [Testing](docs/TESTING.md).
 
 ---
 
@@ -22,6 +22,10 @@ cd OTA-Bot-Mochi
 
 - `OTA-Bot-Mochi.ino`: setup, loop, Chronos callbacks, screens
 - `src/eyes/`: Eyes Engine sources, public API via `eyes_api.h`
+- `src/ui/`: shared theme, BLE snapshots, utility screens, bounded text layout
+- `src/clock/`: synchronized, region-based clock face
+- `src/power/`: PWM backlight and host-testable brightness policy
+- `src/touch/`: touch probing and horizontal gesture tracker
 - `pin_config.h`: all pin mappings, fully remappable
 - `gfx_helper.h` / `gfx_helper.cpp`: display helpers, palette, text layout
 - `images.h`: splash, icons, bitmaps
@@ -37,6 +41,14 @@ cd OTA-Bot-Mochi
 - Write all documentation in ENGLISH using Doxygen tags `@brief`, `@param`, `@return`
 - Never use `delay()` or `Serial` inside `src/eyes`, use `millis()` for non-blocking timing
 - Validate inputs at boundaries, never swallow errors
+
+## Local Checks
+
+Run `.\scripts\test-host.ps1` on Windows or `bash scripts/test-host.sh` on Linux.
+These tests build native test executables, not ESP32 firmware. The fake display
+checks text bounds; sensor tests exercise identity, acknowledged writes, range,
+tilt, and shake behavior. Real display, BLE, and hardware behavior still require
+the [device checklist](docs/TESTING.md).
 
 ---
 

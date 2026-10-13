@@ -23,35 +23,37 @@
  * @brief QMI8658C accelerometer polling, tilt mapping and shake detection.
  */
 #include "eyes_api.h"
+#include "motion_filter.h"
+#include "eyes_faces.h"
+#include "../settings/settings.h"
 #include "../../pin_config.h"
 #include <Arduino.h>
 #include <Wire.h>
 #include <math.h>
 
-#define QMI_ADDR 0x6B	/**< QMI8658C I2C address. */
 #define QMI_REG_WHOAMI 0x00	/**< Chip ID register. */
-#define QMI_REG_CTRL1 0x02	/**< Accelerometer control register. */
+#define QMI_REG_CTRL1 0x02	/**< Interface control register. */
+#define QMI_REG_CTRL2 0x03	/**< Accelerometer range and sample rate. */
 #define QMI_REG_CTRL7 0x08	/**< Sensor enable register. */
 #define QMI_REG_AX_L 0x35	/**< First accelerometer data register. */
 #define QMI_POLL_MS 50	/**< Minimum interval between IMU reads. */
-#define QMI_TILT_MAX 10	/**< Maximum pupil tilt offset in pixels. */
-#define QMI_SHAKE_G 2.2f	/**< Acceleration magnitude triggering DIZZY. */
 
 static bool s_imuOk = false;
+static uint8_t s_address = 0x6B;
 static uint32_t s_lastPoll = 0;
-static float s_smoothX = 0.0f;
-static float s_smoothY = 0.0f;
+static MotionFilter s_motion;
 
 /**
  * @brief Write one byte to a QMI8658C register.
  * @param reg Target register address.
  * @param val Value to write.
+ * @return True on a successful acknowledged write.
  */
-static void imu_write(uint8_t reg, uint8_t val) {
-	Wire.beginTransmission((uint8_t)QMI_ADDR);
+static bool imu_write(uint8_t reg, uint8_t val) {
+	Wire.beginTransmission(s_address);
 	Wire.write(reg);
 	Wire.write(val);
-	Wire.endTransmission();
+	return Wire.endTransmission() == 0;
 }
 
 /**
@@ -62,12 +64,12 @@ static void imu_write(uint8_t reg, uint8_t val) {
  * @return True on successful 6-byte read, false on I2C error.
  */
 static bool imu_read_acc(int16_t *ax, int16_t *ay, int16_t *az) {
-	Wire.beginTransmission((uint8_t)QMI_ADDR);
+	Wire.beginTransmission(s_address);
 	Wire.write((uint8_t)QMI_REG_AX_L);
 	if (Wire.endTransmission(false) != 0) {
 		return false;
 	}
-	if (Wire.requestFrom((uint8_t)QMI_ADDR, (uint8_t)6) != 6) {
+	if (Wire.requestFrom(s_address, (uint8_t)6) != 6) {
 		return false;
 	}
 	uint8_t xl = Wire.read();
@@ -83,30 +85,30 @@ static bool imu_read_acc(int16_t *ax, int16_t *ay, int16_t *az) {
 }
 
 /**
- * @brief Clamp a smoothed tilt value to the pixel range.
- * @param v Smoothed tilt value in pixels.
- * @return Clamped offset within [-QMI_TILT_MAX, QMI_TILT_MAX].
- */
-static int16_t clamp_tilt(float v) {
-	if (v > QMI_TILT_MAX) {
-		return QMI_TILT_MAX;
-	}
-	if (v < -QMI_TILT_MAX) {
-		return -QMI_TILT_MAX;
-	}
-	return (int16_t)v;
-}
-
-/**
  * @brief Init QMI8658C on QMI_SDA/QMI_SCL.
  */
 void eyes_imu_init() {
-	Wire.begin(QMI_SDA, QMI_SCL);
-	imu_write(QMI_REG_CTRL1, 0x60);
-	imu_write(QMI_REG_CTRL7, 0x03);
-	s_imuOk = true;
+	s_imuOk = false;
+	s_motion = MotionFilter{};
+	eyes_imu_set_tilt(0, 0);
+	if (!Wire.begin(QMI_SDA, QMI_SCL)) { return; }
+	Wire.setTimeOut(5);
+	for (uint8_t address : {0x6B, 0x6A}) {
+		s_address = address;
+		Wire.beginTransmission(s_address);
+		Wire.write((uint8_t)QMI_REG_WHOAMI);
+		if (Wire.endTransmission(false) != 0) { continue; }
+		if (Wire.requestFrom(s_address, (uint8_t)1) != 1 || Wire.read() != 0x05) { continue; }
+		// Auto-increment, +/-16g at 125 Hz (2048 LSB/g), accelerometer only.
+		s_imuOk = imu_write(QMI_REG_CTRL1, 0x40) &&
+			imu_write(QMI_REG_CTRL2, 0x36) && imu_write(QMI_REG_CTRL7, 0x01);
+		break;
+	}
 	s_lastPoll = millis();
 }
+
+/** @brief Report verified sensor initialization. @return Detected and configured successfully. */
+bool eyes_imu_ready() { return s_imuOk; }
 
 /**
  * @brief Set pupil offset from tilt in pixels.
@@ -156,12 +158,10 @@ void eyes_imu_poll(uint32_t nowMs) {
 	float fx = (float)ax / 2048.0f;
 	float fy = (float)ay / 2048.0f;
 	float fz = (float)az / 2048.0f;
-	float mag = sqrtf(fx * fx + fy * fy + fz * fz);
-	if (mag > QMI_SHAKE_G) {
+	MotionSample sample = s_motion.update(fx, fy, fz, nowMs, settings_get().shake);
+	eyes_imu_set_tilt(sample.x, sample.y);
+	eyes_faces_motion(sample.delta_x, sample.delta_y, sample.delta_z, nowMs);
+	if (sample.shake) {
 		eyes_imu_trigger_shake(nowMs);
-		return;
 	}
-	s_smoothX = s_smoothX * 0.8f + fx * 0.2f;
-	s_smoothY = s_smoothY * 0.8f + fy * 0.2f;
-	eyes_imu_set_tilt(clamp_tilt(s_smoothX * 8.0f), clamp_tilt(-s_smoothY * 6.0f));
 }

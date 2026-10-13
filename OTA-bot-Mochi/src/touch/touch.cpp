@@ -5,6 +5,7 @@
  */
 #include "touch.h"
 #include "swipe.h"
+#include "touch_actions.h"
 #include "../../pin_config.h"
 #include <Arduino.h>
 #include <Wire.h>
@@ -13,6 +14,8 @@ static TwoWire s_touchBus(1);
 static SwipeTracker s_swipe;
 static uint8_t s_address = 0;
 static uint32_t s_lastPoll = 0;
+static bool s_pressed = false;
+static TouchActions s_actions;
 
 /**
  * @brief Read the contact count and first contact coordinates.
@@ -77,6 +80,8 @@ int8_t touch_poll(uint32_t now) {
 	s_lastPoll = now;
 	uint8_t data[5];
 	if (!read_contact(data)) {
+		s_pressed = false;
+		s_actions.cancel();
 		s_swipe.update(false, 0, 0, now);
 		return 0;
 	}
@@ -85,8 +90,30 @@ int8_t touch_poll(uint32_t now) {
 	int16_t x = ((data[1] & 0x0F) << 8) | data[2];
 	int16_t y = ((data[3] & 0x0F) << 8) | data[4];
 	if (touching && (x >= LCD_WIDTH || y >= LCD_HEIGHT)) {
+		s_pressed = false;
+		s_actions.cancel();
 		s_swipe.update(false, 0, 0, now);
 		return 0;
 	}
+	s_pressed = touching;
+	s_actions.update(touching, x, y, now);
 	return s_swipe.update(touching, x, y, now);
+}
+
+/** @brief Return the most recent valid touch state. @return Finger contact state. */
+bool touch_pressed() { return s_pressed; }
+
+/** @brief Consume a short tap. @param x Output X. @param y Output Y. @return Pending tap. */
+bool touch_take_tap(int16_t &x, int16_t &y) {
+	if (!s_actions.tap) { return false; }
+	s_actions.tap = false;
+	x = s_actions.x; y = s_actions.y;
+	return true;
+}
+
+/** @brief Consume a stationary hold. @return Pending hold. */
+bool touch_take_hold() {
+	bool hold = s_actions.hold;
+	s_actions.hold = false;
+	return hold;
 }

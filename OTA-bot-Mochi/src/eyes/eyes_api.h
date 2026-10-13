@@ -51,8 +51,8 @@ void eyes_set_style(EyeStyle style);
 void eyes_set_expression(Expression expr);
 
 /**
- * @brief Set TRAPEZ corner-lift slant in pixels.
- * @param slant Corner-lift offset, positive pulls high-left corner up.
+ * @brief Set the mirrored TRAPEZ top slope, always bounded by the body.
+ * @param slant Positive raises the inner corners; negative reverses the slope.
  */
 void eyes_set_slant(int8_t slant);
 
@@ -181,6 +181,9 @@ Arduino_GFX *eyes_gfx();
  * @brief Init QMI8658C on QMI_SDA/QMI_SCL.
  */
 void eyes_imu_init();
+
+/** @brief Report sensor detection and configuration. @return True when the IMU is usable. */
+bool eyes_imu_ready();
 
 /**
  * @brief Poll accelerometer, drive tilt and shake-to-dizzy.

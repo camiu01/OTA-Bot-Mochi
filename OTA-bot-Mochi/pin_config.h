@@ -20,8 +20,6 @@
 
 #pragma once
 
-#define XPOWERS_CHIP_AXP2101
-
 /**
  * @file pin_config.h
  * @brief Pin definitions for Waveshare ESP32-S3-Touch-LCD-1.69.
@@ -60,7 +58,7 @@
 
 /* ================================= [S2] Touch Panel ================================ */
 /** @defgroup touch Touch Panel configuration
- *  @brief FT6X36 capacitive touch controller pins.
+ *  @brief Auto-probed CST816/FT6X36 capacitive touch controller pins.
  *  @{
  */
 #define TP_RST     13  /**< Touch Reset */
@@ -125,12 +123,12 @@
 
 /* =========================== [S9] System Control & Power =========================== */
 /** @defgroup sys System & Power
- *  @brief Power management and battery monitoring.
+ *  @brief Legacy power pin candidates, not verified for battery measurements.
  *  @{
  */
-#define SYS_EN     35  /**< System enable */
-#define SYS_OUT    36  /**< System output */
-#define BAT_ADC    1   /**< Battery ADC sense */
+#define SYS_EN     35  /**< Legacy system-enable candidate; not driven by firmware. */
+#define SYS_OUT    36  /**< Legacy system-output candidate; not driven by firmware. */
+#define BAT_ADC    1   /**< Unverified ADC candidate; do not assume a battery divider ratio. */
 /** @} */  // end of sys
 
 /* ============================== [S10] Extra GPIO ================================== */

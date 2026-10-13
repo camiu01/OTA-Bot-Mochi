@@ -35,9 +35,9 @@
  */
 enum EyeStyle : uint8_t {
 	NORMAL = 0,	/**< Flat cartoon style with small pupils. */
-	MOCHI = 1,	/**< Rounded Mochi style with highlights. */
-	BLOUB = 2,	/**< Default Bloub style with large rounded body. */
-	TRAPEZ = 3	/**< Corner-lifted trapezoid, high-left pulled up by slant px. */
+	MOCHI = 1,	/**< Tall solid Dasai-like capsules, without pupils or highlights. */
+	BLOUB = 2,	/**< Wide soft blobs with pupils and highlights. */
+	TRAPEZ = 3	/**< Solid mirrored trapezoids, without pupils or highlights. */
 };
 
 /**
@@ -83,7 +83,7 @@ struct EyeConfig {
 	int16_t eyeH;	/**< Single eye height in pixels. */
 	int16_t eyeGap;	/**< Horizontal gap between eyes in pixels. */
 	int16_t radius;	/**< Corner radius used by fillRoundRect. */
-	int8_t slant;	/**< TRAPEZ corner-lift in px, pulls high-left corner up. */
+	int8_t slant;	/**< Mirrored TRAPEZ top slope, clamped within the eye body. */
 	uint8_t asym;	/**< 0 symmetric, 1 per-eye geometry may vary. */
 	int16_t lidTop;	/**< Eyelid line offset in px, negative raises lid. */
 };

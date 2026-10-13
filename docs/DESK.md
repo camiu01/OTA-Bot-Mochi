@@ -1,0 +1,60 @@
+# Contextual views
+
+The primary carousel still contains six pages: Eyes, Clock, Route, Alerts,
+Weather, and Settings. Extra tools are grouped under Clock, not added as more
+swipe destinations. The device does not infer whether it is in a car or on a desk.
+Use touch controls only while parked.
+
+## Navigation
+
+Route uses the configured large/details default when a new session begins.
+Large mode shows a 96x96 received turn icon, emphasized distance, and two larger
+instruction lines. Missing/incomplete icons remain placeholders, never guessed
+turn arrows. Details retains speed, ETA/duration, and the smaller turn card.
+
+Tap VIEW to switch temporarily. Hold on Route for 1.2 seconds to restore the
+configured default. Choose and SAVE **Settings → LOOK → Route default** for future
+boots. [Settings](SETTINGS.md) documents USB commands and session/save separation.
+Starting real navigation in Chronos opens Route as before; repeated route updates
+do not pull you back after a manual page change.
+
+## Desk tools
+
+Open Clock and tap **DESK TOOLS**, then select:
+
+| Tool | Content |
+| --- | --- |
+| BIG CLOCK | Large hours/minutes, seconds, AM/PM when applicable, and date |
+| DESK OVERVIEW | Time, phone connection, temperature/city, and weather freshness |
+| TIMER / POMODORO | Local 5-minute or 15-minute timer, or one 25-minute focus/5-minute rest pair |
+| DEVICE STATUS | BLE connection, backlight percentage, IMU initialization, clock sync, and preference save state |
+
+BACK TO DESK returns to the tool menu; BACK TO CLOCK closes it. A swipe from a
+tool goes to the previous/next primary page relative to Clock, so there is no
+eleven-page swipe sequence. The Clock position dot stays selected in these tools.
+
+Time requires a Chronos sync after boot and then continues while disconnected.
+Weather uses received phone data and has missing/stale states; it is not measured
+by the board. Device status shows initialization, not vehicle telemetry or battery.
+
+## Local timer
+
+MODE cycles 5 minutes, 15 minutes, and Pomodoro, resetting paused. START/PAUSE
+controls the countdown; RESET resets the chosen mode paused. Pomodoro automatically
+enters a five-minute rest after the focus phase, then stops at DONE.
+
+The timer runs while other pages or call overlays are visible and does not need
+BLE. Completion never changes the selected page and is silent by default.
+Optional buzzer cues signal rest/completion when enabled; see [Audio](SOUND.md).
+The timer is not persisted: reboot resets it. No background flashing is implemented.
+
+## Eye interaction
+
+A short tap on the Eyes page produces a temporary random expression for three
+seconds, even with automatic random expressions disabled. It returns to the
+selected base mood and does not write flash. Holds/swipes remain separate gestures.
+
+Native tests cover layout bounds, tool navigation, session/default separation,
+profile migrations, timer pause/rollover/work-rest completion, and tap restoration.
+Physical rendering, touch targets, and actual Chronos behavior still need testing
+after a successful firmware build and upload.

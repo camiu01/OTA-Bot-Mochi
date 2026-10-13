@@ -16,3 +16,11 @@ void touch_init();
  * @return +1 for the next screen, -1 for the previous screen, zero otherwise.
  */
 int8_t touch_poll(uint32_t now);
+
+/** @brief Read the last valid touch contact. @return True while a finger is held down. */
+bool touch_pressed();
+
+/** @brief Consume one short tap. @param x Output X. @param y Output Y. @return Tap available. */
+bool touch_take_tap(int16_t &x, int16_t &y);
+/** @brief Consume one stationary 1.2-second hold. @return Hold available. */
+bool touch_take_hold();

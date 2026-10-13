@@ -23,10 +23,11 @@
  * @brief Eye animation timers and public state API.
  */
 #include "eyes_api.h"
+#include "eyes_faces.h"
+#include "eye_life.h"
+#include "../settings/settings.h"
 #include <Arduino.h>
 #include <math.h>
-#include <string.h>
-#include <ctype.h>
 
 static Arduino_GFX *s_gfx = nullptr;
 static EyeConfig s_cfg;
@@ -57,12 +58,13 @@ static void anim_arm_blink(uint32_t now, uint32_t minMs, uint32_t spanMs) {
  * @param dtMs Elapsed time since last update, clamped by caller.
  */
 static void anim_step_float(uint32_t dtMs) {
-	const float speed = 0.004f;
+	const float speed = settings_get().dashboard ? 0.002f : 0.004f;
 	s_state.floatPhase += (float)dtMs * speed;
 	if (s_state.floatPhase > 6.2831853f) {
 		s_state.floatPhase -= 6.2831853f;
 	}
-	s_state.floatY = (int16_t)(sinf(s_state.floatPhase) * 4.0f);
+	float amplitude = settings_get().dashboard ? 1.5f : 4.0f;
+	s_state.floatY = (int16_t)(sinf(s_state.floatPhase) * amplitude);
 }
 
 /**
@@ -73,9 +75,10 @@ static void anim_step_saccade(uint32_t now) {
 	if ((int32_t)(now - s_state.nextSaccadeMs) < 0) {
 		return;
 	}
-	s_state.saccadeX = (int16_t)(random(-12, 13));
-	s_state.saccadeY = (int16_t)(random(-8, 9));
-	anim_arm_saccade(now, 1500, 2500);
+	bool calm = settings_get().dashboard;
+	s_state.saccadeX = (int16_t)(random(calm ? -6 : -12, calm ? 7 : 13));
+	s_state.saccadeY = (int16_t)(random(calm ? -3 : -8, calm ? 4 : 9));
+	anim_arm_saccade(now, calm ? 2500 : 1500, 2500);
 }
 
 /**
@@ -87,7 +90,7 @@ static void anim_step_blink(uint32_t now) {
 		if ((int32_t)(now - s_state.nextBlinkMs) >= 0) {
 			s_state.blinking = true;
 			s_state.blinkStartMs = now;
-			s_state.blinkDurMs = 120 + (uint32_t)(random(80));
+			s_state.blinkDurMs = 160 + (uint32_t)(random(80));
 		}
 		return;
 	}
@@ -117,18 +120,15 @@ static void anim_step_dizzy(uint32_t now) {
  */
 void eyes_init(Arduino_GFX *display) {
 	s_gfx = display;
+	eyes_life_reset();
 	s_cfg.style = BLOUB;
 	s_cfg.expression = NEUTRAL;
+	eyes_faces_base(NEUTRAL);
 	s_cfg.bgColor = RGB565_BLACK;
 	s_cfg.fgColor = RGB565_WHITE;
 	s_cfg.pupilColor = RGB565_BLACK;
 	s_cfg.highlightColor = RGB565_WHITE;
-	s_cfg.eyeW = 64;
-	s_cfg.eyeH = 96;
-	s_cfg.eyeGap = 28;
-	s_cfg.radius = 28;
-	s_cfg.slant = 0;
-	s_cfg.asym = 1;
+	eyes_set_style(BLOUB);
 	s_cfg.lidTop = 0;
 	s_state.saccadeX = 0;
 	s_state.saccadeY = 0;
@@ -155,115 +155,39 @@ void eyes_init(Arduino_GFX *display) {
  */
 void eyes_set_style(EyeStyle style) {
 	s_cfg.style = style;
+	s_cfg.eyeGap = 28;
+	s_cfg.asym = 1;
 	if (style == NORMAL) {
 		s_cfg.eyeW = 56;
 		s_cfg.eyeH = 84;
-		s_cfg.radius = 10;
+		s_cfg.radius = 0;
 		s_cfg.slant = 0;
 		s_cfg.asym = 0;
 	} else if (style == MOCHI) {
-		s_cfg.eyeW = 62;
-		s_cfg.eyeH = 92;
-		s_cfg.radius = 46;
+		s_cfg.eyeW = 44;
+		s_cfg.eyeH = 100;
+		s_cfg.eyeGap = 42;
+		s_cfg.radius = 22;
 		s_cfg.slant = 0;
 		s_cfg.asym = 0;
 	} else if (style == TRAPEZ) {
-		s_cfg.eyeW = 66;
-		s_cfg.eyeH = 88;
-		s_cfg.radius = 14;
-		s_cfg.slant = 14;
+		s_cfg.eyeW = 68;
+		s_cfg.eyeH = 76;
+		s_cfg.radius = 0;
+		s_cfg.slant = 10;
 		s_cfg.asym = 0;
 	} else {
-		s_cfg.eyeW = 64;
-		s_cfg.eyeH = 96;
-		s_cfg.radius = 28;
+		s_cfg.eyeW = 76;
+		s_cfg.eyeH = 60;
+		s_cfg.radius = 24;
 		s_cfg.slant = 0;
 		s_cfg.asym = 1;
 	}
 }
 
 /**
- * @brief Change emotional expression.
- * @param expr One of NEUTRAL, HAPPY, SAD, ANGRY, SURPRISED, SLEEPY, LOVE, DIZZY, GLEE, WORRIED, FOCUSED, ANNOYED, SKEPTIC, FRUSTRATED, UNIMPRESSED, SUSPICIOUS, SQUINT, FURIOUS, SCARED, AWE, SLEEPY_EYES, SAD_DOWN, SAD_UP.
- */
-void eyes_set_expression(Expression expr) {
-	if (s_state.dizzyUntilMs != 0) {
-		s_state.savedExpr = expr;
-		return;
-	}
-	s_cfg.expression = expr;
-}
-
-/**
- * @brief Compare two names case-insensitively.
- * @param input User supplied string, nullable.
- * @param cand Lowercase candidate literal.
- * @return True when strings match ignoring case.
- */
-static bool match_name(const char *input, const char *cand) {
-	if (input == nullptr || cand == nullptr) {
-		return false;
-	}
-	while (*cand != '\0') {
-		if (tolower((unsigned char)*input) != *cand) {
-			return false;
-		}
-		input++;
-		cand++;
-	}
-	return *input == '\0';
-}
-
-/**
- * @brief Map a normalized name to its Expression value.
- * @param name Lowercase-compared input string.
- * @param out Output expression on match.
- * @return True when name matched, false otherwise.
- */
-static bool lookup_expression(const char *name, Expression *out) {
-	if (match_name(name, "neutral")) { *out = NEUTRAL; return true; }
-	if (match_name(name, "happy")) { *out = HAPPY; return true; }
-	if (match_name(name, "glee")) { *out = GLEE; return true; }
-	if (match_name(name, "worried")) { *out = WORRIED; return true; }
-	if (match_name(name, "focused")) { *out = FOCUSED; return true; }
-	if (match_name(name, "annoyed")) { *out = ANNOYED; return true; }
-	if (match_name(name, "surprised")) { *out = SURPRISED; return true; }
-	if (match_name(name, "skeptic")) { *out = SKEPTIC; return true; }
-	if (match_name(name, "frustrated")) { *out = FRUSTRATED; return true; }
-	if (match_name(name, "unimpressed")) { *out = UNIMPRESSED; return true; }
-	if (match_name(name, "sleepy")) { *out = SLEEPY; return true; }
-	if (match_name(name, "sleepy_eyes")) { *out = SLEEPY_EYES; return true; }
-	if (match_name(name, "suspicious")) { *out = SUSPICIOUS; return true; }
-	if (match_name(name, "squint")) { *out = SQUINT; return true; }
-	if (match_name(name, "angry")) { *out = ANGRY; return true; }
-	if (match_name(name, "furious")) { *out = FURIOUS; return true; }
-	if (match_name(name, "scared")) { *out = SCARED; return true; }
-	if (match_name(name, "awe")) { *out = AWE; return true; }
-	if (match_name(name, "love")) { *out = LOVE; return true; }
-	if (match_name(name, "dizzy")) { *out = DIZZY; return true; }
-	if (match_name(name, "sad")) { *out = SAD; return true; }
-	if (match_name(name, "sad_down") || match_name(name, "saddown")) { *out = SAD_DOWN; return true; }
-	if (match_name(name, "sad_up") || match_name(name, "sadup")) { *out = SAD_UP; return true; }
-	return false;
-}
-
-/**
- * @brief Set expression by case-insensitive name string.
- * @param name One of neutral, happy, glee, worried, focused, annoyed, surprised, skeptic, frustrated, unimpressed, sleepy, suspicious, squint, angry, furious, scared, awe, love, dizzy, sad, sad_down, sad_up, sleepy_eyes.
- * @return True when name matched, false otherwise.
- */
-bool eyes_set_expression_by_name(const char *name) {
-	Expression e = NEUTRAL;
-	if (name == nullptr || !lookup_expression(name, &e)) {
-		return false;
-	}
-	eyes_set_expression(e);
-	return true;
-}
-
-/**
- * @brief Set TRAPEZ corner-lift slant in pixels.
- * @param slant Corner-lift offset, positive pulls high-left corner up.
+ * @brief Set the mirrored TRAPEZ top slope.
+ * @param slant Signed slope offset, bounded by the renderer.
  */
 void eyes_set_slant(int8_t slant) {
 	s_cfg.slant = slant;
@@ -434,5 +358,7 @@ void eyes_update(uint32_t nowMs) {
 	anim_step_saccade(nowMs);
 	anim_step_blink(nowMs);
 	eyes_imu_poll(nowMs);
+	eyes_faces_step(nowMs);
+	eyes_life_step(nowMs, dt);
 	eyes_draw();
 }

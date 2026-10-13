@@ -1,6 +1,10 @@
 # TODO
 
-## Working baseline
+Checked software items are implemented and covered where possible by native
+tests. They do not imply that this firmware revision has passed an ESP32 build,
+upload, or device test. Those checks are reserved for the user.
+
+## Historical working baseline (before this revision)
 
 - [x] Build and upload the firmware with Arduino CLI.
 - [x] Compile the eyes module from `src/eyes`.
@@ -12,44 +16,63 @@
 ## 1. Chronos pairing and clock
 
 - [ ] Verify pairing, disconnection, and reconnection with the Chronos phone app.
-- [ ] Display the current Bluetooth connection state.
-- [ ] Replace the clock screen header with synchronized time and date.
-- [ ] Show a clear waiting state before the first time synchronization.
-- [ ] Update the clock without clearing unrelated screen content.
+- [x] Display the current Bluetooth connection state.
+- [x] Replace the clock screen placeholder with synchronized time and date.
+- [x] Show a clear waiting state before the first time synchronization.
+- [x] Update the clock without clearing unrelated screen content.
+
+Chronos operation was reported working on the device by the user on 2026-10-12.
+Explicit disconnection/reconnection checks remain pending. The clock UI above is
+implemented, but firmware compilation, upload, and device validation are pending
+and will be performed by the user.
 
 ## 2. Notifications and calls
 
-- [ ] Display the notification app, title, and message.
-- [ ] Handle long messages with wrapping or scrolling.
-- [ ] Show incoming calls and clear them when dismissed.
-- [ ] Show an empty state when there are no notifications.
-- [ ] Disable full notification and caller logging by default.
+- [x] Display the notification app, title, and message.
+- [x] Handle long messages with wrapping and automatic pagination.
+- [x] Show incoming calls and clear them when dismissed.
+- [x] Show an empty state when there are no notifications.
+- [x] Disable full notification and caller logging by default.
 
 ## 3. Weather
 
-- [ ] Display city, temperature, and weather icon.
-- [ ] Display forecast highs and lows.
-- [ ] Show when weather data was last updated.
-- [ ] Handle missing or stale weather data.
+- [x] Display city, temperature, and weather icon.
+- [x] Display forecast highs and lows.
+- [x] Show when weather data was last received.
+- [x] Handle missing or stale weather data.
+- [x] Preserve forecasts when current/forecast packets arrive in either order.
+- [x] Add rate-limited app synchronization after pairing and a manual refresh.
+- [x] Add USB packet-counter diagnostics without logging city/location or payloads.
+- [ ] **Priority: resolve weather on the physical device.** The user reported it
+  not working on 2026-10-13. Parser/sync changes are host-tested, not device-verified.
+  Check Chronos weather configuration, connectivity, permissions, and received
+  packet counters before claiming the problem fixed.
 
 ## 4. Navigation
 
-- [ ] Display turn directions, remaining distance, and ETA.
-- [ ] Render the received turn icon and refresh it when its CRC changes.
-- [ ] Show an inactive state when navigation ends.
+- [x] Display turn directions, remaining distance, and ETA.
+- [x] Render the received turn icon only after complete packets and matching CRC.
+- [x] Show an inactive state when navigation ends.
 - [ ] Verify live updates while navigating with the phone.
+- [x] Add large essential navigation with a scaled 96x96 received icon.
+- [x] Keep temporary route format separate from the explicitly saved default.
+- [x] Open Alerts on new notifications and Route on real navigation start.
+- [x] Declare the nearest supported rectangular Chronos profile without changing
+  the physical 240x280 canvas.
+- [ ] Verify that Chronos refreshes its old round-device metadata after upload.
 
 ## 5. Battery and power
 
 - [ ] Verify the board's battery sensing and power-management hardware.
 - [ ] Read and display a measured battery charge level.
 - [ ] Display charging state when supported by the hardware.
-- [ ] Add adjustable backlight brightness.
-- [ ] Add idle dimming or sleep and define how touch wakes the device.
+- [x] Add adjustable backlight brightness.
+- [x] Add idle dimming and define how touch wakes the device, without stopping BLE.
 - [ ] Measure power consumption and battery runtime.
 
 ## 6. IMU and hardware validation
 
+- [x] Check IMU identity and acknowledged configuration; explicitly match range to scaling.
 - [ ] Verify QMI8658C detection, wiring, and accelerometer configuration.
 - [ ] Confirm that tilting the device moves the pupils in the expected direction.
 - [ ] Confirm shake-to-dizzy activation and restoration of the previous expression.
@@ -60,13 +83,53 @@
 
 ## 7. Documentation and repeatable checks
 
-- [ ] Document Arduino CLI installation, dependencies, build, and upload commands.
-- [ ] Document Linux serial-port permissions.
+- [x] Document Arduino CLI installation, dependencies, build, and upload commands.
+- [x] Document Linux serial-port permissions.
+- [x] Document supported touch addresses without asserting an unverified chip model.
 - [ ] Update the hardware documentation with the touch controller detected on the board.
-- [ ] Correct README color examples to use the current `RGB565_*` constants.
-- [ ] Add a documented command for the host-side swipe tests.
+- [x] Correct README color examples to use the current `RGB565_*` constants.
+- [x] Add documented host-side swipe, UI, brightness, and IMU test commands.
+- [x] Record installed core/library versions and the proposed board profile.
 - [ ] Record the tested board options and library versions.
-- [ ] Add automated firmware compilation and swipe tests.
+- [x] Add automated firmware compilation and native tests as a GitHub Actions workflow.
+- [ ] Confirm the firmware CI job passes after publication.
 
-The clock, weather, navigation, and notification screens currently render headers
-only. Receiving data through Chronos does not yet display that data on these screens.
+## 8. Visual design
+
+- [x] Use shared black/charcoal cards, high-contrast text, mint accents, and screen dots.
+- [x] Use consistent spacing and bounded text across all utility screens.
+- [x] In dashboard mode, keep calls on Alerts; optionally overlay other pages.
+- [x] Use neutral placeholders rather than inventing missing navigation or battery data.
+- [ ] Validate appearance, text readability, and touch controls on the physical LCD.
+
+## 9. Eyes, dashboard preferences, and desk tools
+
+- [x] Distinguish tall solid MOCHI, wide pupilled BLOUB, and mirrored solid TRAPEZ.
+- [x] Keep MOCHI/TRAPEZ pupil-free, including whole-eye love/dizzy silhouettes.
+- [x] Add bounded random/IMU reactions and a three-second random face on a short tap.
+- [x] Add blink-covered transitions, damped gaze, double blink, wink, glance,
+  curious lean, bounce/stretch, and nod; reduce intensity in dashboard/night modes.
+- [x] Add Clock's contextual menu: big clock, overview, local timer/Pomodoro,
+  and non-sensitive device status, without lengthening the six-page carousel.
+- [x] Add touch/USB settings and explicit NVS saves with legacy profile migration.
+- [x] Add English/Italian UI labels and saved language selection.
+- [ ] Verify all gesture styles, languages, touch targets, and preference
+  persistence on the LCD; validate the proposed flash/OPI PSRAM profile.
+
+## 10. Buzzer and delivery
+
+- [x] Add opt-in, non-blocking PWM/tone cues on existing GPIO34.
+- [x] Add face tap/automatic reaction, timer/rest/end, notification/call, and
+  rate-limited spontaneous sound categories with separate switches.
+- [x] Default sound off; default automatic night mute on; bound the duty level.
+- [x] Keep audio/backlight PWM allocations separate; cover core 2/3 API branches
+  with host tests and stop silently on allocation/write failures.
+- [x] Add cached GitHub Actions builds and downloadable firmware artifacts.
+- [ ] Verify buzzer audibility, pitch, duty level, and lack of backlight
+  interference on the actual OLD board before enabling sound in the car.
+- [ ] Confirm a green remote firmware CI run, then build/upload and validate the
+  full revision on the board. No current ESP32 build/upload has been performed.
+- [ ] Automatic OTA deployment and calibrated battery/charging remain deferred.
+
+See `docs/UI.md` and `docs/TESTING.md` for controls, dependency pins, native
+coverage, and the remaining physical validation checklist.
