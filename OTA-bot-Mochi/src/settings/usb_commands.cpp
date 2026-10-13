@@ -9,6 +9,7 @@
 #include "../ui/ui_state.h"
 #include "../ui/weather_sync.h"
 #include "../sound/sound.h"
+#include "../power/battery.h"
 #include "../../pin_config.h"
 #include <Arduino.h>
 #include <ctype.h>
@@ -81,6 +82,7 @@ bool assign(const char *field, const char *value, CompanionSettings &profile) {
 	else if (strcmp(field, "dim") == 0) { return toggle(value, profile.dim); }
 	else if (strcmp(field, "random") == 0) { return toggle(value, profile.random_faces); }
 	else if (strcmp(field, "imu-face") == 0) { return toggle(value, profile.imu_faces); }
+	else if (strcmp(field, "flip") == 0) { return toggle(value, profile.flipped); }
 	else if (strcmp(field, "sound") == 0) { return toggle(value, profile.sound); }
 	else if (strcmp(field, "sound-faces") == 0) { return toggle(value, profile.sound_faces); }
 	else if (strcmp(field, "sound-timer") == 0) { return toggle(value, profile.sound_timer); }
@@ -99,7 +101,8 @@ void show() {
 	Serial.printf("dashboard=%s night=%s shake=%s dim=%s unsaved=%s\n",
 		p.dashboard ? "on" : "off", p.night ? "on" : "off", p.shake ? "on" : "off",
 		p.dim ? "on" : "off", settings_dirty() ? "yes" : "no");
-	Serial.printf("random=%s imu-face=%s\n", p.random_faces ? "on" : "off", p.imu_faces ? "on" : "off");
+	Serial.printf("random=%s imu-face=%s flip=%s\n", p.random_faces ? "on" : "off",
+		p.imu_faces ? "on" : "off", p.flipped ? "on" : "off");
 	Serial.printf("route-default=%s route-current=%s\n", p.route_large ? "large" : "details",
 		view_route_large(p.route_large) ? "large" : "details");
 	Serial.printf("animation=%s language=%s sound=%s sound-level=%u night-mute=%s\n",
@@ -109,6 +112,9 @@ void show() {
 		p.sound_faces ? "on" : "off", p.sound_timer ? "on" : "off",
 		p.sound_alerts ? "on" : "off", p.sound_ambient ? "on" : "off");
 	Serial.printf("sound-status=%s gpio=%u\n", sound_status_name(), unsigned(BUZZER));
+	uint8_t charge = battery_percent();
+	if (charge == BATTERY_UNAVAILABLE) { Serial.println("battery=unavailable"); }
+	else { Serial.printf("battery=%u%%\n", unsigned(charge)); }
 }
 
 /** @brief Print every accepted mood name for the USB vocabulary. */
@@ -120,10 +126,10 @@ void mood_names() {
 
 /** @brief Explain strict USB vocabulary, unchanged by display locale. */
 void help() {
-	Serial.println("show | save | defaults | mood names | set <field> <value>");
+	Serial.println("show | save | defaults | reboot | mood names | set <field> <value>");
 	Serial.println("style normal/mochi/bloub/trapez; color white/mint/cyan/amber/pink/blue");
 	Serial.println("mood <name>: any expression from neutral to cat; brightness 5..90; night-brightness 1..20");
-	Serial.println("dashboard/night/shake/dim/random/imu-face on/off. Use controls only while parked.");
+	Serial.println("dashboard/night/shake/dim/random/imu-face/flip on/off. Use controls only while parked.");
 	Serial.println("set route large/details + save: default; route large/details/default: session only");
 	Serial.println("animation calm/dasai/playful; language en/it; sound-level 1..30");
 	Serial.println("sound/sound-faces/sound-timer/sound-alerts/sound-ambient/sound-night-mute on/off");
@@ -141,6 +147,11 @@ void execute(const UsbCommand &command) {
 		case UsbAction::Save: Serial.println(settings_save() ? "OK, saved" : "ERROR, save failed"); break;
 		case UsbAction::Defaults: settings_defaults(); Serial.println("Defaults applied; use save to persist"); break;
 		case UsbAction::MoodNames: mood_names(); break;
+		case UsbAction::Reboot:
+			Serial.println("OK, restarting");
+			Serial.flush();
+			ESP.restart();
+			break;
 		case UsbAction::RouteView:
 			view_route_temporary(command.route_mode);
 			Serial.println("OK, temporary route view; saved default unchanged");
@@ -191,6 +202,7 @@ UsbCommand settings_parse(const char *input, const CompanionSettings &current) {
 		if (strcmp(verb, "defaults") == 0) { result.action = UsbAction::Defaults; }
 		if (strcmp(verb, "weather") == 0) { result.action = UsbAction::WeatherStatus; }
 		if (strcmp(verb, "sound") == 0) { result.action = UsbAction::SoundStatus; }
+		if (strcmp(verb, "reboot") == 0) { result.action = UsbAction::Reboot; }
 	} else if (tokens == 3 && strcmp(verb, "set") == 0 &&
 		assign(field, value, result.profile) && settings_valid(result.profile)) {
 		result.action = UsbAction::Set;

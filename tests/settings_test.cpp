@@ -10,6 +10,7 @@
 #include "../OTA-bot-Mochi/src/eyes/motion_filter.h"
 #include "../OTA-bot-Mochi/src/touch/touch_actions.h"
 #include "../OTA-bot-Mochi/src/power/backlight.h"
+#include "../OTA-bot-Mochi/src/power/battery.h"
 #include "../OTA-bot-Mochi/src/ui/view_state.h"
 #include "../OTA-bot-Mochi/src/ui/i18n.h"
 #include "../OTA-bot-Mochi/src/ui/ui_theme.h"
@@ -37,6 +38,7 @@ static void persistence_tests() {
 	value.sound = true; value.sound_faces = false; value.sound_alerts = false;
 	value.sound_ambient = false; value.sound_night_mute = false;
 	value.sound_level = 18; value.animation = 2; value.language = 1;
+	value.flipped = true;
 	assert(settings_update(value));
 	assert(eyes_config().style == TRAPEZ && eyes_config().fgColor == 0x07FF);
 	assert(backlight_brightness() == 5 && test_flash_writes == 0);
@@ -48,6 +50,7 @@ static void persistence_tests() {
 	assert(settings_get().sound && !settings_get().sound_faces && !settings_get().sound_alerts);
 	assert(!settings_get().sound_ambient && !settings_get().sound_night_mute);
 	assert(settings_get().sound_level == 18 && settings_get().animation == 2 && settings_get().language == 1);
+	assert(settings_get().flipped);
 	value = settings_get(); value.color = 4;
 	settings_update(value); test_save_fails = true;
 	assert(!settings_save() && settings_dirty());
@@ -73,23 +76,32 @@ static void migration_tests() {
 	test_profile.assign(bytes, bytes + 8);
 	assert(settings_init() && settings_get().color == 3);
 	assert(decoded.route_large);
-	assert(settings_dirty() && settings_save() && test_profile[0] == 4 && test_profile.size() == SETTINGS_BYTES);
+	assert(settings_dirty() && settings_save() && test_profile[0] == 5 && test_profile.size() == SETTINGS_BYTES);
 	bytes[0] = 2; bytes[6] = 0x32; bytes[7] = 0xA5;
 	for (uint8_t i = 0; i < 7; ++i) { bytes[7] ^= bytes[i]; }
 	assert(settings_decode(bytes, sizeof(bytes), decoded) && decoded.random_faces && decoded.imu_faces && decoded.route_large);
 	bytes[0] = 3; bytes[7] = 0xA5;
 	for (uint8_t i = 0; i < 7; ++i) { bytes[7] ^= bytes[i]; }
 	assert(settings_decode(bytes, sizeof(bytes), decoded) && !decoded.route_large && !decoded.sound);
+	// Version-four twelve-byte blobs still decode, with the newer flip flag defaulting off.
+	uint8_t v4[SETTINGS_V4_BYTES] = {4, 2, 3, uint8_t(LOVE), 30, 5, 2, 0, 10, 1, 0, 0xA5};
+	for (uint8_t i = 0; i < SETTINGS_V4_BYTES - 1; ++i) { v4[SETTINGS_V4_BYTES - 1] ^= v4[i]; }
+	CompanionSettings from_v4;
+	assert(settings_decode(v4, sizeof(v4), from_v4));
+	assert(from_v4.style == 2 && from_v4.color == 3 && from_v4.mood == LOVE && !from_v4.flipped);
+	test_profile.assign(v4, v4 + SETTINGS_V4_BYTES);
+	assert(settings_init() && settings_get().style == 2 && !settings_get().flipped);
+	assert(settings_dirty() && settings_save() && test_profile[0] == 5 && test_profile.size() == SETTINGS_BYTES);
 	settings_defaults();
 }
 
-/** @brief Version four keeps its byte layout, so old mood indices stay valid. */
+/** @brief Version five keeps its byte layout, so old mood indices stay valid. */
 static void mood_range_tests() {
 	assert(EXPRESSION_COUNT > 5);
 	CompanionSettings legacy; legacy.mood = LOVE;
 	uint8_t legacy_bytes[SETTINGS_BYTES];
 	settings_encode(legacy, legacy_bytes);
-	assert(legacy_bytes[0] == 4);
+	assert(legacy_bytes[0] == 5);
 	CompanionSettings decoded;
 	assert(settings_decode(legacy_bytes, sizeof(legacy_bytes), decoded) && decoded.mood == LOVE);
 	// The wider expression range reuses the same byte, so no new profile version is needed.
@@ -121,6 +133,9 @@ static void usb_tests() {
 	assert(settings_parse("set shake yes", current).action == UsbAction::Invalid);
 	assert(settings_parse("set random on", current).profile.random_faces);
 	assert(settings_parse("set imu-face on", current).profile.imu_faces);
+	assert(settings_parse("set flip on", current).profile.flipped);
+	assert(!settings_parse("set flip off", current).profile.flipped);
+	assert(settings_parse("set flip maybe", current).action == UsbAction::Invalid);
 	assert(settings_parse("set random yes", current).action == UsbAction::Invalid);
 	assert(!settings_parse("set route details", current).profile.route_large);
 	assert(settings_parse("route large", current).action == UsbAction::RouteView);
@@ -148,6 +163,8 @@ static void usb_tests() {
 	assert(settings_parse("sound", current).action == UsbAction::SoundStatus);
 	assert(settings_parse("SOUND TEST", current).action == UsbAction::SoundTest);
 	assert(settings_parse("sound test extra", current).action == UsbAction::Invalid);
+	assert(settings_parse("reboot", current).action == UsbAction::Reboot);
+	assert(settings_parse("reboot now", current).action == UsbAction::Invalid);
 	assert(settings_parse("save extra", current).action == UsbAction::Invalid);
 	assert(settings_parse(nullptr, current).action == UsbAction::Invalid);
 	assert(settings_parse(std::string(96, 'x').c_str(), current).action == UsbAction::Invalid);
@@ -162,6 +179,10 @@ static void usb_tests() {
 	while (Serial.available()) { settings_usb_poll(); }
 	assert(Serial.output.find("command too long") != std::string::npos);
 	assert(Serial.output.find("color=pink") != std::string::npos);
+	// The reboot verb reports before restarting; the restart itself is platform-side.
+	Serial.clear(); Serial.feed("reboot\n");
+	settings_usb_poll();
+	assert(Serial.output.find("restarting") != std::string::npos && ESP.restarted);
 	unsigned int writes = test_flash_writes;
 	Serial.feed("save\n");
 	settings_usb_poll();
@@ -200,6 +221,10 @@ static void menu_tests() {
 	settings_menu_draw(&gfx);
 	settings_menu_tap(20, 134);
 	assert(settings_get().night);
+	// The LIGHT panel has a fifth row: Screen flip reaches the rotation toggle by scrolling.
+	assert(settings_menu_scroll(1) && settings_menu_scroll(1) && !settings_menu_scroll(1));
+	assert(settings_menu_tap(20, 178) == MenuAction::Changed);
+	assert(settings_get().flipped);
 	assert(settings_menu_tap(210, 65) == MenuAction::Changed);
 	settings_menu_draw(&gfx);
 	settings_menu_tap(20, 134);
@@ -320,6 +345,13 @@ static void format_tests() {
 	bytes[10] = 2; bytes[11] ^= 2;
 	assert(!settings_decode(bytes, sizeof(bytes), decoded));
 	assert(decoded.color == 3);
+	// Version-five flip bytes reject reserved bits, and versions never mix across lengths.
+	settings_encode(p, bytes);
+	bytes[11] |= 2;
+	bytes[12] = 0xA5;
+	for (uint8_t i = 0; i < 12; ++i) { bytes[12] ^= bytes[i]; }
+	assert(!settings_decode(bytes, sizeof(bytes), decoded));
+	assert(!settings_decode(bytes, SETTINGS_V4_BYTES, decoded));
 }
 /** @brief Test stationary hold/tap isolation from swipe motion and rollover. */
 static void touch_tests() {
@@ -391,6 +423,42 @@ static void motion_tests() {
 	}
 }
 
+/** @brief Voltage curve, divider plausibility, and the consecutive-sample trust policy. */
+static void battery_tests() {
+	assert(battery_percent_mv(4200) == 100);
+	assert(battery_percent_mv(3000) == 0);
+	assert(battery_percent_mv(3820) == 50);
+	assert(battery_percent_mv(3850) > 50 && battery_percent_mv(3850) < 60);
+	assert(battery_percent_mv(3600) > 10 && battery_percent_mv(3600) < 30);
+	// 2643 raw is about 2.0 V at the pin: a plausible 4.0 V cell through the 2:1 divider.
+	uint16_t mv = battery_mv_raw(2643);
+	assert(mv >= 3950 && mv <= 4050);
+	// Railing or floating samples stay out of the plausible LiPo window.
+	assert(battery_mv_raw(0) == 0 && battery_mv_raw(4095) == 0);
+	assert(battery_mv_raw(1500) == 0);
+	// The tracker needs three plausible samples before trusting the pin, five to drop it.
+	BatteryTracker tracker;
+	tracker.update(2643); tracker.update(2643);
+	assert(tracker.percent == BATTERY_UNAVAILABLE);
+	tracker.update(2643);
+	assert(tracker.percent >= 80 && tracker.percent <= 90);
+	tracker.update(0); tracker.update(0); tracker.update(0);
+	assert(tracker.percent >= 80);
+	tracker.update(0); tracker.update(0);
+	assert(tracker.percent == BATTERY_UNAVAILABLE);
+	// An unplugged divider (native zero sample) stays "not measured" end to end.
+	test_analog_read = 0;
+	battery_sample(1000); battery_sample(3100); battery_sample(5100);
+	assert(battery_percent() == BATTERY_UNAVAILABLE);
+	// A plausible divider reading appears after the priming samples, then tracks.
+	test_analog_read = 2643;
+	battery_sample(35200); battery_sample(65300); battery_sample(95500);
+	assert(battery_percent() >= 80 && battery_percent() <= 90);
+	test_analog_read = 0;
+	for (uint32_t now = 125600; now <= 246000; now += 30100) { battery_sample(now); }
+	assert(battery_percent() == BATTERY_UNAVAILABLE);
+}
+
 /** @brief Run preference/input/motion regressions. @return Zero on success. */
 int main() {
 	persistence_tests();
@@ -400,6 +468,7 @@ int main() {
 	menu_tests();
 	touch_tests();
 	motion_tests();
+	battery_tests();
 	format_tests();
 	assert(eyes_set_expression_by_name("SADDOWN"));
 	assert(eyes_set_expression_by_name("star"));

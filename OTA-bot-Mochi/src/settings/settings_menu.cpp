@@ -29,7 +29,7 @@ constexpr uint8_t GRID_ROWS_TOTAL = (EXPRESSION_COUNT + GRID_COLS - 1) / GRID_CO
 constexpr uint8_t GRID_MAX_FIRST = GRID_ROWS_TOTAL > GRID_ROWS ? GRID_ROWS_TOTAL - GRID_ROWS : 0;
 
 /** @brief Number of rows in the current panel. */
-uint8_t row_count() { return tab == 3 ? 2 : (tab == 4 && !sound_options ? 5 : 4); }
+uint8_t row_count() { return tab == 3 ? 2 : (tab == 4 && !sound_options ? 5 : (tab == 1 ? 5 : 4)); }
 
 /** @brief Close the grid and restore the tab rows. */
 void grid_close() { grid_open = false; grid_first_row = 0; first_row = 0; }
@@ -71,6 +71,7 @@ void change_row(uint8_t index) {
 		if (index == 1) { p.night = !p.night; }
 		if (index == 2) { p.night_brightness = next_brightness(p.night_brightness, true); }
 		if (index == 3) { p.dim = !p.dim; }
+		if (index == 4) { p.flipped = !p.flipped; }
 	} else if (tab == 2) {
 		if (index == 0) { p.dashboard = !p.dashboard; }
 		if (index == 1) { p.shake = !p.shake; }
@@ -108,6 +109,7 @@ void basic_rows(Arduino_GFX *gfx, const CompanionSettings &p) {
 		row(gfx, 1, tr(Text::Night), on_off(p.night));
 		row(gfx, 2, tr(Text::NightLevel), String(p.night_brightness) + "%");
 		row(gfx, 3, tr(Text::IdleDim), on_off(p.dim));
+		row(gfx, 4, tr(Text::ScreenFlip), tr(p.flipped ? Text::Flipped : Text::Normal));
 	} else {
 		row(gfx, 0, tr(Text::Dashboard), on_off(p.dashboard));
 		row(gfx, 1, tr(Text::Shake), on_off(p.shake));

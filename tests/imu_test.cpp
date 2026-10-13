@@ -89,6 +89,19 @@ int main() {
 	axis(0x35, -8192);
 	for (uint32_t now = 16050; now <= 17000; now += 50) { eyes_imu_poll(now); }
 	assert(state.tiltX == -14);
+	// A 180-degree mounting flips the panel axes, so the same physical lean still
+	// reads toward the user's side after the filter re-baselines.
+	CompanionSettings flipped = settings_get();
+	flipped.flipped = true;
+	assert(settings_update(flipped));
+	axis(0x35, 0);
+	axis(0x37, 0);
+	axis(0x39, 2048);
+	eyes_imu_poll(17050);
+	axis(0x35, 8192);
+	eyes_imu_poll(17100);
+	eyes_imu_poll(17150);
+	assert(state.tiltX == -14 && state.tiltY == 0);
 	std::cout << "IMU setup, mount-relative gaze, shake opt-in/cooldown, and restoration passed\n";
 	return 0;
 }

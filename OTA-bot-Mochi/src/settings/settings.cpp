@@ -25,7 +25,7 @@ bool settings_init() {
 	storage_ready = storage.begin("mochi", false);
 	uint8_t bytes[SETTINGS_BYTES] = {};
 	size_t length = storage_ready ? storage.getBytesLength("profile") : 0;
-	if ((length == 8 || length == sizeof(bytes)) &&
+	if ((length == 8 || length == SETTINGS_V4_BYTES || length == sizeof(bytes)) &&
 		storage.getBytes("profile", bytes, length) == length &&
 		settings_decode(bytes, length, profile)) {
 		memcpy(saved, bytes, sizeof(saved));

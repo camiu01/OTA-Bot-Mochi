@@ -41,6 +41,7 @@
 static bool s_imuOk = false;
 static uint8_t s_address = 0x6B;
 static uint32_t s_lastPoll = 0;
+static bool s_flipped = false;
 static MotionFilter s_motion;
 
 /**
@@ -160,6 +161,17 @@ void eyes_imu_poll(uint32_t nowMs) {
 	float fx = (float)ax / 2048.0f;
 	float fy = (float)ay / 2048.0f;
 	float fz = (float)az / 2048.0f;
+	// A 180-degree mounting reverses the in-panel axes; re-baseline so gaze, mood
+	// deltas, and shake keep reading in the user's frame instead of the board's.
+	bool flipped = settings_get().flipped;
+	if (flipped != s_flipped) {
+		s_flipped = flipped;
+		s_motion = MotionFilter{};
+	}
+	if (flipped) {
+		fx = -fx;
+		fy = -fy;
+	}
 	MotionSample sample = s_motion.update(fx, fy, fz, nowMs, settings_get().shake);
 	eyes_imu_set_tilt(sample.x, sample.y);
 	eyes_faces_motion(sample.delta_x, sample.delta_y, sample.delta_z, nowMs);
