@@ -155,6 +155,14 @@ void eyes_get_colors(uint16_t *bg, uint16_t *fg, uint16_t *pupil, uint16_t *high
 void eyes_update(uint32_t nowMs);
 
 /**
+ * @brief Hold the gaze toward a tapped screen position for a bounded time.
+ * @param x Tap X in logical screen coordinates.
+ * @param y Tap Y in logical screen coordinates.
+ * @param nowMs Value of millis() at call time.
+ */
+void eyes_glance(int16_t x, int16_t y, uint32_t nowMs);
+
+/**
  * @brief Redraw eyes from current config/state.
  */
 void eyes_draw();

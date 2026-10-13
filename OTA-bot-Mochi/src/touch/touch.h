@@ -11,6 +11,12 @@
 void touch_init();
 
 /**
+ * @brief Mirror touch coordinates for a display mounted upside down.
+ * @param flipped True when the screen runs at a 180-degree rotation.
+ */
+void touch_set_flipped(bool flipped);
+
+/**
  * @brief Poll touch coordinates without blocking the animation schedule.
  * @param now Timestamp in milliseconds.
  * @return +1 for the next screen, -1 for the previous screen, zero otherwise.
@@ -22,7 +28,11 @@ bool touch_pressed();
 
 /** @brief Consume one short tap. @param x Output X. @param y Output Y. @return Tap available. */
 bool touch_take_tap(int16_t &x, int16_t &y);
+/** @brief Consume one double tap. @return Double tap available. */
+bool touch_take_double();
 /** @brief Consume one stationary 1.2-second hold. @return Hold available. */
 bool touch_take_hold();
+/** @brief Consume one vertical petting stroke. @return Pet available. */
+bool touch_take_pet();
 /** @brief Consume one vertical gesture: +1 up, -1 down. @return Scroll direction. */
 int8_t touch_take_scroll();

@@ -1,6 +1,6 @@
 /**
  * @file face_policy.h
- * @brief Non-blocking temporary moods, with random timing and sustained IMU qualification.
+ * @brief Non-blocking temporary moods, tap/pet reactions, and sustained IMU qualification.
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #pragma once
@@ -10,11 +10,31 @@
 class FacePolicy {
 	Expression base = NEUTRAL, face = NEUTRAL, previous = NEUTRAL, candidate = NEUTRAL;
 	bool active = false, motion = false, qualifying = false, cooling = false, manual = false;
+	bool affection = false;
 	uint32_t started = 0, duration = 0, last_random = 0, random_delay = 12000;
 	uint32_t motion_since = 0, last_motion = 0;
 	uint32_t last_sample = 0;
 	bool sampled = false;
 	int8_t direction = 0;
+
+	/**
+	 * @brief Start a bounded reaction from an explicit pool, avoiding the base and repeats.
+	 * @param now Time.
+	 * @param choice Random input.
+	 * @param pool Candidate expressions.
+	 * @param pool_size Pool length.
+	 * @param dur Reaction duration in milliseconds.
+	 */
+	void react(uint32_t now, uint32_t choice, const Expression *pool, uint8_t pool_size, uint32_t dur) {
+		uint8_t index = uint8_t(choice % pool_size);
+		while (pool[index] == base || pool[index] == previous || pool[index] == face) {
+			index = uint8_t((index + 1) % pool_size);
+		}
+		face = previous = pool[index]; started = last_random = now;
+		duration = dur; random_delay = 12000 + choice % 18001;
+		active = true; motion = false; manual = true; qualifying = false;
+		affection = false;
+	}
 
 	/** @brief Start a bounded random reaction. @param now Time. @param choice Random input. @param tapped Explicit request. */
 	void random_reaction(uint32_t now, uint32_t choice, bool tapped) {
@@ -23,14 +43,8 @@ class FacePolicy {
 			EXCITED, GRIN, CURIOUS, WONDERING, STAR, SMUG, CONFUSED, SHY,
 			SPARKLE, BEAMING, MILD_HAPPY, SMIRK, DAYDREAM, CHEEKY, ZEN
 		};
-		constexpr uint8_t pool_size = uint8_t(sizeof(pool) / sizeof(pool[0]));
-		uint8_t index = uint8_t(choice % pool_size);
-		while (pool[index] == base || pool[index] == previous || pool[index] == face) {
-			index = uint8_t((index + 1) % pool_size);
-		}
-		face = previous = pool[index]; started = last_random = now;
-		duration = 3000; random_delay = 12000 + choice % 18001;
-		active = true; motion = false; manual = tapped; qualifying = false;
+		react(now, choice, pool, uint8_t(sizeof(pool) / sizeof(pool[0])), 3000);
+		manual = tapped;
 	}
 
 public:
@@ -38,6 +52,34 @@ public:
 	bool automatic() const { return active && !manual; }
 	/** @brief Trigger a temporary face even with automation off. @param now Time. @param choice Random input. */
 	void tap(uint32_t now, uint32_t choice) { random_reaction(now, choice, true); }
+	/** @brief Trigger a playful double-tap face even with automation off. @param now Time. @param choice Random input. */
+	void play(uint32_t now, uint32_t choice) {
+		static const Expression pool[] = {
+			AWE, EXCITED, STAR, SPARKLE, GLEE, BEAMING, MANIC
+		};
+		react(now, choice, pool, uint8_t(sizeof(pool) / sizeof(pool[0])), 3500);
+	}
+	/**
+	 * @brief Trigger an affectionate face; continued stroking extends it up to six seconds.
+	 * @param now Time.
+	 * @param choice Random input.
+	 */
+	void pet(uint32_t now, uint32_t choice) {
+		static const Expression pool[] = {
+			HAPPY, LOVE, GLEE, BEAMING, MILD_HAPPY, EXCITED
+		};
+		if (active && affection) {
+			uint32_t end = started + duration;
+			uint32_t wanted = now + 3000;
+			if (wanted > end) { end = wanted; }
+			if (end > started + 6000) { end = started + 6000; }
+			duration = end - started;
+			last_random = now;
+			return;
+		}
+		react(now, choice, pool, uint8_t(sizeof(pool) / sizeof(pool[0])), 3000);
+		affection = true;
+	}
 	/** @brief Select a base mood and restart automatic timers. @param value Mood. @param now Timestamp. */
 	void reset(Expression value, uint32_t now) {
 		*this = FacePolicy{};

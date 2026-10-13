@@ -162,6 +162,123 @@ static void imu_face_tests() {
 	assert(policy.update(3000, false, true, 0) == NEUTRAL);
 }
 
+/** @brief Petting requests a temporary affectionate face and never the base. */
+static void pet_tests() {
+	auto affectionate = [](Expression face) {
+		return face == HAPPY || face == LOVE || face == GLEE ||
+			face == BEAMING || face == MILD_HAPPY || face == EXCITED;
+	};
+	FacePolicy policy;
+	policy.reset(NEUTRAL, 0);
+	policy.pet(0, 0);
+	Expression petted = policy.update(0, false, false, 0);
+	assert(affectionate(petted));
+	assert(policy.update(2999, false, false, 0) == petted);
+	assert(policy.update(3000, false, false, 0) == NEUTRAL);
+	policy.reset(HAPPY, 0);
+	policy.pet(0, 1);
+	assert(policy.update(0, false, false, 0) != HAPPY);
+	policy.reset(NEUTRAL, 0);
+	policy.pet(0, 0);
+	Expression held = policy.update(0, false, true, 0);
+	for (uint32_t now = 50; now <= 500; now += 50) { policy.sample(0.4f, 0, 0, now, true); }
+	assert(policy.update(500, false, true, 0) == held);
+	assert(policy.update(3000, false, true, 0) == NEUTRAL);
+	// Continued stroking keeps the same face and extends it up to six seconds.
+	FacePolicy stroked;
+	stroked.reset(NEUTRAL, 0);
+	stroked.pet(0, 0);
+	Expression stroke_face = stroked.update(0, false, false, 0);
+	stroked.pet(1500, 0);
+	assert(stroked.update(4499, false, false, 0) == stroke_face);
+	stroked.pet(3000, 0);
+	assert(stroked.update(5999, false, false, 0) == stroke_face);
+	stroked.pet(4500, 0);
+	assert(stroked.update(6000, false, false, 0) == NEUTRAL);
+	// A tap ends the affection run: the next pet is a fresh three-second reaction.
+	FacePolicy mixed;
+	mixed.reset(NEUTRAL, 0);
+	mixed.pet(0, 0);
+	mixed.tap(1000, 0);
+	mixed.pet(1200, 0);
+	assert(mixed.update(4199, false, false, 0) != NEUTRAL);
+	assert(mixed.update(4200, false, false, 0) == NEUTRAL);
+}
+
+/** @brief A double tap requests a playful face from its own bounded pool. */
+static void play_tests() {
+	auto playful = [](Expression face) {
+		return face == AWE || face == EXCITED || face == STAR ||
+			face == SPARKLE || face == GLEE || face == BEAMING || face == MANIC;
+	};
+	FacePolicy policy;
+	policy.reset(NEUTRAL, 0);
+	policy.play(0, 0);
+	Expression played = policy.update(0, false, false, 0);
+	assert(playful(played));
+	assert(policy.update(3499, false, false, 0) == played);
+	assert(policy.update(3500, false, false, 0) == NEUTRAL);
+}
+
+/** @brief Taps direct the gaze toward the touch point for a bounded hold. */
+static void glance_tests() {
+	eyes_init(nullptr);
+	EyeState &st = eyes_state();
+	eyes_glance(239, 279, 1000);
+	assert(st.saccadeX > 0 && st.saccadeX <= 12);
+	assert(st.saccadeY > 0 && st.saccadeY <= 8);
+	assert(st.glanceUntilMs == 3500);
+	int16_t held_x = st.saccadeX;
+	eyes_update(2000);
+	assert(st.saccadeX == held_x && st.glanceUntilMs == 3500);
+	eyes_update(3500);
+	assert(st.glanceUntilMs == 0);
+	eyes_glance(0, 0, 4000);
+	assert(st.saccadeX < 0 && st.saccadeY < 0);
+	// Tap reactions carry the same gaze; dizzy keeps priority and ignores double taps.
+	CompanionSettings p = settings_get();
+	p.random_faces = p.imu_faces = false;
+	settings_update(p);
+	eyes_faces_tap(5000, 0, 279);
+	assert(st.saccadeX < 0 && st.saccadeY > 0 && st.glanceUntilMs == 7500);
+	eyes_state().dizzyUntilMs = 8000;
+	eyes_config().expression = DIZZY;
+	eyes_faces_double(6000, 239, 0);
+	assert(eyes_config().expression == DIZZY && st.glanceUntilMs == 7500);
+	eyes_state().dizzyUntilMs = 0;
+	st.glanceUntilMs = 0;
+}
+
+/** @brief A startup greeting is a silent temporary face that preserves the mood. */
+static void greet_tests() {
+	eyes_init(nullptr);
+	settings_defaults();
+	eyes_faces_base(static_cast<Expression>(settings_get().mood));
+	eyes_faces_greet(80000);
+	Expression greeted = eyes_config().expression;
+	assert(greeted != settings_get().mood);
+	eyes_update(82999);
+	assert(eyes_config().expression == greeted);
+	eyes_update(83000);
+	assert(eyes_config().expression == settings_get().mood);
+}
+
+/** @brief Expression families map to distinct chirp tone bands. */
+static void tone_tests() {
+	assert(eyes_face_tone(Expression(HAPPY)) == FaceTone::Bright);
+	assert(eyes_face_tone(Expression(NEUTRAL)) == FaceTone::Bright);
+	assert(eyes_face_tone(Expression(LOVE)) == FaceTone::Warm);
+	assert(eyes_face_tone(Expression(KISS)) == FaceTone::Warm);
+	assert(eyes_face_tone(Expression(SLEEPY)) == FaceTone::Soft);
+	assert(eyes_face_tone(Expression(ZEN)) == FaceTone::Soft);
+	assert(eyes_face_tone(Expression(SHOCKED)) == FaceTone::Bounce);
+	assert(eyes_face_tone(Expression(BEAMING)) == FaceTone::Bounce);
+	assert(eyes_face_tone(Expression(SAD)) == FaceTone::Flat);
+	assert(eyes_face_tone(Expression(SKEPTIC)) == FaceTone::Flat);
+	// Out-of-range expressions fall back to the bright family instead of reading past tables.
+	assert(eyes_face_tone(Expression(EXPRESSION_COUNT)) == FaceTone::Bright);
+}
+
 /** @brief Test real automatic-face integration without changing style or saved mood. */
 static void integration_tests() {
 	eyes_init(nullptr);
@@ -179,18 +296,23 @@ static void integration_tests() {
 	p.random_faces = false;
 	settings_update(p);
 	test_now = 16000;
-	eyes_faces_tap(test_now);
+	eyes_faces_tap(test_now, 120, 140);
 	Expression tapped = eyes_config().expression;
 	assert(tapped != NEUTRAL && settings_get().mood == 0 && !settings_get().random_faces);
 	eyes_update(18999);
 	assert(eyes_config().expression == tapped);
 	eyes_update(19000);
 	assert(eyes_config().expression == NEUTRAL);
-	eyes_faces_tap(19001);
+	eyes_faces_tap(19001, 120, 140);
 	assert(eyes_config().expression != tapped);
+	eyes_faces_pet(19002);
+	Expression petted = eyes_config().expression;
+	assert(petted == HAPPY || petted == LOVE || petted == GLEE ||
+		petted == BEAMING || petted == MILD_HAPPY || petted == EXCITED);
+	assert(settings_get().mood == 0);
 	eyes_state().dizzyUntilMs = 21001;
 	eyes_config().expression = DIZZY;
-	eyes_faces_tap(19002);
+	eyes_faces_tap(19002, 120, 140);
 	assert(eyes_config().expression == DIZZY);
 	eyes_state().dizzyUntilMs = 0;
 }
@@ -249,6 +371,11 @@ int main() {
 	bank_tests();
 	random_tests();
 	imu_face_tests();
+	pet_tests();
+	play_tests();
+	glance_tests();
+	greet_tests();
+	tone_tests();
 	integration_tests();
 	motion_policy_tests();
 	animated_raster_tests();

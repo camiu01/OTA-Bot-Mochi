@@ -186,6 +186,7 @@ struct EyeState {
 	uint32_t blinkStartMs;	/**< Timestamp when current blink started. */
 	uint32_t blinkDurMs;	/**< Duration of current blink. */
 	uint32_t dizzyUntilMs;	/**< Expiry time of DIZZY override, 0 when inactive. */
+	uint32_t glanceUntilMs;	/**< Expiry of the tap-directed gaze hold, 0 when idle. */
 	bool blinking;	/**< True while eyelids are closed. */
 	Expression savedExpr;	/**< Expression to restore after DIZZY. */
 	int16_t prevX;	/**< X of dirty region union from last frame. */

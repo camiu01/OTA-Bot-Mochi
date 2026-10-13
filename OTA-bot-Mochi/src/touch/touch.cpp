@@ -15,6 +15,7 @@ static SwipeTracker s_swipe;
 static uint8_t s_address = 0;
 static uint32_t s_lastPoll = 0;
 static bool s_pressed = false;
+static bool s_flipped = false;
 static TouchActions s_actions;
 
 /**
@@ -73,6 +74,9 @@ void touch_init() {
 	Serial.printf("Touch controller at 0x%02X\n", s_address);
 }
 
+/** @brief Select the coordinate mapping for the current mounting orientation. @param flipped Invert X/Y. */
+void touch_set_flipped(bool flipped) { s_flipped = flipped; }
+
 /** @brief Poll one contact at most every 10 ms and recognize horizontal swipes. */
 int8_t touch_poll(uint32_t now) {
 	if (s_address == 0 || (uint32_t)(now - s_lastPoll) < 10) {
@@ -95,6 +99,10 @@ int8_t touch_poll(uint32_t now) {
 		s_actions.cancel();
 		s_swipe.update(false, 0, 0, now);
 		return 0;
+	}
+	if (s_flipped) {
+		x = int16_t(LCD_WIDTH - 1 - x);
+		y = int16_t(LCD_HEIGHT - 1 - y);
 	}
 	s_pressed = touching;
 	s_actions.update(touching, x, y, now);
@@ -122,9 +130,15 @@ bool touch_take_tap(int16_t &x, int16_t &y) {
 	return true;
 }
 
+/** @brief Consume a double tap. @return Pending double tap. */
+bool touch_take_double() { return s_actions.take_double(); }
+
 /** @brief Consume a stationary hold. @return Pending hold. */
 bool touch_take_hold() {
 	bool hold = s_actions.hold;
 	s_actions.hold = false;
 	return hold;
 }
+
+/** @brief Consume a vertical petting stroke. @return Pending pet. */
+bool touch_take_pet() { return s_actions.take_pet(); }

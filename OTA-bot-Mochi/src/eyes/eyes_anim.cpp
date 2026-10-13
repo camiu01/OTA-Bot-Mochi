@@ -26,6 +26,7 @@
 #include "eyes_faces.h"
 #include "eye_life.h"
 #include "../settings/settings.h"
+#include "../../pin_config.h"
 #include <Arduino.h>
 #include <math.h>
 
@@ -68,10 +69,14 @@ static void anim_step_float(uint32_t dtMs) {
 }
 
 /**
- * @brief Trigger a random gaze jump when due.
+ * @brief Trigger a random gaze jump when due, holding a tap-directed glance instead.
  * @param now Current timestamp in milliseconds.
  */
 static void anim_step_saccade(uint32_t now) {
+	if (s_state.glanceUntilMs != 0) {
+		if ((int32_t)(now - s_state.glanceUntilMs) < 0) { return; }
+		s_state.glanceUntilMs = 0;
+	}
 	if ((int32_t)(now - s_state.nextSaccadeMs) < 0) {
 		return;
 	}
@@ -140,6 +145,7 @@ void eyes_init(Arduino_GFX *display) {
 	s_state.blinking = false;
 	s_state.blinkDurMs = 150;
 	s_state.dizzyUntilMs = 0;
+	s_state.glanceUntilMs = 0;
 	s_state.savedExpr = NEUTRAL;
 	s_state.dirtyInit = false;
 	anim_arm_saccade(s_state.lastMs, 1500, 1000);
@@ -333,6 +339,20 @@ EyeConfig &eyes_config() {
  */
 EyeState &eyes_state() {
 	return s_state;
+}
+
+/**
+ * @brief Hold the gaze toward a tapped screen position for a bounded time.
+ * @param x Tap X in logical screen coordinates.
+ * @param y Tap Y in logical screen coordinates.
+ * @param nowMs Value of millis() at call time.
+ */
+void eyes_glance(int16_t x, int16_t y, uint32_t nowMs) {
+	int32_t gx = (int32_t(x) - LCD_WIDTH / 2) * 12 / (LCD_WIDTH / 2);
+	int32_t gy = (int32_t(y) - LCD_HEIGHT / 2) * 8 / (LCD_HEIGHT / 2);
+	s_state.saccadeX = int16_t(gx);
+	s_state.saccadeY = int16_t(gy);
+	s_state.glanceUntilMs = nowMs + 2500;
 }
 
 /**
