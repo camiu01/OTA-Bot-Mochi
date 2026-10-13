@@ -28,9 +28,9 @@ while its new scripts and sources are still missing from Git.
 
 In GitHub, open **Actions**, choose a successful run, and download its artifact.
 Read `BUILD-INFO.txt` before using the binaries. The profile is ESP32S3 Dev Module,
-USB CDC on boot, 16MB flash, and OPI PSRAM. Pin assignments are confirmed by the
-user, but the complete memory profile still needs confirmation on the OLD board.
-See [Testing](TESTING.md) for manual flashing and device validation.
+USB CDC on boot, 16MB flash, and no PSRAM. PSRAM stays disabled because the OLD
+board's buzzer and power-control pins overlap the octal PSRAM interface. See
+[Testing](TESTING.md) for manual flashing and device validation.
 
 This is continuous integration and delivery of a downloadable build, **not**
 automatic deployment to the board. It does not publish releases, upload through
