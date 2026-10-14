@@ -47,10 +47,10 @@ try {
 		"$root\tests\stubs\imu_noop.cpp")
 	Invoke-HostTest 'settings' ($runtime + $settings)
 	$renderRuntime = @($runtime | Where-Object { $_ -ne "$root\tests\stubs\eyes_draw.cpp" })
-	$render = @("$root\tests\eyes_test.cpp", "$root\OTA-bot-Mochi\src\eyes\eyes_draw.cpp",
-		"$root\OTA-bot-Mochi\src\eyes\eye_shapes.cpp", "$root\OTA-bot-Mochi\src\eyes\eye_lids.cpp",
-		"$root\tests\stubs\imu_noop.cpp")
-	Invoke-HostTest 'eyes' ($renderRuntime + $render)
+	$renderEyes = @("$root\OTA-bot-Mochi\src\eyes\eyes_draw.cpp", "$root\OTA-bot-Mochi\src\eyes\eye_shapes.cpp",
+		"$root\OTA-bot-Mochi\src\eyes\eye_lids.cpp", "$root\tests\stubs\imu_noop.cpp")
+	Invoke-HostTest 'eyes' ($renderRuntime + @("$root\tests\eyes_test.cpp") + $renderEyes)
+	Invoke-HostTest 'faces' ($renderRuntime + @("$root\tests\face_unique_test.cpp") + $renderEyes)
 	Invoke-HostTest 'sound' ($runtime + @("$root\tests\sound_test.cpp", "$root\tests\stubs\imu_noop.cpp"))
 	$pwm = @("$root\tests\pwm_test.cpp", "$root\OTA-bot-Mochi\src\power\backlight.cpp", "$root\OTA-bot-Mochi\src\sound\buzzer_output.cpp")
 	Invoke-HostTest 'pwm-v3' $pwm

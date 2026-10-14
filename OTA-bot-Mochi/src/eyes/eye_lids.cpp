@@ -23,7 +23,9 @@ static void lids_classic(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b
 	switch (cfg.expression) {
 		case ANGRY: slope(gfx, cfg, b, true, b.h / 3); break;
 		case FURIOUS: slope(gfx, cfg, b, true, b.h / 2); break;
-		case SAD: case SAD_DOWN: slope(gfx, cfg, b, false, b.h / 3); break;
+		case SAD: slope(gfx, cfg, b, false, b.h / 3); break;
+		case SAD_DOWN: slope(gfx, cfg, b, false, b.h / 3);
+			strip(gfx, b, b.h / 6, false, cfg.bgColor); break;
 		case WORRIED: slope(gfx, cfg, b, false, b.h / 5); break;
 		case HAPPY: strip(gfx, b, b.h / 3, true, cfg.bgColor); break;
 		case GLEE: strip(gfx, b, b.h / 2, true, cfg.bgColor); break;
@@ -61,8 +63,10 @@ static void lids_extra(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b) 
 			strip(gfx, b, b.h / 6, false, cfg.bgColor); break;
 		case SMUG: strip(gfx, b, b.h * (b.left ? 20 : 45) / 100, false, cfg.bgColor); break;
 		case ZOMBIE: strip(gfx, b, b.h * (b.left ? 40 : 10) / 100, false, cfg.bgColor); break;
-		case CONFUSED: slope(gfx, cfg, b, false, b.h / 5); break;
-		case CURIOUS: case WONDERING: strip(gfx, b, b.h / 6, false, cfg.bgColor); break;
+		case CONFUSED: slope(gfx, cfg, b, false, b.h * (b.left ? 12 : 34) / 100); break;
+		case CURIOUS: strip(gfx, b, b.h / 6, false, cfg.bgColor); break;
+		case WONDERING: strip(gfx, b, b.h / 6, false, cfg.bgColor);
+			strip(gfx, b, b.h / 10, true, cfg.bgColor); break;
 		case CRYING: slope(gfx, cfg, b, false, b.h / 3); break;
 		default: break;
 	}
@@ -99,7 +103,7 @@ static void lids_new(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b) {
 		case MERCIFUL: slope(gfx, cfg, b, false, b.h / 4);
 			strip(gfx, b, b.h / 8, false, cfg.bgColor); break;
 		case MANIC: strip(gfx, b, b.h / 10, false, cfg.bgColor); break;
-		case SIDE_EYE: strip(gfx, b, b.h / 6, false, cfg.bgColor); break;
+		case SIDE_EYE: strip(gfx, b, b.h * (b.left ? 6 : 26) / 100, false, cfg.bgColor); break;
 		case BEAMING: strip(gfx, b, b.h * 45 / 100, true, cfg.bgColor);
 			strip(gfx, b, b.h / 10, false, cfg.bgColor); break;
 		case LOW_BATT: slope(gfx, cfg, b, false, b.h / 4);

@@ -49,9 +49,10 @@ render_runtime=()
 for source in "${runtime[@]}"; do
 	if [[ "$source" != "$root/tests/stubs/eyes_draw.cpp" ]]; then render_runtime+=("$source"); fi
 done
-build_test eyes "${render_runtime[@]}" "$root/tests/eyes_test.cpp" \
-	"$root/OTA-bot-Mochi/src/eyes/eyes_draw.cpp" "$root/OTA-bot-Mochi/src/eyes/eye_shapes.cpp" \
-	"$root/OTA-bot-Mochi/src/eyes/eye_lids.cpp" "$root/tests/stubs/imu_noop.cpp"
+render_eyes=("$root/OTA-bot-Mochi/src/eyes/eyes_draw.cpp" "$root/OTA-bot-Mochi/src/eyes/eye_shapes.cpp" \
+	"$root/OTA-bot-Mochi/src/eyes/eye_lids.cpp" "$root/tests/stubs/imu_noop.cpp")
+build_test eyes "${render_runtime[@]}" "$root/tests/eyes_test.cpp" "${render_eyes[@]}"
+build_test faces "${render_runtime[@]}" "$root/tests/face_unique_test.cpp" "${render_eyes[@]}"
 build_test sound "${runtime[@]}" "$root/tests/sound_test.cpp" "$root/tests/stubs/imu_noop.cpp"
 pwm=("$root/tests/pwm_test.cpp" "$root/OTA-bot-Mochi/src/power/backlight.cpp" "$root/OTA-bot-Mochi/src/sound/buzzer_output.cpp")
 build_test pwm-v3 "${pwm[@]}"

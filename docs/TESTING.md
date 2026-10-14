@@ -26,10 +26,12 @@ mount-relative gaze, bump rejection, shake opt-in/cooldown/restoration, preferen
 validation/save failures, USB command limits, automatic notification/route pages,
 preservation of manual page choices on route refresh, and touch-delayed switching.
 The real eye renderer also runs against a native raster substitute: all four
-styles, all 88 expressions, and both blink states (704 combinations), a proof that
-every expression renders differently from NEUTRAL on every style, solid-style
-pupil/highlight exclusion, trapezoid symmetry, IMU gaze/roll bounds, radius limits,
-and dirty-region erasure are checked. Automatic-face tests cover random timing,
+styles, all 88 expressions, and both blink states (704 combinations), a proof
+that every expression renders differently from NEUTRAL on every style, that no
+two names draw the same pixels on any style (pairwise uniqueness, 15312
+comparisons), solid-style pupil/highlight exclusion, trapezoid symmetry, IMU
+gaze/roll bounds, radius limits, and dirty-region erasure are checked.
+Automatic-face tests cover random timing,
 restoration, sustained IMU thresholds, cooldowns, and version-one preference
 migration.
 Additional checks cover contextual tools without extra carousel pages, temporary
