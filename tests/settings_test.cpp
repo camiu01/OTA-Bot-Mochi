@@ -150,6 +150,9 @@ static void usb_tests() {
 	assert(settings_parse("set animation invalid", current).action == UsbAction::Invalid);
 	assert(settings_parse("mood names", current).action == UsbAction::MoodNames);
 	assert(settings_parse("mood list", current).action == UsbAction::Invalid);
+	assert(settings_parse("mood cat", current).action == UsbAction::Set);
+	assert(settings_parse("mood cat", current).profile.mood == CAT);
+	assert(settings_parse("MOOD SLEEPY_EYES", current).profile.mood == SLEEPY_EYES);
 	assert(settings_parse("set mood star", current).profile.mood == STAR);
 	assert(settings_parse("set mood cat", current).profile.mood == CAT);
 	assert(settings_parse("set mood sleepy_eyes", current).profile.mood == SLEEPY_EYES);

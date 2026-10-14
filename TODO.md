@@ -87,7 +87,7 @@ and will be performed by the user.
   board is mounted, so they need tuning on the actual mounting.
 - [ ] Confirm shake-to-dizzy activation and restoration of the previous expression.
 - [ ] Test swipe direction, edge touches, and repeated gestures on the device.
-- [ ] Verify all 73 eye styles and expressions on the physical LCD; native mocks only
+- [ ] Verify all 88 eye styles and expressions on the physical LCD; native mocks only
   prove bounds, symmetry, and distinctness.
 - [ ] Test framebuffer allocation failure and missing touch-controller handling.
 - [ ] Run an extended session with BLE connected and check for crashes or heap loss.

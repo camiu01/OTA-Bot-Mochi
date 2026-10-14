@@ -191,6 +191,21 @@
 	X(ExprManic, "manic", "frenetico") \
 	X(ExprSideEye, "side eye", "di traverso") \
 	X(ExprBeaming, "beaming", "raggiante") \
+	X(ExprMusic, "music", "musica") \
+	X(ExprLowBatt, "low battery", "scarica") \
+	X(ExprPower, "power", "stand-by") \
+	X(ExprLoading, "loading", "attendi") \
+	X(ExprIdea, "idea", "idea") \
+	X(ExprHyper, "hyper", "iper") \
+	X(ExprSquish, "squish", "schiacciato") \
+	X(ExprDerp, "derp", "derp") \
+	X(ExprGlitch, "glitch", "glitch") \
+	X(ExprTwitch, "twitch", "tic") \
+	X(ExprSneeze, "sneeze", "starnuto") \
+	X(ExprJudge, "judge", "giudice") \
+	X(ExprQuestion, "question", "domanda") \
+	X(ExprCalculating, "calculating", "calcola") \
+	X(ExprCyborg, "cyborg", "cyborg") \
 	X(Calm, "calm", "calmo") \
 	X(Dasai, "dasai", "dasai") \
 	X(Playful, "playful", "vivace") \

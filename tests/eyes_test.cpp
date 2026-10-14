@@ -275,6 +275,15 @@ static void tone_tests() {
 	assert(eyes_face_tone(Expression(BEAMING)) == FaceTone::Bounce);
 	assert(eyes_face_tone(Expression(SAD)) == FaceTone::Flat);
 	assert(eyes_face_tone(Expression(SKEPTIC)) == FaceTone::Flat);
+	// The newest faces keep their families: waiting/power stay soft, glitch stays flat.
+	assert(eyes_face_tone(Expression(MUSIC)) == FaceTone::Warm);
+	assert(eyes_face_tone(Expression(LOW_BATT)) == FaceTone::Soft);
+	assert(eyes_face_tone(Expression(LOADING)) == FaceTone::Soft);
+	assert(eyes_face_tone(Expression(HYPER)) == FaceTone::Bounce);
+	assert(eyes_face_tone(Expression(SQUISH)) == FaceTone::Bounce);
+	assert(eyes_face_tone(Expression(GLITCH)) == FaceTone::Flat);
+	assert(eyes_face_tone(Expression(CALCULATING)) == FaceTone::Flat);
+	assert(eyes_face_tone(Expression(CYBORG)) == FaceTone::Flat);
 	// Out-of-range expressions fall back to the bright family instead of reading past tables.
 	assert(eyes_face_tone(Expression(EXPRESSION_COUNT)) == FaceTone::Bright);
 }

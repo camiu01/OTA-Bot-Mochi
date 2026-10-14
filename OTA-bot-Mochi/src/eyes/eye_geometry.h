@@ -48,6 +48,10 @@ inline EyeBox eye_box(const EyeConfig &cfg, const EyeState &st, bool left) {
 		case MERCIFUL: h = h * 85 / 100; break;
 		case MANIC: w += 10; h += 10; break;
 		case BEAMING: w += 4; h = h * 70 / 100; break;
+		case IDEA: w += 4; h += 4; break;
+		case POWER: h = h * 50 / 100; break;
+		case HYPER: w += 6; h += 6; break;
+		case SQUISH: w += 10; h = h * 65 / 100; break;
 		default: break;
 	}
 	int16_t nominal_w = eye_limit(w, 20, 88);

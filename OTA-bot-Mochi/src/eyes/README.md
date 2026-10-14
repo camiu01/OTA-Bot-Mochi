@@ -24,7 +24,7 @@ rounded even though the TRAPEZ preset sets `radius` to 0. The left eye is always
 canonical evaluation and the right eye is its exact horizontal mirror, which keeps
 the reflected halves pixel-identical.
 
-## Expressions (73)
+## Expressions (88)
 
 | Value | Name | Look |
 |---|---|---|
@@ -101,8 +101,23 @@ the reflected halves pixel-identical.
 | 70 | MANIC | Very wide eyes with tight pupils |
 | 71 | SIDE_EYE | Both pupils pressed to one side |
 | 72 | BEAMING | Wide joyful arcs, brighter than GLEE |
+| 73 | MUSIC | Note-mark pupils on a calm gaze |
+| 74 | LOW_BATT | Battery mark under drooping lids |
+| 75 | POWER | Standby symbol in half-closed eyes |
+| 76 | LOADING | Hourglass pupils while waiting |
+| 77 | IDEA | Exclamation pupils, a sudden spark |
+| 78 | HYPER | Very wide eyes under a thin raised lid |
+| 79 | SQUISH | Wide eyes pressed down into a squish |
+| 80 | DERP | Mismatched lids and a wandering gaze |
+| 81 | GLITCH | Displaced horizontal glitch bars |
+| 82 | TWITCH | One eye squinting, one squeezed shut |
+| 83 | SNEEZE | Both eyes scrunched before the sneeze |
+| 84 | JUDGE | Heavy half-lids over a raised lower lid |
+| 85 | QUESTION | Question-mark pupils over an open gaze |
+| 86 | CALCULATING | Furrowed asymmetric lids over an hourglass |
+| 87 | CYBORG | One eye behind a visor slope, one plain |
 
-73 static faces already exceed the Dasai Mochi 3 headline of "70+ Facial Expressions
+88 static faces already exceed the Dasai Mochi 3 headline of "70+ Facial Expressions
 & Animations", which counts bundled animations as well. This project counts only
 static faces.
 
@@ -112,9 +127,10 @@ Every expression must work on all four styles, which the native suite enforces:
 
 - **Silhouette expressions** (LOVE, DIZZY, STAR) replace the whole solid eye with a
   foreground glyph.
-- **Engraved expressions** (CRYING and all ten symbol faces 43-52) draw the normal
-  body first and then cut the glyph back out in the background colour, so the
-  silhouette survives and no pupil or highlight pixel is ever produced.
+- **Engraved expressions** (CRYING, the ten symbol faces 43-52, and the glyph
+  faces 73-77, 81, 85-86) draw the normal body first and then cut the glyph back
+  out in the background colour, so the silhouette survives and no pupil or
+  highlight pixel is ever produced.
 - **Lid expressions** only change eyelids and box dimensions, so they already work
   everywhere; WINK also carries an explicit lid so it stays visible when per-eye
   geometry is switched off.

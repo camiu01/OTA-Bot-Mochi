@@ -19,6 +19,12 @@ public:
 	unsigned int paints = 0;
 	std::vector<std::string> text;
 	void fillRect(int x, int y, int w, int h, uint16_t color) { rectangle(x, y, w, h, color); ++paints; }
+	void drawRect(int x, int y, int w, int h, uint16_t color) {
+		fillRect(x, y, w, 1, color);
+		fillRect(x, y + h - 1, w, 1, color);
+		fillRect(x, y, 1, h, color);
+		fillRect(x + w - 1, y, 1, h, color);
+	}
 	void fillRoundRect(int x, int y, int w, int h, int r, uint16_t color) { rounded(x, y, w, h, r, color); ++paints; }
 	template<class... T> void drawRoundRect(T...) { ++paints; }
 	void fillCircle(int x, int y, int r, uint16_t color) { ellipse(x, y, r, r, color); ++paints; }

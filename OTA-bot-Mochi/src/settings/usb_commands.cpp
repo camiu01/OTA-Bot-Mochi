@@ -128,7 +128,7 @@ void mood_names() {
 void help() {
 	Serial.println("show | save | defaults | reboot | mood names | set <field> <value>");
 	Serial.println("style normal/mochi/bloub/trapez; color white/mint/cyan/amber/pink/blue");
-	Serial.println("mood <name>: any expression from neutral to cat; brightness 5..90; night-brightness 1..20");
+	Serial.println("mood <name>: any expression from 'mood names', same as set mood <name>; brightness 5..90; night-brightness 1..20");
 	Serial.println("dashboard/night/shake/dim/random/imu-face/flip on/off. Use controls only while parked.");
 	Serial.println("set route large/details + save: default; route large/details/default: session only");
 	Serial.println("animation calm/dasai/playful; language en/it; sound-level 1..30");
@@ -214,8 +214,11 @@ UsbCommand settings_parse(const char *input, const CompanionSettings &current) {
 		if (strcmp(field, "large") == 0) { result.action = UsbAction::RouteView; result.route_mode = 1; }
 		if (strcmp(field, "details") == 0) { result.action = UsbAction::RouteView; result.route_mode = 0; }
 		if (strcmp(field, "default") == 0) { result.action = UsbAction::RouteView; result.route_mode = -1; }
-	} else if (tokens == 2 && strcmp(verb, "mood") == 0 && strcmp(field, "names") == 0) {
-		result.action = UsbAction::MoodNames;
+	} else if (tokens == 2 && strcmp(verb, "mood") == 0) {
+		if (strcmp(field, "names") == 0) { result.action = UsbAction::MoodNames; }
+		else if (assign_choice("mood", field, result.profile) && settings_valid(result.profile)) {
+			result.action = UsbAction::Set;
+		}
 	} else if (tokens == 2 && strcmp(verb, "weather") == 0 && strcmp(field, "sync") == 0) {
 		result.action = UsbAction::WeatherSync;
 	} else if (tokens == 2 && strcmp(verb, "sound") == 0 && strcmp(field, "test") == 0) {

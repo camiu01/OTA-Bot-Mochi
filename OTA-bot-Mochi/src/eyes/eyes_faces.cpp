@@ -16,20 +16,23 @@ FaceTone eyes_face_tone(Expression expr) {
 	switch (expr) {
 		/** Affectionate faces get a warm mid-range warble. */
 		case LOVE: case SHY: case KISS: case FLIRT: case DAYDREAM: case HALO: case MERCIFUL:
+		case MUSIC:
 			return FaceTone::Warm;
 		/** Sleepy and calm faces get a slow, low chirp. */
 		case SLEEPY: case SLEEPY_EYES: case TIRED: case DOZE: case LAZY: case GROGGY:
-		case ZEN: case MELTING: case DEADPAN:
+		case ZEN: case MELTING: case DEADPAN: case LOW_BATT: case POWER: case LOADING:
 			return FaceTone::Soft;
 		/** Excited and surprised faces get a quick high bounce. */
 		case SURPRISED: case SHOCKED: case EXCITED: case GLEE: case STAR: case SPARKLE:
-		case BOLT: case MANIC: case CHEEKY: case BEAMING: case WINK:
+		case BOLT: case MANIC: case CHEEKY: case BEAMING: case WINK: case IDEA:
+		case HYPER: case SQUISH: case DERP:
 			return FaceTone::Bounce;
 		/** Negative and uneasy faces get a short low blip. */
 		case SAD: case SAD_DOWN: case SAD_UP: case ANGRY: case ANNOYED: case FRUSTRATED:
 		case UNIMPRESSED: case FURIOUS: case SCARED: case TERRIFIED: case DISGUSTED:
 		case GLUM: case CRYING: case ZOMBIE: case POUT: case WORRIED: case NERVOUS:
-		case GRUMPY: case SKEPTIC: case SQUINT: case SUSPICIOUS:
+		case GRUMPY: case SKEPTIC: case SQUINT: case SUSPICIOUS: case GLITCH:
+		case TWITCH: case SNEEZE: case JUDGE: case QUESTION: case CALCULATING: case CYBORG:
 			return FaceTone::Flat;
 		default: return FaceTone::Bright;
 	}

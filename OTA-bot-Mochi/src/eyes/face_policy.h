@@ -41,7 +41,8 @@ class FacePolicy {
 		static const Expression pool[] = {
 			HAPPY, GLEE, FOCUSED, SKEPTIC, LOVE, AWE, SLEEPY_EYES,
 			EXCITED, GRIN, CURIOUS, WONDERING, STAR, SMUG, CONFUSED, SHY,
-			SPARKLE, BEAMING, MILD_HAPPY, SMIRK, DAYDREAM, CHEEKY, ZEN
+			SPARKLE, BEAMING, MILD_HAPPY, SMIRK, DAYDREAM, CHEEKY, ZEN,
+			MUSIC, IDEA, SQUISH, DERP, HYPER
 		};
 		react(now, choice, pool, uint8_t(sizeof(pool) / sizeof(pool[0])), 3000);
 		manual = tapped;
@@ -55,7 +56,8 @@ public:
 	/** @brief Trigger a playful double-tap face even with automation off. @param now Time. @param choice Random input. */
 	void play(uint32_t now, uint32_t choice) {
 		static const Expression pool[] = {
-			AWE, EXCITED, STAR, SPARKLE, GLEE, BEAMING, MANIC
+			AWE, EXCITED, STAR, SPARKLE, GLEE, BEAMING, MANIC,
+			HYPER, SQUISH, DERP
 		};
 		react(now, choice, pool, uint8_t(sizeof(pool) / sizeof(pool[0])), 3500);
 	}

@@ -116,12 +116,27 @@ enum Expression : uint8_t {
 	MERCIFUL = 69,	/**< A kind, uneasy sadness. */
 	MANIC = 70,	/**< Very wide eyes with tight pupils. */
 	SIDE_EYE = 71,	/**< Both pupils pressed to one side. */
-	BEAMING = 72	/**< Wide joyful arcs, brighter than GLEE. */
+	BEAMING = 72,	/**< Wide joyful arcs, brighter than GLEE. */
+	MUSIC = 73,	/**< Note-mark pupils on a calm gaze. */
+	LOW_BATT = 74,	/**< Battery mark under drooping lids. */
+	POWER = 75,	/**< Standby symbol in half-closed eyes. */
+	LOADING = 76,	/**< Hourglass pupils while waiting. */
+	IDEA = 77,	/**< Exclamation pupils, a sudden spark. */
+	HYPER = 78,	/**< Very wide eyes under a thin raised lid. */
+	SQUISH = 79,	/**< Wide eyes pressed down into a squish. */
+	DERP = 80,	/**< Mismatched lids and a wandering gaze. */
+	GLITCH = 81,	/**< Displaced horizontal glitch bars. */
+	TWITCH = 82,	/**< One eye squinting, one squeezed shut. */
+	SNEEZE = 83,	/**< Both eyes scrunched just before the sneeze. */
+	JUDGE = 84,	/**< Heavy half-lids over a raised lower lid. */
+	QUESTION = 85,	/**< Question-mark pupils over an open gaze. */
+	CALCULATING = 86,	/**< Furrowed asymmetric lids over an hourglass. */
+	CYBORG = 87	/**< One eye behind a visor slope, one plain. */
 };
 
 /** @brief Number of defined expressions, bounding menus, parsers, and lookups. */
-constexpr uint8_t EXPRESSION_COUNT = uint8_t(BEAMING) + 1;
-static_assert(EXPRESSION_COUNT == 73,
+constexpr uint8_t EXPRESSION_COUNT = uint8_t(CYBORG) + 1;
+static_assert(EXPRESSION_COUNT == 88,
 	"Expression enum, names, i18n labels and documentation must be extended together");
 
 /**
@@ -144,7 +159,9 @@ inline const char *eyes_expression_name(Expression expr) {
 		"bolt", "diamond", "ring", "target", "money", "mild_happy", "smirk", "pout",
 		"kiss", "nervous", "shocked", "melting", "lazy", "doze", "groggy", "daydream",
 		"grumpy", "sassy", "cheeky", "flirt", "zen", "merciful", "manic", "side_eye",
-		"beaming"
+		"beaming", "music", "low_batt", "power", "loading", "idea", "hyper", "squish",
+		"derp", "glitch", "twitch", "sneeze", "judge", "question", "calculating",
+		"cyborg"
 	};
 	static_assert(sizeof(names) / sizeof(names[0]) == EXPRESSION_COUNT,
 		"eyes_expression_name() entries must match Expression values one for one");

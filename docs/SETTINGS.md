@@ -15,7 +15,7 @@ rows. Changes are live in RAM and do not write flash while browsing.
 | --- | --- | --- |
 | LOOK | Eyes | normal, mochi, bloub, trapez |
 | LOOK | Color | white, mint, cyan, amber, pink, blue |
-| LOOK | Mood | opens a 3-column grid of all 73 expressions in five full-height rows; tap a cell, swipe to scroll |
+| LOOK | Mood | opens a 3-column grid of all 88 expressions in five full-height rows; tap a cell, swipe to scroll |
 | LOOK | Route default | large / details |
 | LIGHT | Day level | 5, 10, 20, 30, 50, 70, 90% |
 | LIGHT | Night | off / on |
@@ -153,10 +153,10 @@ expressions only, not the selected eye style or color.
 
 - **Random:** The first change is after 12 seconds; subsequent intervals are
   12–30 seconds. Each reaction lasts three seconds and returns to the selected
-  base mood. The pool holds 22 choices (happy, glee, focused, skeptic, love, awe,
+  base mood. The pool holds 27 choices (happy, glee, focused, skeptic, love, awe,
   sleepy eyes, excited, grin, curious, wondering, star, smug, confused, shy,
-  sparkle, beaming, mild happy, smirk, daydream, cheeky, zen), avoiding the base
-  mood and consecutive duplicates.
+  sparkle, beaming, mild happy, smirk, daydream, cheeky, zen, music, idea,
+  squish, derp, hyper), avoiding the base mood and consecutive duplicates.
 - **IMU lateral axis:** A mount-relative X deflection of at least 0.25g in one
   direction for 350ms produces a brief skeptic expression.
 - **IMU longitudinal axis:** A mount-relative Y deflection of at least 0.25g
@@ -180,14 +180,15 @@ whole bend instead of averaging back to centre. The eye pair also rolls by up to
 hardware; see `TODO.md`.
 
 For solid MOCHI/TRAPEZ, love, dizzy and star draw whole-eye hearts, crosses and
-stars, while crying and the ten symbol faces (halo, devil, fire, moon, sparkle,
-bolt, diamond, ring, target, money) engrave their mark into the body. None of them
-inserts a pupil or highlight inside another eye body.
+stars, while crying, the ten symbol faces (halo, devil, fire, moon, sparkle,
+bolt, diamond, ring, target, money) and the glyph faces (music, low battery,
+power, loading, idea, glitch, question, calculating) engrave their mark into the
+body. None of them inserts a pupil or highlight inside another eye body.
 
 A short tap on Eyes requests a three-second random expression even when Random
 mood is off, and holds the gaze toward the touch point for about 2.5 seconds.
 A quick double tap instead requests a 3.5-second playful face (awe, excited,
-star, sparkle, glee, beaming, manic) with the same glance. Repeated taps select
+star, sparkle, glee, beaming, manic, hyper, squish, derp) with the same glance. Repeated taps select
 a different expression without changing the saved base, style, or color. The tap
 reactions take priority over ordinary IMU moods; an active dizzy reaction keeps
 priority and ignores them. Petting still requests affectionate faces, and

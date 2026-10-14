@@ -164,6 +164,65 @@ static void money(Arduino_GFX *gfx, int16_t x, int16_t y, int16_t s, uint16_t co
 	gfx->drawLine(x, int16_t(y - s), x, int16_t(y + s), color);
 }
 
+/** @brief Draw horizontal displaced glitch bars. @param gfx Canvas. @param x Center. @param y Center. @param s Half-size. @param color Fill. */
+static void glitch_glyph(Arduino_GFX *gfx, int16_t x, int16_t y, int16_t s, uint16_t color) {
+	if (s < 3) { return; }
+	int16_t h = int16_t(s / 3 ? s / 3 : 1);
+	gfx->fillRect(int16_t(x - s), int16_t(y - s * 2 / 3), int16_t(s * 4 / 3), h, color);
+	gfx->fillRect(int16_t(x - s / 3), int16_t(y - h / 2), int16_t(s * 4 / 3), h, color);
+	gfx->fillRect(int16_t(x - s * 2 / 3), int16_t(y + s / 2), int16_t(s * 4 / 3), h, color);
+}
+
+/** @brief Draw an hourglass glyph. @param gfx Canvas. @param x Center. @param y Center. @param s Half-size. @param color Fill. */
+static void hourglass(Arduino_GFX *gfx, int16_t x, int16_t y, int16_t s, uint16_t color) {
+	if (s < 3) { return; }
+	int16_t w = int16_t(s * 3 / 4);
+	gfx->fillTriangle(int16_t(x - w), int16_t(y - s), int16_t(x + w), int16_t(y - s), x, y, color);
+	gfx->fillTriangle(int16_t(x - w), int16_t(y + s), int16_t(x + w), int16_t(y + s), x, y, color);
+}
+
+/** @brief Draw a battery outline with a single low-charge bar. @param gfx Canvas. @param x Center. @param y Center. @param s Half-size. @param color Stroke. */
+static void low_batt(Arduino_GFX *gfx, int16_t x, int16_t y, int16_t s, uint16_t color) {
+	if (s < 4) { return; }
+	int16_t w = int16_t(s * 6 / 5), h = int16_t(s * 3 / 4);
+	gfx->drawRect(int16_t(x - w / 2), int16_t(y - h / 2), w, h, color);
+	gfx->fillRect(int16_t(x + w / 2), int16_t(y - h / 4), 2, int16_t(h / 2), color);
+	gfx->fillRect(int16_t(x - w / 2 + 2), int16_t(y - h / 2 + 2), int16_t(w / 4), int16_t(h - 4), color);
+}
+
+/** @brief Draw a beamed eighth note. @param gfx Canvas. @param x Center. @param y Center. @param s Half-size. @param color Fill. */
+static void music_note(Arduino_GFX *gfx, int16_t x, int16_t y, int16_t s, uint16_t color) {
+	if (s < 3) { return; }
+	int16_t r = int16_t(s / 3 ? s / 3 : 1);
+	gfx->fillCircle(int16_t(x - r / 2), int16_t(y + s / 2), r, color);
+	gfx->fillRect(int16_t(x + r / 2), int16_t(y - s * 2 / 3), 2, int16_t(s + r / 2), color);
+	gfx->fillRect(int16_t(x + r / 2), int16_t(y - s * 2 / 3), int16_t(s / 2), int16_t(r / 2 + 1), color);
+}
+
+/** @brief Draw an IEC power standby symbol. @param gfx Canvas. @param x Center. @param y Center. @param s Half-size. @param color Stroke. */
+static void power_sym(Arduino_GFX *gfx, int16_t x, int16_t y, int16_t s, uint16_t color) {
+	if (s < 3) { return; }
+	annulus(gfx, x, int16_t(y + s / 6), int16_t(s * 3 / 4), color);
+	gfx->fillRect(int16_t(x - 1), int16_t(y - s), 3, int16_t(s), color);
+}
+
+/** @brief Draw a bold exclamation mark. @param gfx Canvas. @param x Center. @param y Center. @param s Half-size. @param color Fill. */
+static void exclaim(Arduino_GFX *gfx, int16_t x, int16_t y, int16_t s, uint16_t color) {
+	if (s < 3) { return; }
+	int16_t w = int16_t(s / 3 ? s / 3 : 1);
+	gfx->fillRoundRect(int16_t(x - w / 2), int16_t(y - s), w, int16_t(s * 5 / 4), int16_t(w / 2), color);
+	gfx->fillCircle(x, int16_t(y + s * 3 / 4), int16_t(w / 2 + 1), color);
+}
+
+/** @brief Draw a stylized question mark. @param gfx Canvas. @param x Center. @param y Center. @param s Half-size. @param color Stroke. */
+static void question(Arduino_GFX *gfx, int16_t x, int16_t y, int16_t s, uint16_t color) {
+	if (s < 4) { return; }
+	int16_t r = int16_t(s / 2);
+	annulus(gfx, x, int16_t(y - s / 3), r, color);
+	gfx->fillRect(int16_t(x - 1), int16_t(y + r / 2), 2, int16_t(s / 3), color);
+	gfx->fillCircle(x, int16_t(y + s * 4 / 5), int16_t(s / 5 ? s / 5 : 1), color);
+}
+
 /** @brief Circular inset that softens a vertex, tangent to the straight edge. @param soft Corner radius. @param d Distance from the vertex. @return Inset in pixels. */
 static int16_t corner_pad(int16_t soft, int16_t d) {
 	if (d < 0) { return soft; }
@@ -277,6 +336,13 @@ static bool glyph(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b, int16
 		case RING: annulus(gfx, x, y, s, color); return true;
 		case TARGET: crosshair(gfx, x, y, s, color); return true;
 		case MONEY: money(gfx, x, y, s, color); return true;
+		case MUSIC: music_note(gfx, x, y, s, color); return true;
+		case LOW_BATT: low_batt(gfx, x, y, s, color); return true;
+		case POWER: power_sym(gfx, x, y, s, color); return true;
+		case LOADING: case CALCULATING: hourglass(gfx, x, y, s, color); return true;
+		case IDEA: exclaim(gfx, x, y, s, color); return true;
+		case GLITCH: glitch_glyph(gfx, x, y, s, color); return true;
+		case QUESTION: question(gfx, x, y, s, color); return true;
 		default: return false;
 	}
 }

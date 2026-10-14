@@ -102,6 +102,39 @@ static void lids_new(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b) {
 		case SIDE_EYE: strip(gfx, b, b.h / 6, false, cfg.bgColor); break;
 		case BEAMING: strip(gfx, b, b.h * 45 / 100, true, cfg.bgColor);
 			strip(gfx, b, b.h / 10, false, cfg.bgColor); break;
+		case LOW_BATT: slope(gfx, cfg, b, false, b.h / 4);
+			strip(gfx, b, b.h / 5, false, cfg.bgColor); break;
+		case CYBORG:
+			if (b.left) {
+				slope(gfx, cfg, b, true, b.h / 4);
+				strip(gfx, b, b.h / 5, true, cfg.bgColor);
+			}
+			break;
+		case TWITCH:
+			strip(gfx, b, b.h * (b.left ? 8 : 35) / 100, false, cfg.bgColor);
+			if (!b.left) { strip(gfx, b, b.h / 4, true, cfg.bgColor); }
+			break;
+		case SNEEZE:
+			slope(gfx, cfg, b, true, b.h / 3);
+			strip(gfx, b, b.h / 3, true, cfg.bgColor);
+			break;
+		case SQUISH:
+			strip(gfx, b, b.h / 4, true, cfg.bgColor);
+			break;
+		case JUDGE:
+			strip(gfx, b, b.h * 35 / 100, false, cfg.bgColor);
+			strip(gfx, b, b.h * 20 / 100, true, cfg.bgColor);
+			break;
+		case DERP:
+			strip(gfx, b, b.h * (b.left ? 10 : 25) / 100, b.left, cfg.bgColor);
+			break;
+		case CALCULATING:
+			slope(gfx, cfg, b, true, b.h * (b.left ? 30 : 15) / 100);
+			strip(gfx, b, b.h * (b.left ? 25 : 10) / 100, true, cfg.bgColor);
+			break;
+		case HYPER:
+			strip(gfx, b, b.h / 12, true, cfg.bgColor);
+			break;
 		default: break;
 	}
 }
