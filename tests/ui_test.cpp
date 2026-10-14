@@ -270,6 +270,17 @@ static void timer_tests() {
 	assert(timer.mode == 0 && !timer.running && timer.remaining == 300000);
 }
 
+/** @brief Count accent pixels inside the route icon box, excluding the accent distance label. @param gfx Canvas. @return Matching pixels. */
+static int route_icon_pixels(const Arduino_GFX &gfx) {
+	int count = 0;
+	for (int y = 62; y < 158; ++y) {
+		for (int x = 72; x < 168; ++x) {
+			if (gfx.pixels[size_t(y) * 240 + x] == UI_ACCENT) { ++count; }
+		}
+	}
+	return count;
+}
+
 /** @brief Scale only complete matching icon data, without synthesizing arrows. */
 static void route_scale_tests() {
 	Arduino_GFX gfx;
@@ -280,11 +291,11 @@ static void route_scale_tests() {
 	context_route(&gfx, data);
 	assert(gfx.pixels[62 * 240 + 72] == UI_ACCENT);
 	assert(gfx.pixels[63 * 240 + 73] == UI_ACCENT);
-	assert(std::count(gfx.pixels.begin(), gfx.pixels.end(), UI_ACCENT) == 4);
+	assert(route_icon_pixels(gfx) == 4);
 	gfx.fillScreen(0);
 	data.icon_crc = 43;
 	context_route(&gfx, data);
-	assert(std::count(gfx.pixels.begin(), gfx.pixels.end(), UI_ACCENT) == 0);
+	assert(route_icon_pixels(gfx) == 0);
 }
 
 /** @brief Forecast-first packets survive subsequent current updates; empty/invalid data remains missing. */

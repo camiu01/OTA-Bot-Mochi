@@ -52,6 +52,48 @@ plus the petting heart marker's dirty-region wipe and clamped placement.
 Mocks do not verify physical LCD rendering, BLE protocol interoperability, physical
 pin assignments, or electrical behavior.
 
+## Host LCD emulator (SDL2)
+
+`tools/run-emulator.sh` builds a native window that drives the same UI code the
+tests link: real page routing, the production gesture policies, settings, sound
+and backlight services, the USB command parser, and the real eye renderer, all
+drawn into the 240x280 RGB565 test raster and scaled to a window.
+
+```sh
+# Linux or macOS, with g++, pkg-config, and libsdl2-dev (or SDL2-devel)
+bash tools/run-emulator.sh
+```
+
+It is a preview aid, not a test: it is outside `scripts/test-host.sh`, needs no
+board, and does not gate firmware CI. The display test double rasterizes the
+firmware's built-in 5x7 bitmap font, so label metrics match the device's 6x8
+cells. The window still does not prove backlight level, touch digitizer
+accuracy, BLE content, or audio output.
+
+Controls:
+
+- The mouse acts as one contact: a quick press is a tap, a stationary 1.2 s
+  press is a hold (opens Settings from Eyes), a drag swipes horizontally and
+  scrolls vertically, and a wiggly vertical stroke pets the eyes.
+- The mouse wheel flicks between carousel pages.
+- `1`..`6` open Eyes, Clock, Route, Alerts, Weather, and Settings; `0` opens
+  Desk tools.
+- `n` injects a notification (the auto page policy jumps to Alerts), `r` starts
+  or stops navigation, `p` writes `mochi-lcd.ppm`, `q` or `Esc` quits.
+- `Enter` opens a USB console in the terminal, forwarding lines to the real
+  command parser (`help`, `mood names`, `set mood derp`, `brightness 70`).
+
+Headless runs need no display server and are handy for screenshots:
+
+```sh
+SDL_VIDEODRIVER=dummy bash tools/run-emulator.sh \
+  --page weather --frames 120 --screenshot weather.ppm
+```
+
+`--page` accepts `eyes clock route alerts weather settings desk bigclock
+overview timer device`, `--command` runs one USB command at startup, and
+`--frames` exits after the given number of rendered frames.
+
 ## Arduino CLI
 
 Install Arduino CLI using its [official installation guide](https://arduino.github.io/arduino-cli/latest/installation/).
