@@ -95,17 +95,18 @@ static bool panel(int16_t w, int16_t h, int16_t expect_scale) {
 	return unique_checks(gfx, BLOUB) && unique;
 }
 
-/** @brief Run the panel fit proof on five panel geometries. @return Success. */
+/** @brief Run the panel fit proof on six panel geometries. @return Success. */
 int main() {
 	assert(settings_init());
 	// The fit uses the smaller axis, so a taller or wider panel never overflows
-	// the pair horizontally; the last size proves the 50 percent floor.
+	// the pair; 320x480 and 368x448 prove growth, the last two the 50 percent floor.
 	bool unique = panel(240, 280, 100);
 	unique = panel(240, 320, 100) && unique;
 	unique = panel(320, 480, 133) && unique;
+	unique = panel(368, 448, 153) && unique;
 	unique = panel(128, 160, 53) && unique;
 	unique = panel(160, 128, 50) && unique;
 	assert(unique);
-	std::cout << "Panel-adaptive eye geometry passed on five panel sizes\n";
+	std::cout << "Panel-adaptive eye geometry passed on six panel sizes\n";
 	return 0;
 }

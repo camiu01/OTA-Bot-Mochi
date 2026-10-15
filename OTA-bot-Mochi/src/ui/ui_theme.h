@@ -7,6 +7,15 @@
 #include <Arduino_GFX_Library.h>
 
 constexpr uint16_t UI_BG = 0x0000;
+/**
+ * @brief Design field of the menu, desk, and tool widgets.
+ *
+ * Widget geometry is fixed for the 240x280 reference panel, so larger panels
+ * keep that field anchored at the top-left and taps outside it stay dead
+ * instead of reaching a button that is not drawn there.
+ */
+constexpr int16_t UI_DESIGN_W = 240;
+constexpr int16_t UI_DESIGN_H = 280;
 extern uint16_t UI_CARD;
 extern uint16_t UI_TEXT;
 extern uint16_t UI_MUTED;

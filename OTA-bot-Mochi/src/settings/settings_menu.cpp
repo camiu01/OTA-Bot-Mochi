@@ -222,7 +222,8 @@ void settings_menu_draw(Arduino_GFX *gfx) {
 
 /** @brief Interpret tap coordinates without conflating swipes/holds. @param x X. @param y Y. @return Action. */
 MenuAction settings_menu_tap(int16_t x, int16_t y) {
-	if (x < 0 || x >= LCD_WIDTH || y < 0 || y >= LCD_HEIGHT) { return MenuAction::None; }
+	if (x < 0 || x >= LCD_WIDTH || y < 0 || y >= LCD_HEIGHT ||
+		x >= UI_DESIGN_W || y >= UI_DESIGN_H) { return MenuAction::None; }
 	if (grid_open) {
 		if (y >= 224 && x < 120) { save_failed = !settings_save(); return MenuAction::Changed; }
 		if (y >= 224) { grid_close(); return MenuAction::Changed; }

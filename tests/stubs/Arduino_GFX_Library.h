@@ -68,8 +68,9 @@ public:
 	void setTextWrap(bool) {}
 	void setCursor(int16_t x, int16_t y) { cursor_x = x; cursor_y = y; }
 	void print(const String &line) {
-		assert(cursor_x >= 0 && cursor_x + int(line.length()) * 6 * size <= w);
-		assert(cursor_y >= 0 && cursor_y + 8 * size <= h);
+		assert(cursor_x >= 0 && cursor_x + int(line.length()) * 6 * size <= w &&
+			"text exceeds the panel width");
+		assert(cursor_y >= 0 && cursor_y + 8 * size <= h && "text exceeds the panel height");
 		text.emplace_back(line.c_str());
 		++paints;
 		for (size_t i = 0; i < line.length(); ++i) { draw_char(line[i]); }

@@ -52,6 +52,17 @@ try {
 	Invoke-HostTest 'eyes' ($renderRuntime + @("$root\tests\eyes_test.cpp") + $renderEyes)
 	Invoke-HostTest 'faces' ($renderRuntime + @("$root\tests\face_unique_test.cpp") + $renderEyes)
 	Invoke-HostTest 'panel' ($renderRuntime + @("$root\tests\eye_scaling_test.cpp") + $renderEyes)
+	$uiPanel = @(
+		"$root\tests\ui_panel_test.cpp",
+		"$root\OTA-bot-Mochi\src\ui\screens.cpp",
+		"$root\OTA-bot-Mochi\src\ui\context_views.cpp",
+		"$root\OTA-bot-Mochi\src\clock\clock_ui.cpp",
+		"$root\OTA-bot-Mochi\src\settings\settings_menu.cpp",
+		"$root\tests\stubs\imu_noop.cpp"
+	)
+	Invoke-HostTest 'ui-panel' ($runtime + $uiPanel)
+	Invoke-HostTest 'ui-panel-240x320' ($runtime + $uiPanel) @('-DLCD_WIDTH=240', '-DLCD_HEIGHT=320')
+	Invoke-HostTest 'ui-panel-368x448' ($runtime + $uiPanel) @('-DLCD_WIDTH=368', '-DLCD_HEIGHT=448')
 	Invoke-HostTest 'sound' ($runtime + @("$root\tests\sound_test.cpp", "$root\tests\stubs\imu_noop.cpp"))
 	$pwm = @("$root\tests\pwm_test.cpp", "$root\OTA-bot-Mochi\src\power\backlight.cpp", "$root\OTA-bot-Mochi\src\sound\buzzer_output.cpp")
 	Invoke-HostTest 'pwm-v3' $pwm

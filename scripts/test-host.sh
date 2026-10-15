@@ -54,6 +54,15 @@ render_eyes=("$root/OTA-bot-Mochi/src/eyes/eyes_draw.cpp" "$root/OTA-bot-Mochi/s
 build_test eyes "${render_runtime[@]}" "$root/tests/eyes_test.cpp" "${render_eyes[@]}"
 build_test faces "${render_runtime[@]}" "$root/tests/face_unique_test.cpp" "${render_eyes[@]}"
 build_test panel "${render_runtime[@]}" "$root/tests/eye_scaling_test.cpp" "${render_eyes[@]}"
+ui_panel=("${runtime[@]}" \
+	"$root/tests/ui_panel_test.cpp" \
+	"$root/OTA-bot-Mochi/src/ui/screens.cpp" \
+	"$root/OTA-bot-Mochi/src/ui/context_views.cpp" \
+	"$root/OTA-bot-Mochi/src/clock/clock_ui.cpp" \
+	"$root/OTA-bot-Mochi/src/settings/settings_menu.cpp" "$root/tests/stubs/imu_noop.cpp")
+build_test ui-panel "${ui_panel[@]}"
+build_test ui-panel-240x320 -DLCD_WIDTH=240 -DLCD_HEIGHT=320 "${ui_panel[@]}"
+build_test ui-panel-368x448 -DLCD_WIDTH=368 -DLCD_HEIGHT=448 "${ui_panel[@]}"
 build_test sound "${runtime[@]}" "$root/tests/sound_test.cpp" "$root/tests/stubs/imu_noop.cpp"
 pwm=("$root/tests/pwm_test.cpp" "$root/OTA-bot-Mochi/src/power/backlight.cpp" "$root/OTA-bot-Mochi/src/sound/buzzer_output.cpp")
 build_test pwm-v3 "${pwm[@]}"
