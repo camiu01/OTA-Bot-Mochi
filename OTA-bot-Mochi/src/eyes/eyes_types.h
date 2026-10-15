@@ -185,6 +185,8 @@ struct EyeConfig {
 	int8_t slant;	/**< Mirrored TRAPEZ top slope, clamped within the eye body. */
 	uint8_t asym;	/**< 0 symmetric, 1 per-eye geometry may vary. */
 	int16_t lidTop;	/**< Eyelid line offset in px, negative raises lid. */
+	uint16_t screenW;	/**< Canvas width in pixels, read from the display. */
+	uint16_t screenH;	/**< Canvas height in pixels, read from the display. */
 };
 
 /**

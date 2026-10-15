@@ -148,5 +148,5 @@ void eye_lids(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b) {
 	lids_classic(gfx, cfg, b);
 	lids_extra(gfx, cfg, b);
 	lids_new(gfx, cfg, b);
-	strip(gfx, b, cfg.lidTop, false, cfg.bgColor);
+	strip(gfx, b, cfg.lidTop * eye_scale(cfg) / 100, false, cfg.bgColor);
 }

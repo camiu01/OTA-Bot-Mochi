@@ -1,6 +1,6 @@
 /**
  * @file ui_theme.cpp
- * @brief Compact, high-contrast drawing helpers for the 240x280 canvas.
+ * @brief Compact, high-contrast drawing helpers for the LCD_WIDTH x LCD_HEIGHT canvas.
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "ui_theme.h"

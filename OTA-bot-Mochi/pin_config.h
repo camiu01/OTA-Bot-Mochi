@@ -52,8 +52,14 @@
 #define LCD_MOSI   7   /**< LCD SPI MOSI pin */
 #define LCD_RST    8   /**< LCD Reset pin */
 #define LCD_BL     15  /**< LCD Backlight pin */
+/* Host builds may override the panel geometry (for example -DLCD_HEIGHT=320
+ * for a 1.8 inch panel) to preview another screen without editing this file. */
+#ifndef LCD_WIDTH
 #define LCD_WIDTH  240 /**< LCD width in pixels */
+#endif
+#ifndef LCD_HEIGHT
 #define LCD_HEIGHT 280 /**< LCD height in pixels */
+#endif
 /** @} */  // end of lcd
 
 /* ================================= [S2] Touch Panel ================================ */

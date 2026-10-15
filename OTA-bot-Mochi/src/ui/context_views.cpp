@@ -15,6 +15,7 @@
 #include "../settings/settings.h"
 #include "../power/backlight.h"
 #include "../power/battery.h"
+#include "../../pin_config.h"
 #include <stdio.h>
 
 namespace {
@@ -129,7 +130,7 @@ void context_draw(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, const UiSn
 
 /** @brief Dispatch short parked-use utility taps without persisting session choices. @param page Page. @param x X. @param y Y. @param now Time. @return Target. */
 UiPage screens_tap(UiPage page, int16_t x, int16_t y, uint32_t now) {
-	if (x < 0 || x >= 240 || y < 0 || y >= 280) { return page; }
+	if (x < 0 || x >= LCD_WIDTH || y < 0 || y >= LCD_HEIGHT) { return page; }
 	if (page == UiPage::Desk && y >= 52 && y < 252) {
 		return static_cast<UiPage>(uint8_t(UiPage::BigClock) + ((y - 52) / 100) * 2 + (x >= 120));
 	}

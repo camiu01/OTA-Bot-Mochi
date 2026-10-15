@@ -265,7 +265,7 @@ static void trapezoid_row(int16_t span, int16_t last, int16_t inset, int16_t top
  */
 static void trapezoid(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b) {
 	if (b.h < 4 || b.w < 4) { return; }
-	int16_t slant = eye_limit(cfg.slant, -b.h / 4, b.h / 4);
+	int16_t slant = eye_limit(cfg.slant * eye_scale(cfg) / 100, -b.h / 4, b.h / 4);
 	int16_t amount = int16_t(slant < 0 ? -slant : slant);
 	bool rises_right = slant >= 0;
 	int16_t top_left = rises_right ? amount : 0;

@@ -125,6 +125,12 @@ static void anim_step_dizzy(uint32_t now) {
  */
 void eyes_init(Arduino_GFX *display) {
 	s_gfx = display;
+	s_cfg.screenW = LCD_WIDTH;
+	s_cfg.screenH = LCD_HEIGHT;
+	if (display) {
+		s_cfg.screenW = uint16_t(display->width());
+		s_cfg.screenH = uint16_t(display->height());
+	}
 	eyes_life_reset();
 	s_cfg.style = BLOUB;
 	s_cfg.expression = NEUTRAL;

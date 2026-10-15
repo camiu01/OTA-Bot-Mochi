@@ -11,6 +11,27 @@ if ! pkg-config --exists sdl2; then
 	exit 1
 fi
 
+# Optional --size WxH builds a variant with a different panel geometry, so the
+# firmware layout macros and the eye fit both see that screen (for example
+# 240x320 for a 1.8 inch panel). Everything else is passed to the emulator.
+size_suffix=""
+size_flags=()
+args=()
+while [[ $# -gt 0 ]]; do
+	case "$1" in
+		--size)
+			if [[ $# -lt 2 || ! "$2" =~ ^[0-9]+x[0-9]+$ ]]; then
+				echo "--size expects WIDTHxHEIGHT, for example --size 240x320" >&2
+				exit 1
+			fi
+			size_suffix="-$2"
+			size_flags=(-DLCD_WIDTH="${2%x*}" -DLCD_HEIGHT="${2#*x}")
+			shift 2
+			;;
+		*) args+=("$1"); shift ;;
+	esac
+done
+
 # Same sources as scripts/test-host.sh, but with the real renderer and backlight
 # instead of their test doubles, plus the SDL front end.
 runtime=(
@@ -42,7 +63,7 @@ runtime=(
 )
 
 # shellcheck disable=SC2046
-binary="$output/lcd-emulator"
+binary="$output/lcd-emulator$size_suffix"
 inputs=("${runtime[@]}" "$root/OTA-bot-Mochi/pin_config.h" \
 	$(find "$root/OTA-bot-Mochi/src" "$root/tests/stubs" "$root/tools" -name '*.h'))
 rebuild=1
@@ -55,8 +76,8 @@ fi
 
 if [[ "$rebuild" == 1 ]]; then
 	g++ -std=c++17 -Wall -Wextra -Werror -I "$root/tests/stubs" \
-		$(pkg-config --cflags sdl2) "${runtime[@]}" \
+		${size_flags[@]+"${size_flags[@]}"} $(pkg-config --cflags sdl2) "${runtime[@]}" \
 		-o "$binary" $(pkg-config --libs sdl2)
 fi
 
-exec "$binary" "$@"
+exec "$binary" ${args[@]+"${args[@]}"}

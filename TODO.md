@@ -104,6 +104,11 @@ and will be performed by the user.
 - [ ] Record the tested board options and library versions.
 - [x] Add automated firmware compilation and native tests as a GitHub Actions workflow.
 - [ ] Confirm the firmware CI job passes after publication.
+- [ ] Verify a different panel or board end to end: `LCD_WIDTH`/`LCD_HEIGHT` in
+  `pin_config.h` re-flow the layout macros and the eye pair (native tests cover
+  240x320, 320x480, 128x160, and 160x128 rasters), but the touch controller
+  resolution, the ST7789 offset tuple in the sketch, and the Chronos screen
+  profile remain hardware details that mocks cannot prove.
 
 ## 8. Visual design
 

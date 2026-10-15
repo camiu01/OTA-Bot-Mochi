@@ -30,7 +30,10 @@ styles, all 88 expressions, and both blink states (704 combinations), a proof
 that every expression renders differently from NEUTRAL on every style, that no
 two names draw the same pixels on any style (pairwise uniqueness, 15312
 comparisons), solid-style pupil/highlight exclusion, trapezoid symmetry, IMU
-gaze/roll bounds, radius limits, and dirty-region erasure are checked.
+gaze/roll bounds, radius limits, and dirty-region erasure are checked. Panel
+adaptation has its own suite: on 240x280, 240x320, 320x480, 128x160, and
+160x128 rasters the pair must stay centered, every expression must stay inside
+the panel, and the fit must not merge two names into one picture.
 Automatic-face tests cover random timing,
 restoration, sustained IMU thresholds, cooldowns, and version-one preference
 migration.
@@ -95,6 +98,21 @@ SDL_VIDEODRIVER=dummy bash tools/run-emulator.sh \
 `--page` accepts `eyes clock route alerts weather settings desk bigclock
 overview timer device`, `--command` runs one USB command at startup, and
 `--frames` exits after the given number of rendered frames.
+
+`--size WIDTHxHEIGHT` builds a variant for another panel, for example
+`--size 240x320` for a 1.8 inch panel or `--size 128x160` for a 1.44 inch one.
+The layout macros and the eye geometry both see that screen, so panel
+adaptation can be previewed without editing `pin_config.h`:
+
+```sh
+SDL_VIDEODRIVER=dummy bash tools/run-emulator.sh --size 240x320 \
+  --page eyes --frames 120 --screenshot eyes-18.ppm
+```
+
+Each size gets its own binary under `${TMPDIR:-/tmp}/mochi-emulator`, so
+switching sizes does not force a rebuild of the default one. On panels taller
+or wider than 240x280 the eye pair recenters; it grows only with the smaller
+axis, so it can never overflow horizontally.
 
 ## Arduino CLI
 

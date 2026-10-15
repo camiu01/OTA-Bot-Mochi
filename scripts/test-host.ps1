@@ -51,6 +51,7 @@ try {
 		"$root\OTA-bot-Mochi\src\eyes\eye_lids.cpp", "$root\tests\stubs\imu_noop.cpp")
 	Invoke-HostTest 'eyes' ($renderRuntime + @("$root\tests\eyes_test.cpp") + $renderEyes)
 	Invoke-HostTest 'faces' ($renderRuntime + @("$root\tests\face_unique_test.cpp") + $renderEyes)
+	Invoke-HostTest 'panel' ($renderRuntime + @("$root\tests\eye_scaling_test.cpp") + $renderEyes)
 	Invoke-HostTest 'sound' ($runtime + @("$root\tests\sound_test.cpp", "$root\tests\stubs\imu_noop.cpp"))
 	$pwm = @("$root\tests\pwm_test.cpp", "$root\OTA-bot-Mochi\src\power\backlight.cpp", "$root\OTA-bot-Mochi\src\sound\buzzer_output.cpp")
 	Invoke-HostTest 'pwm-v3' $pwm

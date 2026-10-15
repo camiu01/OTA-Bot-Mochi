@@ -8,14 +8,28 @@
 
 struct EyeBox { int16_t x, y, w, h, radius; bool left; };
 struct EyeLayout { EyeBox left, right; };
+constexpr int16_t EYE_REF_W = 240;	/**< Reference panel width the style presets were tuned on. */
+constexpr int16_t EYE_REF_H = 280;	/**< Reference panel height the style presets were tuned on. */
 
 /** @brief Clamp a geometry value. @param value Input. @param low Min. @param high Max. @return Bounded. */
 inline int16_t eye_limit(int16_t value, int16_t low, int16_t high) {
 	return value < low ? low : (value > high ? high : value);
 }
 
-/** @brief Resolve one eye's expression-specific dimensions. @param cfg Config. @param st State. @param left Side. @return Geometry. */
-inline EyeBox eye_box(const EyeConfig &cfg, const EyeState &st, bool left) {
+/** @brief Panel fit of an eye pair versus the 240x280 reference panel. @param cfg Config. @return Percent of reference size, bounded 50..200. */
+inline int16_t eye_scale(const EyeConfig &cfg) {
+	int16_t sx = int16_t(cfg.screenW) * 100 / EYE_REF_W;
+	int16_t sy = int16_t(cfg.screenH) * 100 / EYE_REF_H;
+	return eye_limit(sx < sy ? sx : sy, 50, 200);
+}
+
+/** @brief One eye's expression-driven sizes in reference-panel pixels. */
+struct EyeMeasures {
+	int16_t w, h, dy, nominal, gap, ox, oy, bank, radius;
+};
+
+/** @brief Resolve one eye's expression-driven measures before the panel fit. @param cfg Config. @param st State. @param left Side. @return Unscaled measures. */
+inline EyeMeasures eye_measures(const EyeConfig &cfg, const EyeState &st, bool left) {
 	int16_t w = cfg.eyeW, h = cfg.eyeH, dy = 0;
 	switch (cfg.expression) {
 		case SURPRISED: w += 8; h += 12; break;
@@ -81,13 +95,30 @@ inline EyeBox eye_box(const EyeConfig &cfg, const EyeState &st, bool left) {
 	// Sustained lateral load rolls the pair, so cornering reads as a lean and not only a shift.
 	// Kept small and mirror-symmetric; the sign is a hardware mount detail, see TODO.md.
 	int16_t bank = eye_limit(st.tiltX / 3, -4, 4);
-	int16_t x = (240 - 2 * nominal_w - gap) / 2 + (left ? 0 : nominal_w + gap) + ox;
-	x -= (w - nominal_w) / 2;
-	return {x, int16_t(140 - h / 2 + oy + dy + (left ? -bank : bank)), w, h,
-		eye_limit(cfg.radius, 0, (w < h ? w : h) / 2), left};
+	return {w, h, dy, nominal_w, gap, ox, oy, bank, cfg.radius};
+}
+
+/** @brief Scale measures to the actual panel and center the pair on it. @param cfg Config. @param m Unscaled measures. @param left Side. @return Geometry. */
+inline EyeBox eye_box(const EyeConfig &cfg, const EyeMeasures &m, bool left) {
+	int16_t scale = eye_scale(cfg);
+	int16_t w = m.w * scale / 100;
+	int16_t h = m.h * scale / 100;
+	int16_t nominal = m.nominal * scale / 100;
+	int16_t gap = m.gap * scale / 100;
+	int16_t ox = m.ox * scale / 100;
+	int16_t oy = m.oy * scale / 100;
+	int16_t dy = m.dy * scale / 100;
+	int16_t bank = m.bank * scale / 100;
+	int16_t x = (int16_t(cfg.screenW) - 2 * nominal - gap) / 2 + (left ? 0 : nominal + gap) + ox;
+	x -= (w - nominal) / 2;
+	int16_t y = int16_t(cfg.screenH) / 2 - h / 2 + oy + dy + (left ? -bank : bank);
+	int16_t radius = m.radius * scale / 100;
+	return {x, y, w, h, eye_limit(radius, 0, (w < h ? w : h) / 2), left};
 }
 
 /** @brief Resolve both eyes, including asymmetric expressions and blinks. @param cfg Config. @param st State. @return Pair. */
 inline EyeLayout eye_layout(const EyeConfig &cfg, const EyeState &st) {
-	return {eye_box(cfg, st, true), eye_box(cfg, st, false)};
+	EyeMeasures left = eye_measures(cfg, st, true);
+	EyeMeasures right = eye_measures(cfg, st, false);
+	return {eye_box(cfg, left, true), eye_box(cfg, right, false)};
 }

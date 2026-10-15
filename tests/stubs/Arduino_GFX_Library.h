@@ -39,6 +39,9 @@ class Arduino_GFX : public Raster {
 public:
 	unsigned int paints = 0;
 	std::vector<std::string> text;
+	/** @brief Allocate a panel-sized canvas. @param panel_w Width in pixels. @param panel_h Height in pixels. */
+	explicit Arduino_GFX(int16_t panel_w = LCD_WIDTH, int16_t panel_h = LCD_HEIGHT)
+		: Raster(panel_w, panel_h) {}
 	void fillRect(int x, int y, int w, int h, uint16_t color) { rectangle(x, y, w, h, color); ++paints; }
 	void drawRect(int x, int y, int w, int h, uint16_t color) {
 		fillRect(x, y, w, 1, color);
@@ -65,8 +68,8 @@ public:
 	void setTextWrap(bool) {}
 	void setCursor(int16_t x, int16_t y) { cursor_x = x; cursor_y = y; }
 	void print(const String &line) {
-		assert(cursor_x >= 0 && cursor_x + int(line.length()) * 6 * size <= 240);
-		assert(cursor_y >= 0 && cursor_y + 8 * size <= 280);
+		assert(cursor_x >= 0 && cursor_x + int(line.length()) * 6 * size <= w);
+		assert(cursor_y >= 0 && cursor_y + 8 * size <= h);
 		text.emplace_back(line.c_str());
 		++paints;
 		for (size_t i = 0; i < line.length(); ++i) { draw_char(line[i]); }

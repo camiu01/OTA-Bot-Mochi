@@ -8,6 +8,7 @@
 #include "../ui/ui_theme.h"
 #include "../ui/i18n.h"
 #include "../sound/sound.h"
+#include "../../pin_config.h"
 
 namespace {
 uint8_t tab = 0;
@@ -221,7 +222,7 @@ void settings_menu_draw(Arduino_GFX *gfx) {
 
 /** @brief Interpret tap coordinates without conflating swipes/holds. @param x X. @param y Y. @return Action. */
 MenuAction settings_menu_tap(int16_t x, int16_t y) {
-	if (x < 0 || x >= 240 || y < 0 || y >= 280) { return MenuAction::None; }
+	if (x < 0 || x >= LCD_WIDTH || y < 0 || y >= LCD_HEIGHT) { return MenuAction::None; }
 	if (grid_open) {
 		if (y >= 224 && x < 120) { save_failed = !settings_save(); return MenuAction::Changed; }
 		if (y >= 224) { grid_close(); return MenuAction::Changed; }

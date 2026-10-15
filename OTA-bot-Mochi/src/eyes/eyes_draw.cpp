@@ -53,6 +53,9 @@ static void paint_heart(Arduino_GFX *gfx, uint16_t color, int16_t cx, int16_t to
 static void paint(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeState &st, const EyeBox &box) {
 	if (st.blinking || box.h <= 13) {
 		gfx->fillRoundRect(box.x, box.y, box.w, box.h, box.h / 2, cfg.fgColor);
+		// Short eyes drop pupils, but they must keep their lid mask: on a small
+		// panel two half-closed names would otherwise become the same bar.
+		if (!st.blinking) { eye_lids(gfx, cfg, box); }
 		return;
 	}
 	eye_body(gfx, cfg, box);

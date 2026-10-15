@@ -8,16 +8,26 @@
 #include <algorithm>
 #include <stdint.h>
 #include <assert.h>
+#include "../../OTA-bot-Mochi/pin_config.h"
 
 struct Raster {
-	std::vector<uint16_t> pixels = std::vector<uint16_t>(240 * 280, 0);
+	int16_t w;
+	int16_t h;
+	std::vector<uint16_t> pixels;
+	/** @brief Allocate a panel-sized backing store. @param width Pixels wide. @param height Pixels tall. */
+	explicit Raster(int16_t width = LCD_WIDTH, int16_t height = LCD_HEIGHT)
+		: w(width), h(height), pixels(size_t(width) * height, 0) {}
+	/** @brief Panel width in pixels. @return Width. */
+	int16_t width() const { return w; }
+	/** @brief Panel height in pixels. @return Height. */
+	int16_t height() const { return h; }
 	void pixel(int x, int y, uint16_t color) {
-		if (x >= 0 && x < 240 && y >= 0 && y < 280) { pixels[y * 240 + x] = color; }
+		if (x >= 0 && x < w && y >= 0 && y < h) { pixels[size_t(y) * w + x] = color; }
 	}
-	void rectangle(int x, int y, int w, int h, uint16_t color) {
-		assert(w >= 0 && h >= 0);
-		for (int row = std::max(y, 0); row < std::min(y + h, 280); ++row) {
-			for (int col = std::max(x, 0); col < std::min(x + w, 240); ++col) { pixel(col, row, color); }
+	void rectangle(int x, int y, int rw, int rh, uint16_t color) {
+		assert(rw >= 0 && rh >= 0);
+		for (int row = std::max(y, 0); row < std::min(y + rh, int(h)); ++row) {
+			for (int col = std::max(x, 0); col < std::min(x + rw, int(w)); ++col) { pixel(col, row, color); }
 		}
 	}
 	void ellipse(int x, int y, int rx, int ry, uint16_t color) {
@@ -30,12 +40,12 @@ struct Raster {
 			}
 		}
 	}
-	void rounded(int x, int y, int w, int h, int r, uint16_t color) {
-		assert(w > 0 && h > 0 && r >= 0 && r <= std::min(w, h) / 2);
-		for (int row = y; row < y + h; ++row) {
-			for (int col = x; col < x + w; ++col) {
-				int cx = std::max(x + r, std::min(col, x + w - r - 1));
-				int cy = std::max(y + r, std::min(row, y + h - r - 1));
+	void rounded(int x, int y, int rw, int rh, int r, uint16_t color) {
+		assert(rw > 0 && rh > 0 && r >= 0 && r <= std::min(rw, rh) / 2);
+		for (int row = y; row < y + rh; ++row) {
+			for (int col = x; col < x + rw; ++col) {
+				int cx = std::max(x + r, std::min(col, x + rw - r - 1));
+				int cy = std::max(y + r, std::min(row, y + rh - r - 1));
 				if (!r || (col - cx) * (col - cx) + (row - cy) * (row - cy) <= r * r) {
 					pixel(col, row, color);
 				}
