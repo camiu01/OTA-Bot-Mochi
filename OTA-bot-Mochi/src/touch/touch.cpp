@@ -42,11 +42,13 @@ static bool read_contact(uint8_t *data) {
 /** @brief Reset and detect CST816 or FT6X36 touch controllers. */
 void touch_init() {
 	pinMode(TP_INT, INPUT_PULLUP);
+#if TP_RST >= 0
 	pinMode(TP_RST, OUTPUT);
 	digitalWrite(TP_RST, LOW);
 	delay(10);
 	digitalWrite(TP_RST, HIGH);
 	delay(50);
+#endif
 	if (!i2c_bus_begin(TP_SDA, TP_SCL, 400000)) {
 		Serial.println("Touch I2C initialization failed");
 		return;

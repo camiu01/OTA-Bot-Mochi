@@ -161,5 +161,25 @@ and will be performed by the user.
   full revision on the board. No current ESP32 build/upload has been performed.
 - [ ] Automatic OTA deployment and calibrated battery/charging remain deferred.
 
+## 11. Panels and boards
+
+- [x] Adapt eye geometry, lids, touch bounds, and the UI design field to other
+  panel sizes; prove eyes on six rasters and pages/menus on 240x280, 240x320,
+  and 368x448 with the native suite.
+- [x] Add the second build profile for the Waveshare ESP32-S3-Touch-AMOLED-1.8
+  V2 (`-DMOCHI_BOARD_AMOLED_18`): QSPI CO5300 368x448, TCA9554 reset release,
+  controller brightness, CST820 touch pins, capability guards for missing
+  backlight/buzzer/battery paths. See `docs/BOARDS.md` for the unverified
+  hardware checklist (panel orientation/MADCTL, touch mapping, shared-bus
+  membership, brightness curve, Chronos profile, ES8311 sound, AXP2101).
+- [ ] Compile the AMOLED profile with the pinned toolchain and review the
+  memory report: the 368x448 canvas needs PSRAM=opi (8MB octal), unlike the
+  1.69 OLD profile which must keep PSRAM disabled.
+- [ ] Bring up the AMOLED board physically in the order listed in
+  `docs/BOARDS.md`; do not mark any of those checks complete from native runs.
+- [ ] Decide whether an ES8311 I2S sound backend and an AXP2101 battery driver
+  are worth implementing for the AMOLED board; until then sound reports its
+  failure state and the battery reads NOT MEASURED there.
+
 See `docs/UI.md` and `docs/TESTING.md` for controls, dependency pins, native
 coverage, and the remaining physical validation checklist.

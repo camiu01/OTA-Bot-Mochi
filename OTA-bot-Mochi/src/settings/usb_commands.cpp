@@ -111,7 +111,7 @@ void show() {
 	Serial.printf("sound-faces=%s sound-timer=%s sound-alerts=%s sound-ambient=%s\n",
 		p.sound_faces ? "on" : "off", p.sound_timer ? "on" : "off",
 		p.sound_alerts ? "on" : "off", p.sound_ambient ? "on" : "off");
-	Serial.printf("sound-status=%s gpio=%u\n", sound_status_name(), unsigned(BUZZER));
+	Serial.printf("sound-status=%s gpio=%d\n", sound_status_name(), int(BUZZER));
 	uint8_t charge = battery_percent();
 	if (charge == BATTERY_UNAVAILABLE) { Serial.println("battery=unavailable"); }
 	else { Serial.printf("battery=%u%%\n", unsigned(charge)); }
@@ -169,7 +169,7 @@ void execute(const UsbCommand &command) {
 		}
 		case UsbAction::WeatherSync: weather_request(); Serial.println("App sync queued; requires connection/subscription"); break;
 		case UsbAction::SoundStatus:
-			Serial.printf("sound-status=%s gpio=%u level=%u\n", sound_status_name(), unsigned(BUZZER), settings_get().sound_level);
+			Serial.printf("sound-status=%s gpio=%d level=%u\n", sound_status_name(), int(BUZZER), settings_get().sound_level);
 			break;
 		case UsbAction::SoundTest: {
 			SoundStatus status = sound_status();

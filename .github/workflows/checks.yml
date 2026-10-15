@@ -53,7 +53,9 @@ jobs:
       - name: Restore compiled object cache
         uses: actions/cache@v4
         with:
-          path: ${{ runner.temp }}/arduino-build
+          path: |
+            ${{ runner.temp }}/arduino-build
+            ${{ runner.temp }}/arduino-build-amoled
           key: objects-${{ runner.os }}-${{ hashFiles('.github/workflows/checks.yml') }}-${{ hashFiles('OTA-bot-Mochi/**') }}
           restore-keys: |
             objects-${{ runner.os }}-${{ hashFiles('.github/workflows/checks.yml') }}-
@@ -65,6 +67,16 @@ jobs:
             --fqbn "$BOARD_FQBN" \
             --build-path "$RUNNER_TEMP/arduino-build" \
             --output-dir "$RUNNER_TEMP/firmware" \
+            OTA-bot-Mochi
+      - name: Compile the AMOLED board profile, without connecting to a device
+        shell: bash
+        run: |
+          set -euo pipefail
+          arduino-cli compile --jobs 4 --warnings all \
+            --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=opi,FlashSize=16M" \
+            --build-property "compiler.cpp.extra_flags=-DMOCHI_BOARD_AMOLED_18" \
+            --build-path "$RUNNER_TEMP/arduino-build-amoled" \
+            --output-dir "$RUNNER_TEMP/firmware-amoled" \
             OTA-bot-Mochi
       - name: Record build profile and checksums
         shell: bash
@@ -81,10 +93,25 @@ jobs:
             printf 'Confirm the 16MB flash profile; PSRAM must stay disabled on the OLD board.\n'
           } > BUILD-INFO.txt
           sha256sum -- *.bin > SHA256SUMS.txt
+          cd "$RUNNER_TEMP/firmware-amoled"
+          {
+            printf 'Commit: %s\n' "$GITHUB_SHA"
+            printf 'Profile: -DMOCHI_BOARD_AMOLED_18 (Waveshare ESP32-S3-Touch-AMOLED-1.8 V2, unverified on hardware)\n'
+            printf 'FQBN: esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=opi,FlashSize=16M\n'
+            printf 'The 8MB octal PSRAM holds the 368x448 frame canvas; see docs/BOARDS.md.\n'
+          } > BUILD-INFO.txt
+          sha256sum -- *.bin > SHA256SUMS.txt
       - name: Publish downloadable firmware artifact
         uses: actions/upload-artifact@v4
         with:
           name: mochi-esp32s3-${{ github.sha }}
           path: ${{ runner.temp }}/firmware/
+          if-no-files-found: error
+          retention-days: 14
+      - name: Publish AMOLED profile artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mochi-esp32s3-amoled-${{ github.sha }}
+          path: ${{ runner.temp }}/firmware-amoled/
           if-no-files-found: error
           retention-days: 14

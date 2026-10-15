@@ -145,6 +145,16 @@ does not verify the exact chip model.
 
 The reference board is the Waveshare ESP32-S3-Touch-LCD-1.69 **OLD**. The user
 confirmed its pin assignments in `pin_config.h`; this change leaves them intact.
+The optional `-DMOCHI_BOARD_AMOLED_18` profile targets the Waveshare
+ESP32-S3-Touch-AMOLED-1.8 V2; `docs/BOARDS.md` lists its differences and the
+checks that still need the physical panel.
+
+Widgets keep a fixed 240x280 design field (`UI_DESIGN_W`/`UI_DESIGN_H` in
+`ui_theme.h`) on every panel. On a larger screen the field is anchored to the
+top-left corner: nothing scales or recenters, the eye pair uses the extra
+space, and taps outside the field stay dead instead of pressing buttons that
+the display does not draw (a margin tap on a 368x448 panel cannot save,
+exit, or flip tabs). The per-panel native suite proves this for both boards.
 
 Chronos is explicitly given the rectangular `CS_240x283_172_RTF` profile before
 BLE starts. ChronosESP32 1.9.1 has no exact 240x280/1.69-inch profile; this is its
@@ -152,7 +162,10 @@ nearest rectangular preset. It is app metadata only: the physical canvas stays
 240x280 and the LCD configuration does not change. After uploading this revision,
 reconnect in Chronos to refresh device information. If it retains the old round
 icon, remove/re-add the device within Chronos. The app may report the approximate
-240x283/1.72-inch metadata rather than the exact panel dimensions.
+240x283/1.72-inch metadata rather than the exact panel dimensions. The AMOLED
+profile gives `CS_410x494_200_RTF` for the same reason: version 1.9.1 has no
+368x448 entry, so the nearest rectangular preset by aspect ratio and area is
+used as metadata.
 
 The IMU driver checks QMI8658 identity `0x05` at `0x6B` or `0x6A`, verifies
 configuration writes, enables only the accelerometer, and explicitly configures

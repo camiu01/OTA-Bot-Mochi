@@ -8,6 +8,8 @@
 #include "../../pin_config.h"
 #include <Arduino.h>
 #include <esp_arduino_version.h>
+
+#if BUZZER >= 0
 static bool ready = false;
 static uint16_t frequency = 2200;
 
@@ -58,3 +60,10 @@ void buzzer_end() {
 	digitalWrite(BUZZER, LOW);
 	ready = false;
 }
+#else
+// No PWM buzzer on this board: audio goes through a codec backend that does
+// not exist yet, so the sound service keeps reporting its failure state.
+bool buzzer_begin() { return false; }
+bool buzzer_write(uint16_t, uint8_t) { return false; }
+void buzzer_end() {}
+#endif

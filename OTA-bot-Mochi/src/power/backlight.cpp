@@ -14,25 +14,36 @@ namespace {
 BrightnessPolicy policy;
 bool pwm_ready = false;
 uint8_t applied = 255;
+void (*display_output)(uint8_t) = nullptr;
 
 /** @brief Write a changed duty cycle. @param percent Brightness percentage. */
 void apply(uint8_t percent) {
 	if (!pwm_ready || applied == percent) { return; }
 	applied = percent;
+	if (display_output) { display_output(percent); return; }
+#if LCD_BL >= 0
 	uint32_t duty = uint32_t(percent) * 255 / 100;
 #if ESP_ARDUINO_VERSION_MAJOR >= 3
 	ledcWrite(LCD_BL, duty);
 #else
 	ledcWrite(0, duty);
 #endif
+#endif
 }
+}
+
+/** @brief Route brightness to a display controller instead of a backlight GPIO. @param fn Callback, or nullptr to unbind. */
+void backlight_bind_display(void (*fn)(uint8_t percent)) {
+	display_output = fn;
+	if (fn) { pwm_ready = true; }
 }
 
 /** @brief Initialize the backlight channel. @param now Timestamp. */
 void backlight_init(uint32_t now) {
+	policy.last_activity = now;
+#if LCD_BL >= 0
 	pinMode(LCD_BL, OUTPUT);
 	digitalWrite(LCD_BL, HIGH);
-	policy.last_activity = now;
 #if ESP_ARDUINO_VERSION_MAJOR >= 3
 	pwm_ready = ledcAttachChannel(LCD_BL, 5000, 8, BACKLIGHT_PWM_CHANNEL);
 #else
@@ -43,6 +54,11 @@ void backlight_init(uint32_t now) {
 		digitalWrite(LCD_BL, HIGH);
 		Serial.println("Backlight PWM unavailable; using full brightness");
 	}
+#else
+	if (!pwm_ready) {
+		Serial.println("No backlight pin or display hook; using full brightness");
+	}
+#endif
 	apply(policy.brightness);
 }
 

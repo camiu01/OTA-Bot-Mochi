@@ -8,6 +8,15 @@
 
 /** @brief Initialize PWM or fall back to full brightness. @param now Timestamp. */
 void backlight_init(uint32_t now);
+/**
+ * @brief Route brightness to a display controller instead of a backlight GPIO.
+ *
+ * @details Boards without a backlight pad (AMOLED) bind a callback that maps
+ *          the shared brightness percent onto the controller command; the
+ *          policy, dimming, and wake behavior stay identical.
+ * @param fn Callback receiving 1..90 percent, or nullptr to unbind.
+ */
+void backlight_bind_display(void (*fn)(uint8_t percent));
 /** @brief Restart the idle timer. @param now Timestamp. */
 void backlight_activity(uint32_t now);
 /**

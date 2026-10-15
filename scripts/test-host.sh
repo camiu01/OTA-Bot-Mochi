@@ -30,6 +30,11 @@ build_test() {
 	"$output/$name"
 }
 g++ -std=c++17 -Wall -Wextra -Werror -I "$root/tests/stubs" -fsyntax-only "$root/OTA-bot-Mochi/src/touch/touch.cpp"
+# The second board profile must also parse: touch reset, backlight pin, battery
+# ADC, and buzzer branches all switch with -DMOCHI_BOARD_AMOLED_18.
+g++ -std=c++17 -Wall -Wextra -Werror -I "$root/tests/stubs" -DMOCHI_BOARD_AMOLED_18 -fsyntax-only \
+	"$root/OTA-bot-Mochi/src/touch/touch.cpp" "$root/OTA-bot-Mochi/src/power/backlight.cpp" \
+	"$root/OTA-bot-Mochi/src/sound/buzzer_output.cpp" "$root/OTA-bot-Mochi/src/power/battery.cpp"
 build_test swipe "$root/tests/swipe_test.cpp"
 build_test ui "${runtime[@]}" \
 	"$root/tests/ui_test.cpp" \
@@ -62,7 +67,7 @@ ui_panel=("${runtime[@]}" \
 	"$root/OTA-bot-Mochi/src/settings/settings_menu.cpp" "$root/tests/stubs/imu_noop.cpp")
 build_test ui-panel "${ui_panel[@]}"
 build_test ui-panel-240x320 -DLCD_WIDTH=240 -DLCD_HEIGHT=320 "${ui_panel[@]}"
-build_test ui-panel-368x448 -DLCD_WIDTH=368 -DLCD_HEIGHT=448 "${ui_panel[@]}"
+build_test ui-panel-368x448 -DMOCHI_BOARD_AMOLED_18 "${ui_panel[@]}"
 build_test sound "${runtime[@]}" "$root/tests/sound_test.cpp" "$root/tests/stubs/imu_noop.cpp"
 pwm=("$root/tests/pwm_test.cpp" "$root/OTA-bot-Mochi/src/power/backlight.cpp" "$root/OTA-bot-Mochi/src/sound/buzzer_output.cpp")
 build_test pwm-v3 "${pwm[@]}"

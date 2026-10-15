@@ -32,11 +32,21 @@
 #include "src/settings/settings.h"
 #include "src/settings/settings_menu.h"
 #include "src/settings/usb_commands.h"
+#include "src/bus/i2c_bus.h"
 
 ChronosESP32 watch("OTA bot");
+#if MOCHI_BOARD_LCD_169
 Arduino_DataBus *bus = new Arduino_ESP32SPI(LCD_DC, LCD_CS, LCD_SCK, LCD_MOSI);
 Arduino_GFX *display = new Arduino_ST7789(bus, LCD_RST, 0, true,
 	LCD_WIDTH, LCD_HEIGHT, 0, 20, 0, 0);
+#else
+Arduino_DataBus *bus = new Arduino_ESP32QSPI(
+	LCD_CS, LCD_SCLK, LCD_SDIO0, LCD_SDIO1, LCD_SDIO2, LCD_SDIO3);
+// CO5300: the visible area starts at RAM column 16; the panel reset is held by
+// the TCA9554 expander, which init_screen() releases before the first command.
+Arduino_CO5300 *display = new Arduino_CO5300(bus, -1, 0,
+	LCD_WIDTH, LCD_HEIGHT, 16, 0, 0, 0);
+#endif
 Arduino_GFX *gfx = new Arduino_Canvas(LCD_WIDTH, LCD_HEIGHT, display);
 UiPage current_screen = UiPage::Eyes;
 AutoPagePolicy auto_page;
@@ -78,8 +88,13 @@ void config_callback(Config config, uint32_t a, uint32_t b) {
 
 /** @brief Install callbacks after the UI lock is ready and start BLE. */
 void init_chronos() {
+#if MOCHI_BOARD_LCD_169
 	// Chronos 1.9.1 has no 240x280 preset; this is the nearest rectangular metadata profile.
 	watch.setScreen(CS_240x283_172_RTF);
+#else
+	// Chronos 1.9.1 has no 368x448 preset; nearest profile by aspect ratio and area.
+	watch.setScreen(CS_410x494_200_RTF);
+#endif
 	watch.setConnectionCallback(connection_callback);
 	watch.setNotificationCallback(notification_callback);
 	watch.setConfigurationCallback(config_callback);
@@ -87,8 +102,68 @@ void init_chronos() {
 	watch.begin();
 }
 
+#if !MOCHI_BOARD_LCD_169
+/** @brief Read one TCA9554 register. @param wire Shared bus. @param reg Register. @param value Output value. @return Success. */
+bool expander_read(TwoWire &wire, uint8_t reg, uint8_t &value) {
+	wire.beginTransmission(IO_EXPANDER_ADDR);
+	wire.write(reg);
+	if (wire.endTransmission(false) != 0) { return false; }
+	if (wire.requestFrom((uint8_t)IO_EXPANDER_ADDR, (uint8_t)1) != 1) { return false; }
+	value = wire.read();
+	return true;
+}
+
+/** @brief Write one TCA9554 register. @param wire Shared bus. @param reg Register. @param value Value. @return Success. */
+bool expander_write(TwoWire &wire, uint8_t reg, uint8_t value) {
+	wire.beginTransmission(IO_EXPANDER_ADDR);
+	wire.write(reg);
+	wire.write(value);
+	return wire.endTransmission() == 0;
+}
+
+/**
+ * @brief Release the AMOLED panel reset held by the TCA9554 expander.
+ *
+ * @details The V2 board gates the panel reset on expander bits 0..2 at I2C
+ *          0x20. Init commands sent while the panel is held in reset succeed
+ *          silently and show nothing, so this must run before gfx->begin().
+ *          Raw register writes keep the firmware free of an extra library.
+ */
+void release_panel_reset() {
+	if (!i2c_bus_begin(IIC_SDA, IIC_SCL, 400000)) {
+		Serial.println("Panel expander I2C initialization failed");
+		return;
+	}
+	TwoWire &wire = i2c_bus();
+	uint8_t config = 0, output = 0;
+	if (!expander_read(wire, 0x03, config)) {
+		Serial.println("Panel expander not responding");
+		return;
+	}
+	if (!expander_write(wire, 0x03, uint8_t(config & ~IO_EXPANDER_RESET_PINS))) {
+		Serial.println("Panel expander configuration failed");
+		return;
+	}
+	(void)expander_read(wire, 0x01, output);
+	(void)expander_write(wire, 0x01, uint8_t(output | IO_EXPANDER_RESET_PINS));
+	delay(100);
+	(void)expander_write(wire, 0x01, uint8_t(output & ~IO_EXPANDER_RESET_PINS));
+	delay(300);
+	(void)expander_write(wire, 0x01, uint8_t(output | IO_EXPANDER_RESET_PINS));
+}
+
+/** @brief Route the shared brightness policy into the AMOLED controller. @param percent Brightness percentage. */
+void apply_display_brightness(uint8_t percent) {
+	display->setBrightness(uint8_t(uint32_t(percent) * 255 / 100));
+}
+#endif
+
 /** @brief Initialize the buffered canvas; never draw after an allocation failure. */
 void init_screen() {
+#if !MOCHI_BOARD_LCD_169
+	release_panel_reset();
+	backlight_bind_display(apply_display_brightness);
+#endif
 	if (!gfx->begin()) {
 		Serial.println("Display/framebuffer initialization failed");
 		return;

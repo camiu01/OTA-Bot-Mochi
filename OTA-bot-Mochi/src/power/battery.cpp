@@ -73,7 +73,12 @@ void battery_sample(uint32_t now) {
 	if (samples && uint32_t(now - last_sample) < interval) { return; }
 	last_sample = now;
 	if (samples < 255) { ++samples; }
+#if BAT_ADC >= 0
 	tracker.update(uint16_t(analogRead(BAT_ADC)));
+#else
+	// No ADC divider on this board; the tracker settles on "not measured".
+	tracker.update(0);
+#endif
 }
 
 uint8_t battery_percent() { return tracker.percent; }

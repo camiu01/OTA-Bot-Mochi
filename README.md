@@ -3,7 +3,10 @@
 # OTA-Bot-Mochi
 ### Dasai-Inspired ESP32-S3 Robot Companion with Living Vector Eyes
 
-An expressive smart companion firmware for ST7789 displays (240x280). Combines lively Dasai/Cozmo-style vector eyes and IMU physics with ChronosESP32 BLE features: live clock, turn-by-turn navigation, weather, and notifications.
+An expressive smart companion firmware for ST7789 displays (240x280) and the
+Waveshare 1.8 inch AMOLED panel (368x448). Combines lively Dasai/Cozmo-style
+vector eyes and IMU physics with ChronosESP32 BLE features: live clock,
+turn-by-turn navigation, weather, and notifications.
 
 [![License: GPLv3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![Arduino](https://img.shields.io/badge/Arduino-IDE_2.x-teal.svg)](https://www.arduino.cc/)
@@ -94,6 +97,12 @@ Do not assume that an AXP2101 exists on this board. Battery percentage uses a
 guessed 2:1 divider ratio on `BAT_ADC` with a plausibility window, so missing
 hardware reports NOT MEASURED instead of a wrong value; the ratio and the
 percentages are not physically validated yet.
+
+Building with `-DMOCHI_BOARD_AMOLED_18` selects the **Waveshare
+ESP32-S3-Touch-AMOLED-1.8 V2** profile instead (CO5300 368x448 AMOLED over QSPI,
+CST820 touch, brightness as a controller command, no buzzer pad). Its pin table,
+compile commands, and the hardware checks still pending are listed in
+[Boards and panels](docs/BOARDS.md).
 
 ---
 

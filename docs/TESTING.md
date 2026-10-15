@@ -105,7 +105,8 @@ overview timer device`, `--command` runs one USB command at startup, and
 `--frames` exits after the given number of rendered frames.
 
 `--size WIDTHxHEIGHT` builds a variant for another panel, for example
-`--size 240x320` for a 1.8 inch panel or `--size 128x160` for a 1.44 inch one.
+`--size 240x320` for a 1.8 inch panel, `--size 368x448` for the AMOLED board, or
+`--size 128x160` for a 1.44 inch one.
 The layout macros and the eye geometry both see that screen, so panel
 adaptation can be previewed without editing `pin_config.h`:
 
@@ -143,6 +144,21 @@ arduino-cli monitor --port COM3 --config baudrate=115200
 
 The profile selects ESP32S3 Dev Module, native USB CDC on boot, no PSRAM,
 and 16 MB flash for the Waveshare ESP32-S3-Touch-LCD-1.69 OLD reference board.
+PSRAM must stay disabled on that OLD revision: OPI PSRAM claims the buzzer
+(GPIO33) and power-control (GPIO35/GPIO36) pins and caused a continuous beep
+plus I2C crashes in an earlier experiment.
+
+The AMOLED board needs the second profile from
+[Boards and panels](BOARDS.md); its frame canvas is too large for internal
+SRAM, so it compiles with octal PSRAM enabled and the board macro:
+
+```sh
+arduino-cli compile --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=opi,FlashSize=16M" \
+  --build-property "compiler.cpp.extra_flags=-DMOCHI_BOARD_AMOLED_18" OTA-bot-Mochi
+```
+
+CI compiles and publishes both profiles on every push; the AMOLED artifacts are
+marked as hardware-unverified.
 PSRAM stays disabled: the OLD revision routes the buzzer to GPIO33 and the
 power-control lines SYS_EN/SYS_OUT to GPIO35/GPIO36, which the ESP32-S3 octal
 PSRAM interface claims. A build with `PSRAM=opi` beeped the buzzer continuously

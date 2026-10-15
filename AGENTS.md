@@ -4,11 +4,15 @@
 
 This is an Arduino C++ firmware project, not a desktop application. Open
 `OTA-bot-Mochi/OTA-bot-Mochi.ino`; Arduino compiles its `src/` modules recursively.
-The target is Waveshare **ESP32-S3-Touch-LCD-1.69 OLD**, ST7789, 240x280.
-The numeric assignments in `pin_config.h` follow that board's official Waveshare
-schematic: touch, RTC, and IMU share one I2C bus (SDA=11, SCL=10) driven through
-`src/bus/i2c_bus.*`, and the buzzer is GPIO33 (new revision: GPIO42). Preserve
-them and do not open a second I2C controller on the shared pads.
+The default target is Waveshare **ESP32-S3-Touch-LCD-1.69 OLD**, ST7789, 240x280.
+A second profile, selected with `-DMOCHI_BOARD_AMOLED_18`, targets the Waveshare
+**ESP32-S3-Touch-AMOLED-1.8 V2**, CO5300 AMOLED, 368x448; its hardware details
+are unverified and tracked in `docs/BOARDS.md` and `TODO.md`.
+For the 1.69 board the numeric assignments in `pin_config.h` follow that board's
+official Waveshare schematic: touch, RTC, and IMU share one I2C bus (SDA=11,
+SCL=10) driven through `src/bus/i2c_bus.*`, and the buzzer is GPIO33 (new
+revision: GPIO42). Preserve them and do not open a second I2C controller on the
+shared pads; the AMOLED profile keeps the same single-bus rule on SDA15/SCL14.
 Battery/charging circuitry is not verified.
 
 From the repository root, native checks are:
@@ -25,8 +29,10 @@ git diff --check
 
 The runners require `g++` in PATH and use C++17 with
 `-Wall -Wextra -Werror`. They build temporary executables for swipe, UI, IMU,
-settings, real eye rasterization, audio, and PWM core-2/core-3 branches.
-There is no separate lint command. For a single independent gesture test:
+settings, real eye rasterization, panel geometry, per-panel pages/menus,
+audio, and PWM core-2/core-3 branches, plus a syntax check of the device-only
+modules in the AMOLED profile. There is no separate lint command. For a single
+independent gesture test:
 
 ```powershell
 g++ -std=c++17 -Wall -Wextra -Werror tests/swipe_test.cpp -o "$env:TEMP\mochi-swipe.exe"
@@ -39,16 +45,22 @@ test file. Keep both runners' source lists aligned when adding dependencies.
 Native stubs do not verify real BLE, LCD, touch coordinates, or electrical behavior.
 
 Firmware compilation/upload currently belongs to the user; do not perform it
-unless explicitly requested. The reproducible build command is:
+unless explicitly requested. The reproducible build commands are:
 
 ```sh
+# LCD board (default)
 arduino-cli compile --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=disabled,FlashSize=16M" OTA-bot-Mochi
+
+# AMOLED board (V2, hardware-unverified)
+arduino-cli compile --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=opi,FlashSize=16M" \
+  --build-property "compiler.cpp.extra_flags=-DMOCHI_BOARD_AMOLED_18" OTA-bot-Mochi
 ```
 
-Do not enable OPI PSRAM on this board: the OLD revision routes the buzzer to
-GPIO33 and the power-control lines to GPIO35/GPIO36, which the octal PSRAM
+Do not enable OPI PSRAM on the 1.69 OLD board: that revision routes the buzzer
+to GPIO33 and the power-control lines to GPIO35/GPIO36, which the octal PSRAM
 interface claims on the ESP32-S3. That build beeped continuously and crashed
-in the shared I2C driver on 2026-10-13; PSRAM must stay disabled. CI pins
+in the shared I2C driver on 2026-10-13; PSRAM must stay disabled there. The
+AMOLED profile is the opposite case: its 368x448 canvas needs PSRAM=opi. CI pins
 Arduino CLI 1.2.0,
 ESP32 core 3.3.11, ChronosESP32 1.9.1, GFX Library for Arduino 1.6.9,
 ESP32Time 2.0.6, and NimBLE-Arduino 2.5.1. Setup commands are in

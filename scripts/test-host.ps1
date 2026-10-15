@@ -13,6 +13,12 @@ function Invoke-HostTest([string] $Name, [string[]] $Sources, [string[]] $Flags 
 try {
 	& g++ -std=c++17 -Wall -Wextra -Werror -I "$root\tests\stubs" -fsyntax-only "$root\OTA-bot-Mochi\src\touch\touch.cpp"
 	if ($LASTEXITCODE -ne 0) { throw 'Touch driver syntax check failed' }
+	# The second board profile must also parse: touch reset, backlight pin,
+	# battery ADC, and buzzer branches all switch with -DMOCHI_BOARD_AMOLED_18.
+	& g++ -std=c++17 -Wall -Wextra -Werror -I "$root\tests\stubs" -DMOCHI_BOARD_AMOLED_18 -fsyntax-only `
+		"$root\OTA-bot-Mochi\src\touch\touch.cpp" "$root\OTA-bot-Mochi\src\power\backlight.cpp" `
+		"$root\OTA-bot-Mochi\src\sound\buzzer_output.cpp" "$root\OTA-bot-Mochi\src\power\battery.cpp"
+	if ($LASTEXITCODE -ne 0) { throw 'AMOLED profile syntax check failed' }
 	$runtime = @(
 		"$root\OTA-bot-Mochi\src\settings\settings.cpp",
 		"$root\OTA-bot-Mochi\src\settings\usb_commands.cpp",
@@ -62,7 +68,7 @@ try {
 	)
 	Invoke-HostTest 'ui-panel' ($runtime + $uiPanel)
 	Invoke-HostTest 'ui-panel-240x320' ($runtime + $uiPanel) @('-DLCD_WIDTH=240', '-DLCD_HEIGHT=320')
-	Invoke-HostTest 'ui-panel-368x448' ($runtime + $uiPanel) @('-DLCD_WIDTH=368', '-DLCD_HEIGHT=448')
+	Invoke-HostTest 'ui-panel-368x448' ($runtime + $uiPanel) @('-DMOCHI_BOARD_AMOLED_18')
 	Invoke-HostTest 'sound' ($runtime + @("$root\tests\sound_test.cpp", "$root\tests\stubs\imu_noop.cpp"))
 	$pwm = @("$root\tests\pwm_test.cpp", "$root\OTA-bot-Mochi\src\power\backlight.cpp", "$root\OTA-bot-Mochi\src\sound\buzzer_output.cpp")
 	Invoke-HostTest 'pwm-v3' $pwm
