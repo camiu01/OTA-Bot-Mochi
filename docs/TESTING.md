@@ -30,7 +30,11 @@ styles, all 88 expressions, and both blink states (704 combinations), a proof
 that every expression renders differently from NEUTRAL on every style, that no
 two names draw the same pixels on any style (pairwise uniqueness, 15312
 comparisons), solid-style pupil/highlight exclusion, trapezoid symmetry, IMU
-gaze/roll bounds, radius limits, and dirty-region erasure are checked. Panel
+gaze/roll bounds, radius limits, and dirty-region erasure are checked. The
+fixed accent palette has its own suite: no accent may equal black, white, or the
+counted pupil/highlight sentinels, every accented expression must paint its
+accent on all four styles, plain faces must not leak one, and the petting heart
+must use the love accent. Panel
 adaptation has its own suite: on 240x280, 240x320, 320x480, 368x448, 128x160,
 and 160x128 rasters the pair must stay centered, every expression must stay
 inside the panel, and the fit must not merge two names into one picture. Pages

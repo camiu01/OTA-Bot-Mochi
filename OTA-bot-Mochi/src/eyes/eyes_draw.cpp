@@ -8,6 +8,7 @@
  * @brief Bounded solid/pupilled eye rendering with correct dirty-region unions.
  */
 #include "eye_shapes.h"
+#include "eye_palette.h"
 #include "eye_life.h"
 #include "../../pin_config.h"
 
@@ -91,7 +92,11 @@ void eyes_draw() {
 	wipe(gfx, cfg, st);
 	paint(gfx, cfg, drawing, layout.left);
 	paint(gfx, cfg, drawing, layout.right);
-	if (st.heartUntilMs != 0) { paint_heart(gfx, cfg.fgColor, st.heartX, st.heartY); }
+	if (st.heartUntilMs != 0) {
+		// The petting heart is a LOVE marker, so it takes the same fixed rose accent.
+		uint16_t tint = eye_accent(LOVE);
+		paint_heart(gfx, tint ? tint : cfg.fgColor, st.heartX, st.heartY);
+	}
 	store_union(st, layout);
 	if (st.heartUntilMs != 0) { extend_heart(st); }
 }

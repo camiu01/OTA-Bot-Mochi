@@ -81,8 +81,12 @@ on native tests and provides downloadable binaries, not automatic OTA deployment
   updates preserve manual selection, and switching defers while touch is held.
 - The eye engine separates configured expression/style from temporary face
   policy, visual-life pose, geometry, and dirty-region rasterization. MOCHI and
-  TRAPEZ must stay solid and pupil-free. BLOUB has pupils/highlights. The current
-  geometry source is authoritative; `src/eyes/README.md` contains legacy geometry.
+  TRAPEZ must stay solid and pupil-free. BLOUB has pupils/highlights. Fourteen
+  decorated expressions take a fixed semantic glyph accent from `eye_palette.h`
+  (blue tears, rose hearts, and so on); those accents are constants, not
+  settings, and must avoid the pupil/highlight values the native suites count.
+  The current geometry source is authoritative; `src/eyes/README.md` contains
+  legacy geometry.
 - Settings update RAM immediately, apply colors/brightness/eye preferences,
   and increment a renderer revision. Only explicit SAVE writes the NVS profile.
   Version five is thirteen bytes; preserve validated twelve-byte v4 and

@@ -54,7 +54,10 @@ persists only after SAVE; `set flip on|off` is the USB equivalent.
 The background stays black. MOCHI and TRAPEZ are solid eyes without pupils or
 highlights; BLOUB has black pupils and white highlights, and NORMAL has black
 pupils. The selected color changes the eye bodies. This avoids bright full-screen
-background presets.
+background presets. Fourteen decorated faces (crying, love, fire, star, halo,
+devil, moon, sparkle, bolt, diamond, money, low battery, idea, music) additionally
+paint a fixed accent mark — blue tears, a rose heart, an orange flame — that no
+color setting changes, so those decorations keep reading even on a recolored eye.
 Tap EYES to preview the actual animated eyes. This is not a separate preview page.
 
 Tap SAVE to persist the whole profile. SAVED means the write succeeded; FAILED

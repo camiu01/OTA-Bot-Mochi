@@ -141,6 +141,22 @@ Every expression must work on all four styles, which the native suite enforces:
 stays inside a circle of radius `s` around its centre, which is what guarantees that
 whole-eye marks and pupil-sized marks both stay inside the dirty region.
 
+### Accent colours
+
+Fourteen decorated expressions carry a fixed accent instead of the configured ink
+for their glyph, defined by `eye_accent()` in `eye_palette.h`: a sky-blue tear for
+CRYING, a rose heart for LOVE and for the petting heart marker, an orange flame for
+FIRE, golds for STAR and HALO, an amber moon, horn and battery reds, ice-cyan
+SPARKLE, electric-yellow BOLT, aqua DIAMOND, coin-green MONEY, idea amber and a
+violet MUSIC note. `glyph()` swaps the accent in as the single dispatch point, so
+the recoloured mark works identically as a whole-eye silhouette, an engraving, and
+a pupil-sized glyph on all four styles; everything else — the body, the lids, the
+configured pupil and highlight palette, and the other 74 expressions — still
+follows the user's eye colours. Every accent deliberately avoids black, white, and
+the pure red/green values the native suites count as pupil and highlight pixels,
+so the solid-style exclusion proofs stay honest. Accents are plain constants: no
+setting, no persistence, and no behaviour when `eye_accent()` returns 0.
+
 Blink renders as a thin horizontal line. Per-eye geometry is applied only when
 `cfg.asym` is set, which `eyes_set_style()` enables for BLOUB alone: SKEPTIC,
 SUSPICIOUS, SLEEPY_EYES, PROUD, SMUG, CONFUSED, CURIOUS, WONDERING, ZOMBIE, WINK,

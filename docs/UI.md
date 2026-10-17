@@ -127,6 +127,9 @@ Eye styles use different silhouettes: MOCHI is a tall solid capsule; BLOUB is
 a wide, soft rounded shape with pupils; NORMAL is an oval with pupils; TRAPEZ
 is a pair of mirrored, in-bounds trapezoids with no pupils. MOCHI/TRAPEZ also
 omit pupil highlights. Their love/dizzy reactions change the whole eye silhouette.
+Fourteen decorated faces also paint a fixed semantic accent over the configured
+palette — blue tears for crying, a rose heart for love, an orange flame, gold
+stars — while every other face keeps the selected eye color.
 Random and IMU mood options are described in [Settings](SETTINGS.md); they never
 change the saved base mood or style.
 
