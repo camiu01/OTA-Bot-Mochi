@@ -38,10 +38,18 @@ void grid_close() { grid_open = false; grid_first_row = 0; first_row = 0; }
 /** @brief Draw one editable row. @param gfx Canvas. @param index Row. @param label Field. @param value Choice. */
 void row(Arduino_GFX *gfx, uint8_t index, const char *label, const String &value) {
 	if (index < first_row || index >= first_row + 3) { return; }
-	int16_t y = 90 + (index - first_row) * 44;
-	ui_card(gfx, y, 40);
-	ui_label(gfx, label, 24, y + 16, 84, 1, UI_MUTED);
-	ui_label(gfx, value, 116, y + 16, 100, 1, UI_ACCENT);
+	int16_t design_y = int16_t(90 + (index - first_row) * 44);
+	ui_card(gfx, design_y, 40);
+	int16_t y = ui_s(design_y);
+	int16_t label_w = ui_s(84), value_x = ui_s(116), value_w = ui_s(100);
+	if (ui_scale() > 100) {
+		// Doubled text outgrows the design boxes: trade value columns for label columns.
+		label_w = ui_s(104);
+		value_x = ui_s(134);
+		value_w = ui_s(82);
+	}
+	ui_label(gfx, label, ui_s(24), y + ui_s(16), label_w, 1, UI_MUTED);
+	ui_label(gfx, value, value_x, y + ui_s(16), value_w, 1, UI_ACCENT);
 }
 
 /** @brief Cycle to the next bounded brightness preset. @param value Current. @param night Night range. @return Next. */
@@ -123,7 +131,7 @@ void extra_rows(Arduino_GFX *gfx, const CompanionSettings &p) {
 	if (tab == 3) {
 		row(gfx, 0, tr(Text::Animation), tr_choice(3, p.animation));
 		row(gfx, 1, tr(Text::Language), p.language ? "Italiano" : "English");
-		ui_label(gfx, tr(Text::MotionHint), 24, 190, 192, 1, UI_MUTED);
+		ui_label(gfx, tr(Text::MotionHint), ui_s(24), ui_s(190), ui_s(192), 1, UI_MUTED);
 	} else if (sound_options) {
 		row(gfx, 0, tr(Text::Faces), on_off(p.sound_faces));
 		row(gfx, 1, tr(Text::TimerLabel), on_off(p.sound_timer));
@@ -147,31 +155,31 @@ void grid_draw(Arduino_GFX *gfx) {
 	uint8_t first = uint8_t(grid_first_row * GRID_COLS + 1);
 	uint8_t last = uint8_t(first + GRID_ROWS * GRID_COLS - 1);
 	if (last > EXPRESSION_COUNT) { last = EXPRESSION_COUNT; }
-	gfx->fillRoundRect(2, 52, 236, 36, 8, UI_CARD);
-	ui_label(gfx, tr(Text::MoodLabel), 14, 66, 110, 1, UI_ACCENT);
+	gfx->fillRoundRect(ui_s(2), ui_s(52), ui_s(236), ui_s(36), ui_s(8), UI_CARD);
+	ui_label(gfx, tr(Text::MoodLabel), ui_s(14), ui_s(66), ui_s(110), 1, UI_ACCENT);
 	ui_label(gfx, String(first) + "-" + String(last) + "/" +
-		String(EXPRESSION_COUNT), 150, 66, 76, 1, UI_MUTED);
+		String(EXPRESSION_COUNT), ui_s(150), ui_s(66), ui_s(76), 1, UI_MUTED);
 	for (uint8_t cell = 0; cell < GRID_ROWS * GRID_COLS; ++cell) {
 		uint16_t index = uint16_t(grid_first_row) * GRID_COLS + cell;
 		if (index >= EXPRESSION_COUNT) { break; }
-		int16_t x = int16_t(GRID_X0 + (cell % GRID_COLS) * (GRID_W + 4));
-		int16_t y = int16_t(GRID_Y0 + (cell / GRID_COLS) * GRID_ROW_PX);
+		int16_t x = ui_s(int16_t(GRID_X0 + (cell % GRID_COLS) * (GRID_W + 4)));
+		int16_t y = ui_s(int16_t(GRID_Y0 + (cell / GRID_COLS) * GRID_ROW_PX));
 		bool selected = index == p.mood;
-		gfx->fillRoundRect(x, y, GRID_W, GRID_H, 6, selected ? UI_ACCENT : UI_CARD);
-		ui_label(gfx, tr_expression(uint8_t(index)), x + 3, y + 8, GRID_W - 6, 1,
+		gfx->fillRoundRect(x, y, ui_s(GRID_W), ui_s(GRID_H), ui_s(6), selected ? UI_ACCENT : UI_CARD);
+		ui_label(gfx, tr_expression(uint8_t(index)), x + ui_s(3), y + ui_s(8), ui_s(GRID_W - 6), 1,
 			selected ? UI_BG : UI_TEXT);
 	}
 	if (GRID_MAX_FIRST) {
 		int16_t track = int16_t(GRID_ROWS * GRID_ROW_PX) - 2;
-		gfx->fillRect(234, GRID_Y0, 3, track, UI_CARD);
-		gfx->fillRect(234, int16_t(GRID_Y0 + grid_first_row * (track - 40) / GRID_MAX_FIRST),
-			3, 40, UI_ACCENT);
+		gfx->fillRect(ui_s(234), ui_s(GRID_Y0), ui_s(3), ui_s(track), UI_CARD);
+		gfx->fillRect(ui_s(234), ui_s(int16_t(GRID_Y0 + grid_first_row * (track - 40) / GRID_MAX_FIRST)),
+			ui_s(3), ui_s(40), UI_ACCENT);
 	}
-	gfx->fillRoundRect(2, 224, 116, 54, 8, UI_ACCENT);
-	gfx->fillRoundRect(122, 224, 116, 54, 8, UI_CARD);
+	gfx->fillRoundRect(ui_s(2), ui_s(224), ui_s(116), ui_s(54), ui_s(8), UI_ACCENT);
+	gfx->fillRoundRect(ui_s(122), ui_s(224), ui_s(116), ui_s(54), ui_s(8), UI_CARD);
 	ui_label(gfx, tr(save_failed ? Text::Failed : (settings_dirty() ? Text::Save : Text::Saved)),
-		36, 247, 72, 1, UI_BG);
-	ui_label(gfx, tr(Text::Back), 147, 247, 72, 1, UI_TEXT);
+		ui_s(36), ui_s(247), ui_s(72), 1, UI_BG);
+	ui_label(gfx, tr(Text::Back), ui_s(147), ui_s(247), ui_s(72), 1, UI_TEXT);
 }
 
 /**
@@ -180,19 +188,23 @@ void grid_draw(Arduino_GFX *gfx) {
  * @param x X. @param y Y. @return True when a real cell was hit.
  */
 bool grid_cell(int16_t x, int16_t y) {
-	if (x < GRID_X0 || y < GRID_Y0) { return false; }
-	int16_t local_x = int16_t(x - GRID_X0), local_y = int16_t(y - GRID_Y0);
-	uint8_t col = uint8_t(local_x / (GRID_W + 4));
-	uint8_t row = uint8_t(local_y / GRID_ROW_PX);
-	if (col >= GRID_COLS || row >= GRID_ROWS) { return false; }
-	if (local_x % (GRID_W + 4) >= GRID_W) { return false; }
-	uint16_t index = uint16_t(grid_first_row + row) * GRID_COLS + col;
-	if (index >= EXPRESSION_COUNT) { return false; }
-	CompanionSettings p = settings_get();
-	p.mood = uint8_t(index);
-	save_failed = false;
-	settings_update(p);
-	return true;
+	for (uint8_t row = 0; row < GRID_ROWS; ++row) {
+		int16_t cell_y = ui_s(int16_t(GRID_Y0 + row * GRID_ROW_PX));
+		if (y < cell_y || y >= ui_s(int16_t(GRID_Y0 + (row + 1) * GRID_ROW_PX))) { continue; }
+		for (uint8_t col = 0; col < GRID_COLS; ++col) {
+			int16_t cell_x = ui_s(int16_t(GRID_X0 + col * (GRID_W + 4)));
+			if (x < cell_x || x >= cell_x + ui_s(GRID_W)) { continue; }
+			uint16_t index = uint16_t(grid_first_row + row) * GRID_COLS + col;
+			if (index >= EXPRESSION_COUNT) { return false; }
+			CompanionSettings p = settings_get();
+			p.mood = uint8_t(index);
+			save_failed = false;
+			settings_update(p);
+			return true;
+		}
+		return false;
+	}
+	return false;
 }
 }
 
@@ -201,53 +213,50 @@ void settings_menu_draw(Arduino_GFX *gfx) {
 	if (grid_open) { grid_draw(gfx); return; }
 	const CompanionSettings &p = settings_get();
 	static const Text tabs[] = {Text::LookTab, Text::LightTab, Text::DriveTab, Text::MoveTab, Text::AudioTab};
-	gfx->fillRoundRect(2, 52, 68, 36, 8, UI_CARD);
-	gfx->fillRoundRect(170, 52, 68, 36, 8, UI_CARD);
-	ui_label(gfx, "<", 30, 62, 24, 2, UI_TEXT);
-	ui_label(gfx, ">", 198, 62, 24, 2, UI_TEXT);
-	ui_label(gfx, tr(tabs[tab]), 84, 58, 72, 1, UI_ACCENT);
-	ui_label(gfx, String(tab + 1) + "/5", 108, 74, 24, 1, UI_MUTED);
+	gfx->fillRoundRect(ui_s(2), ui_s(52), ui_s(68), ui_s(36), ui_s(8), UI_CARD);
+	gfx->fillRoundRect(ui_s(170), ui_s(52), ui_s(68), ui_s(36), ui_s(8), UI_CARD);
+	ui_label(gfx, "<", ui_s(30), ui_s(62), ui_s(24), 2, UI_TEXT);
+	ui_label(gfx, ">", ui_s(198), ui_s(62), ui_s(24), 2, UI_TEXT);
+	ui_label(gfx, tr(tabs[tab]), ui_s(84), ui_s(58), ui_s(72), 1, UI_ACCENT);
+	ui_label(gfx, String(tab + 1) + "/5", ui_s(108), ui_s(74), ui_s(24), 1, UI_MUTED);
 	if (tab < 3) { basic_rows(gfx, p); } else { extra_rows(gfx, p); }
 	if (tab != 3) {
 		uint8_t max_scroll = row_count() - 3;
-		gfx->fillRect(232, 92, 3, 128, UI_CARD);
-		gfx->fillRect(232, 92 + first_row * (128 - 60) / max_scroll, 3, 60, UI_ACCENT);
+		gfx->fillRect(ui_s(232), ui_s(92), ui_s(3), ui_s(128), UI_CARD);
+		gfx->fillRect(ui_s(232), ui_s(int16_t(92 + first_row * (128 - 60) / max_scroll)), ui_s(3), ui_s(60), UI_ACCENT);
 	}
-	gfx->fillRoundRect(2, 224, 116, 54, 8, UI_ACCENT);
-	gfx->fillRoundRect(122, 224, 116, 54, 8, UI_CARD);
+	gfx->fillRoundRect(ui_s(2), ui_s(224), ui_s(116), ui_s(54), ui_s(8), UI_ACCENT);
+	gfx->fillRoundRect(ui_s(122), ui_s(224), ui_s(116), ui_s(54), ui_s(8), UI_CARD);
 	ui_label(gfx, tr(save_failed ? Text::Failed : (settings_dirty() ? Text::Save : Text::Saved)),
-		36, 247, 72, 1, UI_BG);
-	ui_label(gfx, tr(tab == 4 && sound_options ? Text::Back : Text::EyesButton), 147, 247, 72, 1, UI_TEXT);
+		ui_s(36), ui_s(247), ui_s(72), 1, UI_BG);
+	ui_label(gfx, tr(tab == 4 && sound_options ? Text::Back : Text::EyesButton), ui_s(147), ui_s(247), ui_s(72), 1, UI_TEXT);
 }
 
 /** @brief Interpret tap coordinates without conflating swipes/holds. @param x X. @param y Y. @return Action. */
 MenuAction settings_menu_tap(int16_t x, int16_t y) {
-	if (x < 0 || x >= LCD_WIDTH || y < 0 || y >= LCD_HEIGHT ||
-		x >= UI_DESIGN_W || y >= UI_DESIGN_H) { return MenuAction::None; }
+	if (x < 0 || x >= LCD_WIDTH || y < 0 || y >= LCD_HEIGHT) { return MenuAction::None; }
 	if (grid_open) {
-		if (y >= 224 && x < 120) { save_failed = !settings_save(); return MenuAction::Changed; }
-		if (y >= 224) { grid_close(); return MenuAction::Changed; }
+		if (y >= ui_s(224) && x < ui_s(120)) { save_failed = !settings_save(); return MenuAction::Changed; }
+		if (y >= ui_s(224)) { grid_close(); return MenuAction::Changed; }
 		return grid_cell(x, y) ? MenuAction::Changed : MenuAction::None;
 	}
-	if (y >= 52 && y < 90) {
-		if (x >= 72 && x < 168) { return MenuAction::None; }
-		tab = (tab + (x < 72 ? 4 : 1)) % 5;
+	if (y >= ui_s(52) && y < ui_s(90)) {
+		if (x >= ui_s(72) && x < ui_s(168)) { return MenuAction::None; }
+		tab = (tab + (x < ui_s(72) ? 4 : 1)) % 5;
 		sound_options = false; first_row = 0;
 		return MenuAction::Changed;
 	}
-	if (y >= 222) {
-		if (x >= 120) {
+	if (y >= ui_s(222) && y < ui_s(280)) {
+		if (x >= ui_s(120)) {
 			if (tab == 4 && sound_options) { sound_options = false; first_row = 0; return MenuAction::Changed; }
 			grid_close();
 			return MenuAction::Exit;
 		}
-		if (x < 120) {
-			save_failed = !settings_save();
-			return MenuAction::Changed;
-		}
+		save_failed = !settings_save();
+		return MenuAction::Changed;
 	}
-	if (y >= 94 && y < 222) {
-		uint8_t index = first_row + (y - 94) / 44;
+	if (y >= ui_s(94) && y < ui_s(222)) {
+		uint8_t index = uint8_t(first_row + (y - ui_s(94)) / ui_s(44));
 		uint8_t count = row_count();
 		if (index < count) { change_row(index); return MenuAction::Changed; }
 	}

@@ -163,9 +163,11 @@ and will be performed by the user.
 
 ## 11. Panels and boards
 
-- [x] Adapt eye geometry, lids, touch bounds, and the UI design field to other
-  panel sizes; prove eyes on six rasters and pages/menus on 240x280, 240x320,
-  and 368x448 with the native suite.
+- [x] Adapt eye geometry, lids, touch bounds, and the UI layout to other
+  panel sizes: eyes fill larger panels via `EYE_FILL_EXCESS` with a per-style
+  fit cap, and the widget design space scales with `ui_s()`; prove both on
+  240x280, 240x320, 320x480, 368x448, 128x160, and 160x128 rasters with the
+  native suite.
 - [x] Add the second build profile for the Waveshare ESP32-S3-Touch-AMOLED-1.8
   V2 (`-DMOCHI_BOARD_AMOLED_18`): QSPI CO5300 368x448, TCA9554 reset release,
   controller brightness, CST820 touch pins, capability guards for missing

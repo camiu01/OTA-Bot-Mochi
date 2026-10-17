@@ -14,6 +14,13 @@ uint16_t UI_MUTED = 0xA514;
 uint16_t UI_ACCENT = 0xFFFF;
 uint16_t UI_WARM = 0xFFFF;
 
+int16_t ui_scale() {
+	int16_t sx = int16_t(LCD_WIDTH) * 100 / UI_DESIGN_W;
+	int16_t sy = int16_t(LCD_HEIGHT) * 100 / UI_DESIGN_H;
+	int16_t base = sx < sy ? sx : sy;
+	return base < 100 ? 100 : (base > 200 ? 200 : base);
+}
+
 /** @brief Scale RGB565 components independently, preserving their hue. */
 static uint16_t shade(uint16_t color, uint8_t percent) {
 	return (((color >> 11) * percent / 100) << 11) |
@@ -70,6 +77,7 @@ String ui_ascii(const String &text) {
  */
 void ui_label(Arduino_GFX *gfx, const String &text, int16_t x, int16_t y,
 	int16_t width, uint8_t size, uint16_t color) {
+	size = ui_text_size(size);
 	if (size == 0 || width < 6 * size) { return; }
 	String safe = ui_ascii(text);
 	safe.replace('\n', ' ');
@@ -86,9 +94,9 @@ void ui_label(Arduino_GFX *gfx, const String &text, int16_t x, int16_t y,
 	gfx->print(safe);
 }
 
-/** @brief Draw a content card. @param gfx Canvas. @param y Top. @param height Height. */
+/** @brief Draw a content card. @param gfx Canvas. @param y Top (design space). @param height Height (design space). */
 void ui_card(Arduino_GFX *gfx, int16_t y, int16_t height) {
-	gfx->fillRoundRect(12, y, LCD_WIDTH - 24, height, 14, UI_CARD);
+	gfx->fillRoundRect(ui_s(12), ui_s(y), LCD_WIDTH - 2 * ui_s(12), ui_s(height), ui_s(14), UI_CARD);
 }
 
 /**
@@ -124,15 +132,19 @@ void ui_sound_badge_clear(Arduino_GFX *gfx, int16_t x, int16_t y) {
  * @param page Screen index.
  */
 void ui_chrome(Arduino_GFX *gfx, const char *title, bool connected, uint8_t page) {
-	gfx->fillRect(0, 0, LCD_WIDTH, 52, UI_BG);
-	ui_label(gfx, "MOCHI / COMPANION", 16, 12, 180, 1, UI_MUTED);
-	ui_label(gfx, String(backlight_brightness()) + "%", 182, 12, 30, 1, UI_MUTED);
-	gfx->fillCircle(220, 16, 3, connected ? UI_ACCENT : UI_MUTED);
-	ui_sound_badge(gfx, 150, 11);
-	ui_label(gfx, title, 16, 30, 198, 2, UI_TEXT);
-	gfx->fillRect(0, 258, LCD_WIDTH, 22, UI_BG);
+	gfx->fillRect(0, 0, LCD_WIDTH, ui_s(52), UI_BG);
+	ui_label(gfx, "MOCHI / COMPANION", ui_s(16), ui_s(12), ui_s(180), 1, UI_MUTED);
+	ui_label(gfx, String(backlight_brightness()) + "%", ui_s(182), ui_s(12), ui_s(34), 1, UI_MUTED);
+	gfx->fillCircle(ui_s(220), ui_s(16), 3, connected ? UI_ACCENT : UI_MUTED);
+	// Doubled header text ends later on scaled panels, so the badge steps aside instead of colliding.
+	int16_t badge_x = ui_s(150);
+	int16_t title_right = int16_t(ui_s(16) + 17 * 6 * ui_text_size(1));
+	if (badge_x < title_right + 8) { badge_x = int16_t(title_right + 8); }
+	ui_sound_badge(gfx, badge_x, ui_s(11));
+	ui_label(gfx, title, ui_s(16), ui_s(30), ui_s(208), 2, UI_TEXT);
+	gfx->fillRect(0, ui_s(258), LCD_WIDTH, ui_s(22), UI_BG);
 	for (uint8_t i = 0; i < 6; ++i) {
-		gfx->fillCircle(90 + i * 12, 267, i == page ? 3 : 2,
+		gfx->fillCircle(ui_s(90) + i * ui_s(12), ui_s(267), i == page ? 3 : 2,
 			i == page ? UI_ACCENT : UI_MUTED);
 	}
 }
@@ -145,11 +157,11 @@ void ui_chrome(Arduino_GFX *gfx, const char *title, bool connected, uint8_t page
  */
 void ui_empty(Arduino_GFX *gfx, const char *title, const char *hint) {
 	ui_card(gfx, 66, 172);
-	gfx->drawRoundRect(96, 92, 48, 38, 12, UI_ACCENT);
-	gfx->fillCircle(109, 110, 3, UI_TEXT);
-	gfx->fillCircle(131, 110, 3, UI_TEXT);
-	ui_label(gfx, title, 28, 154, 184, 1, UI_TEXT);
-	ui_label(gfx, hint, 28, 181, 184, 1, UI_MUTED);
+	gfx->drawRoundRect(ui_s(96), ui_s(92), ui_s(48), ui_s(38), ui_s(12), UI_ACCENT);
+	gfx->fillCircle(ui_s(109), ui_s(110), 3, UI_TEXT);
+	gfx->fillCircle(ui_s(131), ui_s(110), 3, UI_TEXT);
+	ui_label(gfx, title, ui_s(28), ui_s(154), ui_s(184), 1, UI_TEXT);
+	ui_label(gfx, hint, ui_s(28), ui_s(181), ui_s(184), 1, UI_MUTED);
 }
 
 /**
@@ -161,29 +173,29 @@ void ui_empty(Arduino_GFX *gfx, const char *title, const char *hint) {
  */
 void ui_weather_icon(Arduino_GFX *gfx, int code, int16_t x, int16_t y) {
 	if (code < 0 || code > 7) {
-		gfx->drawCircle(x, y, 18, UI_MUTED);
-		ui_label(gfx, "?", x - 5, y - 8, 12, 2, UI_MUTED);
+		gfx->drawCircle(x, y, ui_s(18), UI_MUTED);
+		ui_label(gfx, "?", x - ui_s(5), y - ui_s(8), ui_s(12), 2, UI_MUTED);
 		return;
 	}
 	if (code == 0 || code == 1) {
-		gfx->fillCircle(x, y - 5, 12, UI_WARM);
-		for (int8_t dx : {-20, 20}) { gfx->drawFastHLine(x + dx - 3, y - 5, 6, UI_WARM); }
-		gfx->drawFastVLine(x, y - 27, 6, UI_WARM);
+		gfx->fillCircle(x, y - ui_s(5), ui_s(12), UI_WARM);
+		for (int8_t dx : {-20, 20}) { gfx->drawFastHLine(x + ui_s(dx) - ui_s(3), y - ui_s(5), ui_s(6), UI_WARM); }
+		gfx->drawFastVLine(x, y - ui_s(27), ui_s(6), UI_WARM);
 	}
 	if (code == 1) { return; }
 	if (code == 5 || code == 6 || code == 7) {
 		for (int8_t i = 0; i < 3; ++i) {
-			gfx->drawFastHLine(x - 22 + i * 3, y - 12 + i * 10, 40 - i * 4, UI_MUTED);
+			gfx->drawFastHLine(x - ui_s(22) + i * ui_s(3), y - ui_s(12) + i * ui_s(10), ui_s(40 - i * 4), UI_MUTED);
 		}
 		return;
 	}
-	gfx->fillCircle(x - 10, y, 10, UI_TEXT);
-	gfx->fillCircle(x + 2, y - 7, 14, UI_TEXT);
-	gfx->fillRoundRect(x - 20, y, 42, 12, 6, UI_TEXT);
+	gfx->fillCircle(x - ui_s(10), y, ui_s(10), UI_TEXT);
+	gfx->fillCircle(x + ui_s(2), y - ui_s(7), ui_s(14), UI_TEXT);
+	gfx->fillRoundRect(x - ui_s(20), y, ui_s(42), ui_s(12), ui_s(6), UI_TEXT);
 	if (code == 2 || code == 3) {
 		for (int8_t i = -1; i <= 1; ++i) {
-			if (code == 2) { gfx->fillCircle(x + i * 12, y + 22, 2, UI_ACCENT); }
-			else { gfx->drawLine(x + i * 12, y + 17, x + i * 12 - 3, y + 24, UI_ACCENT); }
+			if (code == 2) { gfx->fillCircle(x + i * ui_s(12), y + ui_s(22), 2, UI_ACCENT); }
+			else { gfx->drawLine(x + i * ui_s(12), y + ui_s(17), x + i * ui_s(12) - ui_s(3), y + ui_s(24), UI_ACCENT); }
 		}
 	}
 }

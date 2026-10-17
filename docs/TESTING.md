@@ -37,8 +37,9 @@ inside the panel, and the fit must not merge two names into one picture. Pages
 and menus are rebuilt per panel as well: the same suite compiled for 240x280,
 240x320, and 368x448 (through `-DLCD_HEIGHT` and `-DMOCHI_BOARD_AMOLED_18`)
 must render every carousel and tool page without a text overflow, keep the tab,
-row, grid, footer, desk-card, and timer taps landing on their widgets, and
-ignore the dead margin outside the 240x280 design field on a larger panel.
+row, grid, footer, desk-card, and timer taps landing on their widgets at the
+scaled coordinates, and ignore the dead strip below the scaled design field on
+a taller panel.
 Automatic-face tests cover random timing,
 restoration, sustained IMU thresholds, cooldowns, and version-one preference
 migration.

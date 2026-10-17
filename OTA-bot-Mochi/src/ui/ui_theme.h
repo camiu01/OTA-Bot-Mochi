@@ -8,11 +8,12 @@
 
 constexpr uint16_t UI_BG = 0x0000;
 /**
- * @brief Design field of the menu, desk, and tool widgets.
+ * @brief Design space of the menu, desk, and tool widgets.
  *
- * Widget geometry is fixed for the 240x280 reference panel, so larger panels
- * keep that field anchored at the top-left and taps outside it stay dead
- * instead of reaching a button that is not drawn there.
+ * Every widget is laid out in this 240x280 space and then scaled to the
+ * actual panel with ui_s(), so larger panels fill the screen instead of
+ * framing a small island with black margins. The 240x280 reference panel
+ * scales 1:1 and keeps the original pixel geometry.
  */
 constexpr int16_t UI_DESIGN_W = 240;
 constexpr int16_t UI_DESIGN_H = 280;
@@ -21,6 +22,25 @@ extern uint16_t UI_TEXT;
 extern uint16_t UI_MUTED;
 extern uint16_t UI_ACCENT;
 extern uint16_t UI_WARM;
+
+/** @brief Layout scale of the design space on this panel (percent, 100 on the reference). @return Scale percent, clamped 100..200. */
+int16_t ui_scale();
+/**
+ * @brief Scale one design-space length to the panel.
+ * @param value Length in 240x280 design pixels.
+ * @return Panel pixels.
+ */
+inline int16_t ui_s(int16_t value) { return int16_t(int32_t(value) * ui_scale() / 100); }
+/**
+ * @brief Text size for the current panel.
+ *
+ * Small labels and values grow one step on scaled-up panels so they do not
+ * drown inside the larger widgets; display sizes (clock, timer, distance)
+ * stay as tuned.
+ * @param size Design text size.
+ * @return Effective text size.
+ */
+inline uint8_t ui_text_size(uint8_t size) { return (size <= 3 && ui_scale() >= 140) ? uint8_t(size + 1) : size; }
 
 /** @brief Apply the eye color to text, icons, controls and tinted cards. @param color RGB565 eye color. */
 void ui_theme_color(uint16_t color);

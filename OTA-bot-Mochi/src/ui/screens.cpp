@@ -39,12 +39,14 @@ UiPage previous_page = UiPage::Eyes;
  */
 void paragraph(Arduino_GFX *gfx, const String &text, int16_t y,
 	uint8_t count, uint16_t color, uint8_t size = 1, uint8_t columns = 30) {
+	uint8_t fit = uint8_t((ui_s(184) - 4) / (6 * ui_text_size(size)));
+	if (columns > fit) { columns = fit; }
 	TextLines lines = wrap_text(ui_ascii(text).c_str(), columns);
-	int16_t pitch = int16_t(7 * size + 7);
+	int16_t pitch = ui_s(int16_t(7 * size + 7));
 	for (uint8_t i = 0; i < lines.count && i < count; ++i) {
 		String line = lines.line[i];
 		if (i + 1 == count && lines.count > count) { line = line.substring(0, columns - 3) + "..."; }
-		ui_label(gfx, line, 28, y + i * pitch, 184, size, color);
+		ui_label(gfx, line, ui_s(28), ui_s(y) + i * pitch, ui_s(184), size, color);
 	}
 }
 
@@ -60,17 +62,18 @@ void notification_screen(Arduino_GFX *gfx, uint32_t now) {
 	}
 	ui_card(gfx, 62, 152);
 	const Notification &n = cached.notification;
-	ui_label(gfx, n.app.length() ? n.app : tr(Text::Phone), 28, 70, 126, 2, UI_ACCENT);
-	ui_label(gfx, n.time, 164, 74, 48, 1, UI_MUTED);
+	ui_label(gfx, n.app.length() ? n.app : tr(Text::Phone), ui_s(28), ui_s(70), ui_s(126), 2, UI_ACCENT);
+	ui_label(gfx, n.time, ui_s(164), ui_s(74), ui_s(48), 1, UI_MUTED);
 	paragraph(gfx, n.title, 90, 2, UI_TEXT, 2, 15);
-	gfx->drawFastHLine(28, 134, 184, UI_MUTED);
-	TextLines lines = wrap_text(ui_ascii(n.message).c_str(), 15);
+	gfx->drawFastHLine(ui_s(28), ui_s(134), ui_s(184), UI_MUTED);
+	uint8_t columns = uint8_t((ui_s(184) - 4) / (6 * ui_text_size(2)));
+	TextLines lines = wrap_text(ui_ascii(n.message).c_str(), columns);
 	uint8_t pages = lines.count ? (lines.count + 2) / 3 : 1;
 	uint8_t page = ((uint32_t)(now - cached.notification_received) / 6000) % pages;
 	for (uint8_t i = 0; i < 3 && page * 3 + i < lines.count; ++i) {
-		ui_label(gfx, lines.line[page * 3 + i], 28, 142 + i * 21, 184, 2, UI_TEXT);
+		ui_label(gfx, lines.line[page * 3 + i], ui_s(28), ui_s(142) + i * ui_s(21), ui_s(184), 2, UI_TEXT);
 	}
-	ui_label(gfx, String(page + 1) + " / " + String(pages), 28, 234, 100, 1, UI_MUTED);
+	ui_label(gfx, String(page + 1) + " / " + String(pages), ui_s(28), ui_s(234), ui_s(100), 1, UI_MUTED);
 }
 
 /**
@@ -79,11 +82,11 @@ void notification_screen(Arduino_GFX *gfx, uint32_t now) {
  */
 void call_screen(Arduino_GFX *gfx) {
 	ui_card(gfx, 62, 152);
-	gfx->drawCircle(120, 95, 22, UI_WARM);
-	ui_label(gfx, tr(Text::CallTag), 108, 92, 30, 1, UI_WARM);
-	ui_label(gfx, tr(Text::Incoming), 28, 137, 184, 2, UI_TEXT);
+	gfx->drawCircle(ui_s(120), ui_s(95), ui_s(22), UI_WARM);
+	ui_label(gfx, tr(Text::CallTag), ui_s(96), ui_s(92), ui_s(48), 1, UI_WARM);
+	ui_label(gfx, tr(Text::Incoming), ui_s(28), ui_s(137), ui_s(184), 2, UI_TEXT);
 	paragraph(gfx, cached.caller.length() ? cached.caller : tr(Text::UnknownCaller), 172, 3, UI_WARM);
-	ui_label(gfx, tr(Text::AnswerPhone), 28, 226, 184, 1, UI_MUTED);
+	ui_label(gfx, tr(Text::AnswerPhone), ui_s(28), ui_s(226), ui_s(184), 1, UI_MUTED);
 }
 
 /**
@@ -99,17 +102,17 @@ void navigation_screen(Arduino_GFX *gfx) {
 	}
 	ui_card(gfx, 62, 98);
 	if (nav.hasIcon && cached.has_icon && cached.icon_crc == nav.iconCRC) {
-		gfx->drawBitmap(28, 80, cached.icon, 48, 48, UI_ACCENT);
+		gfx->drawBitmap(ui_s(28), ui_s(80), cached.icon, 48, 48, UI_ACCENT);
 	} else {
-		gfx->drawRoundRect(28, 80, 48, 48, 10, UI_MUTED);
-		ui_label(gfx, "...", 42, 101, 24, 1, UI_MUTED);
+		gfx->drawRoundRect(ui_s(28), ui_s(80), ui_s(48), ui_s(48), ui_s(10), UI_MUTED);
+		ui_label(gfx, "...", ui_s(42), ui_s(101), ui_s(24), 1, UI_MUTED);
 	}
-	ui_label(gfx, nav.title, 88, 80, 124, 2, UI_TEXT);
-	ui_label(gfx, nav.distance, 88, 110, 124, 1, UI_ACCENT);
-	ui_label(gfx, nav.speed, 88, 132, 124, 1, UI_MUTED);
+	ui_label(gfx, nav.title, ui_s(88), ui_s(80), ui_s(124), 2, UI_TEXT);
+	ui_label(gfx, nav.distance, ui_s(88), ui_s(110), ui_s(124), 1, UI_ACCENT);
+	ui_label(gfx, nav.speed, ui_s(88), ui_s(132), ui_s(124), 1, UI_MUTED);
 	ui_card(gfx, 174, 60);
 	paragraph(gfx, nav.directions, 178, 3, UI_TEXT);
-	ui_label(gfx, "ETA " + nav.eta + " / " + nav.duration, 28, 220, 184, 1, UI_MUTED);
+	ui_label(gfx, "ETA " + nav.eta + " / " + nav.duration, ui_s(28), ui_s(220), ui_s(184), 1, UI_MUTED);
 }
 
 /**
@@ -134,27 +137,27 @@ void weather_screen(Arduino_GFX *gfx, uint32_t now) {
 	}
 	const Weather &w = cached.weather[0];
 	ui_card(gfx, 62, 110);
-	ui_label(gfx, cached.city.length() ? cached.city : tr(Text::Weather), 28, 76, 184, 1, UI_ACCENT);
-	ui_label(gfx, String(w.temp) + "C", 28, 105, 132, 4, UI_TEXT);
-	ui_weather_icon(gfx, w.icon, 184, 124);
+	ui_label(gfx, cached.city.length() ? cached.city : tr(Text::Weather), ui_s(28), ui_s(76), ui_s(184), 1, UI_ACCENT);
+	ui_label(gfx, String(w.temp) + "C", ui_s(28), ui_s(105), ui_s(132), 4, UI_TEXT);
+	ui_weather_icon(gfx, w.icon, ui_s(184), ui_s(124));
 	ui_label(gfx, weather_stale(now, cached.weather_received) ? tr(Text::Stale) :
-		tr(Text::Updated) + cached.weather_time, 28, 151, 184, 1, UI_MUTED);
+		tr(Text::Updated) + cached.weather_time, ui_s(28), ui_s(151), ui_s(184), 1, UI_MUTED);
 	ui_card(gfx, 176, 50);
 	if (!cached.has_forecast) {
-		ui_label(gfx, tr(Text::ForecastPending), 28, 190, 184, 1, UI_MUTED);
+		ui_label(gfx, tr(Text::ForecastPending), ui_s(28), ui_s(190), ui_s(184), 1, UI_MUTED);
 		return;
 	}
 	for (uint8_t i = 0; i < cached.weather_count; ++i) {
 		const Weather &day = cached.weather[i];
-		int16_t x = 26 + i * 66;
-		ui_label(gfx, weekday(day.day), x, 186, 60, 1, UI_MUTED);
-		ui_label(gfx, String(day.high) + "/" + String(day.low), x, 206, 60, 1, UI_TEXT);
+		int16_t x = ui_s(int16_t(26 + i * 66));
+		ui_label(gfx, weekday(day.day), x, ui_s(186), ui_s(60), 1, UI_MUTED);
+		ui_label(gfx, String(day.high) + "/" + String(day.low), x, ui_s(206), ui_s(60), 1, UI_TEXT);
 	}
 }
 
 /** @brief Paint non-clock utility content. @param gfx Canvas. @param watch Clock. @param page Page. @param now Time. */
 void content(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, uint32_t now) {
-	gfx->fillRect(0, 52, LCD_WIDTH, 206, UI_BG);
+	gfx->fillRect(0, ui_s(52), LCD_WIDTH, ui_s(206), UI_BG);
 	if (overlay_active) { call_screen(gfx); }
 	else if (page == UiPage::Notification) { notification_screen(gfx, now); }
 	else if (page == UiPage::Navigation) { navigation_screen(gfx); }

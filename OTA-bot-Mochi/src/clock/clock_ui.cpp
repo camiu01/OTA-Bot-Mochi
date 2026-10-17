@@ -20,17 +20,18 @@ String previous[4];
  * @param gfx Canvas.
  * @param text New text.
  * @param index Cached field index.
- * @param y Top edge.
- * @param size Font scale.
+ * @param y Top edge in design space.
+ * @param size Design font scale.
  * @param color Foreground.
  * @return True if painted.
  */
 bool field(Arduino_GFX *gfx, const String &text, uint8_t index, int16_t y,
 	uint8_t size, uint16_t color) {
 	if (!invalidated && previous[index] == text) { return false; }
-	gfx->fillRect(24, y, LCD_WIDTH - 48, 8 * size + 4, UI_CARD);
-	int16_t width = text.length() * 6 * size;
-	ui_label(gfx, text, (LCD_WIDTH - width) / 2, y, width, size, color);
+	uint8_t eff = ui_text_size(size);
+	int16_t width = int16_t(text.length()) * 6 * eff;
+	gfx->fillRect(ui_s(24), ui_s(y), LCD_WIDTH - ui_s(48), ui_s(int16_t(8 * eff + 4)), UI_CARD);
+	ui_label(gfx, text, (LCD_WIDTH - width) / 2, ui_s(y), width, size, color);
 	previous[index] = text;
 	return true;
 }
@@ -58,7 +59,7 @@ bool clock_draw(Arduino_GFX *gfx, ChronosESP32 &watch, bool connected) {
 	bool changed = invalidated;
 	if (invalidated) {
 		ui_card(gfx, 62, 152);
-		ui_label(gfx, tr(ready ? Text::LocalTime : Text::PhoneSync), 28, 78, 180, 1, UI_ACCENT);
+		ui_label(gfx, tr(ready ? Text::LocalTime : Text::PhoneSync), ui_s(28), ui_s(78), ui_s(180), 1, UI_ACCENT);
 	}
 	String time = ready ? watch.getHourZ() + watch.getTime(":%M") : "--:--";
 	String seconds = ready ? watch.getTime(":%S") + " " + watch.getAmPmC() : tr(Text::Waiting);

@@ -149,12 +149,17 @@ The optional `-DMOCHI_BOARD_AMOLED_18` profile targets the Waveshare
 ESP32-S3-Touch-AMOLED-1.8 V2; `docs/BOARDS.md` lists its differences and the
 checks that still need the physical panel.
 
-Widgets keep a fixed 240x280 design field (`UI_DESIGN_W`/`UI_DESIGN_H` in
-`ui_theme.h`) on every panel. On a larger screen the field is anchored to the
-top-left corner: nothing scales or recenters, the eye pair uses the extra
-space, and taps outside the field stay dead instead of pressing buttons that
-the display does not draw (a margin tap on a 368x448 panel cannot save,
-exit, or flip tabs). The per-panel native suite proves this for both boards.
+Widgets are laid out in a 240x280 design space (`UI_DESIGN_W`/`UI_DESIGN_H` in
+`ui_theme.h`) and scaled to the actual panel with `ui_scale()`/`ui_s()`. The
+240x280 reference panel keeps the original pixel geometry 1:1; a larger panel
+grows the whole layout — header, cards, rows, tabs, footer, and the matching
+tap bands — so it fills the screen instead of framing a small island in a
+corner. Labels and values step one text size up via `ui_text_size()` on
+scaled-up panels so they do not drown inside the bigger widgets, while display
+sizes (clock, timer, distance) stay as tuned; doubled text outgrows the design
+boxes, so row label/value columns and the timer button row trade width in its
+favor only when `ui_scale() > 100`. The strip below the scaled design field
+stays dead, and the per-panel native suite proves the layout for both boards.
 
 Chronos is explicitly given the rectangular `CS_240x283_172_RTF` profile before
 BLE starts. ChronosESP32 1.9.1 has no exact 240x280/1.69-inch profile; this is its
