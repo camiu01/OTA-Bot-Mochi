@@ -50,17 +50,74 @@ public:
 		fillRect(x + w - 1, y, 1, h, color);
 	}
 	void fillRoundRect(int x, int y, int w, int h, int r, uint16_t color) { rounded(x, y, w, h, r, color); ++paints; }
-	template<class... T> void drawRoundRect(T...) { ++paints; }
+	/** @brief Outline a rounded rectangle: straight edges plus one corner band per quadrant. */
+	void drawRoundRect(int x, int y, int w, int h, int r, uint16_t color) {
+		if (w <= 0 || h <= 0) { ++paints; return; }
+		int m = w < h ? w : h;
+		if (r < 0) { r = 0; }
+		if (2 * r > m) { r = m / 2; }
+		if (w - 2 * r > 0) {
+			fillRect(x + r, y, w - 2 * r, 1, color);
+			fillRect(x + r, y + h - 1, w - 2 * r, 1, color);
+		}
+		if (h - 2 * r > 0) {
+			fillRect(x, y + r, 1, h - 2 * r, color);
+			fillRect(x + w - 1, y + r, 1, h - 2 * r, color);
+		}
+		for (uint8_t quadrant = 0; quadrant < 4; ++quadrant) {
+			int out_x = (quadrant & 1) ? 1 : -1;
+			int out_y = (quadrant & 2) ? 1 : -1;
+			int cx = x + ((quadrant & 1) ? w - 1 - r : r);
+			int cy = y + ((quadrant & 2) ? h - 1 - r : r);
+			for (int dy = -r; dy <= r; ++dy) {
+				if (dy * out_y < 0) { continue; }
+				for (int dx = -r; dx <= r; ++dx) {
+					if (dx * out_x < 0) { continue; }
+					int d2 = dx * dx + dy * dy;
+					if (d2 > r * r || d2 < (r - 1) * (r - 1)) { continue; }
+					pixel(cx + dx, cy + dy, color);
+				}
+			}
+		}
+		++paints;
+	}
 	void fillCircle(int x, int y, int r, uint16_t color) { ellipse(x, y, r, r, color); ++paints; }
 	void fillEllipse(int x, int y, int rx, int ry, uint16_t color) { ellipse(x, y, rx, ry, color); ++paints; }
 	void fillTriangle(int ax, int ay, int bx, int by, int cx, int cy, uint16_t color) {
 		triangle(ax, ay, bx, by, cx, cy, color); ++paints;
 	}
-	template<class... T> void drawCircle(T...) { ++paints; }
+	/** @brief Outline a circle through the radial band just inside the radius. */
+	void drawCircle(int x, int y, int r, uint16_t color) {
+		if (r < 0) { ++paints; return; }
+		if (!r) { pixel(x, y, color); ++paints; return; }
+		for (int dy = -r; dy <= r; ++dy) {
+			for (int dx = -r; dx <= r; ++dx) {
+				int d2 = dx * dx + dy * dy;
+				if (d2 > r * r || d2 < (r - 1) * (r - 1)) { continue; }
+				pixel(x + dx, y + dy, color);
+			}
+		}
+		++paints;
+	}
 	void drawLine(int ax, int ay, int bx, int by, uint16_t color) { line(ax, ay, bx, by, color); ++paints; }
-	template<class... T> void drawFastHLine(T...) { ++paints; }
-	template<class... T> void drawFastVLine(T...) { ++paints; }
-	template<class... T> void drawBitmap(T...) { ++paints; }
+	void drawFastHLine(int x, int y, int len, uint16_t color) {
+		if (len > 0) { fillRect(x, y, len, 1, color); }
+		++paints;
+	}
+	void drawFastVLine(int x, int y, int len, uint16_t color) {
+		if (len > 0) { fillRect(x, y, 1, len, color); }
+		++paints;
+	}
+	/** @brief Draw a row-major 1-bit bitmap. @param x Left. @param y Top. @param bitmap Bits. @param bw Width. @param bh Height. @param color Foreground. */
+	void drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t bw, int16_t bh, uint16_t color) {
+		int16_t stride = int16_t((bw + 7) / 8);
+		for (int16_t row = 0; row < bh; ++row) {
+			for (int16_t col = 0; col < bw; ++col) {
+				if (bitmap[int(row) * stride + col / 8] & (0x80 >> (col % 8))) { pixel(x + col, y + row, color); }
+			}
+		}
+		++paints;
+	}
 	void fillScreen(uint16_t color) { std::fill(pixels.begin(), pixels.end(), color); ++paints; }
 	void setFont(const void *) {}
 	void setTextSize(uint8_t scale) { size = scale; }
