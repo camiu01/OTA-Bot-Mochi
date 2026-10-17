@@ -152,9 +152,15 @@ faces fall back to their lid masks, which is why each one carries a distinct lid
 Style presets are tuned on the 240x280 reference panel (`EYE_REF_W`/`EYE_REF_H`).
 `eyes_init()` records the canvas size into `cfg.screenW`/`cfg.screenH`, and
 `eye_box()` recenters the pair on that canvas and scales every measure by the
-smaller axis ratio, bounded to 50..200 percent, so another panel keeps the same
-proportions instead of clipping. Eyes too short for pupils still draw their lid
-mask, which keeps half-closed names distinct on small panels.
+smaller axis ratio, bounded to 50..260 percent. Panels larger than the
+reference then reinvest `EYE_FILL_EXCESS` percent (default 50, `-D` overridable)
+of the extra ratio into the face so it does not shrink against the black
+gutters. The bonus is capped per style by `eye_scale()`: the nominal width plus
+the widest expression plus the minimum gap plus the full +/-20 px gaze range
+must fit the panel width, so a wide style such as BLOUB fills less than a
+narrow one instead of clipping its pupils during a gaze shift. Eyes too short
+for pupils still draw their lid mask, which keeps half-closed names distinct on
+small panels.
 
 ## Gaze and IMU
 

@@ -3,9 +3,11 @@
  * @brief Panel-adaptive eye geometry: centring, fit, and name uniqueness per panel.
  *
  * Style presets are tuned on the 240x280 reference panel, so other panels must
- * recenter the pair, scale it with the smaller axis, and never clip or collapse
- * two expressions into the same picture. Rendering runs on a native raster
- * substitute; it does not prove electrical behaviour on a real panel.
+ * recenter the pair, scale it with the smaller axis plus the large-panel fill
+ * bonus (capped so the widest expression keeps its full gaze range), and never
+ * clip or collapse two expressions into the same picture. Rendering runs on a
+ * native raster substitute; it does not prove electrical behaviour on a real
+ * panel.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
@@ -98,12 +100,15 @@ static bool panel(int16_t w, int16_t h, int16_t expect_scale) {
 /** @brief Run the panel fit proof on six panel geometries. @return Success. */
 int main() {
 	assert(settings_init());
-	// The fit uses the smaller axis, so a taller or wider panel never overflows
-	// the pair; 320x480 and 368x448 prove growth, the last two the 50 percent floor.
+	// The fit uses the smaller axis, so a taller or narrower panel never
+	// overflows the pair; larger panels then reinvest half of the extra ratio
+	// into the face (133 -> 154, 153 -> 192, capped to 189 by the MOCHI full
+	// gaze budget on 368x448). The last two sizes prove the 50 percent floor,
+	// where the fill bonus does not apply.
 	bool unique = panel(240, 280, 100);
 	unique = panel(240, 320, 100) && unique;
-	unique = panel(320, 480, 133) && unique;
-	unique = panel(368, 448, 153) && unique;
+	unique = panel(320, 480, 154) && unique;
+	unique = panel(368, 448, 189) && unique;
 	unique = panel(128, 160, 53) && unique;
 	unique = panel(160, 128, 50) && unique;
 	assert(unique);

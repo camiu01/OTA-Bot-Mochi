@@ -10,17 +10,47 @@ struct EyeBox { int16_t x, y, w, h, radius; bool left; };
 struct EyeLayout { EyeBox left, right; };
 constexpr int16_t EYE_REF_W = 240;	/**< Reference panel width the style presets were tuned on. */
 constexpr int16_t EYE_REF_H = 280;	/**< Reference panel height the style presets were tuned on. */
+#ifndef EYE_FILL_EXCESS
+#define EYE_FILL_EXCESS 50	/**< Percent of the extra panel ratio reinvested into the face. */
+#endif
 
 /** @brief Clamp a geometry value. @param value Input. @param low Min. @param high Max. @return Bounded. */
 inline int16_t eye_limit(int16_t value, int16_t low, int16_t high) {
 	return value < low ? low : (value > high ? high : value);
 }
 
-/** @brief Panel fit of an eye pair versus the 240x280 reference panel. @param cfg Config. @return Percent of reference size, bounded 50..200. */
+/**
+ * @brief Panel fit of an eye pair versus the 240x280 reference panel.
+ *
+ * @details The smaller axis sets the base ratio, so a taller or narrower panel
+ *          can never overflow the pair. Panels larger than the reference then
+ *          grow the face faster than the frame: EYE_FILL_EXCESS percent of the
+ *          ratio beyond 100 is reinvested into the eyes, because scaling with
+ *          the panel alone keeps the same share of black on a much bigger
+ *          screen. The result is then capped by the style's own horizontal
+ *          budget: its widest expression, minimum gap, and the full gaze
+ *          range must stay inside the panel, so a wide style such as BLOUB
+ *          fills less than a narrow one instead of clipping or losing gaze.
+ *          Host builds may override EYE_FILL_EXCESS with -D.
+ * @param cfg Config. @return Percent of reference size, bounded 50..260.
+ */
 inline int16_t eye_scale(const EyeConfig &cfg) {
 	int16_t sx = int16_t(cfg.screenW) * 100 / EYE_REF_W;
 	int16_t sy = int16_t(cfg.screenH) * 100 / EYE_REF_H;
-	return eye_limit(sx < sy ? sx : sy, 50, 200);
+	int16_t base = sx < sy ? sx : sy;
+	if (base > 100) {
+		int16_t fill = int16_t(100 + (base - 100) * EYE_FILL_EXCESS / 100);
+		base = int16_t(int32_t(base) * fill / 100);
+	}
+	// Widest expression: the largest symmetric delta is +12, asymmetric
+	// expressions add up to +6 on one side; the pair plus twice the gaze
+	// offset (40 reference pixels) must fit the panel width.
+	int16_t raw = int16_t(cfg.eyeW) + 12 + (cfg.asym ? 6 : 0);
+	int16_t nominal = eye_limit(raw, 20, 88);
+	int16_t widest = eye_limit(raw, 20, 92);
+	int16_t gap = eye_limit(cfg.eyeGap, 16, 48);
+	int16_t fit = int16_t(int32_t(cfg.screenW) * 100 / (nominal + widest + gap + 40));
+	return eye_limit(base < fit ? base : fit, 50, 260);
 }
 
 /** @brief One eye's expression-driven sizes in reference-panel pixels. */
