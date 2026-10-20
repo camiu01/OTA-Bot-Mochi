@@ -6,6 +6,7 @@
 #include "sound.h"
 #include "buzzer_output.h"
 #include "../settings/settings.h"
+#include "../../pin_config.h"
 #include <Arduino.h>
 
 namespace {
@@ -108,6 +109,7 @@ void sound_request_face(FaceTone tone, uint32_t now) {
 }
 /** @brief Service coherent events, keeping spontaneous sounds on idle eyes only. @param now Time. @param events Counters. @param eyesVisible Eyes context. @param resting Rest phase. @param done Timer end. */
 void sound_poll(uint32_t now, const UiPageEvents &events, bool eyesVisible, bool resting, bool done) {
+	if (attached && !buzzer_healthy()) { failed = true; stop(); }
 	if (events.notifications != notifications) { notifications = events.notifications; sound_request(SoundCue::Notification, now); }
 	if (events.calls != calls) { calls = events.calls; if (events.call_active) { sound_request(SoundCue::Call, now); } }
 	if (done && !last_done) { sound_request(SoundCue::Done, now); }
@@ -133,10 +135,15 @@ SoundStatus sound_status() {
 	const auto &p = settings_get();
 	if (!p.sound) { return SoundStatus::Off; }
 	if (p.night && p.sound_night_mute) { return SoundStatus::Night; }
-	return failed ? SoundStatus::Error : (attached ? SoundStatus::Ready : SoundStatus::Armed);
+	return (failed || (attached && !buzzer_healthy())) ? SoundStatus::Error :
+		(attached ? SoundStatus::Ready : SoundStatus::Armed);
 }
 
 const char *sound_status_name() {
+#if defined(MOCHI_BOARD_AMOLED_18)
+	static const char *names[] = {"off", "night-mute", "armed", "i2s-ready", "i2s-error"};
+#else
 	static const char *names[] = {"off", "night-mute", "armed", "pwm-ready", "pwm-error"};
+#endif
 	return names[uint8_t(sound_status())];
 }

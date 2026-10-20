@@ -20,6 +20,8 @@ try {
 		"$root\OTA-bot-Mochi\src\sound\buzzer_output.cpp" "$root\OTA-bot-Mochi\src\power\battery.cpp"
 	if ($LASTEXITCODE -ne 0) { throw 'AMOLED profile syntax check failed' }
 	$runtime = @(
+		"$root\OTA-bot-Mochi\src\bus\i2c_bus.cpp",
+		"$root\OTA-bot-Mochi\src\sound\es8311_output.cpp",
 		"$root\OTA-bot-Mochi\src\settings\settings.cpp",
 		"$root\OTA-bot-Mochi\src\settings\usb_commands.cpp",
 		"$root\OTA-bot-Mochi\src\power\battery.cpp",
@@ -47,8 +49,7 @@ try {
 	)
 	Invoke-HostTest 'swipe' @("$root\tests\swipe_test.cpp")
 	Invoke-HostTest 'ui' ($runtime + $ui)
-	Invoke-HostTest 'imu' ($runtime + @("$root\tests\imu_test.cpp", "$root\OTA-bot-Mochi\src\eyes\eyes_imu.cpp",
-		"$root\OTA-bot-Mochi\src\bus\i2c_bus.cpp"))
+	Invoke-HostTest 'imu' ($runtime + @("$root\tests\imu_test.cpp", "$root\OTA-bot-Mochi\src\eyes\eyes_imu.cpp"))
 	$settings = @("$root\tests\settings_test.cpp", "$root\OTA-bot-Mochi\src\settings\settings_menu.cpp",
 		"$root\tests\stubs\imu_noop.cpp")
 	Invoke-HostTest 'settings' ($runtime + $settings)
@@ -74,6 +75,10 @@ try {
 	$pwm = @("$root\tests\pwm_test.cpp", "$root\OTA-bot-Mochi\src\power\backlight.cpp", "$root\OTA-bot-Mochi\src\sound\buzzer_output.cpp")
 	Invoke-HostTest 'pwm-v3' $pwm
 	Invoke-HostTest 'pwm-v2' $pwm @('-DESP_ARDUINO_VERSION_MAJOR=2')
+	$codec = @("$root\tests\es8311_test.cpp", "$root\OTA-bot-Mochi\src\sound\buzzer_output.cpp",
+		"$root\OTA-bot-Mochi\src\sound\es8311_output.cpp", "$root\OTA-bot-Mochi\src\sound\sound.cpp",
+		"$root\OTA-bot-Mochi\src\bus\i2c_bus.cpp")
+	Invoke-HostTest 'es8311' $codec @('-DMOCHI_BOARD_AMOLED_18')
 	Write-Output 'All host tests passed'
 } finally {
 	Remove-Item -LiteralPath $output -Recurse -Force

@@ -60,10 +60,21 @@ void buzzer_end() {
 	digitalWrite(BUZZER, LOW);
 	ready = false;
 }
+#elif defined(MOCHI_BOARD_AMOLED_18)
+#include "es8311_output.h"
+bool buzzer_begin() { return es8311_begin(); }
+bool buzzer_write(uint16_t hz, uint8_t percent) { return es8311_write(hz, percent); }
+void buzzer_end() { es8311_end(); }
 #else
-// No PWM buzzer on this board: audio goes through a codec backend that does
-// not exist yet, so the sound service keeps reporting its failure state.
 bool buzzer_begin() { return false; }
 bool buzzer_write(uint16_t, uint8_t) { return false; }
 void buzzer_end() {}
 #endif
+
+bool buzzer_healthy() {
+#if defined(MOCHI_BOARD_AMOLED_18)
+	return es8311_healthy();
+#else
+	return true;
+#endif
+}

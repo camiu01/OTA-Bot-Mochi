@@ -5,6 +5,8 @@ root="$(cd "$(dirname "$0")/.." && pwd)"
 output="$(mktemp -d)"
 trap 'rm -rf "$output"' EXIT
 runtime=(
+	"$root/OTA-bot-Mochi/src/bus/i2c_bus.cpp"
+	"$root/OTA-bot-Mochi/src/sound/es8311_output.cpp"
 	"$root/OTA-bot-Mochi/src/settings/settings.cpp"
 	"$root/OTA-bot-Mochi/src/settings/usb_commands.cpp"
 	"$root/OTA-bot-Mochi/src/power/battery.cpp"
@@ -44,8 +46,7 @@ build_test ui "${runtime[@]}" \
 	"$root/OTA-bot-Mochi/src/settings/settings_menu.cpp" "$root/tests/stubs/imu_noop.cpp"
 build_test imu "${runtime[@]}" \
 	"$root/tests/imu_test.cpp" \
-	"$root/OTA-bot-Mochi/src/eyes/eyes_imu.cpp" \
-	"$root/OTA-bot-Mochi/src/bus/i2c_bus.cpp"
+	"$root/OTA-bot-Mochi/src/eyes/eyes_imu.cpp"
 build_test settings "${runtime[@]}" \
 	"$root/tests/settings_test.cpp" \
 	"$root/OTA-bot-Mochi/src/settings/settings_menu.cpp" \
@@ -73,4 +74,8 @@ build_test sound "${runtime[@]}" "$root/tests/sound_test.cpp" "$root/tests/stubs
 pwm=("$root/tests/pwm_test.cpp" "$root/OTA-bot-Mochi/src/power/backlight.cpp" "$root/OTA-bot-Mochi/src/sound/buzzer_output.cpp")
 build_test pwm-v3 "${pwm[@]}"
 build_test pwm-v2 -DESP_ARDUINO_VERSION_MAJOR=2 "${pwm[@]}"
+build_test es8311 -DMOCHI_BOARD_AMOLED_18 "$root/tests/es8311_test.cpp" \
+	"$root/OTA-bot-Mochi/src/sound/buzzer_output.cpp" \
+	"$root/OTA-bot-Mochi/src/sound/es8311_output.cpp" "$root/OTA-bot-Mochi/src/sound/sound.cpp" \
+	"$root/OTA-bot-Mochi/src/bus/i2c_bus.cpp"
 printf 'All host tests passed\n'

@@ -14,9 +14,12 @@ struct FakePwm { uint32_t frequency = 0, duty = 0; uint8_t resolution = 0, timer
 inline std::array<FakePwm, 8> test_pwm;
 inline std::array<int8_t, 50> test_pwm_pins = [] { std::array<int8_t, 50> pins{}; pins.fill(-1); return pins; }();
 inline std::array<uint32_t, 50> test_gpio_writes{};
+inline std::array<uint8_t, 50> test_gpio_levels{};
 inline bool test_pwm_fail = false;
 inline void pinMode(uint8_t, uint8_t) {}
-inline void digitalWrite(uint8_t pin, uint8_t) { if (pin < 50) { ++test_gpio_writes[pin]; } }
+inline void digitalWrite(uint8_t pin, uint8_t level) {
+	if (pin < 50) { ++test_gpio_writes[pin]; test_gpio_levels[pin] = level; }
+}
 inline bool ledcAttachChannel(uint8_t pin, uint32_t hz, uint8_t bits, uint8_t channel) {
 	if (test_pwm_fail || pin >= 50 || channel >= 8) { return false; }
 	bool used[4] = {};

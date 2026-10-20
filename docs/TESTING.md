@@ -67,6 +67,14 @@ plus the petting heart marker's dirty-region wipe and clamped placement.
 Mocks do not verify physical LCD rendering, BLE protocol interoperability, physical
 pin assignments, or electrical behavior.
 
+The AMOLED ES8311 suite also executes the codec register sequence and PCM
+worker against shared-bus/I2S doubles. It checks fixed-rate stereo output,
+pitch and amplitude bounds, continuous phase across DMA blocks, lazy startup,
+amplifier mute, command expiry across timestamp rollover, partial-init cleanup,
+task-allocation failures, DMA errors/short writes, and reuse after mute.
+Physical speaker audibility and loudness still require the bench test in
+`docs/SOUND.md`.
+
 ## Host LCD emulator (SDL2)
 
 `tools/run-emulator.sh` builds a native window that drives the same UI code the

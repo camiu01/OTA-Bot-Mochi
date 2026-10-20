@@ -55,6 +55,44 @@ channel numbers. Native core-2/core-3 tests check frequency isolation. PWM failu
 stop audio; there is no GPIO-HIGH fallback. Device status shows PWM state, not
 proof of physical sound.
 
+## AMOLED V2 speaker (ES8311)
+
+The Waveshare ESP32-S3-Touch-AMOLED-1.8 V2 uses an ES8311 codec at `0x18`,
+not a PWM buzzer. The same cues, switches, priority, cooldowns, night mute, and
+USB test commands drive its speaker when built with `MOCHI_BOARD_AMOLED_18`.
+Sound remains off by default; neither codec nor I2S is initialized until the
+first permitted cue. Merely enabling sound leaves the backend `armed`.
+
+The codec uses the existing shared I2C bus on SDA15/SCL14. Playback is
+16 kHz, signed 16-bit Philips I2S with identical left/right samples,
+MCLK=256× sample rate on GPIO16, BCLK=9, WS=45, and data out=8.
+GPIO46 enables the speaker amplifier only while a nonzero tone is requested.
+No RX channel is allocated and microphone data on GPIO10 is not captured.
+Initialization follows the
+[official V2 audio example](https://github.com/waveshareteam/ESP32-S3-Touch-AMOLED-1.8/tree/78e13f852929c2ab4f9d5e0ad1c50ea378dbf2b4/examples/arduino-v2/examples/15_ES8311).
+
+A dedicated task owns PCM generation and DMA writes with a 20 ms timeout;
+only the main task accesses I2C and settings. Commands expire after 100 ms
+without refresh, preventing a stuck tone if rendering stalls. Master/night
+mute immediately lowers the amplifier enable. Once first used, the worker
+and I2S channel remain allocated and stream silence while muted, avoiding
+repeated allocation and cross-task teardown.
+
+On this board the level is 1–30% PCM amplitude, not PWM duty or measured
+loudness; codec digital volume is fixed at the reference example's 85%.
+USB reports `i2s-ready` or `i2s-error`, not `pwm-ready`/`pwm-error`.
+The legacy `gpio=-1` field means there is no PWM buzzer, not that the codec
+is missing. Allocation, codec-write, DMA-timeout, and short-write failures
+mute output; disable/re-enable Sound before retrying. Readiness does not
+prove physical audibility, which still requires the bench test.
+
+On 2026-10-19 the AMOLED firmware built and uploaded with Arduino CLI 1.2.0,
+ESP32 core 3.3.12, and the library pins in `TESTING.md`. The device reported
+`ES8311 ready` and `i2s-ready` through two bench tests at level 10; the user
+confirmed audible tones and working horizontal swipes. The native suite passed.
+Volume-range calibration, physical master/night mute checks, and extended
+BLE/display/audio operation remain unverified. Test settings were RAM-only.
+
 ## Motion presets
 
 Settings → MOVE offers **calm**, **dasai**, and **playful**. All use smoother gaze

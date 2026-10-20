@@ -179,9 +179,15 @@ and will be performed by the user.
   1.69 OLD profile which must keep PSRAM disabled.
 - [ ] Bring up the AMOLED board physically in the order listed in
   `docs/BOARDS.md`; do not mark any of those checks complete from native runs.
-- [ ] Decide whether an ES8311 I2S sound backend and an AXP2101 battery driver
-  are worth implementing for the AMOLED board; until then sound reports its
-  failure state and the battery reads NOT MEASURED there.
+- [x] Implement opt-in ES8311/I2S speaker cues for the AMOLED V2 board using
+  the shared I2C bus, a bounded PCM worker, immediate amplifier mute, and
+  native codec/PCM/failure tests.
+- [x] Verify ES8311 bench-tone audibility at level 10 and working horizontal
+  swipes on the physical AMOLED V2 board (user-confirmed 2026-10-19).
+- [ ] Verify ES8311 volume range, master/night mute, and extended simultaneous
+  display/touch/BLE behavior on the physical AMOLED V2 board.
+- [ ] Implement an AXP2101 battery driver if needed; the AMOLED battery still
+  reads NOT MEASURED.
 
 See `docs/UI.md` and `docs/TESTING.md` for controls, dependency pins, native
 coverage, and the remaining physical validation checklist.

@@ -26,8 +26,8 @@ different touch wiring; it is not covered.
   through `backlight_bind_display()` into `setBrightness()` instead of LEDC.
 - **Module guards** keep behavior identical on the default board: the touch
   reset pulse, backlight PWM, buzzer LEDC, and battery ADC compile out when
-  their pin is `-1`; the sound service reports its normal failure state without
-  a buzzer, and the battery settles on NOT MEASURED without an ADC divider.
+  their pin is `-1`. The AMOLED board instead uses the ES8311/I2S audio
+  backend. Battery settles on NOT MEASURED without an ADC divider.
 - **Memory profile.** The AMOLED frame canvas is about 329 KB, so that profile
   compiles with `PSRAM=opi` (the board stacks 8 MB octal PSRAM). The 1.69 OLD
   board keeps `PSRAM=disabled`: OPI PSRAM claims GPIO33/35/36 there and caused
@@ -59,8 +59,11 @@ Both profiles run the same host suites; the AMOLED size is not a mock:
 
 ## What still needs the physical AMOLED board (unverified)
 
-The profile compiles, links, and passes every native check, but none of this
-has run on hardware yet. In bring-up order:
+The profile compiles, links, and passes every native check. On 2026-10-19 it
+also built and uploaded with ESP32 core 3.3.12: the device reported UI/IMU
+ready and touch at `0x15`; the user confirmed visible eyes, working horizontal
+swipes, and audible ES8311 bench tones at level 10. This is partial bring-up,
+not full validation of the checks below. In bring-up order:
 
 1. Expander reset release at `0x20`, then confirm the panel answers (any
    visible fill in `init_screen()`).
@@ -73,6 +76,8 @@ has run on hardware yet. In bring-up order:
 5. Brightness curve of `setBrightness()` and idle dimming visibility.
 6. Chronos metadata profile: version 1.9.1 has no 368x448 entry, so
    `CS_410x494_200_RTF` is used as the nearest rectangular one.
-7. Sound stays in its failure state until an ES8311 I2S backend exists; the
-   codec pins are reserved in `pin_config.h` [S11].
+7. ES8311 speaker playback: the opt-in backend uses the shared I2C bus and
+   TX-only 16 kHz I2S, with amplifier enable on GPIO46. Confirm audibility,
+   level, mute, and no touch/display interference using `sound test`;
+   native tests cannot establish physical sound. See `SOUND.md`.
 8. Battery/charging through the AXP2101 is not driven at all yet.

@@ -1,13 +1,15 @@
 /**
  * @file buzzer_output.h
- * @brief Lazy PWM/tone output; no GPIO access while sound has never been enabled.
+ * @brief Lazy board audio output: LCD PWM or AMOLED ES8311/I2S.
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #pragma once
 #include <stdint.h>
-/** @brief Attach existing buzzer pin to its owned PWM timer. @return Success. */
+/** @brief Initialize the board's audio backend, initially silent. @return Success. */
 bool buzzer_begin();
-/** @brief Emit frequency and bounded duty, or silence. @param hz Hertz. @param percent Duty 0..30. @return Success. */
+/** @brief Emit a bounded tone or silence. @param hz Hertz. @param percent PWM duty or PCM amplitude 0..30. @return Success. */
 bool buzzer_write(uint16_t hz, uint8_t percent);
-/** @brief Stop and detach only if previously attached. */
+/** @brief Stop/mute only if previously initialized; LCD PWM is detached. */
 void buzzer_end();
+/** @brief Observe asynchronous I2S transport errors; PWM errors are synchronous. @return Healthy. */
+bool buzzer_healthy();

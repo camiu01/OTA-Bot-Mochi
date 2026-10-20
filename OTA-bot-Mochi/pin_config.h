@@ -246,8 +246,8 @@
 /** @defgroup amoled AMOLED board extras
  *  @brief TCA9554 panel-reset expander and the ES8311 codec wiring.
  *  @details The expander must release the panel reset before display init or the
- *           screen stays silently black. The codec pins are reserved for a future
- *           I2S sound backend; sound reports an error until then.
+ *           screen stays silently black. The optional ES8311 backend uses
+ *           the shared I2C bus and TX-only I2S; GPIO46 enables its amplifier.
  *  @{
  */
 #define IO_EXPANDER_ADDR 0x20 /**< TCA9554 I2C address (A2/A1/A0 low) */
