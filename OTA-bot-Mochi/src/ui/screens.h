@@ -29,6 +29,8 @@ UiPage screens_scroll(UiPage page, int8_t scroll);
 
 /** @brief Force utility screen redraw on entry. */
 void screens_invalidate();
+/** @brief Act only on the displayed snapshot, ignoring taps overtaken by incoming data. @param action Newer (-1), dismiss (0), older (+1). */
+void screens_alert_action(int8_t action);
 /**
  * @brief Render changed utility content, respecting the dashboard call policy.
  * @param gfx Canvas.

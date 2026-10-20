@@ -114,6 +114,29 @@ static void heart_tests() {
 	}
 }
 
+/** @brief Semantic mood bodies reach all styles without changing the saved palette or leaving trails. */
+static void mood_color_tests() {
+	Arduino_GFX gfx;
+	for (uint8_t style = 0; style < 4; ++style) {
+		eyes_init(&gfx); eyes_set_style(static_cast<EyeStyle>(style));
+		eyes_set_eye_colors(0, 0xFFFF, 0xF800, 0x07E0);
+		for (Expression mood : {HAPPY, SAD, ANGRY, SLEEPY, SHY, FOCUSED}) {
+			uint16_t color = eye_mood_color(mood, 0xFFFF);
+			assert(color && color != 0xFFFF && color != 0xF800 && color != 0x07E0);
+			eyes_set_expression(mood);
+			eyes_draw();
+			assert(std::count(gfx.pixels.begin(), gfx.pixels.end(), color) > 0);
+			assert(eyes_config().fgColor == 0xFFFF);
+			auto dirty = gfx.pixels;
+			eyes_state().dirtyInit = false; eyes_draw();
+			assert(dirty == gfx.pixels);
+		}
+		eyes_set_expression(NEUTRAL); eyes_draw();
+		assert(std::count(gfx.pixels.begin(), gfx.pixels.end(), eye_mood_color(FOCUSED, 0xFFFF)) == 0);
+		assert(eye_mood_color(NEUTRAL, 0xFFFF) == 0xFFFF);
+	}
+}
+
 /** @brief Run palette, paint, and marker regressions. @return Success. */
 int main() {
 	assert(settings_init());
@@ -121,6 +144,7 @@ int main() {
 	plain_face_tests();
 	accent_paint_tests();
 	heart_tests();
+	mood_color_tests();
 	std::cout << "Expression accent palette, per-style paint, and petting marker passed\n";
 	return 0;
 }

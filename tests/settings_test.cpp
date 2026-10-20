@@ -248,7 +248,9 @@ static void menu_tests() {
 	test_save_fails = false;
 	assert(settings_menu_tap(160, 240) == MenuAction::Exit);
 	settings_menu_tap(210, 65);
+	assert(settings_menu_scroll(1));
 	assert(!settings_menu_scroll(1));
+	assert(settings_menu_scroll(-1));
 	settings_menu_tap(20, 100);
 	assert(settings_get().animation == 2);
 	settings_menu_tap(20, 140);

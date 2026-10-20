@@ -24,6 +24,8 @@
  */
 #include "eyes_api.h"
 #include "motion_filter.h"
+#include "imu_orientation.h"
+#include "imu_calibration_store.h"
 #include "eyes_faces.h"
 #include "../settings/settings.h"
 #include "../bus/i2c_bus.h"
@@ -108,10 +110,23 @@ void eyes_imu_init() {
 		break;
 	}
 	s_lastPoll = millis();
+	if (s_imuOk && imu_calibration_load(imu_orientation(), settings_get().flipped)) {
+		float sign = imu_orientation().applied ? -1.0f : 1.0f;
+		s_motion.calibrate(imu_orientation().gravity(0) * sign, imu_orientation().gravity(1) * sign, imu_orientation().gravity(2));
+		s_flipped = imu_orientation().applied;
+	}
 }
 
 /** @brief Report verified sensor initialization. @return Detected and configured successfully. */
 bool eyes_imu_ready() { return s_imuOk; }
+
+/** @brief Start a bounded stable calibration without blocking the main loop. @return IMU available. */
+bool eyes_imu_calibrate() {
+	if (!s_imuOk) { return false; }
+	imu_orientation().manual_at_calibration = settings_get().flipped;
+	imu_orientation().calibrate(millis(), imu_orientation().applied);
+	return true;
+}
 
 /**
  * @brief Set pupil offset from tilt in pixels.
@@ -145,6 +160,7 @@ void eyes_imu_trigger_shake(uint32_t nowMs) {
  * @param nowMs Value of millis() at call time.
  */
 void eyes_imu_poll(uint32_t nowMs) {
+	imu_orientation().tick(nowMs);
 	if (!s_imuOk) {
 		return;
 	}
@@ -161,12 +177,26 @@ void eyes_imu_poll(uint32_t nowMs) {
 	float fx = (float)ax / 2048.0f;
 	float fy = (float)ay / 2048.0f;
 	float fz = (float)az / 2048.0f;
+	auto &orientation = imu_orientation();
+	orientation.target(settings_get().flipped);
+	bool calibrated = orientation.sample(fx, fy, fz, nowMs);
+	if (orientation.status == ImuCalibration::Sampling) {
+		eyes_imu_set_tilt(0, 0);
+		return;
+	}
 	// A 180-degree mounting reverses the in-panel axes; re-baseline so gaze, mood
 	// deltas, and shake keep reading in the user's frame instead of the board's.
-	bool flipped = settings_get().flipped;
+	bool flipped = orientation.enabled && orientation.status == ImuCalibration::Ready ?
+		orientation.applied : settings_get().flipped;
 	if (flipped != s_flipped) {
 		s_flipped = flipped;
 		s_motion = MotionFilter{};
+	}
+	if (calibrated) {
+		orientation.persisted = imu_calibration_save(orientation);
+		orientation.save_failed = !orientation.persisted;
+		float sign = flipped ? -1.0f : 1.0f;
+		s_motion.calibrate(orientation.gravity(0) * sign, orientation.gravity(1) * sign, orientation.gravity(2));
 	}
 	if (flipped) {
 		fx = -fx;

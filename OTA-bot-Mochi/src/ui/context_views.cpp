@@ -149,6 +149,13 @@ void context_draw(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, const UiSn
 /** @brief Dispatch short parked-use utility taps without persisting session choices. @param page Page. @param x X. @param y Y. @param now Time. @return Target. */
 UiPage screens_tap(UiPage page, int16_t x, int16_t y, uint32_t now) {
 	if (x < 0 || x >= LCD_WIDTH || y < 0 || y >= LCD_HEIGHT) { return page; }
+	if (page == UiPage::Notification && y >= ui_s(224) && y < ui_s(256)) {
+		for (uint8_t i = 0; i < 3; ++i) {
+			int16_t left = ui_s(12 + i * 74);
+			if (x < left || x >= left + ui_s(68)) { continue; }
+			screens_alert_action(int8_t(i) - 1);
+		}
+	}
 	if (page == UiPage::Desk) {
 		for (uint8_t i = 0; i < 6; ++i) {
 			int16_t left = ui_s(i % 2 ? 126 : 6), top = ui_s(58 + (i / 2) * 64);

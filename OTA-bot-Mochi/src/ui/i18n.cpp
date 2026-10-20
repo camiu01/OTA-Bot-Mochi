@@ -49,7 +49,7 @@ static const Text expressions[EXPRESSION_COUNT] = {
 
 static_assert(uint8_t(Text::ExprNeutral) + EXPRESSION_COUNT - 1 == uint8_t(Text::ExprStargazing),
 	"Expression labels must stay contiguous to match Expression values");
-static_assert(uint8_t(Text::Count) < 250, "Text is stored in a uint8_t; the table is nearly full");
+static_assert(uint16_t(Text::Count) < 255, "Text must fit uint8_t with 255 reserved for invalid keys");
 
 /** @brief Localize an eye expression by its stable Expression value. @param index Expression value. @return Label, or "?" when out of range. */
 const char *tr_expression(uint8_t index) {

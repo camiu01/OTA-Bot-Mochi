@@ -192,6 +192,8 @@ void eyes_imu_init();
 
 /** @brief Report sensor detection and configuration. @return True when the IMU is usable. */
 bool eyes_imu_ready();
+/** @brief Start parked gaze/orientation calibration; a successful result is saved automatically. @return Sensor available. */
+bool eyes_imu_calibrate();
 
 /**
  * @brief Poll accelerometer, drive tilt and shake-to-dizzy.

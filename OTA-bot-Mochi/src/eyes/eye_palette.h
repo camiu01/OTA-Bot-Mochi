@@ -77,4 +77,35 @@ constexpr uint16_t eye_accent(Expression expr) {
 	}
 }
 
+/**
+ * @brief Semantic body colors for plain moods; neutral and decorated faces keep the selected palette.
+ * @param expr Visible expression. @param selected Configured body color.
+ * @return Render-only RGB565 color, never a saved setting or pupil/highlight test color.
+ */
+constexpr uint16_t eye_mood_color(Expression expr, uint16_t selected) {
+	switch (expr) {
+		case HAPPY: case MILD_HAPPY: case ARC_HAPPY: return eye_rgb(255, 211, 100);
+		case GLEE: case GRIN: case BEAMING: return eye_rgb(255, 176, 65);
+		case EXCITED: case HYPER: case MANIC: return eye_rgb(255, 126, 85);
+		case SAD: case SAD_DOWN: case ARC_SAD: return eye_rgb(95, 165, 235);
+		case SAD_UP: case GLUM: case MERCIFUL: return eye_rgb(100, 200, 235);
+		case ANGRY: case GRUMPY: case FRUSTRATED: return eye_rgb(245, 105, 65);
+		case FURIOUS: case ANNOYED: return eye_rgb(235, 65, 95);
+		case SLEEPY: case SLEEPY_EYES: case DOZE: return eye_rgb(150, 125, 215);
+		case TIRED: case LAZY: case GROGGY: return eye_rgb(125, 145, 205);
+		case SHY: case FLIRT: case KISS: return eye_rgb(245, 145, 185);
+		case SMIRK: case SMUG: case SASSY: case CHEEKY: return eye_rgb(220, 130, 225);
+		case WORRIED: case NERVOUS: case SCARED: return eye_rgb(155, 185, 245);
+		case TERRIFIED: case PANICKED: case SHOCKED: return eye_rgb(185, 145, 245);
+		case SURPRISED: case AWE: case WONDERING: return eye_rgb(110, 225, 235);
+		case FOCUSED: case CALCULATING: case CYBORG: return eye_rgb(95, 215, 185);
+		case CURIOUS: case CONFUSED: case QUESTION: return eye_rgb(180, 160, 245);
+		case DISGUSTED: case ZOMBIE: return eye_rgb(165, 205, 100);
+		case ZEN: case DAYDREAM: return eye_rgb(120, 220, 190);
+		case SKEPTIC: case SUSPICIOUS: case SIDE_EYE: case JUDGE: return eye_rgb(215, 185, 110);
+		case UNIMPRESSED: case DEADPAN: case SQUINT: return eye_rgb(145, 185, 205);
+		default: return selected;
+	}
+}
+
 #endif

@@ -8,3 +8,5 @@
 void eyes_imu_poll(uint32_t now) { (void)now; }
 /** @brief Report an intentionally absent sensor in UI-only tests. @return False. */
 bool eyes_imu_ready() { return false; }
+/** @brief Calibration cannot start without the fake sensor. @return False. */
+bool eyes_imu_calibrate() { return false; }

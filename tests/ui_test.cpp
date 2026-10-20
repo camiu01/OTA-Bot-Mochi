@@ -129,6 +129,43 @@ static void alert_tests(Arduino_GFX &gfx, ChronosESP32 &watch) {
 	assert(!screens_draw(&gfx, watch, UiPage::Eyes, test_now + 6099));
 }
 
+/** @brief Retain eight bounded alerts; browsing and dismissal stay local and do not create new events. */
+static void alert_history_tests(Arduino_GFX &gfx, ChronosESP32 &watch) {
+	while (ui_snapshot().has_notification) { ui_notification_dismiss(); }
+	for (uint8_t i = 0; i < 10; ++i) {
+		Notification n; n.title = String(i);
+		ui_notification(n);
+	}
+	uint32_t events = ui_page_events().notifications;
+	assert(ui_snapshot().notification_count == 8 && ui_snapshot().notification.title == "9");
+	screens_draw(&gfx, watch, UiPage::Notification, 0);
+	screens_tap(UiPage::Notification, ui_s(170), ui_s(235), 0);
+	assert(ui_snapshot().notification.title == "8");
+	screens_draw(&gfx, watch, UiPage::Notification, 1);
+	screens_tap(UiPage::Notification, ui_s(100), ui_s(235), 0);
+	assert(ui_snapshot().notification.title == "7" && ui_snapshot().notification_count == 7);
+	screens_draw(&gfx, watch, UiPage::Notification, 2);
+	screens_tap(UiPage::Notification, ui_s(30), ui_s(235), 0);
+	assert(ui_snapshot().notification.title == "9");
+	for (int i = 0; i < 20; ++i) { ui_notification_step(1); }
+	assert(ui_snapshot().notification.title == "2");
+	ui_notification_dismiss();
+	assert(ui_snapshot().notification.title == "3");
+	ui_connection(false);
+	assert(ui_snapshot().notification_count == 6);
+	while (ui_snapshot().has_notification) { ui_notification_dismiss(); }
+	ui_notification_step(-1); ui_notification_dismiss();
+	assert(!ui_snapshot().has_notification && ui_snapshot().notification_index == 0);
+	assert(ui_snapshot().notification.title.length() == 0);
+	assert(ui_page_events().notifications == events);
+	ui_notification(Notification{});
+	screens_draw(&gfx, watch, UiPage::Notification, 3);
+	ui_notification(Notification{});
+	screens_tap(UiPage::Notification, ui_s(100), ui_s(235), 0);
+	assert(ui_snapshot().notification_count == 2); // Never delete an unseen incoming alert.
+	ui_notification_dismiss(); ui_notification_dismiss();
+}
+
 /** @brief Check complete navigation icons and disconnect. @param gfx Canvas. @param watch Source. */
 static void navigation_tests(Arduino_GFX &gfx, ChronosESP32 &watch) {
 	watch.navigation.active = true;
@@ -359,6 +396,7 @@ int main() {
 	clock_tests(gfx, watch);
 	weather_tests(gfx, watch);
 	alert_tests(gfx, watch);
+	alert_history_tests(gfx, watch);
 	navigation_tests(gfx, watch);
 	screens_draw(&gfx, watch, UiPage::Settings, test_now + 6198);
 	assert(screens_draw(&gfx, watch, UiPage::Count, test_now + 6231));

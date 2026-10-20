@@ -56,6 +56,13 @@ class MotionFilter {
 	}
 
 public:
+	/** @brief Install a measured parked baseline and clear all motion history. @param x X g. @param y Y g. @param z Z g. */
+	void calibrate(float x, float y, float z) {
+		*this = MotionFilter{};
+		baseline[0] = x; baseline[1] = y; baseline[2] = z;
+		ready = true;
+	}
+
 	/**
 	 * @brief Filter a nominal 50ms sample; the first sample is the parked mounting reference.
 	 * @param x Acceleration in g.

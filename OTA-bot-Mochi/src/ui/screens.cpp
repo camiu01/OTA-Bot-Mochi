@@ -74,7 +74,15 @@ void notification_screen(Arduino_GFX *gfx, uint32_t now) {
 	for (uint8_t i = 0; i < 3 && page * 3 + i < lines.count; ++i) {
 		ui_label(gfx, lines.line[page * 3 + i], ui_s(28), ui_s(142) + i * ui_s(21), ui_s(184), 2, UI_TEXT);
 	}
-	ui_label(gfx, String(page + 1) + " / " + String(pages), ui_s(28), ui_s(234), ui_s(100), 1, UI_MUTED);
+	ui_label(gfx, String(cached.notification_index + 1) + "/" + String(cached.notification_count),
+		ui_s(166), ui_s(210), ui_s(48), 1, UI_MUTED);
+	static const char *arrows[] = {"<", nullptr, ">"};
+	for (uint8_t i = 0; i < 3; ++i) {
+		int16_t x = ui_s(12 + i * 74);
+		gfx->fillRoundRect(x, ui_s(224), ui_s(68), ui_s(32), ui_s(6), UI_CARD);
+		ui_label(gfx, arrows[i] ? arrows[i] : tr(Text::Dismiss), x + ui_s(6), ui_s(235), ui_s(56), 1, UI_TEXT);
+	}
+	ui_label(gfx, String(page + 1) + " / " + String(pages), ui_s(28), ui_s(210), ui_s(100), 1, UI_MUTED);
 }
 
 /**
@@ -170,6 +178,14 @@ void content(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, uint32_t now) {
 
 /** @brief Force repaint after a gesture. */
 void screens_invalidate() { invalidated = true; clock_invalidate(); }
+
+/** @brief Guard alert actions against asynchronous replacement of the visible entry. @param action Newer/dismiss/older. */
+void screens_alert_action(int8_t action) {
+	if (overlay_active) { return; }
+	if (action == 0) { ui_notification_dismiss(cached.revision); }
+	else { ui_notification_step(action, cached.revision); }
+	screens_invalidate();
+}
 
 /** @brief Expose the cached call flag to the eyes dispatcher. @return Call active. */
 bool screens_calling() { return overlay_active; }

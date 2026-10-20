@@ -19,6 +19,7 @@
 #include "pin_config.h"
 #include "src/eyes/eyes_api.h"
 #include "src/eyes/eyes_faces.h"
+#include "src/eyes/imu_orientation.h"
 #include "src/touch/touch.h"
 #include "src/clock/clock_ui.h"
 #include "src/ui/screens.h"
@@ -172,6 +173,7 @@ void init_screen() {
 	}
 	screen_ready = true;
 	applied_flip = settings_get().flipped;
+	imu_orientation().applied = applied_flip;
 	gfx->setRotation(applied_flip ? 2 : 0);
 	touch_set_flipped(applied_flip);
 	gfx->fillScreen(UI_BG);
@@ -199,6 +201,7 @@ void switch_screen(UiPage page, uint32_t now) {
  */
 void apply_display_flip(bool flip, uint32_t now) {
 	applied_flip = flip;
+	imu_orientation().applied = flip;
 	gfx->setRotation(flip ? 2 : 0);
 	touch_set_flipped(flip);
 	switch_screen(current_screen, now);
@@ -326,8 +329,10 @@ void loop() {
 	if (!screen_ready) { return; }
 	uint32_t now = millis();
 	handle_touch(now);
-	if (!touch_pressed() && settings_get().flipped != applied_flip) {
-		apply_display_flip(settings_get().flipped, now);
+	eyes_imu_poll(now);
+	bool flip = imu_orientation().target(settings_get().flipped);
+	if (!touch_pressed() && flip != applied_flip) {
+		apply_display_flip(flip, now);
 	}
 	handle_auto_page(now);
 	if (weather_sync_due(now, watch.isConnected(), watch.isSubscribed())) { watch.syncRequest(); }

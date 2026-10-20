@@ -44,6 +44,10 @@ This percentage is **brightness, not battery charge**.
 - Settings → LIGHT → **Screen flip** mounts the whole interface upside down
   for bottom-up installations. Touch targets and the IMU gaze follow the
   180-degree rotation, and the choice is saved with the profile.
+- Settings → MOVE → **IMU zero** calibrates the sensor while parked and still.
+  **Auto rotate** follows calibrated 180-degree turnovers, on every page.
+  Successful calibration is saved automatically and restored at boot; repeat
+  IMU zero to replace it. Only the Auto rotate switch is session-only.
 - Startup shows a silent 2.2-second OTA BOT / MOCHI title with opening/blinking
   eyes and a progress line. BLE, USB and touch polling continue; touch actions
   and automatic page changes wait until the intro ends. Mochi then greets with a
@@ -103,9 +107,16 @@ See [Settings](SETTINGS.md) for all touch controls, USB commands, and persistenc
   state before the first completed phone sync. Respects Chronos 12/24-hour mode.
   The local clock continues while disconnected; it needs resynchronization after
   a reboot. Only changed text fields are cleared and repainted.
-- **Alerts:** Latest app, timestamp, title, and wrapped message. Message pages
+- **Alerts:** A local history of the last eight alerts, newest first, with app,
+  timestamp, title, and wrapped message. The bottom **< / CLEAR / >** buttons
+  select a newer alert, remove the displayed local copy, or select an older alert.
+  The alert counter is separate from message pagination. Removing an alert selects
+  the next older entry, or the nearest newer entry at the end. Removing the last
+  alert shows the empty state. New arrivals select the newest alert; overflow
+  drops the oldest. No read/delete command is sent to the phone.
+  Message pages
   advance every six seconds and loop. Up to 1,024 message bytes are retained.
-  The latest alert remains visible after disconnection.
+  Browsing restarts the page timer. History survives disconnection but not reboot.
 - **Weather:** City, current temperature, vector condition icon, update time,
   and up to three daily high/low forecasts. Missing forecasts are separate from
   missing weather. Weather becomes stale three hours after receipt. The update
@@ -133,7 +144,10 @@ is a pair of mirrored, in-bounds trapezoids with no pupils. MOCHI/TRAPEZ also
 omit pupil highlights. Their love/dizzy reactions change the whole eye silhouette.
 Fourteen decorated faces also paint a fixed semantic accent over the configured
 palette — blue tears for crying, a rose heart for love, an orange flame, gold
-stars — while every other face keeps the selected eye color.
+stars. Plain mood families now also have semantic body colors: cheerful gold,
+sad blue, angry coral/red, sleepy lavender, affectionate pink, and focused mint.
+Neutral and unassigned moods retain the selected color. These are render-only
+colors: the UI palette, configured eye color, and saved profile do not change.
 Random and IMU mood options are described in [Settings](SETTINGS.md); they never
 change the saved base mood or style.
 
@@ -183,7 +197,8 @@ The IMU driver checks QMI8658 identity `0x05` at `0x6B` or `0x6A`, verifies
 configuration writes, enables only the accelerometer, and explicitly configures
 the range to ±16g at 125 Hz, matching the 2,048 LSB/g conversion. Hardware wiring,
 orientation, and real motion response still require the device checklist.
-The first valid sample is a mounting reference: power it on while parked.
+The saved calibration supplies the mounting reference. Without one, the first
+valid sample supplies a temporary gaze zero: power it on while parked.
 Smoothed relative acceleration moves the gaze by at most eight pixels with a
 small noise dead zone. Small idle motion is slower in dashboard mode.
 

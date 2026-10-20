@@ -16,6 +16,16 @@ uint8_t icon_parts = 0;
 uint32_t assembling_crc = 0;
 bool forecast_received = false;
 uint32_t forecast_at = 0;
+constexpr uint8_t ALERT_CAPACITY = 8;
+Notification alerts[ALERT_CAPACITY];
+
+/** @brief Refresh the selected alert while holding the state lock. */
+void select_alert() {
+	state.has_notification = state.notification_count != 0;
+	state.notification = state.has_notification ? alerts[state.notification_index] : Notification{};
+	state.notification_received = millis();
+	++state.revision;
+}
 
 /**
  * @brief Limit incoming text to a bounded amount of retained memory.
@@ -83,6 +93,9 @@ void ui_connection(bool connected) {
 void ui_notification(const Notification &notification) {
 	if (!lock) { return; }
 	xSemaphoreTake(lock, portMAX_DELAY);
+	if (state.notification_count < ALERT_CAPACITY) { ++state.notification_count; }
+	for (uint8_t i = state.notification_count - 1; i > 0; --i) { alerts[i] = alerts[i - 1]; }
+	state.notification_index = 0;
 	state.notification.app = bounded(notification.app, 64);
 	state.notification.title = bounded(notification.title, 160);
 	state.notification.message = bounded(notification.message, 1024);
@@ -90,8 +103,36 @@ void ui_notification(const Notification &notification) {
 	state.notification.icon = notification.icon;
 	state.notification_received = millis();
 	state.has_notification = true;
+	alerts[0] = state.notification;
 	++page_events.notifications;
 	++state.revision;
+	xSemaphoreGive(lock);
+}
+
+/** @brief Browse alerts without wrapping at either end. @param step Older (+) or newer (-). */
+void ui_notification_step(int8_t step, uint32_t expected_revision) {
+	if (!lock || !step) { return; }
+	xSemaphoreTake(lock, portMAX_DELAY);
+	if (expected_revision != UINT32_MAX && state.revision != expected_revision) { xSemaphoreGive(lock); return; }
+	if (step > 0 && state.notification_index + 1 < state.notification_count) { ++state.notification_index; }
+	else if (step < 0 && state.notification_index > 0) { --state.notification_index; }
+	select_alert();
+	xSemaphoreGive(lock);
+}
+
+/** @brief Dismiss only the selected local copy; never send a phone deletion command. */
+void ui_notification_dismiss(uint32_t expected_revision) {
+	if (!lock) { return; }
+	xSemaphoreTake(lock, portMAX_DELAY);
+	if (expected_revision != UINT32_MAX && state.revision != expected_revision) { xSemaphoreGive(lock); return; }
+	if (state.notification_count) {
+		for (uint8_t i = state.notification_index; i + 1 < state.notification_count; ++i) { alerts[i] = alerts[i + 1]; }
+		alerts[--state.notification_count] = Notification{};
+		if (state.notification_index >= state.notification_count) {
+			state.notification_index = state.notification_count ? state.notification_count - 1 : 0;
+		}
+		select_alert();
+	}
 	xSemaphoreGive(lock);
 }
 

@@ -1,199 +1,133 @@
 # TODO
 
-Checked software items are implemented and covered where possible by native
-tests. They do not imply that this firmware revision has passed an ESP32 build,
-upload, or device test. Those checks are reserved for the user.
+## Device status, user-confirmed on 2026-10-20
 
-## Historical working baseline (before this revision)
+The user reports that the functional checks on the Waveshare
+ESP32-S3-Touch-AMOLED-1.8 V2 work, except for some sounds. The completed device
+checks below record that report, not physical testing performed by the agent.
+Native tests separately cover portable logic and failure handling.
+This confirmation does not establish measurements, remote CI results, or
+validation of unimplemented hardware capabilities.
 
-- [x] Build and upload the firmware with Arduino CLI.
-- [x] Compile the eyes module from `src/eyes`.
-- [x] Update color constants for the installed Arduino GFX library.
-- [x] Buffer display rendering and limit updates to about 30 FPS.
-- [x] Add horizontal swipe navigation between screens.
-- [x] Verify smoother eyes and working swipe navigation on the device.
+### Chronos, clock, and connectivity
 
-## 1. Chronos pairing and clock
+- [x] Verify Chronos pairing, disconnection, reconnection, and synchronization.
+- [x] Display connection state, synchronized time/date, and 12/24-hour mode.
+- [x] Show waiting/offline states and keep the local clock running when disconnected.
+- [x] Verify the AMOLED device profile and Chronos operation.
 
-- [ ] Verify pairing, disconnection, and reconnection with the Chronos phone app.
-- [x] Display the current Bluetooth connection state.
-- [x] Replace the clock screen placeholder with synchronized time and date.
-- [x] Show a clear waiting state before the first time synchronization.
-- [x] Update the clock without clearing unrelated screen content.
+Chronos was initially reported working on 2026-10-12. The user confirmed all
+Chronos functionality and functional device checks on 2026-10-20.
 
-Chronos operation was reported working on the device by the user on 2026-10-12.
-Explicit disconnection/reconnection checks remain pending. The clock UI above is
-implemented, but firmware compilation, upload, and device validation are pending
-and will be performed by the user.
+### Notifications and calls
 
-## 2. Notifications and calls
+- [x] Display app, timestamp, title, wrapped message, and automatic pagination.
+- [x] Retain eight bounded local alerts with newer/older browsing and dismissal.
+- [x] Verify alert browsing, dismissal, empty state, and new arrivals.
+- [x] Show incoming calls and remove the overlay on dismissal/disconnection.
+- [x] Keep notification/caller payload logging disabled.
+- [x] Open Alerts on new notifications without repeated switches for ordinary updates.
 
-- [x] Display the notification app, title, and message.
-- [x] Handle long messages with wrapping and automatic pagination.
-- [x] Show incoming calls and clear them when dismissed.
-- [x] Show an empty state when there are no notifications.
-- [x] Disable full notification and caller logging by default.
+### Weather
 
-## 3. Weather
+- [x] Display city, current temperature, condition icon, and forecast highs/lows.
+- [x] Display update age and handle missing/stale weather.
+- [x] Preserve forecasts regardless of current/forecast packet order.
+- [x] Rate-limit phone synchronization and support manual refresh.
+- [x] Provide packet-counter diagnostics without logging location or payloads.
+- [x] Confirm weather works correctly on the physical AMOLED V2.
 
-- [x] Display city, temperature, and weather icon.
-- [x] Display forecast highs and lows.
-- [x] Show when weather data was last received.
-- [x] Handle missing or stale weather data.
-- [x] Preserve forecasts when current/forecast packets arrive in either order.
-- [x] Add rate-limited app synchronization after pairing and a manual refresh.
-- [x] Add USB packet-counter diagnostics without logging city/location or payloads.
-- [ ] **Priority: resolve weather on the physical device.** The user reported it
-  not working on 2026-10-13. Parser/sync changes are host-tested, not device-verified.
-  Check Chronos weather configuration, connectivity, permissions, and received
-  packet counters before claiming the problem fixed.
+The confirmation on 2026-10-20 supersedes the weather failure reported on
+2026-10-13; weather is no longer an open device issue.
 
-## 4. Navigation
+### Navigation
 
-- [x] Display turn directions, remaining distance, and ETA.
-- [x] Render the received turn icon only after complete packets and matching CRC.
-- [x] Show an inactive state when navigation ends.
-- [ ] Verify live updates while navigating with the phone.
-- [x] Add large essential navigation with a scaled 96x96 received icon.
-- [x] Keep temporary route format separate from the explicitly saved default.
-- [x] Open Alerts on new notifications and Route on real navigation start.
-- [x] Declare the nearest supported rectangular Chronos profile without changing
-  the physical 240x280 canvas.
-- [ ] Verify that Chronos refreshes its old round-device metadata after upload.
+- [x] Display turn directions, distance, ETA, and phone-supplied speed.
+- [x] Render only complete received icons with a matching CRC.
+- [x] Verify live phone navigation updates and inactive/disconnected states.
+- [x] Provide large/details layouts and separate session overrides from saved defaults.
+- [x] Automatically open Route on a real navigation start; preserve manual page choices on updates.
 
-## 5. Battery and power
+### IMU, eyes, touch, and controls
 
-- [ ] Verify the board's battery sensing and power-management hardware.
-- [x] Start battery percentage scaffolding: plausibility-gated `BAT_ADC` reading,
-  Device status row, and USB `show` battery line, reporting NOT MEASURED when the
-  divider/battery is absent or implausible.
-- [ ] Confirm the divider ratio and calibrate the percentage against a known pack;
-  native conversion tests are not physical validation.
-- [ ] Display charging state when supported by the hardware.
-- [x] Add adjustable backlight brightness.
-- [x] Add idle dimming and define how touch wakes the device, without stopping BLE.
+- [x] Verify QMI8658C detection, accelerometer operation, and gaze direction.
+- [x] Verify mounting-relative gaze, eye-pair roll, and shake-to-dizzy restoration.
+- [x] Calibrate from stable parked samples, with timeout/missing-sensor feedback.
+- [x] Automatically save successful calibration in a separate validated NVS record.
+- [x] Restore calibration at boot and allow replacement through IMU zero.
+- [x] Verify IMU calibration and the associated device checks.
+- [x] Verify upright/upside-down automatic rotation, manual fallback, and touch alignment.
+- [x] Poll IMU on every page and defer display rotation while touch is held.
+- [x] Verify swipe direction, edge touches, repeated gestures, and settings scrolling.
+- [x] Verify the eyes, colored mood families, animated performances, and display readability.
+- [x] Keep MOCHI/TRAPEZ solid and pupil-free; preserve BLOUB pupils/highlights.
+- [x] Verify gauge, glow, headlights, Pong controls, and analog-clock synchronization.
+- [x] Verify petting, double-tap, glance, Screen flip, status-bar mute, swipe-down home,
+  startup greeting, and USB reboot.
+- [x] Apply settings in RAM and persist the profile only on explicit SAVE.
+- [x] Preserve legacy settings migration and English/Italian labels.
+- [x] Rename the standard animation profile to Normal/Normale in the menu;
+  retain the stable `dasai` USB value.
+
+The IMU/functional confirmation above comes from the user. Corrupt records,
+unavailable storage, failed writes, sensor timeouts, raster bounds, and solid-eye
+exclusions are also covered by native tests, not claims of physical fault injection.
+Auto rotate's switch remains session-only; calibration itself is persistent.
+
+### AMOLED V2 board
+
+- [x] Add the CO5300 368x448 QSPI board profile, TCA9554 reset release,
+  controller brightness, CST820 touch path, and shared I2C ownership.
+- [x] Bring up the AMOLED V2 display, touch, IMU, and Chronos functionality.
+- [x] Record touch response at `0x15` and working horizontal swipes.
+- [x] Implement the ES8311/I2S speaker backend with bounded, non-blocking PCM.
+- [x] Confirm audible ES8311 bench tones at level 10 on 2026-10-19.
+- [x] Verify the other functional device controls on AMOLED V2; some audio remains faulty.
+
+## Open functional issue: AMOLED sounds
+
+- [ ] Fix the sounds that still do not work on the physical AMOLED V2.
+  Some cues are audible, so the speaker is not wholly nonfunctional.
+  Identify the failing cues and the relevant master/category/night-mute/level
+  settings before changing the ES8311 playback path.
+- [ ] Recheck the affected cues on the physical board after the fix, including
+  coexistence with display, touch, and BLE.
+
+## Remaining capabilities and engineering work
+
+These are not additional reported failures of the working Chronos/IMU/UI paths.
+
+### Battery, charging, and power measurements
+
+- [x] Add plausibility-gated battery ADC scaffolding and NOT MEASURED fallback.
+- [x] Add adjustable brightness and optional idle dimming with touch wake.
+- [ ] Implement an AXP2101 battery/charging driver for AMOLED V2 if needed;
+  the current firmware still reports NOT MEASURED without a supported ADC path.
+- [ ] Verify battery circuitry/divider calibration on applicable hardware and
+  add charging status when a supported driver exists.
 - [ ] Measure power consumption and battery runtime.
 
-## 6. IMU and hardware validation
+### Other boards and measured robustness
 
-- [x] Correct the IMU to the shared I2C bus (SDA=11, SCL=10) after the official
-  schematic showed QMI8658C on the touch/RTC bus and GPIO9/GPIO12 unconnected;
-  the previous SDA=12/SCL=9 mapping made startup report "IMU unavailable".
-- [x] Check IMU identity and acknowledged configuration; explicitly match range to scaling.
-- [ ] Verify QMI8658C detection, wiring, and accelerometer configuration.
-- [ ] Confirm that tilting the device moves the pupils in the expected direction.
-- [ ] Confirm the cornering gaze: the ±14 px clamp, the ±12/±16 px gains, the 0.1 g
-  recenter threshold, and the sign of the ±4 px eye-pair roll all depend on how the
-  board is mounted, so they need tuning on the actual mounting.
-- [ ] Confirm shake-to-dizzy activation and restoration of the previous expression.
-- [ ] Test swipe direction, edge touches, and repeated gestures on the device.
-- [ ] Verify all 118 expressions/animated moods on the physical LCD and AMOLED; native mocks only
-  prove bounds, symmetry, and distinctness.
-- [ ] Check the 21 original colored performances on both panels, including particle
-  erasure, six-second return cycles, visual comfort and worst-case frame time.
-- [ ] Physically check gauge needle readability, cycling glow colors and headlight
-  beam erasure/frame time on both panels. These are decorative, not vehicle instruments.
-- [ ] Physically validate Pong paddle taps, game pause/resume, and analog-clock
-  synchronization on both panels; native tests do not prove touch calibration.
-- [ ] Test framebuffer allocation failure and missing touch-controller handling.
-- [ ] Run an extended session with BLE connected and check for crashes or heap loss.
+- [x] Preserve the LCD 1.69 OLD pin assignments and single shared I2C controller.
+- [x] Keep PSRAM disabled on LCD 1.69 OLD: OPI claims GPIO33/35/36 and caused
+  continuous beeping and I2C crashes on 2026-10-13.
+- [x] Require OPI PSRAM for the AMOLED 368x448 canvas.
+- [x] Cover both board profiles and multiple panel geometries in native tests.
+- [ ] Repeat newly added eye/desk features and audio checks on the LCD OLD board;
+  AMOLED confirmation does not certify a different physical board.
+- [ ] Measure worst-case frame time and extended-session heap behavior.
+- [ ] Perform physical fault-injection checks if required; native failure tests
+  do not establish real allocation, bus, or storage failure behavior.
 
-## 7. Documentation and repeatable checks
+### Build, CI, and delivery
 
-- [x] Document Arduino CLI installation, dependencies, build, and upload commands.
-- [x] Document Linux serial-port permissions.
-- [x] Document supported touch addresses without asserting an unverified chip model.
-- [ ] Update the hardware documentation with the touch controller detected on the board.
-- [x] Correct README color examples to use the current `RGB565_*` constants.
-- [x] Add documented host-side swipe, UI, brightness, and IMU test commands.
-- [x] Record installed core/library versions and the proposed board profile.
-- [ ] Record the tested board options and library versions.
-- [x] Add automated firmware compilation and native tests as a GitHub Actions workflow.
-- [ ] Confirm the firmware CI job passes after publication.
-- [ ] Verify a different panel or board end to end: `LCD_WIDTH`/`LCD_HEIGHT` in
-  `pin_config.h` re-flow the layout macros and the eye pair (native tests cover
-  240x320, 320x480, 128x160, and 160x128 rasters), but the touch controller
-  resolution, the ST7789 offset tuple in the sketch, and the Chronos screen
-  profile remain hardware details that mocks cannot prove.
+- [x] Document Arduino CLI setup, dependency pins, build/upload commands, and native checks.
+- [x] Add GitHub Actions native checks, firmware compilation, and downloadable binaries.
+- [x] Document the AMOLED bring-up and user-reported board behavior.
+- [ ] Record the exact toolchain/board options used for the latest user device checks.
+- [ ] Confirm a green remote firmware CI run; local host tests do not prove remote CI.
+- [ ] Implement automatic OTA deployment if requested; binaries are not deployed automatically.
 
-## 8. Visual design
-
-- [x] Use shared dark cards, eye-color text/icons/controls, and screen dots.
-- [x] Enlarge touch targets, fill control gutters, and scroll larger settings rows vertically.
-- [x] Use consistent spacing and bounded text across all utility screens.
-- [x] In dashboard mode, keep calls on Alerts; optionally overlay other pages.
-- [x] Use neutral placeholders rather than inventing missing navigation or battery data.
-- [ ] Validate appearance, text readability, and touch controls on the physical LCD.
-
-## 9. Eyes, dashboard preferences, and desk tools
-
-- [x] Distinguish tall solid MOCHI, wide pupilled BLOUB, and mirrored solid TRAPEZ.
-- [x] Keep MOCHI/TRAPEZ pupil-free, including whole-eye love/dizzy silhouettes.
-- [x] Add bounded random/IMU reactions and a three-second random face on a short tap.
-- [x] Add blink-covered transitions, damped gaze, double blink, wink, glance,
-  curious lean, bounce/stretch, and nod; reduce intensity in dashboard/night modes.
-- [x] Add Clock's contextual menu: big clock, overview, local timer/Pomodoro,
-  and non-sensitive device status, without lengthening the six-page carousel.
-- [x] Add touch/USB settings and explicit NVS saves with legacy profile migration.
-- [x] Add English/Italian UI labels and saved language selection.
-- [x] Add petting affection reactions, double-tap playful faces, tap-directed
-  glances, and six-second extended petting on Eyes.
-- [x] Add the version-five Screen flip setting for 180-degree mounting, with the
-  canvas, touch coordinates, and IMU gaze following the rotation.
-- [x] Add a session-only status-bar sound toggle, a swipe-down quick return to
-  Eyes, a silent startup greeting, and a USB reboot verb.
-- [ ] Validate petting, double-tap, glance, Screen flip, status-bar mute,
-  swipe-down home, boot greeting, and USB reboot on the physical board.
-- [x] Validate the build memory profile on the physical board: OPI PSRAM is
-  rejected because it claims the OLD revision's buzzer (GPIO33) and
-  power-control (GPIO35/GPIO36) pins, causing continuous beeping and I2C
-  driver crashes; the shipped profile keeps PSRAM disabled.
-
-## 10. Buzzer and delivery
-
-- [x] Add opt-in, non-blocking PWM/tone cues on the board buzzer GPIO33.
-- [x] Add face tap/automatic reaction, timer/rest/end, notification/call, and
-  rate-limited spontaneous sound categories with separate switches.
-- [x] Default sound off; default automatic night mute on; bound the duty level.
-- [x] Keep audio/backlight PWM allocations separate; cover core 2/3 API branches
-  with host tests and stop silently on allocation/write failures.
-- [x] Add explicit AUDIO/USB bench tones and off/night-mute/PWM diagnostics.
-- [x] Add cached GitHub Actions builds and downloadable firmware artifacts.
-- [x] Correct the buzzer pin from GPIO34 to GPIO33, the `Buzz` net of the OLD
-  board schematic and the `beePin = 33` value in the official demo.
-- [ ] Verify buzzer audibility, pitch, duty level, and lack of backlight
-  interference on the actual OLD board before enabling sound in the car.
-- [ ] Confirm a green remote firmware CI run, then build/upload and validate the
-  full revision on the board. No current ESP32 build/upload has been performed.
-- [ ] Automatic OTA deployment and calibrated battery/charging remain deferred.
-
-## 11. Panels and boards
-
-- [x] Adapt eye geometry, lids, touch bounds, and the UI layout to other
-  panel sizes: eyes fill larger panels via `EYE_FILL_EXCESS` with a per-style
-  fit cap, and the widget design space scales with `ui_s()`; prove both on
-  240x280, 240x320, 320x480, 368x448, 128x160, and 160x128 rasters with the
-  native suite.
-- [x] Add the second build profile for the Waveshare ESP32-S3-Touch-AMOLED-1.8
-  V2 (`-DMOCHI_BOARD_AMOLED_18`): QSPI CO5300 368x448, TCA9554 reset release,
-  controller brightness, CST820 touch pins, capability guards for missing
-  backlight/buzzer/battery paths. See `docs/BOARDS.md` for the unverified
-  hardware checklist (panel orientation/MADCTL, touch mapping, shared-bus
-  membership, brightness curve, Chronos profile, ES8311 sound, AXP2101).
-- [ ] Compile the AMOLED profile with the pinned toolchain and review the
-  memory report: the 368x448 canvas needs PSRAM=opi (8MB octal), unlike the
-  1.69 OLD profile which must keep PSRAM disabled.
-- [ ] Bring up the AMOLED board physically in the order listed in
-  `docs/BOARDS.md`; do not mark any of those checks complete from native runs.
-- [x] Implement opt-in ES8311/I2S speaker cues for the AMOLED V2 board using
-  the shared I2C bus, a bounded PCM worker, immediate amplifier mute, and
-  native codec/PCM/failure tests.
-- [x] Verify ES8311 bench-tone audibility at level 10 and working horizontal
-  swipes on the physical AMOLED V2 board (user-confirmed 2026-10-19).
-- [ ] Verify ES8311 volume range, master/night mute, and extended simultaneous
-  display/touch/BLE behavior on the physical AMOLED V2 board.
-- [ ] Implement an AXP2101 battery driver if needed; the AMOLED battery still
-  reads NOT MEASURED.
-
-See `docs/UI.md` and `docs/TESTING.md` for controls, dependency pins, native
-coverage, and the remaining physical validation checklist.
+See `docs/UI.md`, `docs/SETTINGS.md`, `docs/BOARDS.md`, and `docs/TESTING.md`
+for behavior, board details, and reproducible checks.

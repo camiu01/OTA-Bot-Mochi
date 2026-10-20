@@ -18,6 +18,7 @@ struct UiSnapshot {
 	bool connected = false;
 	bool calling = false;
 	bool has_notification = false;
+	uint8_t notification_count = 0, notification_index = 0;
 	bool has_weather = false;
 	bool has_forecast = false;
 	bool has_icon = false;
@@ -48,6 +49,10 @@ UiPageEvents ui_page_events();
 void ui_connection(bool connected);
 /** @brief Store the latest alert. @param notification Received notification. */
 void ui_notification(const Notification &notification);
+/** @brief Browse retained alerts, newest first. @param step Positive selects older, negative newer. @param expected_revision Reject stale UI actions, or UINT32_MAX for an unconditional action. */
+void ui_notification_step(int8_t step, uint32_t expected_revision = UINT32_MAX);
+/** @brief Remove the displayed alert locally, then select the next retained alert. @param expected_revision Reject stale UI actions, or UINT32_MAX for an unconditional action. */
+void ui_notification_dismiss(uint32_t expected_revision = UINT32_MAX);
 /** @brief Store or clear an incoming call. @param caller Caller label. @param active Ringer state. */
 void ui_ringer(const String &caller, bool active);
 /**

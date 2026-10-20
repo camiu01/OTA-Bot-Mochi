@@ -8,6 +8,8 @@
 #include "../ui/ui_theme.h"
 #include "../ui/i18n.h"
 #include "../sound/sound.h"
+#include "../eyes/imu_orientation.h"
+#include "../eyes/eyes_api.h"
 #include "../../pin_config.h"
 
 namespace {
@@ -30,7 +32,7 @@ constexpr uint8_t GRID_ROWS_TOTAL = (EXPRESSION_COUNT + GRID_COLS - 1) / GRID_CO
 constexpr uint8_t GRID_MAX_FIRST = GRID_ROWS_TOTAL > GRID_ROWS ? GRID_ROWS_TOTAL - GRID_ROWS : 0;
 
 /** @brief Number of rows in the current panel. */
-uint8_t row_count() { return tab == 3 ? 2 : (tab == 4 && !sound_options ? 5 : (tab == 1 ? 5 : 4)); }
+uint8_t row_count() { return tab == 4 && !sound_options ? 5 : (tab == 1 ? 5 : 4); }
 
 /** @brief Close the grid and restore the tab rows. */
 void grid_close() { grid_open = false; grid_first_row = 0; first_row = 0; }
@@ -89,6 +91,8 @@ void change_row(uint8_t index) {
 	} else if (tab == 3) {
 		if (index == 0) { p.animation = (p.animation + 1) % 3; }
 		if (index == 1) { p.language = (p.language + 1) % 2; }
+		if (index == 2) { if (!eyes_imu_calibrate()) { imu_orientation().status = ImuCalibration::Failed; } return; }
+		if (index == 3) { imu_orientation().enabled = !imu_orientation().enabled; return; }
 	} else if (sound_options) {
 		if (index == 0) { p.sound_faces = !p.sound_faces; }
 		if (index == 1) { p.sound_timer = !p.sound_timer; }
@@ -131,7 +135,12 @@ void extra_rows(Arduino_GFX *gfx, const CompanionSettings &p) {
 	if (tab == 3) {
 		row(gfx, 0, tr(Text::Animation), tr_choice(3, p.animation));
 		row(gfx, 1, tr(Text::Language), p.language ? "Italiano" : "English");
-		ui_label(gfx, tr(Text::MotionHint), ui_s(24), ui_s(190), ui_s(192), 1, UI_MUTED);
+		ImuCalibration status = imu_orientation().status;
+		row(gfx, 2, tr(Text::CalibrateImu), tr(status == ImuCalibration::Sampling ? Text::Calibrating :
+			(status == ImuCalibration::Ready ? (imu_orientation().save_failed ? Text::Failed :
+				(imu_orientation().persisted ? Text::Saved : Text::Calibrated)) :
+				(status == ImuCalibration::Failed ? Text::Failed : Text::Calibrate))));
+		row(gfx, 3, tr(Text::AutoRotate), on_off(imu_orientation().enabled));
 	} else if (sound_options) {
 		row(gfx, 0, tr(Text::Faces), on_off(p.sound_faces));
 		row(gfx, 1, tr(Text::TimerLabel), on_off(p.sound_timer));
@@ -220,7 +229,7 @@ void settings_menu_draw(Arduino_GFX *gfx) {
 	ui_label(gfx, tr(tabs[tab]), ui_s(84), ui_s(58), ui_s(72), 1, UI_ACCENT);
 	ui_label(gfx, String(tab + 1) + "/5", ui_s(108), ui_s(74), ui_s(24), 1, UI_MUTED);
 	if (tab < 3) { basic_rows(gfx, p); } else { extra_rows(gfx, p); }
-	if (tab != 3) {
+	if (row_count() > 3) {
 		uint8_t max_scroll = row_count() - 3;
 		gfx->fillRect(ui_s(232), ui_s(92), ui_s(3), ui_s(128), UI_CARD);
 		gfx->fillRect(ui_s(232), ui_s(int16_t(92 + first_row * (128 - 60) / max_scroll)), ui_s(3), ui_s(60), UI_ACCENT);

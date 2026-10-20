@@ -103,6 +103,7 @@ void eyes_draw() {
 		drawing.tiltX = pose.x; drawing.tiltY = pose.y;
 	}
 	bool scene = cfg.expression == PONG || cfg.expression == GAUGE || eye_performance(cfg.expression);
+	cfg.fgColor = eye_mood_color(cfg.expression, cfg.fgColor);
 	uint32_t elapsed = eye_effect_elapsed(st, cfg.expression);
 	if (scene) { drawing = EyeState{}; }
 	EyeLayout layout = eye_layout(cfg, drawing);

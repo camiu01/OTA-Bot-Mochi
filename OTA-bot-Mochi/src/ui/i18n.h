@@ -24,6 +24,12 @@
 	X(CallTag, "CALL", "TEL") \
 	X(Quiet, "All quiet for now", "Nessuna notifica") \
 	X(AlertHint, "Alerts appear here", "Le notifiche appaiono qui") \
+	X(Dismiss, "CLEAR", "TOGLI") \
+	X(CalibrateImu, "IMU zero", "Zero IMU") \
+	X(Calibrating, "keep still", "fermo") \
+	X(Calibrate, "calibrate", "calibra") \
+	X(Calibrated, "ready", "pronto") \
+	X(AutoRotate, "Auto rotate", "Auto ruota") \
 	X(Phone, "PHONE", "TELEFONO") \
 	X(Incoming, "Incoming call", "Chiamata in arrivo") \
 	X(UnknownCaller, "Unknown caller", "Numero sconosciuto") \
@@ -240,7 +246,7 @@
 	X(ExprLookDown, "look down", "guarda giu") \
 	X(ExprStargazing, "stargazing", "cielo stellato") \
 	X(Calm, "calm", "calmo") \
-	X(Dasai, "dasai", "dasai") \
+	X(Dasai, "normal", "normale") \
 	X(Playful, "playful", "vivace") \
 	X(Sunday, "SUN", "DOM") \
 	X(Monday, "MON", "LUN") \

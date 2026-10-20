@@ -28,6 +28,8 @@ rows. Changes are live in RAM and do not write flash while browsing.
 | DRIVE | IMU mood | off / on |
 | MOVE | Animation | calm / dasai / playful |
 | MOVE | Language | English / Italiano |
+| MOVE | IMU zero | calibrate / keep still / SAVED / FAILED |
+| MOVE | Auto rotate | on / off, session-only, requires calibration |
 | AUDIO | Sound | off / on |
 | AUDIO | Level | PWM duty level, 1–30% by USB |
 | AUDIO | Night mute | on / off |
@@ -51,9 +53,51 @@ coordinates are mirrored to match, and the IMU gaze re-baselines so tilting
 still reads in the viewer's frame. The change applies immediately in RAM and
 persists only after SAVE; `set flip on|off` is the USB equivalent.
 
+### IMU calibration and automatic rotation
+
+With the device parked, first use **Screen flip** if needed so the screen is
+readable. Hold Mochi still in its normal upright mounting position, then choose
+**MOVE → IMU zero**. Twenty stable samples (about one second) establish a gaze
+zero and gravity reference. Movement restarts the average; after five seconds
+without a stable result it reports FAILED. A missing sensor also reports FAILED.
+Retry while still. Do not calibrate while driving. A successful calibration is
+saved automatically, including the first one; no separate SAVE is needed.
+Choose IMU zero again at any time to replace it with a new stable calibration.
+SAVED confirms persistence. FAILED also covers storage/write errors: the new
+reference can still work in RAM after a write error, but it was not saved.
+Failed sampling or saving never removes the previous saved record.
+
+**Auto rotate** defaults on, but has no effect until calibration succeeds.
+It compares gravity with the calibrated reference, so it does not assume the
+IMU chip's physical axis polarity. A stable upside-down pose for 600ms rotates
+the entire UI and touch mapping by 180 degrees; returning upright restores it.
+Sideways, flat, strong-acceleration, and interrupted sample sequences do not
+qualify. Calibrating flat cannot establish an in-panel up/down reference.
+Rotation waits until the finger is released. The IMU is polled on all pages,
+and the gaze re-baselines after rotation.
+
+The gravity reference and its display orientation live in a separate versioned,
+checksummed NVS record, tagged for the board profile. They are restored at boot
+for both gaze zero and automatic rotation. Missing, invalid, or unavailable
+storage leaves the manual Screen flip as the fallback until calibration succeeds.
+Identical calibration records skip the flash write. Ordinary sensor samples and
+automatic turnovers do not write flash. General settings SAVE/defaults do not
+overwrite the separate calibration.
+
+Only the **Auto rotate switch** remains session-only and defaults on after reboot.
+Changing Screen flip after calibration invalidates the active reference for that
+session, allowing a manual override and fresh calibration; the saved reference
+will be loaded again on reboot unless replaced by another successful calibration.
+Turning Auto rotate off returns to the manual Screen flip.
+Physical mounting, thresholds, and touch alignment still
+need validation on the AMOLED V2; no 90/270-degree layout is implemented.
+
 The background stays black. MOCHI and TRAPEZ are solid eyes without pupils or
 highlights; BLOUB has black pupils and white highlights, and NORMAL has black
-pupils. The selected color changes the eye bodies. This avoids bright full-screen
+pupils. Neutral and unassigned moods use the selected body color. Plain emotions
+use distinct semantic colors (gold for happy, blue for sad, coral/red for angry,
+lavender for sleepy, pink for affectionate, mint for focused), without changing
+the configured color or UI theme. This avoids bright full-screen
 background presets. Fourteen decorated faces (crying, love, fire, star, halo,
 devil, moon, sparkle, bolt, diamond, money, low battery, idea, music) additionally
 paint a fixed accent mark — blue tears, a rose heart, an orange flame — that no
@@ -166,7 +210,8 @@ Default firmware preferences:
 ## Automatic expressions
 
 Enable **Random mood** and/or **IMU mood** in DRIVE, then SAVE. They change
-expressions only, not the selected eye style or color.
+expressions only, not the selected eye style or saved color. Render-only mood
+colors follow the visible expression, including temporary reactions.
 
 Automatic reactions wait for the selected mood to complete a visible cycle:
 12 seconds for Gauge/Pong, 9.6 seconds for Glow, 3.6 seconds for Headlights,
