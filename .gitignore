@@ -17,6 +17,9 @@ artifacts/
 __pycache__/
 *.py[cod]
 
+# PlatformIO build output
+.pio/
+
 # Local emulator captures and security reports
 /tools/*.ppm
 /security-findings.json

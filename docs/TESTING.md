@@ -269,6 +269,24 @@ reserved for the user. GitHub Actions includes a firmware build job for future
 pushes; it has not been run during this change.
 See [GitHub Actions workflow](CI.md) for cached builds and downloadable artifacts.
 
+### PlatformIO alternative
+
+`platformio.ini` at the repository root mirrors both Arduino CLI profiles with
+`src_dir = OTA-bot-Mochi`, the same library pins (ESP32Time 2.0.6,
+NimBLE-Arduino 2.5.1, ChronosESP32 1.9.1, GFX Library for Arduino 1.6.9), and
+`espressif32 @ 8.0.0` (Arduino core 3.3.12, close to the CI pin 3.3.11):
+
+```sh
+pio run -e esp32s3-lcd      # Waveshare LCD-1.69 OLD, PSRAM disabled
+pio run -e esp32s3-amoled   # Waveshare AMOLED-1.8 V2, OPI PSRAM
+pio run -e esp32s3-amoled -t upload
+pio device monitor
+```
+
+Both environments were built successfully with PlatformIO 6.2.0 on 2026-10-20.
+Arduino CLI remains the CI and reference path; PlatformIO is an equivalent
+local alternative.
+
 ### Linux serial permissions
 
 Check the owner/group with `ls -l /dev/ttyACM0`. On distributions using `dialout`:

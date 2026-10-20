@@ -36,8 +36,36 @@ class FacePolicy {
 		affection = false;
 	}
 
-	/** @brief Start a bounded random reaction. @param now Time. @param choice Random input. @param tapped Explicit request. */
-	void random_reaction(uint32_t now, uint32_t choice, bool tapped) {
+	/**
+	 * @brief Map a dense index to every visible expression except the neutral default and dizzy.
+	 * @param index Index within EXPRESSION_COUNT - 2.
+	 * @return Selected expression.
+	 */
+	static Expression automatic_at(uint8_t index) {
+		return Expression(index < uint8_t(DIZZY) - 1 ? index + 1 : index + 2);
+	}
+
+	/**
+	 * @brief Start a bounded automatic reaction covering the whole expression set.
+	 * @param now Time.
+	 * @param choice Random input.
+	 */
+	void automatic_face(uint32_t now, uint32_t choice) {
+		static constexpr uint8_t pool_size = uint8_t(EXPRESSION_COUNT - 2);
+		uint8_t index = uint8_t(choice % pool_size);
+		Expression value = automatic_at(index);
+		while (value == base || value == previous || value == face) {
+			index = uint8_t((index + 1) % pool_size);
+			value = automatic_at(index);
+		}
+		face = previous = value; started = last_random = now;
+		duration = 3000; random_delay = 12000 + choice % 18001;
+		active = true; motion = false; manual = false; qualifying = false;
+		affection = false;
+	}
+
+	/** @brief Start a bounded random reaction from the curated tap pool. @param now Time. @param choice Random input. */
+	void random_reaction(uint32_t now, uint32_t choice) {
 		static const Expression pool[] = {
 			HAPPY, GLEE, FOCUSED, SKEPTIC, LOVE, AWE, SLEEPY_EYES,
 			EXCITED, GRIN, CURIOUS, WONDERING, STAR, SMUG, CONFUSED, SHY,
@@ -45,14 +73,13 @@ class FacePolicy {
 			MUSIC, IDEA, SQUISH, DERP, HYPER
 		};
 		react(now, choice, pool, uint8_t(sizeof(pool) / sizeof(pool[0])), 3000);
-		manual = tapped;
 	}
 
 public:
 	/** @brief Distinguish an automatic reaction from base/manual restoration. @return Automatic reaction. */
 	bool automatic() const { return active && !manual; }
 	/** @brief Trigger a temporary face even with automation off. @param now Time. @param choice Random input. */
-	void tap(uint32_t now, uint32_t choice) { random_reaction(now, choice, true); }
+	void tap(uint32_t now, uint32_t choice) { random_reaction(now, choice); }
 	/** @brief Trigger a playful double-tap face even with automation off. @param now Time. @param choice Random input. */
 	void play(uint32_t now, uint32_t choice) {
 		static const Expression pool[] = {
@@ -134,7 +161,7 @@ public:
 		}
 		if (!random_enabled) { last_random = now; }
 		if (ready && !active && random_enabled && uint32_t(now - last_random) >= random_delay) {
-			random_reaction(now, choice, false);
+			automatic_face(now, choice);
 		}
 		return active ? face : base;
 	}

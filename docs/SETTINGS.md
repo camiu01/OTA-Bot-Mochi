@@ -222,10 +222,13 @@ decorative tilt/gaze keeps running while automatic mood changes wait.
 
 - **Random:** The first change is after 12 seconds; subsequent intervals are
   12–30 seconds. Each reaction lasts three seconds and returns to the selected
-  base mood. The pool holds 27 choices (happy, glee, focused, skeptic, love, awe,
-  sleepy eyes, excited, grin, curious, wondering, star, smug, confused, shy,
-  sparkle, beaming, mild happy, smirk, daydream, cheeky, zen, music, idea,
-  squish, derp, hyper), avoiding the base mood and consecutive duplicates.
+  base mood. Automatic reactions draw from the whole expression set (every
+  expression except neutral and the special dizzy state), avoiding the base
+  mood and consecutive duplicates. Touch reactions keep a curated playful pool
+  of 27 choices (happy, glee, focused, skeptic, love, awe, sleepy eyes,
+  excited, grin, curious, wondering, star, smug, confused, shy, sparkle,
+  beaming, mild happy, smirk, daydream, cheeky, zen, music, idea, squish,
+  derp, hyper).
 - **IMU lateral axis:** A mount-relative X deflection of at least 0.25g in one
   direction for 350ms produces a brief skeptic expression.
 - **IMU longitudinal axis:** A mount-relative Y deflection of at least 0.25g

@@ -136,6 +136,17 @@ static void random_tests() {
 	policy.reset(HAPPY, UINT32_MAX - 6000);
 	assert(policy.update(6000, true, false, 0) != HAPPY);
 	assert(policy.update(9000, false, false, 0) == HAPPY);
+	// Automatic reactions span the whole expression set, never neutral or dizzy.
+	FacePolicy wide;
+	wide.reset(NEUTRAL, 0);
+	bool saw_dizzy = false, saw_neutral = false, saw_last = false;
+	for (uint32_t choice = 0; choice < uint32_t(EXPRESSION_COUNT) * 4; ++choice) {
+		Expression face = wide.update(12000 + choice * 30000, true, false, choice);
+		saw_dizzy = saw_dizzy || face == DIZZY;
+		saw_neutral = saw_neutral || face == NEUTRAL;
+		saw_last = saw_last || face == STARGAZING;
+	}
+	assert(!saw_dizzy && !saw_neutral && saw_last);
 }
 
 /** @brief IMU faces require sustained motion, not noise/one bump; random cannot interrupt them. */
