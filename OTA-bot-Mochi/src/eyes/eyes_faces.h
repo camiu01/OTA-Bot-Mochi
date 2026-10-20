@@ -9,6 +9,8 @@
 
 /** @brief Reset automatic moods after a manual selection. @param base Selected mood. */
 void eyes_faces_base(Expression base);
+/** @brief Allow automatic reactions only after the selected mood completes its visible cycle. @param now Timestamp. @return Ready for a new automatic reaction. */
+bool eyes_faces_automatic_ready(uint32_t now);
 /** @brief Map an expression to the chirp family matching its mood. @param expr Expression. @return Tone family. */
 FaceTone eyes_face_tone(Expression expr);
 /**

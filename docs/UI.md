@@ -38,12 +38,16 @@ This percentage is **brightness, not battery charge**.
   extend it up to six seconds. Petting never changes saved preferences,
   leaves Eyes, or opens Settings. Use vertical strokes; horizontal motion
   pages away.
-- Eyes has no header, so a small speaker glyph appears in its top-right
-  corner only while audio cannot sound (off, night-muted, or PWM failure).
+- Eyes has no header or audio-status icon, even when muted. Other pages keep
+  the speaker status in their header, with sound waves when enabled and a
+  cross when audio cannot sound.
 - Settings → LIGHT → **Screen flip** mounts the whole interface upside down
   for bottom-up installations. Touch targets and the IMU gaze follow the
   180-degree rotation, and the choice is saved with the profile.
-- On startup, Mochi greets with a brief three-second temporary face played
+- Startup shows a silent 2.2-second OTA BOT / MOCHI title with opening/blinking
+  eyes and a progress line. BLE, USB and touch polling continue; touch actions
+  and automatic page changes wait until the intro ends. Mochi then greets with a
+  brief three-second temporary face played
   silently; the selected mood returns automatically.
 - New notifications automatically open Alerts, including while a route is active.
   Starting actual phone navigation automatically opens Route. Regular route/icon

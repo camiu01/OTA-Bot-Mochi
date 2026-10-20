@@ -65,15 +65,22 @@ int main() {
 	CompanionSettings profile = settings_get();
 	profile.shake = true; profile.mood = 1;
 	settings_update(profile);
+	// The selected HAPPY face must finish its three visible seconds before shake can interrupt.
+	state.effectClockInit = true; state.effectExpression = HAPPY; state.effectStartMs = 0;
 	for (uint32_t now = 200; now <= 350; now += 50) {
 		axis(0x35, ((now / 50) % 2) ? -6144 : 6144);
 		eyes_imu_poll(now);
 	}
-	assert(config.expression == DIZZY && state.savedExpr == HAPPY && state.dizzyUntilMs == 2350);
-	eyes_imu_poll(400);
-	assert(state.dizzyUntilMs == 2350);
+	assert(config.expression == HAPPY && state.dizzyUntilMs == 0);
+	for (uint32_t now = 3200; now <= 3350; now += 50) {
+		axis(0x35, ((now / 50) % 2) ? -6144 : 6144);
+		eyes_imu_poll(now);
+	}
+	assert(config.expression == DIZZY && state.savedExpr == HAPPY && state.dizzyUntilMs == 5350);
+	eyes_imu_poll(3400);
+	assert(state.dizzyUntilMs == 5350);
 	i2c_bus().read_ok = false;
-	eyes_update(2350);
+	eyes_update(5350);
 	assert(state.dizzyUntilMs == 0 && config.expression == HAPPY);
 	assert(state.floatY >= -1 && state.floatY <= 1);
 	// A gentle sustained cornering load stays inside the old recenter window, so it used to

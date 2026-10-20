@@ -17,8 +17,10 @@ fi
 size_suffix=""
 size_flags=()
 args=()
+test_input=0
 while [[ $# -gt 0 ]]; do
 	case "$1" in
+		--test-input) test_input=1; shift ;;
 		--size)
 			if [[ $# -lt 2 || ! "$2" =~ ^[0-9]+x[0-9]+$ ]]; then
 				echo "--size expects WIDTHxHEIGHT, for example --size 240x320" >&2
@@ -35,6 +37,8 @@ done
 # Same sources as scripts/test-host.sh, but with the real renderer and backlight
 # instead of their test doubles, plus the SDL front end.
 runtime=(
+	"$root/OTA-bot-Mochi/src/bus/i2c_bus.cpp"
+	"$root/OTA-bot-Mochi/src/sound/es8311_output.cpp"
 	"$root/OTA-bot-Mochi/src/settings/settings.cpp"
 	"$root/OTA-bot-Mochi/src/settings/usb_commands.cpp"
 	"$root/OTA-bot-Mochi/src/settings/settings_menu.cpp"
@@ -60,11 +64,18 @@ runtime=(
 	"$root/tests/stubs/imu_noop.cpp"
 	"$root/tools/lcd_emulator.cpp"
 	"$root/tools/emulator_input.cpp"
+	"$root/tools/emulator_terminal.cpp"
 )
+
+if [[ "$test_input" == 1 ]]; then
+	size_suffix+="-input-test"
+	size_flags+=(-DMOCHI_EMULATOR_INPUT_TEST)
+	runtime+=("$root/tests/emulator_input_test.cpp")
+fi
 
 # shellcheck disable=SC2046
 binary="$output/lcd-emulator$size_suffix"
-inputs=("${runtime[@]}" "$root/OTA-bot-Mochi/pin_config.h" \
+inputs=("${runtime[@]}" "$root/tools/run-emulator.sh" "$root/OTA-bot-Mochi/pin_config.h" \
 	$(find "$root/OTA-bot-Mochi/src" "$root/tests/stubs" "$root/tools" -name '*.h'))
 rebuild=1
 if [[ -x "$binary" ]]; then

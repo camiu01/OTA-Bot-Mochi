@@ -149,7 +149,8 @@ static void navigation_tests(Arduino_GFX &gfx, ChronosESP32 &watch) {
 	screens_draw(&gfx, watch, UiPage::Navigation, test_now + 6165);
 	assert(!screens_keep_awake() && !ui_snapshot().navigation.active);
 	assert(std::find(gfx.text.begin(), gfx.text.end(), "No active route") != gfx.text.end());
-	ui_label(&gfx, "overflowing label", 220, 12, 18, 1);
+	int16_t labelWidth = 18 * ui_text_size(1); // Three glyph columns at the actual panel's text scale.
+	ui_label(&gfx, "overflowing label", gfx.width() - labelWidth - 2, 12, labelWidth, 1);
 	assert(gfx.text.back() == "...");
 	for (int i = 0; i < 9; ++i) { ui_weather_icon(&gfx, i, 180, 120); }
 }
@@ -215,9 +216,9 @@ static void context_tests(Arduino_GFX &gfx, ChronosESP32 &watch) {
 	assert(screens_scroll(UiPage::Clock, -1) == UiPage::Desk);
 	assert(screens_scroll(UiPage::Clock, 1) == UiPage::Clock);
 	assert(screens_scroll(UiPage::Desk, 1) == UiPage::Clock);
-	for (uint8_t i = 0; i < 4; ++i) {
+	for (uint8_t i = 0; i < 6; ++i) {
 		UiPage page = static_cast<UiPage>(uint8_t(UiPage::BigClock) + i);
-		assert(screens_tap(UiPage::Desk, i % 2 ? 200 : 20, 60 + (i / 2) * 100, 0) == page);
+		assert(screens_tap(UiPage::Desk, i % 2 ? 200 : 20, 60 + (i / 2) * 64, 0) == page);
 		assert(screens_parent(page) == UiPage::Clock);
 		assert(screens_swipe(page, 1) == UiPage::Navigation);
 		assert(screens_swipe(page, -1) == UiPage::Eyes);
@@ -226,7 +227,7 @@ static void context_tests(Arduino_GFX &gfx, ChronosESP32 &watch) {
 	}
 	assert(screens_tap(UiPage::Desk, 20, 70, 0) == UiPage::BigClock);
 	assert(screens_tap(UiPage::Desk, 200, 98, 0) == UiPage::Overview);
-	assert(screens_tap(UiPage::Desk, 239, 211, 0) == UiPage::Device);
+	assert(screens_tap(UiPage::Desk, 239, 211, 0) == UiPage::Desk);
 	assert(screens_tap(UiPage::Desk, 240, 98, 0) == UiPage::Desk);
 	assert(screens_tap(UiPage::Desk, 20, 252, 0) == UiPage::Desk);
 	assert(screens_tap(UiPage::Clock, 120, 250, 0) == UiPage::Clock);

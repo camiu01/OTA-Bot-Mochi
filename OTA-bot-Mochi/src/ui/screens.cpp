@@ -9,6 +9,7 @@
 #include "context_views.h"
 #include "view_state.h"
 #include "i18n.h"
+#include "context_play.h"
 #include "../clock/clock_ui.h"
 #include "../../pin_config.h"
 #include "../settings/settings.h"
@@ -201,7 +202,10 @@ bool screens_draw(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, uint32_t n
 	}
 	overlay_active = cached.calling && (!settings_get().dashboard || page == UiPage::Notification);
 	bool transition = page != previous_page || overlay_active != previous_call;
-	if (transition) { gfx->fillScreen(UI_BG); screens_invalidate(); }
+	if (transition) {
+		gfx->fillScreen(UI_BG); screens_invalidate();
+		if (page == UiPage::Pong) { desk_pong().last = now; }
+	}
 	previous_page = page;
 	previous_call = overlay_active;
 	if (page == UiPage::Eyes && !overlay_active) {
@@ -209,11 +213,11 @@ bool screens_draw(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, uint32_t n
 		invalidated = false;
 		return frame;
 	}
-	bool timer = (uint32_t)(now - last_refresh) >= 1000;
+	bool timer = (uint32_t)(now - last_refresh) >= (page == UiPage::Pong && !overlay_active ? 33U : 1000U);
 	if (!invalidated && !changed && !timer && page != UiPage::Clock) { return false; }
 	if (invalidated || changed || transition) {
 		static const Text titles[] = {Text::Eyes, Text::Clock, Text::Route, Text::Alerts, Text::Weather, Text::Settings,
-			Text::Desk, Text::BigClock, Text::Overview, Text::Timer, Text::Device};
+			Text::Desk, Text::BigClock, Text::Overview, Text::Timer, Text::Device, Text::Pong, Text::AnalogClock};
 		ui_chrome(gfx, tr(overlay_active ? Text::CallTitle : titles[uint8_t(page)]),
 			cached.connected, uint8_t(screens_parent(page)));
 		clock_invalidate();

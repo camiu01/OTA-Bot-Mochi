@@ -87,8 +87,14 @@ and will be performed by the user.
   board is mounted, so they need tuning on the actual mounting.
 - [ ] Confirm shake-to-dizzy activation and restoration of the previous expression.
 - [ ] Test swipe direction, edge touches, and repeated gestures on the device.
-- [ ] Verify all 88 eye styles and expressions on the physical LCD; native mocks only
+- [ ] Verify all 118 expressions/animated moods on the physical LCD and AMOLED; native mocks only
   prove bounds, symmetry, and distinctness.
+- [ ] Check the 21 original colored performances on both panels, including particle
+  erasure, six-second return cycles, visual comfort and worst-case frame time.
+- [ ] Physically check gauge needle readability, cycling glow colors and headlight
+  beam erasure/frame time on both panels. These are decorative, not vehicle instruments.
+- [ ] Physically validate Pong paddle taps, game pause/resume, and analog-clock
+  synchronization on both panels; native tests do not prove touch calibration.
 - [ ] Test framebuffer allocation failure and missing touch-controller handling.
 - [ ] Run an extended session with BLE connected and check for crashes or heap loss.
 

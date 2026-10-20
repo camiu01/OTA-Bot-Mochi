@@ -13,6 +13,7 @@
  */
 #include "../OTA-bot-Mochi/src/eyes/eyes_api.h"
 #include "../OTA-bot-Mochi/src/eyes/eye_geometry.h"
+#include "../OTA-bot-Mochi/src/eyes/eye_palette.h"
 #include "../OTA-bot-Mochi/src/settings/settings.h"
 #include <assert.h>
 #include <iostream>
@@ -28,6 +29,10 @@ static void render(Expression expression) {
 	eyes_set_expression(expression);
 	state.dirtyInit = false;
 	eyes_draw();
+	if (expression == PONG || expression == GAUGE || expression == GLOW || expression == HEADLIGHTS || expression >= DANCING) {
+		state.lastMs = state.effectStartMs + 3000;
+		eyes_draw();
+	}
 }
 
 /** @brief Measure the painted bounding box of the current frame. @param gfx Canvas. @return True when something was painted. */
@@ -92,7 +97,23 @@ static bool panel(int16_t w, int16_t h, int16_t expect_scale) {
 	assert(painted_box(gfx, x0, y0, x1, y1));
 	assert((x0 + x1) / 2 - w / 2 >= -2 && (x0 + x1) / 2 - w / 2 <= 2);
 	assert((y0 + y1) / 2 - h / 2 >= -2 && (y0 + y1) / 2 - h / 2 <= 2);
-	for (uint8_t style = 0; style < 4; ++style) { fit_checks(style, w, h); }
+	for (uint8_t style = 0; style < 4; ++style) {
+		fit_checks(style, w, h);
+		for (Expression expression : {LOVE, STAR}) {
+			render(expression);
+			EyeBox eye = eye_layout(eyes_config(), eyes_state()).left;
+			int16_t first = w, last = -1;
+			for (int y = eye.y; y < eye.y + eye.h; ++y) {
+				for (int x = eye.x; x < eye.x + eye.w; ++x) {
+					if (gfx.pixels[size_t(y) * w + x] != eye_accent(expression)) { continue; }
+					if (x < first) { first = int16_t(x); }
+					if (x > last) { last = int16_t(x); }
+				}
+			}
+			int16_t size = eye.w < eye.h ? eye.w : eye.h;
+			assert(last - first + 1 >= (size - 4) * 8 / 10);
+		}
+	}
 	bool unique = unique_checks(gfx, MOCHI);
 	return unique_checks(gfx, BLOUB) && unique;
 }

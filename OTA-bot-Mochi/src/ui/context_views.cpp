@@ -9,6 +9,7 @@
 #include "text_layout.h"
 #include "i18n.h"
 #include "weather_sync.h"
+#include "context_play.h"
 #include "../sound/sound.h"
 #include "../clock/clock_ui.h"
 #include "../eyes/eyes_api.h"
@@ -40,16 +41,16 @@ struct TimerRow { int16_t reset_w, mode_x, mode_w, split; };
 TimerRow timer_row() {
 	return ui_scale() > 100 ? TimerRow{78, 96, 138, 90} : TimerRow{108, 126, 108, 120};
 }
-/** @brief Render desk hub as four large grid cards. @param gfx Canvas. */
+/** @brief Render six tools in a two-column, three-row grid. @param gfx Canvas. */
 void hub(Arduino_GFX *gfx) {
-	static const Text labels[] = {Text::BigClock, Text::Overview, Text::TimerMenu, Text::Device};
+	static const Text labels[] = {Text::BigClock, Text::Overview, Text::TimerMenu, Text::Device, Text::Pong, Text::AnalogClock};
 	uint8_t columns = uint8_t((ui_s(88) - 4) / (6 * ui_text_size(1)));
-	for (uint8_t i = 0; i < 4; ++i) {
+	for (uint8_t i = 0; i < 6; ++i) {
 		int16_t x = ui_s(i % 2 ? 126 : 6);
-		int16_t y = ui_s(int16_t(58 + (i / 2) * 98));
-		gfx->fillRoundRect(x, y, ui_s(108), ui_s(92), ui_s(14), UI_CARD);
+		int16_t y = ui_s(int16_t(58 + (i / 2) * 64));
+		gfx->fillRoundRect(x, y, ui_s(108), ui_s(58), ui_s(10), UI_CARD);
 		TextLines lines = wrap_text(tr(labels[i]), columns);
-		int16_t top = y + ui_s(50) - int16_t(lines.count ? lines.count : 1) * ui_s(8);
+		int16_t top = y + ui_s(32) - int16_t(lines.count ? lines.count : 1) * ui_s(8);
 		for (uint8_t l = 0; l < lines.count && l < 2; ++l) {
 			ui_label(gfx, lines.line[l], x + ui_s(10), top + l * ui_s(16), ui_s(88), 1, UI_TEXT);
 		}
@@ -141,13 +142,25 @@ void context_draw(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, const UiSn
 	if (page == UiPage::Overview) { overview(gfx, watch, data, now); }
 	if (page == UiPage::Timer) { timer_screen(gfx); }
 	if (page == UiPage::Device) { device(gfx, data); }
+	if (page == UiPage::Pong) { desk_pong_draw(gfx, now); }
+	if (page == UiPage::AnalogClock) { desk_analog_draw(gfx, watch); }
 }
 
 /** @brief Dispatch short parked-use utility taps without persisting session choices. @param page Page. @param x X. @param y Y. @param now Time. @return Target. */
 UiPage screens_tap(UiPage page, int16_t x, int16_t y, uint32_t now) {
 	if (x < 0 || x >= LCD_WIDTH || y < 0 || y >= LCD_HEIGHT) { return page; }
-	if (page == UiPage::Desk && y >= ui_s(52) && y < ui_s(252)) {
-		return static_cast<UiPage>(uint8_t(UiPage::BigClock) + ((y - ui_s(52)) / ui_s(100)) * 2 + (x >= ui_s(120)));
+	if (page == UiPage::Desk) {
+		for (uint8_t i = 0; i < 6; ++i) {
+			int16_t left = ui_s(i % 2 ? 126 : 6), top = ui_s(58 + (i / 2) * 64);
+			if (x >= left && x < left + ui_s(108) && y >= top && y < top + ui_s(58)) {
+				return static_cast<UiPage>(uint8_t(UiPage::BigClock) + i);
+			}
+		}
+	}
+	if (page == UiPage::Pong) {
+		if (y >= ui_s(82) && y < ui_s(210)) { desk_pong().move(float(y - ui_s(82)) * 160 / ui_s(128)); }
+		if (y >= ui_s(236) && y < ui_s(258)) { desk_pong().reset(now); }
+		screens_invalidate();
 	}
 	if (page == UiPage::Timer) {
 		if (y >= ui_s(152) && y < ui_s(208)) { view_timer().toggle(now); screens_invalidate(); }

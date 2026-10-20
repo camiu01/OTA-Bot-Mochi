@@ -22,6 +22,8 @@ extern bool console_prompt;
 namespace {
 bool console = false;
 std::string console_line;
+std::string terminal_line;
+bool terminal_overflow = false, terminal_cr = false;
 
 /** @brief Advance the synthetic flick one contact sample at a time. */
 void advance_flick() {
@@ -40,12 +42,31 @@ void begin_flick(int8_t dir) {
 	flick_left = 4;
 }
 
-/** @brief Translate a window coordinate into logical LCD pixels. @param renderer Renderer. @param wx Window X. @param wy Window Y. @param x Output X. @param y Output Y. */
-void window_to_lcd(SDL_Renderer *renderer, int wx, int wy, int16_t &x, int16_t &y) {
-	float lx = 0, ly = 0;
-	SDL_RenderWindowToLogical(renderer, float(wx), float(wy), &lx, &ly);
-	x = int16_t(lx < 0 ? 0 : (lx > LCD_W - 1 ? LCD_W - 1 : lx));
-	y = int16_t(ly < 0 ? 0 : (ly > LCD_H - 1 ? LCD_H - 1 : ly));
+/** @brief Clamp SDL's already-logical event coordinates. @param lx Logical X. @param ly Logical Y. */
+void logical_position(int lx, int ly) {
+	finger_x = int16_t(lx < 0 ? 0 : (lx >= LCD_W ? LCD_W - 1 : lx));
+	finger_y = int16_t(ly < 0 ? 0 : (ly >= LCD_H ? LCD_H - 1 : ly));
+}
+
+/** @brief Preserve every mouse contact transition, including clicks within one poll batch. @param event SDL logical event. */
+void mouse_contact(const SDL_Event &event) {
+	if (event.type == SDL_MOUSEBUTTONDOWN) {
+		if (event.button.button != SDL_BUTTON_LEFT || event.button.x < 0 ||
+			event.button.y < 0 || event.button.x >= LCD_W || event.button.y >= LCD_H) { return; }
+		flick_left = 0; flick_dir = 0;
+		finger = true;
+		logical_position(event.button.x, event.button.y);
+	} else if (event.type == SDL_MOUSEBUTTONUP) {
+		if (event.button.button != SDL_BUTTON_LEFT || !finger) { return; }
+		logical_position(event.button.x, event.button.y);
+		// Track release movement before lifting, even if SDL supplied no motion event.
+		sample_touch(test_now); handle_touch(test_now);
+		finger = false;
+	} else if (event.type == SDL_MOUSEMOTION && finger) {
+		logical_position(event.motion.x, event.motion.y);
+	} else { return; }
+	sample_touch(test_now);
+	handle_touch(test_now);
 }
 
 /** @brief Open the USB console with a fresh prompt. */
@@ -90,6 +111,22 @@ void handle_key(SDL_Keycode key, bool &running) {
 		UiPage::Notification, UiPage::Weather, UiPage::Settings, UiPage::Desk};
 	if (key >= SDLK_0 && key <= SDLK_6) { switch_screen(jump[key - SDLK_0], test_now); }
 }
+}
+
+void terminal_character(char c) {
+	if (c == '\n' && terminal_cr) { terminal_cr = false; return; }
+	terminal_cr = c == '\r';
+	if (c == '\r' || c == '\n') {
+		if (terminal_overflow) { std::fputs("ERROR, command too long\n", stdout); }
+		else if (!terminal_line.empty()) { Serial.input += terminal_line + "\n"; }
+		terminal_line.clear();
+		terminal_overflow = false;
+	} else if (c == '\b' || c == 127) {
+		if (!terminal_line.empty() && !terminal_overflow) { terminal_line.pop_back(); }
+	} else if (c >= 32 || c == '\t') {
+		if (terminal_line.size() >= 128) { terminal_overflow = true; }
+		else if (!terminal_overflow) { terminal_line += c; }
+	}
 }
 
 void sample_touch(uint32_t now) {
@@ -172,22 +209,21 @@ void handle_touch(uint32_t now) {
 	switch_screen(screens_swipe(page, g.step), now);
 }
 
-void handle_event(const SDL_Event &event, SDL_Renderer *renderer, bool &running) {
+void handle_event(const SDL_Event &event, SDL_Renderer *, bool &running) {
 	if (event.type == SDL_QUIT) { running = false; return; }
+	if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_FOCUS_LOST) {
+		finger = false; flick_left = 0; flick_dir = 0; pending_step = 0;
+		actions = TouchActions{}; swipe = SwipeTracker{};
+		return;
+	}
 	if (event.type == SDL_TEXTINPUT && console) {
 		console_line += event.text.text;
 		std::fputs(event.text.text, stdout);
 		std::fflush(stdout);
 		return;
 	}
-	if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
-		finger = true;
-		window_to_lcd(renderer, event.button.x, event.button.y, finger_x, finger_y);
-		return;
-	}
-	if (event.type == SDL_MOUSEBUTTONUP && event.button.button == SDL_BUTTON_LEFT) { finger = false; return; }
-	if (event.type == SDL_MOUSEMOTION && finger) {
-		window_to_lcd(renderer, event.motion.x, event.motion.y, finger_x, finger_y);
+	if (event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP || event.type == SDL_MOUSEMOTION) {
+		mouse_contact(event);
 		return;
 	}
 	if (event.type == SDL_MOUSEWHEEL && event.wheel.y) {

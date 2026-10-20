@@ -96,6 +96,9 @@ inline EyeMeasures eye_measures(const EyeConfig &cfg, const EyeState &st, bool l
 		case POWER: h = h * 50 / 100; break;
 		case HYPER: w += 6; h += 6; break;
 		case SQUISH: w += 10; h = h * 65 / 100; break;
+		case ARC_HAPPY: case ARC_SAD: h = h * 55 / 100; break;
+		case SQUEEZED: h = h * 60 / 100; break;
+		case TILTED: h = h * 92 / 100; dy = left ? -6 : 6; break;
 		default: break;
 	}
 	int16_t nominal_w = eye_limit(w, 20, 88);

@@ -1,0 +1,22 @@
+# Local Factory workspace files
+/.factory/
+
+# Generated build and release output
+build/
+artifact/
+artifacts/
+*.bin
+*.elf
+*.hex
+*.map
+*.o
+*.a
+*.exe
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Local emulator captures and security reports
+/tools/*.ppm
+/security-findings.json

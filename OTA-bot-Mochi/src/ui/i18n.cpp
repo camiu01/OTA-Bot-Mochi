@@ -37,10 +37,17 @@ static const Text expressions[EXPRESSION_COUNT] = {
 	Text::ExprManic, Text::ExprSideEye, Text::ExprBeaming, Text::ExprMusic, Text::ExprLowBatt,
 	Text::ExprPower, Text::ExprLoading, Text::ExprIdea, Text::ExprHyper, Text::ExprSquish,
 	Text::ExprDerp, Text::ExprGlitch, Text::ExprTwitch, Text::ExprSneeze, Text::ExprJudge,
-	Text::ExprQuestion, Text::ExprCalculating, Text::ExprCyborg
+	Text::ExprQuestion, Text::ExprCalculating, Text::ExprCyborg, Text::ExprArcHappy,
+	Text::ExprArcSad, Text::ExprSqueezed, Text::ExprTilted, Text::ExprPong, Text::ExprClockEyes,
+	Text::ExprGauge, Text::ExprGlow, Text::ExprHeadlights, Text::ExprDancing,
+	Text::ExprPolice, Text::ExprRain, Text::ExprGrowing, Text::ExprShrink,
+	Text::ExprSwinging, Text::ExprBlinding, Text::ExprBuzzing, Text::ExprSick,
+	Text::ExprSplash, Text::ExprSpraying, Text::ExprSushi, Text::ExprEnergetic,
+	Text::ExprSmoke, Text::ExprMenacing, Text::ExprHello, Text::ExprDistracted,
+	Text::ExprLookLeft, Text::ExprLookRight, Text::ExprLookDown, Text::ExprStargazing
 };
 
-static_assert(uint8_t(Text::ExprNeutral) + EXPRESSION_COUNT - 1 == uint8_t(Text::ExprCyborg),
+static_assert(uint8_t(Text::ExprNeutral) + EXPRESSION_COUNT - 1 == uint8_t(Text::ExprStargazing),
 	"Expression labels must stay contiguous to match Expression values");
 static_assert(uint8_t(Text::Count) < 250, "Text is stored in a uint8_t; the table is nearly full");
 

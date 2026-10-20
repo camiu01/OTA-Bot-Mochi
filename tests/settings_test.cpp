@@ -297,13 +297,16 @@ static void menu_tests() {
 	for (uint8_t step = 0; step < max_first; ++step) { assert(settings_menu_scroll(1)); }
 	assert(!settings_menu_scroll(1));
 	// Empty tail cells on the final page stay inert.
-	assert(settings_menu_tap(120, 208) == MenuAction::None);
+	uint8_t last_column = uint8_t((EXPRESSION_COUNT - 1) % GRID_COLS_HINT);
+	for (uint8_t column = last_column + 1; column < GRID_COLS_HINT; ++column) {
+		assert(settings_menu_tap(44 + column * 78, 208) == MenuAction::None);
+	}
 	// The header reports real cell indices, not page numbers, and clamps to the final face.
 	settings_menu_draw(&gfx);
 	std::string range = std::to_string(uint16_t(max_first * GRID_COLS_HINT + 1)) + "-" +
 		std::to_string(EXPRESSION_COUNT) + "/" + std::to_string(EXPRESSION_COUNT);
 	assert(std::find(gfx.text.begin(), gfx.text.end(), range) != gfx.text.end());
-	assert(settings_menu_tap(44, 208) == MenuAction::Changed);
+	assert(settings_menu_tap(44 + last_column * 78, 208) == MenuAction::Changed);
 	assert(settings_get().mood == EXPRESSION_COUNT - 1 && eyes_config().expression == EXPRESSION_COUNT - 1);
 	assert(settings_menu_scroll(-1));
 	// BACK closes the grid and restores the tab rows.

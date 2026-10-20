@@ -51,13 +51,13 @@ std::string boot_command;
 
 const char *page_name(UiPage value) {
 	static const char *const names[] = {"Eyes", "Clock", "Route", "Alerts", "Weather",
-		"Settings", "Desk", "Big clock", "Overview", "Timer", "Device"};
+		"Settings", "Desk", "Big clock", "Overview", "Timer", "Device", "Pong", "Analog clock"};
 	return uint8_t(value) < sizeof(names) / sizeof(names[0]) ? names[uint8_t(value)] : "?";
 }
 
 bool page_from_name(const std::string &name, UiPage &out) {
 	static const char *const keys[] = {"eyes", "clock", "route", "alerts", "weather",
-		"settings", "desk", "bigclock", "overview", "timer", "device"};
+		"settings", "desk", "bigclock", "overview", "timer", "device", "pong", "analogclock"};
 	for (uint8_t i = 0; i < sizeof(keys) / sizeof(keys[0]); ++i) {
 		if (name == keys[i]) { out = UiPage(i); return true; }
 	}
@@ -95,17 +95,6 @@ void toggle_route() {
 	watch.navigation.active = on;
 	watch.navigation.isNavigation = on;
 	ui_config(watch, CF_NAV_DATA, 1, 0);
-}
-
-/** @brief Keep the Eyes corner speaker glyph in sync; this page has no chrome. */
-void update_eyes_badge() {
-	SoundStatus audio = sound_status();
-	static bool visible = false;
-	bool wanted = audio != SoundStatus::Armed && audio != SoundStatus::Ready;
-	if (wanted == visible) { return; }
-	if (wanted) { ui_sound_badge(&gfx, 216, 8); }
-	else { ui_sound_badge_clear(&gfx, 216, 8); }
-	visible = wanted;
 }
 
 /** @brief Wake the backlight on received data and update its touch policy. @param now Millisecond timestamp. */
@@ -173,7 +162,6 @@ void render_frame(SDL_Renderer *renderer, SDL_Texture *texture, SDL_Window *wind
 	if (page == UiPage::Eyes && !screens_calling()) {
 		if (changed) { eyes_state().dirtyInit = false; }
 		eyes_update(test_now);
-		update_eyes_badge();
 		changed = true;
 	}
 	if (changed) { present(renderer, texture); }
@@ -216,6 +204,7 @@ void boot_firmware() {
 
 /** @brief Forward USB command replies and console prompts to the terminal. */
 void drain_serial() {
+	if (!Serial.available()) { Serial.input.clear(); Serial.position = 0; }
 	bool prompt = console_prompt;
 	console_prompt = false;
 	bool wrote = false;
@@ -233,9 +222,11 @@ int event_loop(SDL_Renderer *renderer, SDL_Texture *texture, SDL_Window *window)
 	bool running = true;
 	uint32_t start = SDL_GetTicks();
 	while (running) {
+		test_now = SDL_GetTicks() - start;
 		SDL_Event event;
 		while (SDL_PollEvent(&event)) { handle_event(event, renderer, running); }
 		test_now = SDL_GetTicks() - start;
+		poll_terminal();
 		settings_usb_poll();
 		drain_serial();
 		if (uint32_t(test_now - last_sample) >= SAMPLE_MS) {
@@ -264,12 +255,13 @@ void usage(const char *program) {
 	std::printf("Usage: %s [--frames N] [--page name] [--command line] [--screenshot path.ppm]\n", program);
 	std::printf("  --frames N       render N frames then exit (headless smoke run)\n");
 	std::printf("  --page name      start on a page: eyes clock route alerts weather\n");
-	std::printf("                   settings desk bigclock overview timer device\n");
+	std::printf("                   settings desk bigclock overview timer device pong analogclock\n");
 	std::printf("  --command line   run one USB console command at startup\n");
 	std::printf("  --screenshot P   write the final canvas to a PPM image\n");
 	std::printf("Mouse: click tap, drag swipe/scroll, hold 1.2s settings, wheel pages\n");
 	std::printf("Keys:  1..6 pages, 0 desk, n alert, r route, p snapshot, q/ESC quit\n");
-	std::printf("       Enter USB console (try: mood names, set mood derp, help)\n");
+	std::printf("Terminal: type a USB command and press Enter (try: mood names, mood glow, help)\n");
+	std::printf("Window: press Enter to type a command there instead; replies appear in the terminal\n");
 }
 
 /** @brief Parse the supported command-line switches. @param argc Count. @param argv Values. @return False on invalid input. */
@@ -298,6 +290,7 @@ bool parse_args(int argc, char **argv) {
 	return true;
 }
 
+#ifndef MOCHI_EMULATOR_INPUT_TEST
 int main(int argc, char **argv) {
 	if (!parse_args(argc, argv)) { usage(argv[0]); return 2; }
 	std::srand(unsigned(std::time(nullptr)));
@@ -338,3 +331,4 @@ int main(int argc, char **argv) {
 	SDL_Quit();
 	return status;
 }
+#endif

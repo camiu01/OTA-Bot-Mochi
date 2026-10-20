@@ -357,7 +357,7 @@ void eye_body(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b) {
 	bool solid = cfg.style == MOCHI || cfg.style == TRAPEZ;
 	int16_t cx = int16_t(b.x + b.w / 2), cy = int16_t(b.y + b.h / 2);
 	int16_t s = eye_limit((b.w < b.h ? b.w : b.h) / 2 - 2, 3, 60);
-	if (solid && replaces_solid(cfg.expression)) {
+	if ((solid && replaces_solid(cfg.expression)) || cfg.expression == LOVE || cfg.expression == STAR) {
 		if (cfg.expression == DIZZY) { cross(gfx, b, cfg.fgColor); }
 		else { glyph(gfx, cfg, b, cx, cy, s, cfg.fgColor, cfg.bgColor); }
 		return;
@@ -370,7 +370,7 @@ void eye_body(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b) {
 
 /** @brief Draw contained pupils and symbols for the two non-solid styles. @param gfx Canvas. @param cfg Config. @param st State. @param b Eye. */
 void eye_pupils(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeState &st, const EyeBox &b) {
-	if (cfg.style == MOCHI || cfg.style == TRAPEZ) { return; }
+	if (cfg.style == MOCHI || cfg.style == TRAPEZ || cfg.expression == LOVE || cfg.expression == STAR) { return; }
 	int16_t radius = eye_limit((b.w < b.h ? b.w : b.h) / 5, 2, 9);
 	int16_t dx = eye_limit((st.saccadeX + st.tiltX) / 3, -b.w / 6, b.w / 6);
 	int16_t dy = eye_limit((st.saccadeY + st.tiltY) / 3, -b.h / 6, b.h / 6);

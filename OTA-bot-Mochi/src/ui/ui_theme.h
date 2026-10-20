@@ -76,8 +76,6 @@ void ui_chrome(Arduino_GFX *gfx, const char *title, bool connected, uint8_t page
  * @param y Top edge.
  */
 void ui_sound_badge(Arduino_GFX *gfx, int16_t x, int16_t y);
-/** @brief Erase the sound badge rectangle. @param gfx Canvas. @param x Left edge. @param y Top edge. */
-void ui_sound_badge_clear(Arduino_GFX *gfx, int16_t x, int16_t y);
 /**
  * @brief Draw a calm empty state.
  * @param gfx Canvas.

@@ -126,13 +126,14 @@ public:
 	 * @param imu_enabled IMU mood opt-in.
 	 * @param choice Random input.
 	 * @return Active mood, with IMU taking priority over random.
+	 * @param ready Selected mood has finished its visible cycle; does not cancel an active reaction.
 	 */
-	Expression update(uint32_t now, bool random_enabled, bool imu_enabled, uint32_t choice) {
+	Expression update(uint32_t now, bool random_enabled, bool imu_enabled, uint32_t choice, bool ready = true) {
 		if (active && (uint32_t(now - started) >= duration || (motion ? !imu_enabled : (!random_enabled && !manual)))) {
 			active = false;
 		}
 		if (!random_enabled) { last_random = now; }
-		if (!active && random_enabled && uint32_t(now - last_random) >= random_delay) {
+		if (ready && !active && random_enabled && uint32_t(now - last_random) >= random_delay) {
 			random_reaction(now, choice, false);
 		}
 		return active ? face : base;

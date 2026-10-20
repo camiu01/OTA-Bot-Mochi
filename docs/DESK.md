@@ -29,16 +29,25 @@ Swipe down on Clock to open Scrivania, then select:
 | DESK OVERVIEW | Time, phone connection, temperature/city, and weather freshness |
 | TIMER / POMODORO | Local 5-minute or 15-minute timer, or one 25-minute focus/5-minute rest pair |
 | DEVICE STATUS | BLE connection, backlight percentage, IMU initialization, clock sync, preference save state, sound state, and battery estimate |
+| PONG | Play against an automatic right paddle; tap the court at the desired height to move the left paddle, RESET starts a new game |
+| ANALOG CLOCK | Hour, minute and second hands with synchronized digital time below |
 
-The hub shows four large 108x92-pixel cards in a 2x2 grid, each an
-unambiguous parked-use tap target of its own.
+The hub shows six 108x58-pixel cards in a 2x3 grid. Gaps between cards are
+not tap targets. Coordinates scale for both the 240x280 LCD and 368x448 AMOLED.
+Pong runs at the display frame cadence, pauses off-page or behind a call overlay,
+and caps physics catch-up at 100 ms. Scores wrap after 99. Game state stays in
+RAM and never writes preferences. Taps move the paddle; holds and swipes keep
+their normal navigation behavior.
 
 Swipe up from a tool to return to the hub; swipe up from the hub to return to
 Clock. A horizontal swipe from a tool goes to the previous/next primary page
-relative to Clock, so there is no eleven-page swipe sequence. The Clock
+relative to Clock, so the carousel still has only six destinations. The Clock
 position dot stays selected in these tools.
 
 Time requires a Chronos sync after boot and then continues while disconnected.
+Analog Clock uses 24-hour source time for its hands, regardless of the digital
+12/24-hour preference. Missing or malformed time shows a sync prompt rather
+than invented hands. The main Clock and BIG CLOCK keep their existing layouts.
 Weather uses received phone data and has missing/stale states; it is not measured
 by the board. Device status shows initialization, not vehicle telemetry. The
 battery row is a best-effort LiPo estimate from an unverified ADC divider on
@@ -66,5 +75,9 @@ selected base mood and does not write flash. Holds/swipes remain separate gestur
 
 Native tests cover layout bounds, tool navigation, session/default separation,
 profile migrations, timer pause/rollover/work-rest completion, and tap restoration.
+They also cover Pong bounce/scoring/rollover, paused-session restoration, clock
+field validation and both panels' new tool controls. `PONG` and `CLOCK_EYES` in
+the Mood grid are separate decorative animations; see the
+[eye engine](../OTA-bot-Mochi/src/eyes/README.md).
 Physical rendering, touch targets, and actual Chronos behavior still need testing
 after a successful firmware build and upload.

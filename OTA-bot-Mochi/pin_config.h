@@ -19,14 +19,21 @@
  */
 
 #pragma once
-
+// Keep the Arduino IDE selection; explicit LCD builds can override it.
+#if !defined(MOCHI_BOARD_AMOLED_18) && !defined(MOCHI_BOARD_LCD_169)
+#define MOCHI_BOARD_AMOLED_18
+#endif
+#if defined(MOCHI_BOARD_AMOLED_18) && defined(MOCHI_BOARD_LCD_169)
+#error "Select only one Mochi board profile"
+#endif
 /**
  * @file pin_config.h
  * @brief Pin definitions for two Waveshare boards selected at build time.
  *
  * @details
- * Board selection: the default is the LCD board; build with
- * `-DMOCHI_BOARD_AMOLED_18` for the AMOLED board.
+ * Board selection: the editable definition above currently selects AMOLED for
+ * Arduino IDE. CLI/native builds explicitly select `-DMOCHI_BOARD_LCD_169`
+ * or `-DMOCHI_BOARD_AMOLED_18`; do not define both.
  *   - Waveshare ESP32-S3-Touch-LCD-1.69 OLD: ST7789 240x280 over SPI, PWM
  *     backlight on GPIO15, CST816/FT6X36 touch, one shared I2C bus on
  *     SDA11/SCL10, active buzzer on GPIO33 (new revision: GPIO42).

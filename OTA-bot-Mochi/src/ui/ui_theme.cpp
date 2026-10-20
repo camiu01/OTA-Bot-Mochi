@@ -109,19 +109,21 @@ void ui_sound_badge(Arduino_GFX *gfx, int16_t x, int16_t y) {
 	SoundStatus audio = sound_status();
 	bool audible = audio == SoundStatus::Armed || audio == SoundStatus::Ready;
 	uint16_t color = audible ? UI_ACCENT : UI_MUTED;
-	gfx->fillRect(x, y + 3, 4, 7, color);
-	gfx->fillTriangle(x + 4, y, x + 4, y + 12, x + 11, y + 6, color);
+	gfx->fillRect(x, y + 4, 5, 5, color);
+	gfx->fillTriangle(x + 4, y + 4, x + 10, y, x + 10, y + 12, color);
+	gfx->fillTriangle(x + 4, y + 4, x + 10, y + 12, x + 4, y + 8, color);
 	if (audible) {
-		gfx->drawLine(x + 14, y + 2, x + 14, y + 10, color);
-		gfx->drawLine(x + 17, y + 4, x + 17, y + 8, color);
+		gfx->drawLine(x + 14, y + 3, x + 16, y + 5, color);
+		gfx->drawLine(x + 16, y + 5, x + 16, y + 7, color);
+		gfx->drawLine(x + 16, y + 7, x + 14, y + 9, color);
+		gfx->drawLine(x + 17, y, x + 20, y + 3, color);
+		gfx->drawLine(x + 20, y + 3, x + 21, y + 6, color);
+		gfx->drawLine(x + 21, y + 6, x + 20, y + 9, color);
+		gfx->drawLine(x + 20, y + 9, x + 17, y + 12, color);
 	} else {
 		gfx->drawLine(x + 14, y + 2, x + 20, y + 10, color);
 		gfx->drawLine(x + 20, y + 2, x + 14, y + 10, color);
 	}
-}
-
-void ui_sound_badge_clear(Arduino_GFX *gfx, int16_t x, int16_t y) {
-	gfx->fillRect(x, y, 22, 13, UI_BG);
 }
 
 /**

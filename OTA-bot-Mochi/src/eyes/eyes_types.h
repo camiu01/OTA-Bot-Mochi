@@ -131,12 +131,42 @@ enum Expression : uint8_t {
 	JUDGE = 84,	/**< Heavy half-lids over a raised lower lid. */
 	QUESTION = 85,	/**< Question-mark pupils over an open gaze. */
 	CALCULATING = 86,	/**< Furrowed asymmetric lids over an hourglass. */
-	CYBORG = 87	/**< One eye behind a visor slope, one plain. */
+	CYBORG = 87,	/**< One eye behind a visor slope, one plain. */
+	ARC_HAPPY = 88,	/**< Curved smiling eye slits. */
+	ARC_SAD = 89,	/**< Curved drooping eye slits. */
+	SQUEEZED = 90,	/**< Mirrored tightly closed chevrons. */
+	TILTED = 91,	/**< Playful opposing slants. */
+	PONG = 92,	/**< Automatic miniature Pong court. */
+	CLOCK_EYES = 93,	/**< Decorative animated clock dials, not local time. */
+	GAUGE = 94,	/**< Decorative tachometer sweep; never real speed or RPM. */
+	GLOW = 95,	/**< Smooth color-cycling bodies with soft halos. */
+	HEADLIGHTS = 96,	/**< Pulsing light cones outside the eyes. */
+	DANCING = 97,	/**< Colored equalizer morph. */
+	POLICE = 98,	/**< Slow red/blue eye alternation, not a real warning lamp. */
+	RAIN = 99,	/**< Falling blue rain around drooping eyes. */
+	GROWING = 100,	/**< Expanding breathing eyes. */
+	SHRINK = 101,	/**< Eyes contract and recover. */
+	SWINGING = 102,	/**< A suspended pendulum eye pair. */
+	BLINDING = 103,	/**< Amber squint with soft rays. */
+	BUZZING = 104,	/**< Yellow vibrating eyes. */
+	SICK = 105,	/**< Green queasy sway and bubbles. */
+	SPLASH = 106,	/**< Blue wave and falling droplets. */
+	SPRAYING = 107,	/**< Cyan outward droplet jets. */
+	SUSHI = 108,	/**< Eyes merge into one salmon nigiri. */
+	ENERGETIC = 109,	/**< Automotive turbochargers with rotating compressors. */
+	SMOKE = 110,	/**< Teal eyes with drifting soft puffs. */
+	MENACING = 111,	/**< Slow red orbital eye rings. */
+	HELLO = 112,	/**< Bouncing greeting and wink, without text or mouth. */
+	DISTRACTED = 113,	/**< Alternating wandering eyes. */
+	LOOK_LEFT = 114,	/**< Deliberate left glance and return. */
+	LOOK_RIGHT = 115,	/**< Deliberate right glance and return. */
+	LOOK_DOWN = 116,	/**< Deliberate downward glance and return. */
+	STARGAZING = 117	/**< Eyes look up at a twinkling starry sky, then return. */
 };
 
 /** @brief Number of defined expressions, bounding menus, parsers, and lookups. */
-constexpr uint8_t EXPRESSION_COUNT = uint8_t(CYBORG) + 1;
-static_assert(EXPRESSION_COUNT == 88,
+constexpr uint8_t EXPRESSION_COUNT = uint8_t(STARGAZING) + 1;
+static_assert(EXPRESSION_COUNT == 118,
 	"Expression enum, names, i18n labels and documentation must be extended together");
 
 /**
@@ -161,7 +191,11 @@ inline const char *eyes_expression_name(Expression expr) {
 		"grumpy", "sassy", "cheeky", "flirt", "zen", "merciful", "manic", "side_eye",
 		"beaming", "music", "low_batt", "power", "loading", "idea", "hyper", "squish",
 		"derp", "glitch", "twitch", "sneeze", "judge", "question", "calculating",
-		"cyborg"
+		"cyborg", "arc_happy", "arc_sad", "squeezed", "tilted", "pong", "clock_eyes",
+		"gauge", "glow", "headlights", "dancing", "police", "rain", "growing",
+		"shrink", "swinging", "blinding", "buzzing", "sick", "splash", "spraying",
+		"sushi", "energetic", "smoke", "menacing", "hello", "distracted",
+		"look_left", "look_right", "look_down", "stargazing"
 	};
 	static_assert(sizeof(names) / sizeof(names[0]) == EXPRESSION_COUNT,
 		"eyes_expression_name() entries must match Expression values one for one");
@@ -193,6 +227,9 @@ struct EyeConfig {
  * @brief Mutable animation state singleton.
  */
 struct EyeState {
+	Expression effectExpression = NEUTRAL; /**< Last rendered mood for effect timing. */
+	uint32_t effectStartMs = 0; /**< Effect entry time, never persisted. */
+	bool effectClockInit = false; /**< First render initializes the effect clock. */
 	int16_t saccadeX;	/**< Random gaze offset on X axis. */
 	int16_t saccadeY;	/**< Random gaze offset on Y axis. */
 	int16_t tiltX;	/**< IMU-driven pupil offset on X axis. */

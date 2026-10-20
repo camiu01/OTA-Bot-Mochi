@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "eye_shapes.h"
+#include "eye_reference.h"
 
 /** @brief Remove a bounded strip from an eye. @param gfx Canvas. @param b Eye. @param height Pixels. @param bottom Side. @param color Background. */
 static void strip(Arduino_GFX *gfx, const EyeBox &b, int16_t height, bool bottom, uint16_t color) {
@@ -148,5 +149,6 @@ void eye_lids(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b) {
 	lids_classic(gfx, cfg, b);
 	lids_extra(gfx, cfg, b);
 	lids_new(gfx, cfg, b);
+	eye_reference_lids(gfx, cfg, b);
 	strip(gfx, b, cfg.lidTop * eye_scale(cfg) / 100, false, cfg.bgColor);
 }

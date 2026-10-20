@@ -24,6 +24,7 @@ public:
 	Navigation navigation;
 	bool hour24 = true;
 	String seconds = ":30";
+	String analog_time = "13:45:30";
 	int getWeatherCount() { return weather_count; }
 	Weather &getWeatherAt(int index) { return weather[index]; }
 	String getWeatherCity() { return city; }
@@ -33,6 +34,7 @@ public:
 	String getHourZ() { return hour24 ? "13" : "01"; }
 	String getAmPmC() { return hour24 ? "" : "PM"; }
 	String getTime(const char *format) {
+		if (strcmp(format, "%H:%M:%S") == 0) { return analog_time; }
 		if (strcmp(format, ":%M") == 0) { return ":45"; }
 		if (strcmp(format, ":%S") == 0) { return seconds; }
 		return "13 / 10 / 2026";

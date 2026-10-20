@@ -148,6 +148,7 @@ void eyes_init(Arduino_GFX *display) {
 	s_state.floatY = 0;
 	s_state.floatPhase = 0.0f;
 	s_state.lastMs = millis();
+	s_state.effectClockInit = false;
 	s_state.blinking = false;
 	s_state.blinkDurMs = 150;
 	s_state.dizzyUntilMs = 0;

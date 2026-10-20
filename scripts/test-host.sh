@@ -28,17 +28,21 @@ runtime=(
 build_test() {
 	local name="$1"
 	shift
-	g++ -std=c++17 -Wall -Wextra -Werror -I "$root/tests/stubs" "$@" -o "$output/$name"
+	local board=()
+	if [[ " $* " != *" -DMOCHI_BOARD_AMOLED_18 "* ]]; then board=(-DMOCHI_BOARD_LCD_169); fi
+	g++ -std=c++17 -Wall -Wextra -Werror -I "$root/tests/stubs" "${board[@]}" "$@" -o "$output/$name"
 	"$output/$name"
 }
-g++ -std=c++17 -Wall -Wextra -Werror -I "$root/tests/stubs" -fsyntax-only "$root/OTA-bot-Mochi/src/touch/touch.cpp"
+g++ -std=c++17 -Wall -Wextra -Werror -I "$root/tests/stubs" -DMOCHI_BOARD_LCD_169 -fsyntax-only "$root/OTA-bot-Mochi/src/touch/touch.cpp"
 # The second board profile must also parse: touch reset, backlight pin, battery
 # ADC, and buzzer branches all switch with -DMOCHI_BOARD_AMOLED_18.
 g++ -std=c++17 -Wall -Wextra -Werror -I "$root/tests/stubs" -DMOCHI_BOARD_AMOLED_18 -fsyntax-only \
 	"$root/OTA-bot-Mochi/src/touch/touch.cpp" "$root/OTA-bot-Mochi/src/power/backlight.cpp" \
 	"$root/OTA-bot-Mochi/src/sound/buzzer_output.cpp" "$root/OTA-bot-Mochi/src/power/battery.cpp"
 build_test swipe "$root/tests/swipe_test.cpp"
-build_test ui "${runtime[@]}" \
+build_test startup "$root/tests/startup_test.cpp"
+# This legacy fixture uses 240x280 touch coordinates; ui-panel covers scaled panels.
+build_test ui -DLCD_WIDTH=240 -DLCD_HEIGHT=280 "${runtime[@]}" \
 	"$root/tests/ui_test.cpp" \
 	"$root/OTA-bot-Mochi/src/ui/screens.cpp" \
 	"$root/OTA-bot-Mochi/src/ui/context_views.cpp" \
@@ -61,6 +65,8 @@ build_test eyes "${render_runtime[@]}" "$root/tests/eyes_test.cpp" "${render_eye
 build_test faces "${render_runtime[@]}" "$root/tests/face_unique_test.cpp" "${render_eyes[@]}"
 build_test panel "${render_runtime[@]}" "$root/tests/eye_scaling_test.cpp" "${render_eyes[@]}"
 build_test accent "${render_runtime[@]}" "$root/tests/eye_accent_test.cpp" "${render_eyes[@]}"
+build_test reference "${render_runtime[@]}" "$root/tests/reference_test.cpp" "${render_eyes[@]}"
+build_test performance "${render_runtime[@]}" "$root/tests/performance_test.cpp" "${render_eyes[@]}"
 ui_panel=("${runtime[@]}" \
 	"$root/tests/ui_panel_test.cpp" \
 	"$root/OTA-bot-Mochi/src/ui/screens.cpp" \

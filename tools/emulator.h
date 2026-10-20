@@ -63,3 +63,8 @@ void handle_touch(uint32_t now);
 
 /** @brief Translate window, wheel, key, and console input into firmware actions. @param event Event. @param renderer Renderer. @param running Loop flag. */
 void handle_event(const SDL_Event &event, SDL_Renderer *renderer, bool &running);
+
+/** @brief Edit one terminal byte and submit completed commands. @param c ASCII byte. */
+void terminal_character(char c);
+/** @brief Read a bounded batch from stdin without waiting for a command. */
+void poll_terminal();

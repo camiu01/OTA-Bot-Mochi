@@ -27,6 +27,7 @@
 #include "src/ui/weather_sync.h"
 #include "src/sound/sound.h"
 #include "src/ui/ui_theme.h"
+#include "src/ui/startup.h"
 #include "src/power/backlight.h"
 #include "src/power/battery.h"
 #include "src/settings/settings.h"
@@ -52,7 +53,8 @@ UiPage current_screen = UiPage::Eyes;
 AutoPagePolicy auto_page;
 bool screen_ready = false;
 bool applied_flip = false;
-bool eyes_badge_visible = false;
+StartupAnimation startup;
+bool starting = true;
 uint32_t last_frame_ms = 0;
 uint32_t activity_revision = 0;
 constexpr uint32_t FRAME_INTERVAL_MS = 33;
@@ -186,22 +188,8 @@ void switch_screen(UiPage page, uint32_t now) {
 	current_screen = page;
 	gfx->fillScreen(UI_BG);
 	screens_invalidate();
-	eyes_badge_visible = false;
 	eyes_state().dirtyInit = false;
 	last_frame_ms = now - FRAME_INTERVAL_MS;
-}
-
-/**
- * @brief Keep the Eyes corner speaker glyph in sync; this page has no chrome.
- * @param gfx Canvas.
- */
-void update_eyes_badge(Arduino_GFX *gfx) {
-	SoundStatus audio = sound_status();
-	bool wanted = audio != SoundStatus::Armed && audio != SoundStatus::Ready;
-	if (wanted == eyes_badge_visible) { return; }
-	if (wanted) { ui_sound_badge(gfx, 216, 8); }
-	else { ui_sound_badge_clear(gfx, 216, 8); }
-	eyes_badge_visible = wanted;
 }
 
 /**
@@ -241,6 +229,7 @@ void handle_touch(uint32_t now) {
 	int16_t pet_x = 0, pet_y = 0;
 	bool pet = touch_take_pet(pet_x, pet_y);
 	int8_t scroll = touch_take_scroll();
+	if (starting) { return; }
 	if (tap && y < 50 && !screens_calling() && current_screen != UiPage::Eyes &&
 		current_screen != UiPage::Settings) {
 		toggle_quick_sound(now);
@@ -284,6 +273,7 @@ void handle_touch(uint32_t now) {
 
 /** @brief Follow new Chronos events without changing screens from BLE callbacks. @param now Timestamp. */
 void handle_auto_page(uint32_t now) {
+	if (starting) { return; }
 	UiPage target = auto_page.update(current_screen, ui_page_events(), touch_pressed());
 	if (target != current_screen) {
 		backlight_activity(now);
@@ -305,11 +295,11 @@ void setup() {
 	if (!screen_ready) { return; }
 	eyes_init(gfx);
 	settings_apply();
-	eyes_faces_greet(millis());
 	eyes_imu_init();
 	Serial.println(eyes_imu_ready() ? "IMU ready" : "IMU unavailable; using idle eyes");
 	touch_init();
 	sound_init(millis());
+	startup.begin(millis());
 	last_frame_ms = millis() - FRAME_INTERVAL_MS;
 	Serial.printf("UI ready, free heap: %u bytes\n", ESP.getFreeHeap());
 }
@@ -348,11 +338,16 @@ void loop() {
 	update_backlight(now);
 	if ((uint32_t)(now - last_frame_ms) < FRAME_INTERVAL_MS) { return; }
 	last_frame_ms = now;
+	if (starting) {
+		if (startup.draw(gfx, now, UI_TEXT)) { gfx->flush(); return; }
+		starting = false;
+		eyes_faces_greet(now);
+		switch_screen(UiPage::Eyes, now);
+	}
 	bool changed = screens_draw(gfx, watch, current_screen, now);
 	if (current_screen == UiPage::Eyes && !screens_calling()) {
 		if (changed) { eyes_state().dirtyInit = false; }
 		eyes_update(now);
-		update_eyes_badge(gfx);
 		changed = true;
 	}
 	if (changed) { gfx->flush(); }

@@ -9,7 +9,7 @@
 
 enum class UiPage : uint8_t {
 	Eyes, Clock, Navigation, Notification, Weather, Settings,
-	Desk, BigClock, Overview, Timer, Device, Count
+	Desk, BigClock, Overview, Timer, Device, Pong, AnalogClock, Count
 };
 
 /** @brief Find the primary carousel parent. @param page Page. @return One of six main pages. */

@@ -17,6 +17,9 @@
 	X(Overview, "DESK OVERVIEW", "RIEPILOGO") \
 	X(Timer, "FOCUS TIMER", "TIMER") \
 	X(Device, "DEVICE STATUS", "STATO DISPOSITIVO") \
+	X(Pong, "PONG", "PONG") \
+	X(AnalogClock, "ANALOG CLOCK", "OROLOGIO ANALOGICO") \
+	X(PongHint, "TAP TO MOVE LEFT PADDLE", "TOCCA: MUOVI RACCHETTA") \
 	X(CallTitle, "PHONE CALL", "CHIAMATA") \
 	X(CallTag, "CALL", "TEL") \
 	X(Quiet, "All quiet for now", "Nessuna notifica") \
@@ -206,6 +209,36 @@
 	X(ExprQuestion, "question", "domanda") \
 	X(ExprCalculating, "calculating", "calcola") \
 	X(ExprCyborg, "cyborg", "cyborg") \
+	X(ExprArcHappy, "happy arcs", "archi felici") \
+	X(ExprArcSad, "sad arcs", "archi tristi") \
+	X(ExprSqueezed, "squeezed", "strizzati") \
+	X(ExprTilted, "tilted", "inclinati") \
+	X(ExprPong, "pong demo", "pong demo") \
+	X(ExprClockEyes, "clock eyes", "occhi orologio") \
+	X(ExprGauge, "gauge demo", "tachimetro demo") \
+	X(ExprGlow, "color glow", "bagliore colori") \
+	X(ExprHeadlights, "headlights", "occhi faro") \
+	X(ExprDancing, "dancing", "equalizzatore") \
+	X(ExprPolice, "red / blue", "rosso / blu") \
+	X(ExprRain, "rain", "pioggia") \
+	X(ExprGrowing, "growing", "crescita") \
+	X(ExprShrink, "shrink", "restringi") \
+	X(ExprSwinging, "swinging", "dondolio") \
+	X(ExprBlinding, "amber rays", "raggi ambra") \
+	X(ExprBuzzing, "buzzing", "ronzio") \
+	X(ExprSick, "sick", "malessere") \
+	X(ExprSplash, "splash", "onda") \
+	X(ExprSpraying, "spraying", "spruzzi") \
+	X(ExprSushi, "sushi", "sushi") \
+	X(ExprEnergetic, "turbines", "turbine") \
+	X(ExprSmoke, "smoke", "nuvole") \
+	X(ExprMenacing, "orbital rings", "anelli orbitali") \
+	X(ExprHello, "hello", "saluto") \
+	X(ExprDistracted, "distracted", "distratto") \
+	X(ExprLookLeft, "look left", "guarda sinistra") \
+	X(ExprLookRight, "look right", "guarda destra") \
+	X(ExprLookDown, "look down", "guarda giu") \
+	X(ExprStargazing, "stargazing", "cielo stellato") \
 	X(Calm, "calm", "calmo") \
 	X(Dasai, "dasai", "dasai") \
 	X(Playful, "playful", "vivace") \

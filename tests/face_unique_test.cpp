@@ -30,6 +30,10 @@ static bool style_uniqueness(Arduino_GFX &gfx, uint8_t style) {
 		eyes_set_expression(static_cast<Expression>(expression));
 		state.dirtyInit = false;
 		eyes_draw();
+		if (expression == PONG || expression == GAUGE || expression == GLOW || expression == HEADLIGHTS || expression >= DANCING) {
+			state.lastMs += 3000;
+			eyes_draw();
+		}
 		auto placed = seen.emplace(gfx.pixels, expression);
 		if (placed.second) { continue; }
 		collisions += settings_mood_name(placed.first->second);

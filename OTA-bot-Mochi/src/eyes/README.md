@@ -24,7 +24,7 @@ rounded even though the TRAPEZ preset sets `radius` to 0. The left eye is always
 canonical evaluation and the right eye is its exact horizontal mirror, which keeps
 the reflected halves pixel-identical.
 
-## Expressions (88)
+## Expressions and animated moods (118)
 
 | Value | Name | Look |
 |---|---|---|
@@ -116,17 +116,56 @@ the reflected halves pixel-identical.
 | 85 | QUESTION | Question-mark pupils over an open gaze |
 | 86 | CALCULATING | Furrowed asymmetric lids over an hourglass |
 | 87 | CYBORG | One eye behind a visor slope, one plain |
+| 88 | ARC_HAPPY | Curved smiling slits |
+| 89 | ARC_SAD | Curved drooping slits |
+| 90 | SQUEEZED | Mirrored closed-eye chevrons |
+| 91 | TILTED | Opposing playful slants |
+| 92 | PONG | Eyes morph into autonomous Pong paddles, then back; independent of desk Pong |
+| 93 | CLOCK_EYES | Animated decorative dials driven by uptime, not local time |
+| 94 | GAUGE | Eyes merge into a decorative tachometer and return, never speed/RPM data |
+| 95 | GLOW | Selected-color-to-hues-to-selected-color cycle with soft halos around the current style |
+| 96 | HEADLIGHTS | Slow-pulsing outward light cones behind the current style |
 
-88 static faces already exceed the Dasai Mochi 3 headline of "70+ Facial Expressions
-& Animations", which counts bundled animations as well. This project counts only
-static faces.
+The first 97 expressions keep their numeric values. IDs 97–117 add twenty-one
+[original colored performances](../../../docs/ANIMATIONS.md), including their
+names, timing and reference correspondence. The additions
+omit mouths, cheeks and eyebrows. Existing LOVE, CRYING and angry faces remain
+available rather than gaining duplicate names.
+
+Select these moods in Settings → LOOK → Mood, or use USB commands such as
+`mood arc_happy`, `mood squeezed`, `mood pong`, and `mood clock_eyes`.
+The remaining video effects use `mood gauge`, `mood glow`, and `mood headlights`.
+Only SAVE persists the choice; the thirteen-byte version-five profile is unchanged.
+Pong ignores idle gaze and blinks so its court stays readable. Clock eyes blink
+with the other eyes and are decorative, not synchronized watches. For playable
+Pong and a real clock, use the [desk tools](../../../docs/DESK.md).
+
+GAUGE and PONG run entry-relative twelve-second loops: eyes for 0.8 seconds,
+a 1.2-second smooth morph, the scene for eight seconds, the reverse morph for
+1.2 seconds, then eyes again. Gauge eyes merge and hollow into the dial.
+The needle accelerates, kicks back four times at the redline and returns to
+idle, repeating twice while the dial is visible.
+Pong eyes narrow and move into the paddles. Their dirty bounds include both
+the original eyes and the scene throughout the transition.
+GAUGE draws a 270-degree dial with a red zone and an autonomous limiter animation.
+It ignores gaze/blinks and does not read phone speed, GPS, RPM
+or vehicle data. GLOW starts with the selected eye color, holds it for 1.2 seconds,
+then blends through six colors and back to the selected color in a 9.6-second loop. It paints
+three halo layers using the current style's body shape; this overrides body
+color for the frame only, not the user's saved palette. HEADLIGHTS adds
+clipped, shaded outward cones joined beneath the rounded eyes. On selection
+they expand from the eyes to the panel edges over 1.2 seconds, then pulse
+on a 2.4-second brightness cycle. Their
+dirty bounds include the entire dial, halos or cones, including during
+blinks, gaze movement and return to another mood. No extra framebuffer,
+delay or task is introduced.
 
 ### How an expression renders
 
 Every expression must work on all four styles, which the native suite enforces:
 
-- **Silhouette expressions** (LOVE, DIZZY, STAR) replace the whole solid eye with a
-  foreground glyph.
+- **Silhouette expressions** LOVE and STAR replace the whole eye on every style
+  with a large coloured glyph. DIZZY replaces the whole eye on solid styles.
 - **Engraved expressions** (CRYING, the ten symbol faces 43-52, and the glyph
   faces 73-77, 81, 85-86) draw the normal body first and then cut the glyph back
   out in the background colour, so the silhouette survives and no pupil or
@@ -135,7 +174,7 @@ Every expression must work on all four styles, which the native suite enforces:
   everywhere; WINK also carries an explicit lid so it stays visible when per-eye
   geometry is switched off.
 - Non-solid styles (NORMAL, BLOUB) additionally shift the pupil, using either a
-  plain circle or the same glyph as a coloured pupil.
+  plain circle or the same glyph as a coloured pupil, except for LOVE and STAR.
 
 `glyph()` in `eye_shapes.cpp` is the single dispatch for all of them. Every primitive
 stays inside a circle of radius `s` around its centre, which is what guarantees that
@@ -150,9 +189,9 @@ FIRE, golds for STAR and HALO, an amber moon, horn and battery reds, ice-cyan
 SPARKLE, electric-yellow BOLT, aqua DIAMOND, coin-green MONEY, idea amber and a
 violet MUSIC note. `glyph()` swaps the accent in as the single dispatch point, so
 the recoloured mark works identically as a whole-eye silhouette, an engraving, and
-a pupil-sized glyph on all four styles; everything else — the body, the lids, the
-configured pupil and highlight palette, and the other 74 expressions — still
-follows the user's eye colours. Every accent deliberately avoids black, white, and
+a pupil-sized glyph on all four styles. Ordinary bodies and lids still follow
+the user's eye colors; GLOW intentionally cycles its own temporary body palette,
+and GAUGE has a fixed redline color. Every accent deliberately avoids black, white, and
 the pure red/green values the native suites count as pupil and highlight pixels,
 so the solid-style exclusion proofs stay honest. Accents are plain constants: no
 setting, no persistence, and no behaviour when `eye_accent()` returns 0.

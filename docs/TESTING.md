@@ -25,16 +25,29 @@ isolation, night-safe idle dimming, timestamp rollover, IMU setup/scaling,
 mount-relative gaze, bump rejection, shake opt-in/cooldown/restoration, preference
 validation/save failures, USB command limits, automatic notification/route pages,
 preservation of manual page choices on route refresh, and touch-delayed switching.
+The native runners explicitly select `MOCHI_BOARD_LCD_169` for baseline fixtures
+and `MOCHI_BOARD_AMOLED_18` for AMOLED checks, so an Arduino IDE selection in
+`pin_config.h` cannot silently change the test board. Defining both is rejected.
+An explicit LCD CLI build can likewise use
+`--build-property "compiler.cpp.extra_flags=-DMOCHI_BOARD_LCD_169"`.
 The real eye renderer also runs against a native raster substitute: all four
-styles, all 88 expressions, and both blink states (704 combinations), a proof
+styles, all 118 expressions/animated moods, and both blink states (944 combinations), a proof
 that every expression renders differently from NEUTRAL on every style, that no
-two names draw the same pixels on any style (pairwise uniqueness, 15312
+two names draw the same pixels on any style (pairwise uniqueness, 27612
 comparisons), solid-style pupil/highlight exclusion, trapezoid symmetry, IMU
 gaze/roll bounds, radius limits, and dirty-region erasure are checked. The
 fixed accent palette has its own suite: no accent may equal black, white, or the
 counted pupil/highlight sentinels, every accented expression must paint its
 accent on all four styles, plain faces must not leak one, and the petting heart
-must use the love accent. Panel
+must use the love accent. The colored
+performances also have a dedicated `performance_test.cpp` suite covering all
+twenty-one additions on four panel rasters: reversible endpoints, frame-local
+semantic colors, clean-redraw equality, unchanged v5 preferences, and complete
+six-second automatic-reaction protection, including timestamp rollover. Scene
+regressions require exactly twelve ordinary equalizer columns and intact eye
+silhouettes throughout the morph, one joined sushi, large inward-facing turbo
+housings with moving impellers and smoke bursts, rain entering from the top, and small eyes
+at the bottom with an upward gaze beneath a changing star field. Panel
 adaptation has its own suite: on 240x280, 240x320, 320x480, 368x448, 128x160,
 and 160x128 rasters the pair must stay centered, every expression must stay
 inside the panel, and the fit must not merge two names into one picture. Pages
@@ -57,7 +70,7 @@ animated dirty regions, sound notes/priorities/mute/rollover/failures, and actua
 PWM adapters against core-2/core-3 shared-timer mocks.
 Additional checks exercise all six shared color palettes, filled touch gutters,
 row/tab/footer edges with row hits aligned to their visible cards, contiguous
-grid-cell rows, 92-pixel desk hub cards, 50-pixel timer buttons, contextual
+grid-cell rows, 58-pixel desk hub cards, 50-pixel timer buttons, contextual
 vertical-swipe targets, bounded
 menu scrolling, vertical/horizontal
 axis isolation, tap tolerance, explicit audio-test mute/category behavior,
@@ -66,6 +79,14 @@ voltage curve, divider plausibility window, and consecutive-sample trust policy,
 plus the petting heart marker's dirty-region wipe and clamped placement.
 Mocks do not verify physical LCD rendering, BLE protocol interoperability, physical
 pin assignments, or electrical behavior.
+
+Video-reference tests exercise Pong, clock eyes, decorative gauge, cycling glow
+and headlight beams on LCD, AMOLED and a smaller 128x160 raster, including
+repeated dirty-region clearing, solid-style pupil exclusion, and
+USB/v5-profile round-trips for the nine new moods. Pong physics tests cover
+paddle limits, both collisions, scoring, score wrap, timestamp rollover and
+bounded catch-up. Per-panel UI tests cover the six desk cards, playable Pong
+input/frame cadence/off-page pause and synchronized analog-clock validation.
 
 The AMOLED ES8311 suite also executes the codec register sequence and PCM
 worker against shared-bus/I2S doubles. It checks fixed-rate stereo output,
@@ -87,6 +108,65 @@ drawn into the 240x280 RGB565 test raster and scaled to a window.
 bash tools/run-emulator.sh
 ```
 
+### Windows PowerShell
+
+`tools/run-emulator.ps1` builds and launches a native Windows executable from
+PowerShell 5.1 or later. Bash, WSL, and a connected board are not required.
+
+Install MSYS2, then run this once in its **UCRT64** terminal:
+
+```sh
+pacman -S --needed mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-SDL2
+```
+
+If your existing compiler is in `C:\msys64\mingw64`, use the **MINGW64**
+terminal and install `mingw-w64-x86_64-gcc mingw-w64-x86_64-SDL2` instead.
+The compiler and SDL2 must belong to the same toolchain.
+
+From the repository root in PowerShell:
+
+```powershell
+.\tools\run-emulator.ps1
+.\tools\run-emulator.ps1 -Size 368x448 -Page settings
+```
+
+The script uses `g++.exe` from PATH, or looks in `C:\msys64\ucrt64\bin`
+and `C:\msys64\mingw64\bin`. Select another compiler explicitly if needed:
+
+```powershell
+.\tools\run-emulator.ps1 -Compiler C:\msys64\ucrt64\bin\g++.exe
+```
+
+If Windows blocks local scripts, use a process-only execution-policy override:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\run-emulator.ps1
+```
+
+To check mouse input without opening a window, run
+`.\tools\run-emulator.ps1 -TestInput` (or
+`bash tools/run-emulator.sh --test-input` on Linux/macOS).
+The checks cover logical coordinates, fast and double clicks, holds, drags,
+letterbox margins, and contact cancellation when the window loses focus.
+Add `-Size 240x280` or `-Size 368x448` to check each panel size on Windows.
+
+For a finite run without a window:
+
+```powershell
+.\tools\run-emulator.ps1 -Headless -Frames 120 -Page weather -Screenshot weather.ppm
+.\tools\run-emulator.ps1 -Headless -Frames 120 -Command 'set mood derp' -Screenshot eyes.ppm
+.\tools\run-emulator.ps1 -Size 368x448 -Headless -Frames 120 -Page pong -Screenshot pong.ppm
+.\tools\run-emulator.ps1 -Headless -Frames 120 -Page analogclock -Screenshot analogclock.ppm
+```
+
+`-Headless` requires `-Frames`. Screenshots use PPM format. Windows builds are
+cached per panel size under `$env:TEMP\mochi-emulator`; source/header changes
+trigger a rebuild. Use `-Rebuild` to force one. The script adds the compiler's
+DLL directory to PATH only while it runs and restores the SDL video driver
+afterward.
+
+### Preview behavior and controls
+
 It is a preview aid, not a test: it is outside `scripts/test-host.sh`, needs no
 board, and does not gate firmware CI. The display test double rasterizes the
 firmware's built-in 5x7 bitmap font, so label metrics match the device's 6x8
@@ -103,8 +183,11 @@ Controls:
   Desk tools.
 - `n` injects a notification (the auto page policy jumps to Alerts), `r` starts
   or stops navigation, `p` writes `mochi-lcd.ppm`, `q` or `Esc` quits.
-- `Enter` opens a USB console in the terminal, forwarding lines to the real
-  command parser (`help`, `mood names`, `set mood derp`, `brightness 70`).
+- In the terminal running the emulator, type a command and press `Enter`.
+  Commands use the real USB parser: `help`, `mood names`, `mood glow`,
+  `set mood derp`, or `brightness 70`. Terminal input does not pause rendering.
+- Alternatively, focus the graphical window and press `Enter` to enter commands
+  there. Typed text and replies appear in the terminal; `Esc` cancels this mode.
 
 Headless runs need no display server and are handy for screenshots:
 
@@ -150,7 +233,7 @@ arduino-cli core install esp32:esp32@3.3.11 --additional-urls https://espressif.
 arduino-cli lib install "ESP32Time@2.0.6" "NimBLE-Arduino@2.5.1"
 arduino-cli lib install --no-deps "ChronosESP32@1.9.1" "GFX Library for Arduino@1.6.9"
 arduino-cli board list
-arduino-cli compile --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=disabled,FlashSize=16M" OTA-bot-Mochi
+arduino-cli compile --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=disabled,FlashSize=16M" --build-property "compiler.cpp.extra_flags=-DMOCHI_BOARD_LCD_169" OTA-bot-Mochi
 arduino-cli upload --port COM3 --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=disabled,FlashSize=16M" OTA-bot-Mochi
 arduino-cli monitor --port COM3 --config baudrate=115200
 ```
@@ -269,8 +352,10 @@ and restore the selected mood; a quick double tap must show a playful face for
 3.5 seconds; holds and swipes must trigger neither. Petting must keep the same
 affectionate face while stroking continues, show the heart marker near the
 finger on each recognized stroke, and end within six seconds of the
-first stroke. On Eyes, confirm the corner speaker glyph appears only while
-audio is off/night-muted and disappears after unmuting elsewhere. Flip LIGHT → Screen flip while parked: the interface, touch
+first stroke. On Eyes, confirm no audio-status icon appears at startup, while
+muted, or after enabling sound elsewhere and returning. Other pages must keep
+a recognizable speaker in their header, with waves when enabled and a cross
+when muted. Flip LIGHT → Screen flip while parked: the interface, touch
 targets, and menus must rotate together, tilting must still read in your frame,
 SAVE plus reboot must keep it, and `set flip off` must restore the panel
 orientation.

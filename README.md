@@ -1,182 +1,408 @@
-<div align="center">
-
 # OTA-Bot-Mochi
-### Dasai-Inspired ESP32-S3 Robot Companion with Living Vector Eyes
 
-An expressive smart companion firmware for ST7789 displays (240x280) and the
-Waveshare 1.8 inch AMOLED panel (368x448). Combines lively Dasai/Cozmo-style
-vector eyes and IMU physics with ChronosESP32 BLE features: live clock,
-turn-by-turn navigation, weather, and notifications.
+OTA-Bot-Mochi is a desk robot companion that blinks, reacts to touch and tilt, and displays information
+received from a phone.
+
+The firmware targets the Waveshare **ESP32-S3-Touch-LCD-1.69 OLD** and, through a separate build profile, the
+**ESP32-S3-Touch-AMOLED-1.8 V2**. It is an Arduino C++ project, not a general-purpose ESP32 display firmware.
 
 [![License: GPLv3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
-[![Arduino](https://img.shields.io/badge/Arduino-IDE_2.x-teal.svg)](https://www.arduino.cc/)
-[![ESP32-S3](https://img.shields.io/badge/ESP32--S3-Touch--LCD--1.69-red.svg)](https://www.waveshare.com/wiki/ESP32-S3-Touch-LCD-1.69)
-[![Status](https://img.shields.io/badge/Status-Active-success.svg)](#)
+[![Firmware and host checks](https://github.com/camiu01/OTA-Bot-Mochi/actions/workflows/checks.yml/badge.svg)](https://github.com/camiu01/OTA-Bot-Mochi/actions/workflows/checks.yml)
 
-</div>
+[Hardware](#hardware) · [Build and flash](#build-and-flash) · [Controls](#controls-and-everyday-use) · [Configuration](#configuration) · [Known limits](#limitations-and-troubleshooting)
 
----
+## See it in action
 
-## Overview
+![Emulator views of the desk menu, playable Pong, and analog clock](docs/images/desk-tools.png)
 
-**OTA-Bot-Mochi** turns an ESP32-S3 display into an interactive desktop or car companion inspired by Dasai Mochi and Cozmo. 
+These are existing **native emulator screenshots**, not photos of a running board. The clock and phone data
+are synthetic. No device photo or video demo is included in the repository; the images show source behavior,
+not hardware validation.
 
-Instead of a generic smartwatch interface, the core experience is the **Living Eyes Base Screen**: dynamic vector eyes with realistic saccades, idle floats, blinking, and physical reactivity to acceleration or shaking. When paired to your phone via BLE with the Chronos app, it seamlessly extends into a useful utility companion offering turn-by-turn navigation data, real-time clock syncing, weather forecasts, and phone alerts.
+![Curved happy eyes, squeezed chevrons, tilted eyes, and decorative clock eyes](docs/images/eye-expressions.png)
 
-### Key Highlights
+Left to right: `arc_happy`, `squeezed`, `tilted`, and `clock_eyes`.
 
-* **Living Eyes Companion:** 4 eye styles (`MOCHI`, `BLOUB`, `NORMAL`, `TRAPEZ`) and 88 expressive facial moods with dirty-rect redrawing, every one of them verified native against all four styles.
-* **Automatic Faces:** Optional timed random expressions and sustained-motion IMU reactions, with cooldowns and automatic restoration of the selected mood.
-* **Expressive Motion and Audio:** Soft face handoffs and gaze, double blinks/winks/nods, and optional non-blocking buzzer chirps with night mute and separate categories. English/Italian UI and [controls](docs/SOUND.md).
-* **Quiet IMU Reactivity:** Mount-relative, damped gaze clamped to ±14 px with a noise dead zone; sustained lateral load keeps the eyes displaced through a bend and rolls the pair by up to 4 px. Optional deliberate shake reactions require repeated opposing impulses, not a single bump.
-* **BLE Turn-by-Turn Navigation:** Receives live route directions, distance, ETA, and direction icons directly from your smartphone.
-* **Chronos BLE Core:** Background BLE service managing phone notifications, incoming call rings, time synchronization, and weather forecasts.
-* **Modular Screen State Machine:** Eyes, Clock, Navigation, Weather, Alerts, and Settings.
-* **Contextual Views:** Large/detail route layouts and a Clock desk-tools menu with large clock, overview, silent timer/Pomodoro, and device status. Extra tools do not lengthen the main carousel; [details](docs/DESK.md).
-* **Buffered Display:** Frames are composed in RAM and sent to the LCD at up to 30 FPS. BLE and touch polling continue between frames.
-* **Swipe Navigation:** Swipe left for the next screen or right for the previous screen. Navigation wraps around at either end.
-* **Companion Cards:** Dark rounded utility cards with a shared eye-color palette, bounded text, screen position dots, and clear empty states.
-* **Dashboard First:** MOCHI eyes by default, calmer idle motion, no unsolicited full-screen calls, and no notification/caller payload logging.
-* **Automatic Event Pages:** New notifications open Alerts; starting phone navigation opens Route. Regular navigation updates do not override a later manual page change.
-* **Saved Preferences:** Parked-use touch menu and USB commands for eye shapes, colors, moods, day/night brightness, and behavior. Flash writes require an explicit save.
-* **Backlight Controls:** Manual low-brightness night mode and optional idle dimming, without stopping BLE.
+![Decorative gauge, color-cycling glow, and outward headlight beams](docs/images/animated-moods.png)
 
----
+The gauge is an animation, not a speed/RPM instrument. Glow returns to the selected eye color; headlight beams grow outward
+from the eyes. These still images do not show the transitions.
 
-## Architecture & Screens
+## What it does
 
-The runtime loop handles BLE updates alongside a clean screen dispatcher:
+"Available" below means implemented in the current source. It does not mean every feature has passed physical
+testing on both boards. See the validation limits below.
 
+### Available in the source
+
+| Feature | Observable behavior |
+| --- | --- |
+| Animated eyes | Four styles (`mochi`, `bloub`, `normal`, `trapez`), with blinking, idle gaze, and 118 selectable moods |
+| Touch reactions | Taps, double taps, and vertical petting strokes trigger temporary faces, then restore the selected mood |
+| Motion reactions | Accelerometer changes relative to the startup position move the gaze; optional motion moods and shake-to-dizzy reactions |
+| Digital and analog clocks | Display phone-synchronized time; continue while disconnected, but require another sync after reboot |
+| Desk tools | Large clock, time/weather overview, device status, playable Pong, and local timers |
+| Timer / Pomodoro | 5-minute or 15-minute timer, or one 25-minute work / 5-minute rest pair; keeps running when viewing another page |
+| Phone navigation | Displays received turn instructions, icon, distance, ETA, and speed when supplied |
+| Alerts and calls | Displays the latest notification with message pagination and incoming caller information; calls must be handled on the phone |
+| Weather display | Shows phone-supplied conditions and up to three forecast entries, with missing/stale states; a device issue remains unresolved |
+| Optional sound | Short generated chirps for reactions, timers, and alerts; category switches and night mute; off by default |
+| Personalization | Eye colors, brightness, 180-degree screen flip, motion presets, EN/IT labels, and explicitly saved preferences |
+
+Eyes and local desk Pong/timers work without a phone. Clocks need an initial Chronos time sync after each
+boot. Weather, notifications, calls, and navigation depend on the phone and the **Chronos companion app**.
+Navigation instructions come from the phone through Chronos, not from an onboard GPS or route planner. The
+firmware does not fetch weather directly.
+
+The animated moods are distinct from desk tools: `pong` and `gauge` morph from eyes into a scene and
+back; `clock_eyes` is a decorative animation, not the actual clock; `glow` cycles selected color → hues → selected color;
+`headlights` expands beams over 1.2 seconds before softly pulsing. See the
+[eye engine reference](OTA-bot-Mochi/src/eyes/README.md) for all mood names.
+
+Twenty-one [original colored performances](docs/ANIMATIONS.md) add an equalizer,
+rain, red/blue lights, growing/shrinking eyes, car turbochargers, a single sushi,
+deliberate glances and a starry sky. They use reversible six-second loops, not bundled GIFs.
+
+![Original colored performances on a native AMOLED-sized raster](docs/images/colored-performances-368.png)
+
+These stills show the performance phase, not the transitions or physical hardware.
+A [240x280 gallery](docs/images/colored-performances-240.png) shows the LCD layout.
+
+### Experimental and incompletely validated
+
+- The AMOLED V2 profile has partial physical bring-up recorded in
+  [Boards](docs/BOARDS.md): visible eyes, horizontal swipes, and audible ES8311
+  bench tones. This is not full validation of orientation, brightness, BLE, or audio.
+- New eye scenes/transitions, desk Pong, analog-clock controls, and IMU response
+  still need checks on the actual boards and mounting.
+- Weather parsing and synchronization are implemented, but the reported device
+  weather failure is still open. Live phone-navigation and reconnection checks
+  also remain on the device checklist.
+- LCD battery percentage is an uncalibrated, plausibility-gated estimate.
+  AMOLED battery data and charging state are not implemented.
+
+### Planned or deferred
+
+Battery/charging support, power/runtime measurements, and automatic OTA deployment remain open in [TODO](TODO.md).
+No enclosure design or fabrication files are supplied.
+
+**About "OTA":** the BLE name is `OTA bot`; the repository does not explain the acronym's origin.
+No firmware OTA updater is implemented. Artifact/release packaging is not wireless deployment.
+
+## Hardware
+
+Choose **one** supported board. These profiles do not establish compatibility with the newer 1.69 revision,
+AMOLED V1 (SH8601), or other ESP32 display boards.
+
+| Component | Verified model or specification in the repository | Required / optional | Function |
+| --- | --- | --- | --- |
+| LCD board option | Waveshare ESP32-S3-Touch-LCD-1.69 **OLD**, ESP32-S3, 16 MB flash | Required alternative; assembled board | Default firmware target |
+| LCD display / touch | Integrated ST7789, 240x280 SPI; touch probes CST816/FT6X36 families | Included with LCD board | Display and touch input; probe address does not identify the exact touch chip |
+| AMOLED board option | Waveshare ESP32-S3-Touch-AMOLED-1.8 **V2**, ESP32-S3, 16 MB flash, 8 MB octal PSRAM | Required alternative; assembled board | Second, partially validated target |
+| AMOLED display / touch | Integrated CO5300, 368x448 QSPI; CST820 in the V2 profile | Included with AMOLED board | Display and touch input |
+| Motion sensor | Board-integrated QMI8658C; firmware enables its accelerometer only | Included; motion is optional for basic operation | Relative tilt/acceleration reactions; idle eyes remain usable if initialization fails |
+| Audio path | LCD GPIO33 buzzer; AMOLED ES8311 codec/I2S and amplifier enable | Board-specific hardware; sound optional | Generated short cues, not speech, music playback, or microphone capture |
+| Board RTC | RTC bus pins are recorded; no external-RTC driver is used by this firmware | Not required as a time source | Current clock comes from Chronos, not the board RTC |
+| USB connection | Data-capable cable matching the board and a regulated USB source | Required separately for installation and the documented powered setup | Power, upload, diagnostics, and settings console |
+| Phone with Chronos | BLE companion app | Optional separately; required for phone features | Time sync, route data, alerts, and weather |
+| Battery / enclosure | No validated battery wiring specification or enclosure files supplied | Not required for USB-powered use | Battery integration and mechanical design remain outside this setup |
+
+No external buttons are required. The firmware has no physical-button UI binding; its controls use the
+touchscreen and USB console.
+
+Power documentation specifies a regulated USB source, but does not establish current budget, battery connector
+polarity, charging limits, or measured runtime. Do not infer a battery connection from the GPIO names. Never
+connect a vehicle's 12 V supply directly. See [Boards](docs/BOARDS.md) and [Settings](docs/SETTINGS.md).
+
+## Wiring and board configuration
+
+Display, touch, IMU, and board-specific control signals are already routed on the supported boards. No
+external signal wiring is required for the documented USB-powered setup. The following are **internal profile
+assignments**, not a breadboard wiring guide; [pin_config.h](OTA-bot-Mochi/pin_config.h) is authoritative.
+
+| Signal | LCD 1.69 OLD | AMOLED 1.8 V2 |
+| --- | --- | --- |
+| Display bus | SPI: DC4, CS5, SCK6, MOSI7, RST8 | QSPI: CS12, SCLK11, SDIO0..3 = GPIO4..7 |
+| Shared I2C | SDA11 / SCL10 | SDA15 / SCL14 |
+| Touch | RST13, INT14; probes `0x15` / `0x38` | No reset GPIO, INT21; V2 touch at `0x15` |
+| Brightness | PWM backlight GPIO15 | CO5300 controller command; no backlight GPIO |
+| Audio | Buzzer GPIO33 | ES8311 `0x18`; MCLK16, BCLK9, WS45, DOUT8, amplifier enable46 |
+| Panel reset | GPIO8 | TCA9554 `0x20`, expander bits 0..2 |
+| Battery candidate | `BAT_ADC=1`, divider unverified | `BAT_ADC=-1`; AXP2101 battery driver absent |
+
+Touch and IMU use one shared I2C controller. Do not start a second controller on the same pads. On AMOLED, the
+sketch releases the expander-controlled panel reset before display initialization.
+
+**PSRAM settings are not interchangeable:**
+- **LCD 1.69 OLD: disabled.** OPI PSRAM claims GPIO33/35/36, conflicting with the
+  board's buzzer/power lines. A prior build caused continuous beeping and I2C crashes.
+- **AMOLED V2: OPI enabled.** Its 368x448 RGB565 canvas needs about 330 KB and uses
+  PSRAM. The panel controller and reset path also differ from AMOLED V1.
+
+No local schematic or electrical pinout drawing is included; [Boards](docs/BOARDS.md) links manufacturer references.
+Do not improvise battery, speaker, or power connections from this table.
+
+## Build and flash
+
+These instructions match the repository's Arduino CLI workflow. Arduino IDE 2.x is also documented, but the
+CLI makes the board profile and dependency versions explicit. No PlatformIO or ESP-IDF project is configured.
+
+### 1. Prerequisites
+
+Install **Arduino CLI 1.2.0** and put `arduino-cli` in PATH. The IDE-bundled CLI is another supported route;
+see [toolchain setup](docs/TESTING.md#arduino-cli). You also need Git and the board's USB data connection.
+
+| Dependency | Version |
+| --- | --- |
+| ESP32 Arduino core | 3.3.11 |
+| ChronosESP32 | 1.9.1 |
+| GFX Library for Arduino | 1.6.9 |
+| ESP32Time | 2.0.6 |
+| NimBLE-Arduino | 2.5.1 |
+
+### 2. Clone
+
+```sh
+git clone https://github.com/camiu01/OTA-Bot-Mochi.git
+cd OTA-Bot-Mochi
+```
+
+Run these single-line commands from the repository root, individually, in PowerShell or a POSIX shell.
+
+### 3. Install the core and libraries
+
+```sh
+arduino-cli core update-index --additional-urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
+arduino-cli core install esp32:esp32@3.3.11 --additional-urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
+arduino-cli lib install "ESP32Time@2.0.6" "NimBLE-Arduino@2.5.1"
+arduino-cli lib install --no-deps "ChronosESP32@1.9.1" "GFX Library for Arduino@1.6.9"
+```
+
+### 4. Select a target and compile
+
+Compile **only the profile matching your board**. Separate build directories keep its binaries apart.
+
+**LCD 1.69 OLD:**
+
+```sh
+arduino-cli compile --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=disabled,FlashSize=16M" --build-property "compiler.cpp.extra_flags=-DMOCHI_BOARD_LCD_169" --build-path build/lcd OTA-bot-Mochi
+```
+
+**AMOLED 1.8 V2:**
+
+```sh
+arduino-cli compile --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=opi,FlashSize=16M" --build-property "compiler.cpp.extra_flags=-DMOCHI_BOARD_AMOLED_18" --build-path build/amoled OTA-bot-Mochi
+```
+
+The sketch is [OTA-bot-Mochi.ino](OTA-bot-Mochi/OTA-bot-Mochi.ino); Arduino compiles its `src/` modules
+recursively. Selecting "ESP32S3 Dev Module" alone does not select the AMOLED profile.
+
+### 5. Find the port and flash
+
+```sh
+arduino-cli board list
+```
+
+Close serial monitors. Replace `COM3` with your detected port, such as `/dev/ttyACM0` on Linux.
+Upload **only after a successful compile**, using the same target and build directory.
+
+**LCD 1.69 OLD:**
+
+```sh
+arduino-cli upload --port COM3 --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=disabled,FlashSize=16M" --build-path build/lcd OTA-bot-Mochi
+```
+
+**AMOLED 1.8 V2:**
+
+```sh
+arduino-cli upload --port COM3 --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=opi,FlashSize=16M" --build-path build/amoled OTA-bot-Mochi
+```
+
+Upload replaces the installed application. Do not erase flash or change partitions; saved settings may be lost.
+No precompiled binary is asserted to be available. The [workflow](.github/workflows/checks.yml) configures
+artifacts/release packaging; [CI notes](docs/CI.md) explain its unverified remote-release status.
+
+### 6. First boot
+
+Keep the board still in its intended desk position while the IMU takes its initial reference. Open the serial
+console if needed:
+
+```sh
+arduino-cli monitor --port COM3 --config baudrate=115200
+```
+
+Look for `UI ready`, the detected touch address, and `IMU ready` or `IMU unavailable; using idle eyes`. The
+startup shows an animated OTA BOT / MOCHI title for 2.2 seconds, then a silent eye greeting. Defaults
+are white MOCHI eyes, neutral mood, 30% day brightness, and sound off.
+
+These commands were checked statically, not executed to build or flash this source. Earlier AMOLED bring-up
+used core **3.3.12**, not the CI-pinned 3.3.11; that does not validate the current source or pinned build.
+
+## Controls and everyday use
+
+The primary carousel is: `Eyes → Clock → Route → Alerts → Weather → Settings → Eyes`. Desk tools are children
+of Clock, not additional carousel pages.
+
+| Action | Result |
+| --- | --- |
+| Swipe left / right | Next / previous main page |
+| Tap / quick double tap on Eyes | Temporary random / playful face and a glance toward the touch |
+| Stroke vertically on Eyes | Temporary affectionate face and a short-lived heart near the finger |
+| Hold still on Eyes for 1.2 seconds | Open Settings |
+| Swipe down on Clock | Open the six-tool desk menu |
+| Swipe up from a tool / desk menu | Return to the desk menu / Clock |
+| Tap the court in desk Pong | Move the left paddle to that height; RESET starts a new game |
+| Swipe down on Route | Toggle large/details layout; holding Route restores the configured default |
+| Swipe down on Weather | Queue a phone synchronization request, not a direct forecast fetch |
+| Tap the top status strip on a utility page | Toggle sound for the session; inactive on Eyes and Settings |
+| Tap SAVE in Settings | Persist the active preferences |
+
+Settings uses vertical scrolling; swipes do not also edit a row. Timers have START/PAUSE, RESET, and MODE
+controls, continue off-page, and reset after reboot. Pong pauses when its desk page is not visible.
+
+To use phone features, open **Chronos**, connect to **`OTA bot`**, and allow the permissions needed by the
+features you enable. Sync time in the app. The clock shows a waiting state until synchronization and follows
+Chronos 12/24-hour mode; there is no on-device manual clock-setting command or external-RTC fallback.
+
+Start navigation on the phone for route data. New notifications select Alerts; a new navigation session
+selects Route. Routine route updates preserve a later manual page selection, and switching waits while a
+finger is held down. Dashboard mode, enabled by default, keeps incoming calls from covering other pages; it
+does not detect whether the device is on a desk or in a moving vehicle. Use controls only while stationary.
+See [UI](docs/UI.md) and [Desk tools](docs/DESK.md).
+
+## Configuration
+
+### Runtime: touch menu or USB console
+
+Preferences apply immediately in RAM. Only explicit SAVE / `save` writes the validated NVS profile; leaving a
+page is not a save. Timer/Pong state and temporary route layouts are session-only.
+
+| Option | Available configuration |
+| --- | --- |
+| Appearance | Four eye styles, six body/UI colors, 118 moods; decorated expressions keep fixed accent colors |
+| Animation | `calm`, `dasai`, `playful`; optional random moods and IMU moods |
+| Orientation | Normal or 180-degree flip, including matching touch and IMU mapping; no 90-degree mode |
+| Lighting | Day 5–90%, night 1–20%, manual night selection, optional idle dimming |
+| Motion | Shake and IMU-expression on/off switches; ordinary IMU gaze remains active when the sensor is ready |
+| Route / calls | Large/details default and dashboard call-overlay policy |
+| Sound | Master switch, level 1–30, face/timer/alert/ambient categories, night mute |
+| Language | English or Italian UI; USB commands remain English and phone text is not translated |
+| Connection | Fixed advertised name `OTA bot`; no runtime name, BLE-parameter, Wi-Fi, or credential menu |
+
+The sound level is PWM duty on LCD and PCM amplitude on AMOLED, not calibrated loudness. IMU sensitivity, dead
+zone, and reaction thresholds are source constants, not runtime sliders.
+
+Use the serial monitor at 115200 baud with a newline terminator. For example:
 
 ```text
-                  ┌──────────────────────┐
-                  │       setup()        │
-                  │ Chronos + GFX + IMU  │
-                  └──────────┬───────────┘
-                             │
-                             ▼
-                  ┌──────────────────────┐
-                  │    current_screen    │
-                  └──────────┬───────────┘
-        ┌────────────┬───────┼───────────┬────────────┐
-        ▼            ▼       ▼           ▼            ▼
-     [BASE]       [CLOCK]  [NAV]     [WEATHER]  [NOTIFICATION]
-  Living Eyes      Time     Route    Forecast       Alerts
- (IMU Physics)     Sync   & Icons     & Temps      & Callers
-
+show
+set style mochi
+mood names
+mood gauge
+set brightness 30
+set flip on
+set animation calm
+set language en
+save
 ```
 
-* **BASE:** Non-blocking rendering loop updating eye saccades, blinks, and IMU-driven pupil offsets.
-* **CLOCK:** Synced time/date, 12/24-hour mode, waiting state, and BLE indicator. Battery charge is estimated best-effort and reads NOT MEASURED without plausible hardware.
-* **NAVIGATION:** Turn directions, speed, distance, and turn icon CRC tracking.
-* **WEATHER:** City, temperature, condition icon, up to three high/low forecasts, receipt time, and stale-data indication.
-* **NOTIFICATION:** Phone notifications and incoming call (ringer) display.
-* **SETTINGS:** LOOK, LIGHT, DRIVE, MOVE, and AUDIO tabs with larger touch targets and vertical row scrolling. Hold still on Eyes for 1.2 seconds to open the menu; tap SAVE to persist changes. Use only while parked.
+Send commands individually; only send `save` when you want these choices retained. See
+[Settings](docs/SETTINGS.md) and [Sound](docs/SOUND.md) for accepted values, diagnostics, and persistence
+behavior.
 
----
+### Compile-time: board and implementation constants
 
-## Supported Hardware
+[pin_config.h](OTA-bot-Mochi/pin_config.h) selects pins and geometry through
+`MOCHI_BOARD_AMOLED_18`; the FQBN selects flash size, USB CDC, and PSRAM. Changing `LCD_WIDTH`/`LCD_HEIGHT` in
+a host preview does not add support for another physical panel. BLE name/metadata are set in the sketch.
+Accelerometer sampling and filter gains live in `src/eyes/eyes_imu.cpp` and `motion_filter.h`. Changing those
+requires a reviewed rebuild, not an undocumented wiring change.
 
-Default target is the **Waveshare ESP32-S3-Touch-LCD-1.69 OLD** (240x280 ST7789).
-The mappings in `pin_config.h` follow the official Waveshare schematic for that
-board revision; dashboard settings leave them unchanged:
+## Firmware architecture
 
-| Category | Component | Default Pins |
-| :--- | :--- | :--- |
-| **Display** | ST7789 SPI LCD (240x280) | `DC=4, CS=5, SCK=6, MOSI=7, RST=8, BL=15` |
-| **Touch** | Auto-probed CST816 / FT6X36 family | `SDA=11, SCL=10, RST=13, INT=14` |
-| **Motion** | QMI8658C 6-Axis IMU (shared I2C bus) | `SDA=11, SCL=10` |
-| **RTC / Time** | External I2C RTC (shared I2C bus) | `SDA=11, SCL=10, INT=41` |
-| **Buzzer** | PWM/tone output; electrical model unverified | `BUZZER=33` |
-| **Backlight** | GPIO/PWM | `BL=15` |
-| **Battery / Power** | Circuit and sensing path not yet verified | `BAT_ADC=1` sampled best-effort with plausibility gating; `SYS_EN=35, SYS_OUT=36` remain unused |
+Paths below are relative to `OTA-bot-Mochi/`.
 
-Touch probes the CST816 family at `0x15` and FT6X36 family at `0x38`; the startup
-log reports the responding address. This is not an exact chip-model identification.
-Do not assume that an AXP2101 exists on this board. Battery percentage uses a
-guessed 2:1 divider ratio on `BAT_ADC` with a plausibility window, so missing
-hardware reports NOT MEASURED instead of a wrong value; the ratio and the
-percentages are not physically validated yet.
+| Module | Responsibility |
+| --- | --- |
+| `OTA-bot-Mochi.ino` | Hardware setup, Chronos callbacks, touch dispatch, main-loop services, and frame scheduling |
+| `src/eyes/` | Expression selection, gaze/life animation, geometry, rasterization, reversible scenes, and QMI8658C polling |
+| `src/bus/i2c_bus.*` | One shared I2C controller for board peripherals |
+| `src/touch/` | Controller probing, coordinate mapping, and separate tap/hold/swipe/petting policies |
+| `src/ui/` | Bounded BLE snapshots, page/event policies, utility views, session timer, palette, and EN/IT labels |
+| `src/clock/` | Chronos synchronization readiness and changed-field clock rendering |
+| `src/play/` | Shared bounded Pong simulation and clock/Pong drawing |
+| `src/settings/` | Validated preferences, legacy-profile migration, explicit NVS save, touch menu, and USB parser |
+| `src/sound/` | Cue scheduling and board-specific PWM or ES8311/I2S output |
+| `src/power/` | Brightness/dimming policy and best-effort battery estimate |
 
-Building with `-DMOCHI_BOARD_AMOLED_18` selects the **Waveshare
-ESP32-S3-Touch-AMOLED-1.8 V2** profile instead (CO5300 368x448 AMOLED over QSPI,
-CST820 touch, brightness as a controller command, no buzzer pad). Its pin table,
-compile commands, and the hardware checks still pending are listed in
-[Boards and panels](docs/BOARDS.md).
+The sketch services BLE, touch, timers, sound, and brightness between display frames scheduled 33 ms apart. An
+`Arduino_Canvas` composes a complete RGB565 frame before `flush()`. This uses RAM to avoid exposing partial
+draws; the larger AMOLED canvas needs PSRAM. Dirty regions reduce canvas repaint work, not a guarantee of
+partial physical-panel transfers.
 
----
+BLE callbacks store bounded, mutex-protected copies/event counters. The main task chooses pages, renders,
+saves preferences, and issues app sync requests. Optional AMOLED sound has a dedicated bounded PCM/DMA worker;
+it does not replace the UI loop. Only accelerometer data is enabled: this is decorative motion response, not
+gyroscope fusion, attitude measurement, or autonomous movement.
 
-## Quick Start
+## Limitations and troubleshooting
 
-### Prerequisites
+| Symptom / limitation | Documented checks and boundary |
+| --- | --- |
+| Blank display, beeping, or crashes after changing board options | Check the exact board revision, controller, FQBN, and PSRAM setting first. Never use OPI PSRAM on LCD OLD. On AMOLED, inspect panel-expander and framebuffer initialization diagnostics; do not rewire reset pins by guesswork. |
+| No touch or no tilt response | Read the touch/IMU startup diagnostics. Touch probes `0x15`/`0x38`; QMI8658C checks identity `0x05` at `0x6B`/`0x6A`. Confirm the profile and shared bus. Idle eyes still work without a ready IMU. |
+| Clock stays at `--:--` | Connect and synchronize through Chronos. Every reboot needs a new sync; the board RTC is not used. |
+| Weather missing | The physical weather issue is still open. Check Chronos weather configuration, permissions, connection/subscription, and USB `weather` counters; `weather sync` queues a rate-limited app request. Native parser tests do not prove delivery. |
+| Route inactive or missing turn icon | Start navigation on the phone and check BLE. The firmware waits for complete matching icon packets; it does not invent a turn. Live interoperability remains a device check. |
+| Sound silent | Sound defaults off. Inspect `sound`, master/night mute, and category settings; `sound test` requests bench tones but respects mute. Ready status does not prove audibility. |
+| Battery says NOT MEASURED | This is intentional without plausible LCD ADC readings. The divider/calibration is unverified; AMOLED AXP2101 battery/charging support is absent. Do not add a guessed divider or battery connection. |
+| Changes disappear after reboot | Use explicit SAVE and check success. A storage failure leaves changes in RAM only; timer and game sessions are not persisted. |
+| Upload port unavailable | Close other serial monitors; select the discovered port. Follow the documented Linux serial-permission guidance in [Testing](docs/TESTING.md#linux-serial-permissions), not a flash erase/reset workaround. |
+| Text shows `?` or approximate characters | The bounded bitmap font approximates common Latin accents; unsupported Unicode and emoji are not fully rendered. |
 
-* Arduino IDE 2.x with the official **ESP32 by Espressif** board package installed.
-* Libraries needed (install via Arduino Library Manager):
-  * `GFX Library for Arduino` (provides `Arduino_GFX_Library.h`)
-  * `ChronosESP32`
-* Smartphone with the **Chronos** companion app installed (Android / iOS).
+IMU axis direction depends on mounting, and thresholds are not physically calibrated. No autonomous
+locomotion, GPS, call answering, voice interaction, ambient-light detection, or firmware OTA updater is
+implemented. Power consumption, battery runtime, extended BLE/audio stability, and full LCD/AMOLED
+touch/orientation validation remain open. The Chronos metadata uses nearby rectangular presets rather than
+exact panel dimensions. See [TODO](TODO.md) and the [device
+checklist](docs/TESTING.md#device-validation-checklist).
 
-### Setup & Flashing
+## Development
 
-1. Clone this repository into your Arduino sketchbook folder:
-   ```bash
-   git clone https://github.com/camiu01/ota-bot-mochi.git
-   cd ota-bot-mochi
-   ```
+Native tests require `g++` with C++17 and `-Wall -Wextra -Werror`.
 
-2. Open `OTA-bot-Mochi/OTA-bot-Mochi.ino` in Arduino IDE.
-3. Select your board configuration:
-  * **Board:** `ESP32S3 Dev Module`
-4. Upload to the device.
-5. Launch the **Chronos** app on your phone, search for Bluetooth devices, and pair with **"OTA bot"**.
-
-See [build and test instructions](docs/TESTING.md) for pinned dependencies,
-Arduino CLI commands, Linux serial permissions, and native regression tests.
-See [UI and controls](docs/UI.md) for screen behavior and hardware limits.
-See [dashboard settings](docs/SETTINGS.md) for touch controls, USB commands, and saving.
-The new utility screens have native regression coverage; firmware compilation,
-upload, and physical validation remain with the user.
-
----
-
-## Eyes Engine & IMU Interaction
-
-The eye rendering core supports continuous frame updates, idle blinking, and full palette remapping.
-
-### Styles & Geometries
-
-* `MOCHI`: Tall solid capsules, no pupils or highlights (default firmware profile, Dasai aesthetic).
-* `BLOUB`: Wide, soft rounded eyes with pupils and highlights (the standalone `eyes_init()` API default).
-* `TRAPEZ`: Solid mirrored trapezoids, no pupils or highlights, with bounded top slopes (Cozmo look).
-* `NORMAL`: Classic oval eyes.
-
-### Key API Calls
-
-```cpp
-eyes_init(gfx);                                // Bind display and set default state
-eyes_set_style(MOCHI);                         // Change eye geometry
-eyes_set_expression(HAPPY);                    // Set emotional mood
-eyes_set_expression_by_name("love");           // Set mood by string identifier
-eyes_set_eye_colors(RGB565_BLACK, RGB565_CYAN, RGB565_BLACK, RGB565_WHITE);
-eyes_imu_poll(millis());                       // Read IMU tilt & shake
-eyes_update(millis());                         // Run animations, physics, and draw
-
+```powershell
+.\scripts\test-host.ps1
+git -c core.whitespace=cr-at-eol diff --check
 ```
 
----
+On Linux/macOS, use `bash scripts/test-host.sh` and `git diff --check`. The suites exercise real eye
+rasterization against a fake panel, geometry, gestures, scenes, settings migration, UI state, Pong physics,
+and audio adapters. They do not compile ESP32 firmware or validate physical BLE/electrical behavior. CI is
+configured to gate both firmware builds on native tests.
 
-## Contributing & Governance
+The native SDL2 emulator needs a matching GCC/SDL2 toolchain:
 
-Contributions are welcome. Please read the governance docs before opening issues or pull requests.
+```powershell
+.\tools\run-emulator.ps1 -Size 240x280 -Command 'mood headlights'
+.\tools\run-emulator.ps1 -Size 368x448 -Page pong
+```
 
+Linux/macOS uses `bash tools/run-emulator.sh`; setup and controls are in
+[Testing](docs/TESTING.md#host-lcd-emulator-sdl2).
+See [Contributing](CONTRIBUTING.md) for tabs, small cohesive functions/files, English documentation, and
+Conventional Commits. The [Code of Conduct](CODE_OF_CONDUCT.md) and [Security policy](SECURITY.md) apply.
 
-* **[LICENSE](LICENSE)** - Defines GPLv3 reuse, modification, and redistribution terms.
-* **[CONTRIBUTING.md](CONTRIBUTING.md)** - Workflow and code style guidelines.
-* **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)** - Community expectations.
-* **[SECURITY.md](SECURITY.md)** - Vulnerability reporting guidelines.
+## Credits and license
 
----
+Copyright (c) 2026 [Camiu](https://github.com/camiu01). The repository includes the [GNU GPL v3
+license](LICENSE); firmware source headers use `SPDX-License-Identifier: GPL-3.0-or-later`.
 
-## License & Credits
+The existing project credits Arduino GFX, ChronosESP32, bloub eyes, and Dasai Mochi; the eye module also
+identifies Cozmo-style inspiration. These are credits and design references, not claims of affiliation or
+endorsement.
 
-Copyright (c) 2026 [Camiu](https://github.com/camiu01). Distributed under the [GNU General Public License v3.0 (GPLv3)](LICENSE). Built on Arduino GFX and ChronosESP32, inspired by bloub eyes and Dasai Mochi.
+Images are repository emulator captures, not manufacturer photographs. ES8311 initialization references
+Waveshare's V2 example in [Sound](docs/SOUND.md). The legacy [FreeSans header](OTA-bot-Mochi/FreeSansBold12pt7b.h)
+records generation through `moononournation/ArduinoFreeFontFile` and its original glyph-license notice.
+Third-party library/font terms still apply; the project's license does not replace those notices.

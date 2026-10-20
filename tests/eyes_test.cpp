@@ -15,7 +15,7 @@
 
 /** @brief Check solid versus pupilled style rendering, not just preset dimensions. */
 static void style_tests() {
-	Arduino_GFX gfx;
+	Arduino_GFX gfx(240, 280);
 	eyes_init(&gfx);
 	std::vector<uint16_t> mochi;
 	for (uint8_t style = 0; style < 4; ++style) {
@@ -39,7 +39,7 @@ static void style_tests() {
 
 /** @brief All styles/expressions must erase old geometry and keep their union inside the screen. */
 static void dirty_region_tests() {
-	Arduino_GFX gfx;
+	Arduino_GFX gfx(240, 280);
 	eyes_init(&gfx);
 	eyes_set_eye_colors(0, 0xFFFF, 0xF800, 0x07E0);
 	for (uint8_t style = 0; style < 4; ++style) {
@@ -75,7 +75,7 @@ static void dirty_region_tests() {
  * NEUTRAL on one style fails here instead of shipping unnoticed.
  */
 static void distinct_expression_tests() {
-	Arduino_GFX gfx;
+	Arduino_GFX gfx(240, 280);
 	eyes_init(&gfx);
 	eyes_set_eye_colors(0, 0xFFFF, 0xF800, 0x07E0);
 	for (uint8_t style = 0; style < 4; ++style) {
@@ -89,6 +89,11 @@ static void distinct_expression_tests() {
 			st.dirtyInit = false;
 			eyes_draw();
 			if (expression == NEUTRAL) { baseline = gfx.pixels; continue; }
+			if (expression == PONG || expression == GAUGE || expression == GLOW || expression == HEADLIGHTS || expression >= DANCING) {
+				// These moods intentionally start as eyes; compare their scene phase.
+				st.lastMs += 3000;
+				eyes_draw();
+			}
 			assert(!baseline.empty() && gfx.pixels != baseline);
 		}
 	}

@@ -172,7 +172,8 @@ void eyes_imu_poll(uint32_t nowMs) {
 		fx = -fx;
 		fy = -fy;
 	}
-	MotionSample sample = s_motion.update(fx, fy, fz, nowMs, settings_get().shake);
+	MotionSample sample = s_motion.update(fx, fy, fz, nowMs,
+		settings_get().shake && eyes_faces_automatic_ready(nowMs));
 	eyes_imu_set_tilt(sample.x, sample.y);
 	eyes_faces_motion(sample.delta_x, sample.delta_y, sample.delta_z, nowMs);
 	if (sample.shake) {

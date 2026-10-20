@@ -15,7 +15,7 @@ rows. Changes are live in RAM and do not write flash while browsing.
 | --- | --- | --- |
 | LOOK | Eyes | normal, mochi, bloub, trapez |
 | LOOK | Color | white, mint, cyan, amber, pink, blue |
-| LOOK | Mood | opens a 3-column grid of all 88 expressions in five full-height rows; tap a cell, swipe to scroll |
+| LOOK | Mood | opens a 3-column grid of all 118 expressions/animated moods in five full-height rows; tap a cell, swipe to scroll |
 | LOOK | Route default | large / details |
 | LIGHT | Day level | 5, 10, 20, 30, 50, 70, 90% |
 | LIGHT | Night | off / on |
@@ -59,6 +59,20 @@ devil, moon, sparkle, bolt, diamond, money, low battery, idea, music) additional
 paint a fixed accent mark — blue tears, a rose heart, an orange flame — that no
 color setting changes, so those decorations keep reading even on a recolored eye.
 Tap EYES to preview the actual animated eyes. This is not a separate preview page.
+
+The `gauge`, `glow`, and `headlights` moods are decorative animations.
+Gauge accelerates its needle into the red zone, repeatedly drops back and climbs
+again like a rev limiter, then returns to idle. It does not read real speed
+or RPM. Glow starts with the selected eye color, cycles body colors and halos,
+then returns to that color without editing the Color preference.
+Headlights paints slow-pulsing side beams. All
+three scale to both LCD and AMOLED and remain separate from the real clock
+and playable Pong tools.
+
+Twenty-one [original colored performances](ANIMATIONS.md), from `dancing` through
+`stargazing`, add reversible six-second sequences. They restore the selected
+eye color at the end and wait for a complete cycle before automatic reactions.
+Their semantic colors do not change the saved palette.
 
 Tap SAVE to persist the whole profile. SAVED means the write succeeded; FAILED
 means it did not. EYES and swiping away do not save automatically.
@@ -154,6 +168,13 @@ Default firmware preferences:
 Enable **Random mood** and/or **IMU mood** in DRIVE, then SAVE. They change
 expressions only, not the selected eye style or color.
 
+Automatic reactions wait for the selected mood to complete a visible cycle:
+12 seconds for Gauge/Pong, 9.6 seconds for Glow, 3.6 seconds for Headlights,
+and three seconds for other non-neutral expressions. Timing starts when the
+renderer actually shows the mood, including after returning from a reaction.
+Neutral allows automatic reactions immediately. Touch reactions remain immediate;
+decorative tilt/gaze keeps running while automatic mood changes wait.
+
 - **Random:** The first change is after 12 seconds; subsequent intervals are
   12–30 seconds. Each reaction lasts three seconds and returns to the selected
   base mood. The pool holds 27 choices (happy, glee, focused, skeptic, love, awe,
@@ -168,7 +189,8 @@ expressions only, not the selected eye style or color.
   100ms produces surprised. One isolated sample is not enough.
 - IMU reactions last 2.2 seconds with a five-second cooldown. They take priority
   over random changes. Disabling an option or choosing a manual mood restores
-  the base. Shake-to-dizzy remains a separate opt-in and has the highest priority.
+  the base. Shake-to-dizzy remains a separate opt-in and has the highest priority
+  once the selected mood's visible cycle is complete.
 
 The sensor axes depend on mounting orientation: these are decorative motion
 responses, **not** detection of turns, braking, potholes, or driver fatigue.

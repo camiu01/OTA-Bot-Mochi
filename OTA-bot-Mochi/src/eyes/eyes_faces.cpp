@@ -6,6 +6,7 @@
 #include "eyes_faces.h"
 #include "face_policy.h"
 #include "eyes_api.h"
+#include "eye_performances.h"
 #include "../settings/settings.h"
 #include "../../pin_config.h"
 #include <Arduino.h>
@@ -21,18 +22,19 @@ FaceTone eyes_face_tone(Expression expr) {
 		/** Sleepy and calm faces get a slow, low chirp. */
 		case SLEEPY: case SLEEPY_EYES: case TIRED: case DOZE: case LAZY: case GROGGY:
 		case ZEN: case MELTING: case DEADPAN: case LOW_BATT: case POWER: case LOADING:
+		case PONG: case CLOCK_EYES: case GAUGE:
 			return FaceTone::Soft;
 		/** Excited and surprised faces get a quick high bounce. */
 		case SURPRISED: case SHOCKED: case EXCITED: case GLEE: case STAR: case SPARKLE:
 		case BOLT: case MANIC: case CHEEKY: case BEAMING: case WINK: case IDEA:
-		case HYPER: case SQUISH: case DERP:
+		case HYPER: case SQUISH: case DERP: case SQUEEZED:
 			return FaceTone::Bounce;
 		/** Negative and uneasy faces get a short low blip. */
 		case SAD: case SAD_DOWN: case SAD_UP: case ANGRY: case ANNOYED: case FRUSTRATED:
 		case UNIMPRESSED: case FURIOUS: case SCARED: case TERRIFIED: case DISGUSTED:
 		case GLUM: case CRYING: case ZOMBIE: case POUT: case WORRIED: case NERVOUS:
 		case GRUMPY: case SKEPTIC: case SQUINT: case SUSPICIOUS: case GLITCH:
-		case TWITCH: case SNEEZE: case JUDGE: case QUESTION: case CALCULATING: case CYBORG:
+		case TWITCH: case SNEEZE: case JUDGE: case QUESTION: case CALCULATING: case CYBORG: case ARC_SAD:
 			return FaceTone::Flat;
 		default: return FaceTone::Bright;
 	}
@@ -40,6 +42,16 @@ FaceTone eyes_face_tone(Expression expr) {
 
 /** @brief Reset automatic reactions after an explicit mood change. @param base Mood. */
 void eyes_faces_base(Expression base) { policy.reset(base, millis()); }
+
+bool eyes_faces_automatic_ready(uint32_t now) {
+	Expression base = static_cast<Expression>(settings_get().mood);
+	if (base == NEUTRAL) { return true; }
+	const EyeState &state = eyes_state();
+	if (!state.effectClockInit || state.effectExpression != base || state.dizzyUntilMs != 0) { return false; }
+	uint32_t cycle = eye_performance(base) ? 6000 : base == GAUGE || base == PONG ? 12000 :
+		(base == GLOW ? 9600 : (base == HEADLIGHTS ? 3600 : 3000));
+	return uint32_t(now - state.effectStartMs) >= cycle;
+}
 
 /**
  * @brief Trigger a random temporary face unless dizzy is active, and glance at the tap.
@@ -84,7 +96,8 @@ void eyes_faces_pet(uint32_t now, int16_t x, int16_t y) {
 /** @brief Select a temporary expression, leaving DIZZY in the foreground. @param now Timestamp. */
 void eyes_faces_step(uint32_t now) {
 	const CompanionSettings &p = settings_get();
-	Expression face = policy.update(now, p.random_faces, p.imu_faces, uint32_t(random(1000000L)));
+	Expression face = policy.update(now, p.random_faces, p.imu_faces, uint32_t(random(1000000L)),
+		eyes_faces_automatic_ready(now));
 	EyeState &state = eyes_state();
 	if (state.dizzyUntilMs != 0) { state.savedExpr = face; }
 	else {
@@ -97,7 +110,7 @@ void eyes_faces_step(uint32_t now) {
 
 /** @brief Pass bounded sensor data to the mood policy. @param x G. @param y G. @param z G. @param now Timestamp. */
 void eyes_faces_motion(float x, float y, float z, uint32_t now) {
-	policy.sample(x, y, z, now, settings_get().imu_faces);
+	policy.sample(x, y, z, now, settings_get().imu_faces && eyes_faces_automatic_ready(now));
 }
 
 /** @brief Silent startup greeting face that preserves the selected mood. @param now Timestamp. */
