@@ -90,6 +90,10 @@ Auto rotate's switch remains session-only; calibration itself is persistent.
   Some cues are audible, so the speaker is not wholly nonfunctional.
   Identify the failing cues and the relevant master/category/night-mute/level
   settings before changing the ES8311 playback path.
+  A native reproduction on 2026-10-21 found that 80 ms polling could silence
+  short cues while the long test remained audible. Complete, bounded cues now
+  run on the PCM worker's sample clock, with a DMA drain before amplifier-off;
+  physical confirmation during animations is still required.
 - [ ] Recheck the affected cues on the physical board after the fix, including
   coexistence with display, touch, and BLE.
 

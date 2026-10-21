@@ -11,6 +11,7 @@
 #include "eye_palette.h"
 #include "eye_life.h"
 #include "eye_reference.h"
+#include "eye_reactions.h"
 #include "eye_effects.h"
 #include "eye_scenes.h"
 #include "eye_performance_draw.h"
@@ -54,8 +55,8 @@ static void paint_heart(Arduino_GFX *gfx, uint16_t color, int16_t cx, int16_t to
 	gfx->fillTriangle(cx - 6, top + 4, cx + 6, top + 4, cx, top + 11, color);
 }
 
-/** @brief Paint one eye, keeping blink/symbol logic separate from pupil rendering. @param gfx Canvas. @param cfg Config. @param st State. @param box Eye. */
-static void paint(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeState &st, const EyeBox &box) {
+/** @brief Paint one eye, keeping blink/symbol logic separate from pupil rendering. @param gfx Canvas. @param cfg Config. @param st State. @param box Eye. @param elapsed Mood-relative time. @param neutral Selected ink. */
+static void paint(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeState &st, const EyeBox &box, uint32_t elapsed, uint16_t neutral) {
 	if (st.blinking || box.h <= 13) {
 		gfx->fillRoundRect(box.x, box.y, box.w, box.h, (box.w < box.h ? box.w : box.h) / 2, cfg.fgColor);
 		// Short eyes drop pupils, but they must keep their lid mask: on a small
@@ -63,7 +64,7 @@ static void paint(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeState &st, co
 		if (!st.blinking) { eye_lids(gfx, cfg, box); }
 		return;
 	}
-	if (eye_reference_body(gfx, cfg, st, box)) { return; }
+	if (eye_reaction_body(gfx, cfg, st, box, elapsed, neutral) || eye_reference_body(gfx, cfg, st, box)) { return; }
 	eye_body(gfx, cfg, box);
 	eye_pupils(gfx, cfg, st, box);
 	eye_lids(gfx, cfg, box);
@@ -103,15 +104,16 @@ void eyes_draw() {
 		drawing.tiltX = pose.x; drawing.tiltY = pose.y;
 	}
 	bool scene = cfg.expression == PONG || cfg.expression == GAUGE || eye_performance(cfg.expression);
-	cfg.fgColor = eye_mood_color(cfg.expression, cfg.fgColor);
 	uint32_t elapsed = eye_effect_elapsed(st, cfg.expression);
 	if (scene) { drawing = EyeState{}; }
 	EyeLayout layout = eye_layout(cfg, drawing);
 	if (pose.active && !scene) { animate_box(layout.left, pose, cfg); animate_box(layout.right, pose, cfg); }
+	if (!drawing.blinking && !scene) { eye_reaction_layout(cfg, layout, elapsed); }
 	eye_performance_layout(cfg, layout, elapsed);
 	if (cfg.expression == STARGAZING) {
 		drawing.saccadeY = -int16_t(layout.left.h * eye_stargazing_look(elapsed) / 2);
 	}
+	cfg.fgColor = eye_reaction_ink(cfg, elapsed);
 	wipe(gfx, cfg, st);
 	EyeState effects = st;
 	if (cfg.expression == GLOW || cfg.expression == HEADLIGHTS) { effects.lastMs = elapsed; }
@@ -121,13 +123,11 @@ void eyes_draw() {
 		EyeConfig left = cfg, right = cfg;
 		left.fgColor = eye_performance_ink(cfg, true, elapsed);
 		right.fgColor = eye_performance_ink(cfg, false, elapsed);
-		paint(gfx, left, drawing, layout.left);
-		paint(gfx, right, drawing, layout.right);
+		paint(gfx, left, drawing, layout.left, elapsed, eyes_config().fgColor);
+		paint(gfx, right, drawing, layout.right, elapsed, eyes_config().fgColor);
 	}
 	if (st.heartUntilMs != 0) {
-		// The petting heart is a LOVE marker, so it takes the same fixed rose accent.
-		uint16_t tint = eye_accent(LOVE);
-		paint_heart(gfx, tint ? tint : cfg.fgColor, st.heartX, st.heartY);
+		paint_heart(gfx, cfg.fgColor, st.heartX, st.heartY);
 	}
 	store_union(st, eye_effect_bounds(cfg, layout), cfg);
 	// Particles and reversible morphs travel beyond the ordinary pair's rectangle.

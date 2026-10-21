@@ -36,10 +36,16 @@ that every expression renders differently from NEUTRAL on every style, that no
 two names draw the same pixels on any style (pairwise uniqueness, 27612
 comparisons), solid-style pupil/highlight exclusion, trapezoid symmetry, IMU
 gaze/roll bounds, radius limits, and dirty-region erasure are checked. The
-fixed accent palette has its own suite: no accent may equal black, white, or the
-counted pupil/highlight sentinels, every accented expression must paint its
-accent on all four styles, plain faces must not leak one, and the petting heart
-must use the love accent. The colored
+configured palette has its own suite: resting emotions and symbols must keep
+the selected ink on every style, across three selected body colors.
+The petting heart must use the selected body color and erase without trails.
+Related emotion families must differ in at least ten percent of their combined
+occupied-pixel masks, independent of color, on LCD, AMOLED, and a small panel.
+The face suite also exercises 24 GIF-informed reaction loops on four panel
+sizes: time-only shape changes, exact recovery, timestamp rollover, blink
+priority, frame-local color blends, solid-style exclusions, and
+dirty-versus-full redraw equality.
+The colored
 performances also have a dedicated `performance_test.cpp` suite covering all
 twenty-one additions on four panel rasters: reversible endpoints, frame-local
 semantic colors, clean-redraw equality, unchanged v5 preferences, and complete
@@ -93,6 +99,9 @@ worker against shared-bus/I2S doubles. It checks fixed-rate stereo output,
 pitch and amplitude bounds, continuous phase across DMA blocks, lazy startup,
 amplifier mute, command expiry across timestamp rollover, partial-init cleanup,
 task-allocation failures, DMA errors/short writes, and reuse after mute.
+Sample-clocked cue regressions cover exact note/pause lengths, input bounds,
+5 ms fades, both notes with 80/160 ms main-loop stalls, and amplifier drain
+versus immediate explicit mute.
 Physical speaker audibility and loudness still require the bench test in
 `docs/SOUND.md`.
 

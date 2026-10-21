@@ -279,7 +279,7 @@ page is not a save. Timer/Pong state and temporary route layouts are session-onl
 
 | Option | Available configuration |
 | --- | --- |
-| Appearance | Four eye styles, six body/UI colors, 118 moods; decorated expressions keep fixed accent colors |
+| Appearance | Four eye styles, six body/UI colors, 118 moods; distinct shapes and GIF-informed reactions with temporary colors |
 | Animation | `calm`, `dasai`, `playful`; optional random moods and IMU moods |
 | Orientation | Normal or 180-degree flip, including matching touch and IMU mapping; no 90-degree mode |
 | Lighting | Day 5–90%, night 1–20%, manual night selection, optional idle dimming |

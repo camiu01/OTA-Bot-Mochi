@@ -8,9 +8,17 @@
 #include "../settings/settings.h"
 #include "../../pin_config.h"
 #include <Arduino.h>
+#if defined(MOCHI_BOARD_AMOLED_18)
+#include "es8311_output.h"
+#endif
 
 namespace {
+#if defined(MOCHI_BOARD_AMOLED_18)
+using Note = SoundNote;
+bool playback_started = false;
+#else
 struct Note { uint16_t hz, ms; };
+#endif
 struct Sequence { const Note *notes; uint8_t count; };
 const Note tap[] = {{2200, 55}, {0, 25}, {2800, 65}};
 const Note mood[] = {{1700, 50}, {2300, 80}};
@@ -57,9 +65,20 @@ bool allowed(SoundCue cue) {
 }
 /** @brief Clear queued/active notes and release output. */
 void stop() { queued = active = SoundCue::Count; buzzer_end(); attached = false; }
-/** @brief Emit only the current note, skipping already expired notes after a slow frame. @param now Time. */
+/** @brief Submit a complete AMOLED cue, or service the LCD's current PWM note. @param now Time. */
 void play(uint32_t now) {
 	Sequence s = sequence(active);
+#if defined(MOCHI_BOARD_AMOLED_18)
+	(void)now;
+	if (!playback_started) {
+		if (!attached) { attached = buzzer_begin(); }
+		uint8_t level = settings_get().sound_level;
+		if (active == SoundCue::Ambient) { level = (level + 1) / 2; }
+		if (!attached || !es8311_play(s.notes, s.count, level)) { failed = true; stop(); return; }
+		playback_started = true;
+	}
+	if (!es8311_playing()) { active = SoundCue::Count; }
+#else
 	uint32_t age = now - started;
 	for (uint8_t i = 0; i < s.count; ++i) {
 		if (age >= s.notes[i].ms) { age -= s.notes[i].ms; continue; }
@@ -73,6 +92,7 @@ void play(uint32_t now) {
 	}
 	active = SoundCue::Count;
 	if (attached) { buzzer_write(0, 0); }
+#endif
 }
 }
 
@@ -127,7 +147,12 @@ void sound_poll(uint32_t now, const UiPageEvents &events, bool eyesVisible, bool
 		sound_request(SoundCue::Ambient, now);
 		ambient_since = now; ambient_delay = 60000 + uint32_t(random(60001L));
 	}
-	if (queued != SoundCue::Count) { active = queued; queued = SoundCue::Count; started = now; }
+	if (queued != SoundCue::Count) {
+		active = queued; queued = SoundCue::Count; started = now;
+#if defined(MOCHI_BOARD_AMOLED_18)
+		playback_started = false;
+#endif
+	}
 	if (active != SoundCue::Count) { play(now); }
 }
 /** @brief Status reflects configuration and PWM allocation, not measured sound. @return Status. */

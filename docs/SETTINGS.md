@@ -94,14 +94,12 @@ need validation on the AMOLED V2; no 90/270-degree layout is implemented.
 
 The background stays black. MOCHI and TRAPEZ are solid eyes without pupils or
 highlights; BLOUB has black pupils and white highlights, and NORMAL has black
-pupils. Neutral and unassigned moods use the selected body color. Plain emotions
-use distinct semantic colors (gold for happy, blue for sad, coral/red for angry,
-lavender for sleepy, pink for affectionate, mint for focused), without changing
-the configured color or UI theme. This avoids bright full-screen
-background presets. Fourteen decorated faces (crying, love, fire, star, halo,
-devil, moon, sparkle, bolt, diamond, money, low battery, idea, music) additionally
-paint a fixed accent mark — blue tears, a rose heart, an orange flame — that no
-color setting changes, so those decorations keep reading even on a recolored eye.
+pupils. Resting emotions use the selected body color. Hearts and stars follow
+that color; other symbols use the configured pupil ink or are engraved into
+solid eyes. Related emotions differ through curved lids, slopes, width,
+opening, height, and [procedural reactions](ANIMATIONS.md#gif-informed-ordinary-reactions).
+During reactions, hearts fade to pink, tears to blue, and angry eyes to orange/red.
+Each loop restores the selected body color without changing the profile or theme.
 Tap EYES to preview the actual animated eyes. This is not a separate preview page.
 
 The `gauge`, `glow`, and `headlights` moods are decorative animations.

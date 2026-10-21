@@ -19,6 +19,16 @@ static void slope(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b, bool 
 	gfx->fillTriangle(b.x, b.y, b.x + b.w - 1, b.y, x, b.y + depth, cfg.bgColor);
 }
 
+/** @brief Carve a curved lower lid without leaving the eye box. @param gfx Canvas. @param cfg Config. @param b Eye. @param depth Edge depth. @param rise Extra lift at center. */
+static void smile(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b, int16_t depth, int16_t rise) {
+	for (int16_t i = 0; i < b.w; ++i) {
+		int32_t t = 2 * i - b.w + 1;
+		int16_t cut = depth + rise - int16_t(t * t * rise / (int32_t(b.w) * b.w));
+		cut = eye_limit(cut, 0, b.h - 2);
+		gfx->fillRect(b.x + i, b.y + b.h - cut, 1, cut, cfg.bgColor);
+	}
+}
+
 /** @brief Render eyelid masks shared by the original expression set. @param gfx Canvas. @param cfg Config. @param b Eye. */
 static void lids_classic(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b) {
 	switch (cfg.expression) {
@@ -28,8 +38,8 @@ static void lids_classic(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b
 		case SAD_DOWN: slope(gfx, cfg, b, false, b.h / 3);
 			strip(gfx, b, b.h / 6, false, cfg.bgColor); break;
 		case WORRIED: slope(gfx, cfg, b, false, b.h / 5); break;
-		case HAPPY: strip(gfx, b, b.h / 3, true, cfg.bgColor); break;
-		case GLEE: strip(gfx, b, b.h / 2, true, cfg.bgColor); break;
+		case HAPPY: smile(gfx, cfg, b, b.h / 6, b.h / 3); break;
+		case GLEE: smile(gfx, cfg, b, b.h / 4, b.h / 2); break;
 		case FOCUSED: strip(gfx, b, b.h / 5, false, cfg.bgColor);
 			strip(gfx, b, b.h / 5, true, cfg.bgColor); break;
 		case UNIMPRESSED: strip(gfx, b, b.h / 2, false, cfg.bgColor); break;
@@ -57,7 +67,7 @@ static void lids_extra(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b) 
 		case PROUD: strip(gfx, b, b.h * (b.left ? 30 : 40) / 100, false, cfg.bgColor); break;
 		case TIRED: strip(gfx, b, b.h / 3, false, cfg.bgColor);
 			strip(gfx, b, b.h / 4, true, cfg.bgColor); break;
-		case GRIN: strip(gfx, b, b.h / 2, true, cfg.bgColor); break;
+		case GRIN: smile(gfx, cfg, b, b.h / 8, b.h / 4); break;
 		case PANICKED: strip(gfx, b, b.h / 8, false, cfg.bgColor);
 			strip(gfx, b, b.h / 8, true, cfg.bgColor); break;
 		case GLUM: slope(gfx, cfg, b, false, b.h / 4);
@@ -76,7 +86,7 @@ static void lids_extra(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b) 
 /** @brief Render eyelid masks for the newest expression set. @param gfx Canvas. @param cfg Config. @param b Eye. */
 static void lids_new(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b) {
 	switch (cfg.expression) {
-		case MILD_HAPPY: strip(gfx, b, b.h / 5, true, cfg.bgColor); break;
+		case MILD_HAPPY: smile(gfx, cfg, b, b.h / 10, b.h / 8); break;
 		case SMIRK: strip(gfx, b, b.h * (b.left ? 45 : 25) / 100, false, cfg.bgColor); break;
 		case POUT: strip(gfx, b, b.h / 8, false, cfg.bgColor);
 			strip(gfx, b, b.h / 8, true, cfg.bgColor); break;
@@ -105,7 +115,7 @@ static void lids_new(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b) {
 			strip(gfx, b, b.h / 8, false, cfg.bgColor); break;
 		case MANIC: strip(gfx, b, b.h / 10, false, cfg.bgColor); break;
 		case SIDE_EYE: strip(gfx, b, b.h * (b.left ? 6 : 26) / 100, false, cfg.bgColor); break;
-		case BEAMING: strip(gfx, b, b.h * 45 / 100, true, cfg.bgColor);
+		case BEAMING: smile(gfx, cfg, b, b.h / 3, b.h / 3);
 			strip(gfx, b, b.h / 10, false, cfg.bgColor); break;
 		case LOW_BATT: slope(gfx, cfg, b, false, b.h / 4);
 			strip(gfx, b, b.h / 5, false, cfg.bgColor); break;

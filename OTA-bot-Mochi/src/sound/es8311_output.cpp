@@ -12,14 +12,33 @@
 #include <atomic>
 #include <driver/i2s_std.h>
 #include <freertos/FreeRTOS.h>
+#include <freertos/semphr.h>
 #include <freertos/task.h>
 
 namespace {
 constexpr uint8_t CODEC_ADDRESS = 0x18;
 i2s_chan_handle_t channel = nullptr;
 bool initialized = false, amplifier_owned = false;
-std::atomic<uint32_t> requested_tone{0}, updated{0};
-std::atomic<bool> transport_failed{false};
+struct AudioCommand {
+	SoundNote notes[5] = {};
+	uint8_t count = 0, level = 0;
+	uint32_t revision = 0, updated = 0;
+	bool sequence = false;
+};
+StaticSemaphore_t command_storage;
+SemaphoreHandle_t command_lock = nullptr;
+AudioCommand command;
+std::atomic<bool> transport_failed{false}, playing{false};
+
+/** @brief Publish under the same lock used by the worker's amplifier updates. @param next Copied command. */
+void publish(AudioCommand next) {
+	xSemaphoreTake(command_lock, portMAX_DELAY);
+	next.revision = command.revision + 1;
+	command = next;
+	playing.store(next.sequence);
+	digitalWrite(AUDIO_PA, next.level ? HIGH : LOW);
+	xSemaphoreGive(command_lock);
+}
 
 /** @brief Write one codec register on the main task's existing bus. @param reg Register. @param value Value. @return Acknowledged. */
 bool codec_write(uint8_t reg, uint8_t value) {
@@ -50,20 +69,48 @@ bool codec_init() {
 	return true;
 }
 
-/** @brief Own PCM generation/DMA exclusively; never access I2C or preferences here. @param unused Unused. */
+/** @brief Generate one block and leave five silent blocks for the four DMA descriptors to drain. @param out Stereo block. @param next Coherent command. @return Amplifier needed. */
+bool render_block(int16_t *out, const AudioCommand &next) {
+	static PcmSequence sequence;
+	static PcmTone oscillator;
+	static uint32_t revision = 0;
+	static uint8_t drain = 0;
+	if (revision != next.revision) {
+		revision = next.revision; drain = 0;
+		sequence.start(next.notes, next.sequence ? next.count : 0, next.level);
+	}
+	bool audible = next.sequence ? sequence.playing() :
+		(next.notes[0].hz && next.level && uint32_t(millis() - next.updated) <= 100);
+	if (next.sequence) { sequence.render(out, 80); }
+	else { oscillator.render(out, 80, audible ? next.notes[0].hz : 0, next.level); }
+	bool enabled = audible || drain;
+	if (audible) { drain = 5; }
+	else if (drain) { --drain; }
+	return enabled;
+}
+
+/** @brief Own PCM/DMA and amplifier completion; never access I2C or preferences here. @param unused Unused. */
 void audio_task(void *) {
-	PcmTone oscillator;
-	int16_t samples[160]; // Five milliseconds, stereo signed 16-bit.
+	int16_t samples[160];
 	for (;;) {
 		if (transport_failed.load()) { vTaskDelay(pdMS_TO_TICKS(10)); continue; }
-		uint32_t value = requested_tone.load();
-		if (uint32_t(millis() - updated.load()) > 100) { value = 0; }
-		oscillator.render(samples, 80, uint16_t(value), uint8_t(value >> 16));
+		xSemaphoreTake(command_lock, portMAX_DELAY);
+		AudioCommand next = command;
+		xSemaphoreGive(command_lock);
+		bool enabled = render_block(samples, next);
+		xSemaphoreTake(command_lock, portMAX_DELAY);
+		if (command.revision == next.revision) {
+			digitalWrite(AUDIO_PA, enabled ? HIGH : LOW);
+			playing.store(next.sequence && enabled);
+		}
+		xSemaphoreGive(command_lock);
 		size_t written = 0;
 		esp_err_t error = i2s_channel_write(channel, samples, sizeof(samples), &written, 20);
 		if (error != ESP_OK || written != sizeof(samples)) {
-			requested_tone.store(0);
-			transport_failed.store(true);
+			xSemaphoreTake(command_lock, portMAX_DELAY);
+			transport_failed.store(true); playing.store(false);
+			digitalWrite(AUDIO_PA, LOW);
+			xSemaphoreGive(command_lock);
 		}
 	}
 }
@@ -99,6 +146,8 @@ void cleanup() {
 
 bool es8311_begin() {
 	if (initialized) { transport_failed.store(false); return true; }
+	if (!command_lock) { command_lock = xSemaphoreCreateMutexStatic(&command_storage); }
+	if (!command_lock) { return false; }
 	pinMode(AUDIO_PA, OUTPUT);
 	digitalWrite(AUDIO_PA, LOW);
 	amplifier_owned = true;
@@ -120,16 +169,27 @@ bool es8311_begin() {
 bool es8311_write(uint16_t hz, uint8_t percent) {
 	if (!initialized || transport_failed.load() || percent > 30 ||
 		(hz && (hz < 300 || hz > 4000))) { return false; }
-	updated.store(millis());
-	requested_tone.store(uint32_t(percent) << 16 | hz);
-	digitalWrite(AUDIO_PA, hz && percent ? HIGH : LOW);
+	AudioCommand next;
+	next.notes[0] = {hz, 0};
+	next.level = hz ? percent : 0;
+	next.updated = millis();
+	publish(next);
+	return true;
+}
+
+bool es8311_play(const SoundNote *notes, uint8_t count, uint8_t percent) {
+	if (!initialized || transport_failed.load() || !PcmSequence::valid(notes, count, percent)) { return false; }
+	AudioCommand next;
+	for (uint8_t i = 0; i < count; ++i) { next.notes[i] = notes[i]; }
+	next.count = count; next.level = percent; next.sequence = true;
+	publish(next);
 	return true;
 }
 
 void es8311_end() {
-	requested_tone.store(0);
-	if (amplifier_owned) { digitalWrite(AUDIO_PA, LOW); }
+	if (amplifier_owned && command_lock) { publish(AudioCommand{}); }
 }
 
+bool es8311_playing() { return playing.load(); }
 bool es8311_healthy() { return !transport_failed.load(); }
 #endif

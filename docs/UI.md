@@ -142,12 +142,17 @@ Eye styles use different silhouettes: MOCHI is a tall solid capsule; BLOUB is
 a wide, soft rounded shape with pupils; NORMAL is an oval with pupils; TRAPEZ
 is a pair of mirrored, in-bounds trapezoids with no pupils. MOCHI/TRAPEZ also
 omit pupil highlights. Their love/dizzy reactions change the whole eye silhouette.
-Fourteen decorated faces also paint a fixed semantic accent over the configured
-palette — blue tears for crying, a rose heart for love, an orange flame, gold
-stars. Plain mood families now also have semantic body colors: cheerful gold,
-sad blue, angry coral/red, sleepy lavender, affectionate pink, and focused mint.
-Neutral and unassigned moods retain the selected color. These are render-only
-colors: the UI palette, configured eye color, and saved profile do not change.
+Resting faces keep the selected eye color, including hearts, stars, engraved
+symbols, and the petting heart marker. Emotions differ through silhouette:
+curved smiling lids, deeper angry slopes, lowered sad eyes, thin resting eyes,
+and round or narrow startled eyes. Related emotions vary in width, opening,
+and vertical position. Twenty-four moods also have
+[GIF-informed procedural reactions](ANIMATIONS.md#gif-informed-ordinary-reactions):
+chevron laughter, flowing tears, sleepy arcs, asymmetric smirks, startled
+stretching, and a stretch/squeeze/recovery sneeze. Hearts turn pink, tears blue,
+and angry eyes orange/red during their reactions, then return to the selected
+color without changing preferences. Explicit effects such as Glow and Police
+retain their own temporary scene colors.
 Random and IMU mood options are described in [Settings](SETTINGS.md); they never
 change the saved base mood or style.
 

@@ -4,7 +4,6 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "eye_shapes.h"
-#include "eye_palette.h"
 #include <math.h>
 
 /** @brief Draw a heart within its requested size. @param gfx Canvas. @param x Center. @param y Center. @param s Half-size. @param color Fill. */
@@ -308,7 +307,7 @@ static void base_body(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b) {
 
 /** @brief Expressions whose glyph replaces the whole solid eye instead of engraving it. @param expr Expression. @return True when the glyph owns the eye. */
 static bool replaces_solid(Expression expr) {
-	return expr == LOVE || expr == DIZZY || expr == STAR;
+	return expr == LOVE || expr == DIZZY || expr == STAR || expr == SWIRLY;
 }
 
 /**
@@ -316,16 +315,13 @@ static bool replaces_solid(Expression expr) {
  *
  * Keeping every primitive inside that circle is what lets the same call serve a whole-eye
  * mark on MOCHI/TRAPEZ and a pupil-sized mark on NORMAL/BLOUB without leaving the dirty region.
- * Decorated expressions override the incoming ink with their fixed accent here, so one
- * dispatch point recolours the mark on every style without touching the configured palette.
+ * Decorations use the configured pupil ink, or an engraving on solid styles.
  *
- * @param gfx Canvas. @param cfg Config. @param b Eye. @param x Center. @param y Center. @param s Half-size. @param color Fill, replaced by the expression accent when it has one. @param cut Restored color for subtractive glyphs.
+ * @param gfx Canvas. @param cfg Config. @param b Eye. @param x Center. @param y Center. @param s Half-size. @param color Fill. @param cut Restored color for subtractive glyphs.
  * @return True when this expression owns a glyph.
  */
 static bool glyph(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b, int16_t x,
 		int16_t y, int16_t s, uint16_t color, uint16_t cut) {
-	uint16_t accent = eye_accent(cfg.expression);
-	if (accent) { color = accent; }
 	switch (cfg.expression) {
 		case LOVE: heart(gfx, x, y, s, color); return true;
 		case STAR: star(gfx, x, y, s, color); return true;

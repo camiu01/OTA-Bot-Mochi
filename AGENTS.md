@@ -82,9 +82,10 @@ on native tests and provides downloadable binaries, not automatic OTA deployment
 - The eye engine separates configured expression/style from temporary face
   policy, visual-life pose, geometry, and dirty-region rasterization. MOCHI and
   TRAPEZ must stay solid and pupil-free. BLOUB has pupils/highlights. Fourteen
-  decorated expressions take a fixed semantic glyph accent from `eye_palette.h`
-  (blue tears, rose hearts, and so on); those accents are constants, not
-  settings, and must avoid the pupil/highlight values the native suites count.
+  decorated expressions use the configured palette at rest. Differentiate
+  ordinary moods through silhouette and motion, not color alone. GIF-informed
+  reactions may fade to temporary body colors, then restore the selected ink;
+  explicit animated scenes retain their temporary effect colors.
   The current geometry source is authoritative; `src/eyes/README.md` contains
   legacy geometry.
 - Settings update RAM immediately, apply colors/brightness/eye preferences,

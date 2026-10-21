@@ -165,10 +165,10 @@ delay or task is introduced.
 Every expression must work on all four styles, which the native suite enforces:
 
 - **Silhouette expressions** LOVE and STAR replace the whole eye on every style
-  with a large coloured glyph. DIZZY replaces the whole eye on solid styles.
+  with a large coloured glyph. DIZZY and SWIRLY replace the whole eye on solid styles.
 - **Engraved expressions** (CRYING, the ten symbol faces 43-52, and the glyph
   faces 73-77, 81, 85-86) draw the normal body first and then cut the glyph back
-  out in the background colour, so the silhouette survives and no pupil or
+  out in the background colour at rest, so the silhouette survives and no pupil or
   highlight pixel is ever produced.
 - **Lid expressions** only change eyelids and box dimensions, so they already work
   everywhere; WINK also carries an explicit lid so it stays visible when per-eye
@@ -180,21 +180,30 @@ Every expression must work on all four styles, which the native suite enforces:
 stays inside a circle of radius `s` around its centre, which is what guarantees that
 whole-eye marks and pupil-sized marks both stay inside the dirty region.
 
-### Accent colours
+### Configured colours and distinct silhouettes
 
-Fourteen decorated expressions carry a fixed accent instead of the configured ink
-for their glyph, defined by `eye_accent()` in `eye_palette.h`: a sky-blue tear for
-CRYING, a rose heart for LOVE and for the petting heart marker, an orange flame for
-FIRE, golds for STAR and HALO, an amber moon, horn and battery reds, ice-cyan
-SPARKLE, electric-yellow BOLT, aqua DIAMOND, coin-green MONEY, idea amber and a
-violet MUSIC note. `glyph()` swaps the accent in as the single dispatch point, so
-the recoloured mark works identically as a whole-eye silhouette, an engraving, and
-a pupil-sized glyph on all four styles. Ordinary bodies and lids still follow
-the user's eye colors; GLOW intentionally cycles its own temporary body palette,
-and GAUGE has a fixed redline color. Every accent deliberately avoids black, white, and
-the pure red/green values the native suites count as pupil and highlight pixels,
-so the solid-style exclusion proofs stay honest. Accents are plain constants: no
-setting, no persistence, and no behaviour when `eye_accent()` returns 0.
+Resting expressions do not override the selected palette. LOVE and STAR use
+the body color as whole-eye shapes; other glyphs use the configured pupil ink
+on NORMAL/BLOUB and background-color engravings on MOCHI/TRAPEZ. The petting
+heart marker also uses the rendered body color. `eye_palette.h` packs RGB565
+values for temporary reaction and scene colors.
+
+Related emotions differ in geometry rather than tint: smiling lids have
+different curved profiles, sad eyes vary in opening and vertical position,
+angry eyes narrow into deeper slopes, and startled eyes range from thin tall
+capsules to round wonder eyes. Native tests compare occupied-pixel masks,
+without relying on color differences.
+
+`eye_reactions.h` adds three-second, entry-relative reactions to 24 ordinary
+moods, informed by the user-supplied local GIF references. Closed chevrons,
+sleepy arcs, flowing tear curtains, asymmetric eye openings, startled stretching,
+and sneeze recovery remain bounded to the current eye geometry. LOVE,
+ANGRY, GRUMPY, and FURIOUS also fade to themed body colors during the reaction,
+then restore the selected ink. MOCHI/TRAPEZ spirals replace the entire eye.
+`eye_crying.h` keeps clean neutral eyes and rounded closed lids above attached
+blue water with soft downward highlights. The eyes widen as they close; remaining
+water drains downward before reopening. Lids do not change to the water color.
+No GIF assets, mouths, extra framebuffers, or saved settings are added.
 
 Blink renders as a thin horizontal line. Per-eye geometry is applied only when
 `cfg.asym` is set, which `eyes_set_style()` enables for BLOUB alone: SKEPTIC,

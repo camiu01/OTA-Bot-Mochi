@@ -30,6 +30,8 @@ inline bool test_i2s_short_write = false;
 inline i2s_chan_config_t test_i2s_config{};
 inline i2s_std_config_t test_i2s_standard{};
 inline std::vector<int16_t> test_i2s_samples;
+inline std::vector<int16_t> test_i2s_history;
+inline void (*test_i2s_hook)() = nullptr;
 inline int i2s_new_channel(const i2s_chan_config_t *config, i2s_chan_handle_t *tx, i2s_chan_handle_t *rx) {
 	if (test_i2s_failure == 1 || rx) { return -1; }
 	test_i2s_config = *config;
@@ -49,7 +51,9 @@ inline int i2s_channel_write(i2s_chan_handle_t, const void *data, size_t size, s
 	if (timeout != 20 || test_i2s_failure == 4) { return -1; }
 	test_i2s_samples.resize(size / sizeof(int16_t));
 	std::memcpy(test_i2s_samples.data(), data, size);
+	test_i2s_history.insert(test_i2s_history.end(), test_i2s_samples.begin(), test_i2s_samples.end());
 	*written = test_i2s_short_write ? size / 2 : size;
 	test_now += 5;
+	if (test_i2s_hook) { test_i2s_hook(); }
 	return ESP_OK;
 }

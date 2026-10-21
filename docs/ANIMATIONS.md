@@ -12,7 +12,44 @@ Mouths, complete cartoon faces, source text and logos are omitted. Similar
 expressions reuse existing moods instead of adding duplicate menu entries.
 The correspondence below is thematic, not a claim of frame-for-frame playback.
 
-## New moods
+## GIF-informed ordinary reactions
+
+The user-supplied local GIF collection was inspected for eye shapes and motion.
+`eye_reactions.h` adds original procedural reactions to 24 existing moods,
+without adding menu entries, embedding GIFs, or copying mouths and scene artwork.
+
+| Local references | Procedural eye behavior |
+| --- | --- |
+| `smile`, `happy_2`, `cuoi` | Raised smiling lids, bouncing laughter, and closed chevrons |
+| `angry`, `angry2`, `gian_du` | Narrowing orange/red angry eyes with restrained shaking |
+| `cry`, `cry2`, `khoc` | Neutral rounded eyelids above attached blue curtains, with gentle bobbing, traveling ripples, and descending highlights |
+| `sleepy`, `ngap`, `squint` | Slow droop, shallow closed arcs, or a tight horizontal squeeze |
+| `smirk`, `hehe`, `hand_some` | Unequal openings and a raised eye beside a closing eye |
+| `hat_xi`, `hat_xi_2` | Stretch on inhalation, a sudden closed-eye squeeze, then recovery |
+| `scared`, `ngac_nhien` | Trembling narrow eyes or expanding startled eyes |
+| `love`, `love2`, `chong_mat` | Pulsing pink hearts or swaying spirals; solid styles use full-eye spirals |
+
+Reactions use a three-second entry-relative loop: settle for 0.3 seconds,
+ease into the reaction over 0.5 seconds, react until 2.2 seconds, ease back
+over 0.5 seconds, then rest until the loop repeats. Colors fade in for love,
+crying, anger, grumpiness, and fury; each loop restores the selected eye color.
+The selected palette and saved profile never change. Other ordinary moods keep
+the selected color and differ through geometry and motion.
+Crying uses its own three-second sequence informed by `cry2.gif`: clean neutral
+eyes compress and widen into rounded lids from 0.25 to 0.65 seconds. Broad blue
+water grows from directly beneath the lids from 0.5 to 1.25 seconds. Water ripples
+and soft highlight bands travel downward; the lids stay in the selected neutral
+color. From 2.2 to 2.5 seconds, the remaining water drains downward rather than
+retracting upward. Only then do the eyes reopen, finishing at 2.85 seconds.
+There is no separate arc overlay, black gap, or scratch-like channel cut.
+
+Frames depend on elapsed time, not on the number of rendered frames.
+Normal blinking takes priority. Geometry stays inside the canvas, and dirty
+regions include the moving eyes. Automatic reactions still wait for the complete
+ordinary three-second cycle. These are eye-only interpretations, not
+frame-for-frame GIF playback.
+
+## New performance moods
 
 Select Settings > LOOK > Mood, or type `mood dancing` in the USB/emulator console.
 The same renderer supports LCD and AMOLED and all four eye styles.

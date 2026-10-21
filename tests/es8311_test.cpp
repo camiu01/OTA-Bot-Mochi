@@ -5,6 +5,7 @@
  */
 #include "../OTA-bot-Mochi/src/sound/buzzer_output.h"
 #include "../OTA-bot-Mochi/src/sound/pcm_tone.h"
+#include "../OTA-bot-Mochi/src/sound/es8311_output.h"
 #include "../OTA-bot-Mochi/src/sound/sound.h"
 #include "../OTA-bot-Mochi/src/settings/settings.h"
 #include "../OTA-bot-Mochi/src/bus/i2c_bus.h"
@@ -20,9 +21,33 @@ static CompanionSettings profile;
 const CompanionSettings &settings_get() { return profile; }
 
 /** @brief Run a bounded portion of the real PCM worker with fake DMA. */
-static void pump() {
-	test_i2s_remaining = 1;
+static void pump(int blocks = 1) {
+	test_i2s_remaining = blocks;
 	try { test_audio_task(nullptr); } catch (const TestAudioYield &) {}
+}
+
+/** @brief Exact sample lengths, copied notes, edges, and invalid sequence bounds. */
+static void sequence_tests() {
+	SoundNote notes[] = {{1800, 55}, {0, 25}, {2400, 65}};
+	assert(PcmSequence::valid(notes, 3, 10));
+	assert(!PcmSequence::valid(nullptr, 3, 10) && !PcmSequence::valid(notes, 0, 10));
+	assert(!PcmSequence::valid(notes, 6, 10) && !PcmSequence::valid(notes, 3, 31));
+	SoundNote bad[] = {{299, 10}, {1800, 0}, {1800, 1001}};
+	for (const auto &note : bad) { assert(!PcmSequence::valid(&note, 1, 10)); }
+	SoundNote long_notes[] = {{1800, 600}, {2400, 600}};
+	assert(!PcmSequence::valid(long_notes, 2, 10));
+	PcmSequence sequence;
+	sequence.start(notes, 3, 10);
+	notes[0].hz = 0;
+	int16_t samples[4640];
+	sequence.render(samples, 2320);
+	assert(!sequence.playing());
+	assert(samples[0] == 0 && samples[1758] == 0 && samples[4638] == 0);
+	assert(std::any_of(samples, samples + 1760, [](int16_t v) { return v != 0; }));
+	assert(std::all_of(samples + 1760, samples + 2560, [](int16_t v) { return v == 0; }));
+	assert(std::any_of(samples + 2560, samples + 4640, [](int16_t v) { return v != 0; }));
+	sequence.render(samples, 2320);
+	assert(std::all_of(std::begin(samples), std::end(samples), [](int16_t v) { return v == 0; }));
 }
 
 /** @brief Every supported pitch has bounded, identical stereo slots; invalid input is silent. */
@@ -148,8 +173,60 @@ static void service_tests() {
 	assert(test_audio_tasks == 1 && test_i2s_allocated == 1);
 }
 
+static uint32_t next_poll = 0, poll_interval = 0;
+static UiPageEvents delayed_events{};
+/** @brief Simulate expensive frames while the independent worker continues DMA. */
+static void delayed_poll() {
+	if (test_now < next_poll) { return; }
+	next_poll += poll_interval;
+	sound_poll(test_now, delayed_events, false, false, false);
+}
+
+/** @brief Short cues and the long test retain both notes despite 80/160ms main-loop stalls. */
+static void delayed_service_tests() {
+	for (uint32_t interval : {80, 160}) {
+		for (SoundCue cue : {SoundCue::Tap, SoundCue::Face, SoundCue::Test}) {
+			profile.sound = profile.sound_faces = true;
+			profile.night = profile.sound_ambient = false; profile.sound_level = 10;
+			test_now = 10000; sound_init(test_now);
+			sound_request(cue, test_now);
+			sound_poll(test_now, delayed_events, false, false, false);
+			assert(es8311_playing());
+			test_i2s_history.clear();
+			poll_interval = interval; next_poll = test_now + interval;
+			test_i2s_hook = delayed_poll;
+			pump(140);
+			test_i2s_hook = nullptr;
+			size_t second_ms = cue == SoundCue::Test ? 330 : 80;
+			auto middle = test_i2s_history.begin() + second_ms * 32;
+			assert(std::any_of(test_i2s_history.begin(), middle, [](int16_t v) { return v != 0; }));
+			assert(std::any_of(middle, test_i2s_history.end(), [](int16_t v) { return v != 0; }));
+			assert(!es8311_playing() && test_gpio_levels[AUDIO_PA] == LOW);
+			sound_poll(test_now, delayed_events, false, false, false);
+			assert(sound_status() == SoundStatus::Ready);
+		}
+	}
+}
+
+/** @brief The amplifier drains buffered PCM, but explicit mute cancels immediately. */
+static void sequence_mute_tests() {
+	SoundNote note{1800, 10};
+	assert(es8311_play(&note, 1, 10));
+	pump(2);
+	assert(test_gpio_levels[AUDIO_PA] == HIGH && es8311_playing());
+	pump(8);
+	assert(test_gpio_levels[AUDIO_PA] == LOW && !es8311_playing());
+	assert(es8311_play(&note, 1, 10));
+	es8311_end();
+	assert(test_gpio_levels[AUDIO_PA] == LOW && !es8311_playing());
+	pump(8);
+	assert(test_gpio_levels[AUDIO_PA] == LOW);
+	assert(std::all_of(test_i2s_samples.begin(), test_i2s_samples.end(), [](int16_t v) { return v == 0; }));
+}
+
 /** @brief Run without physical audio output. @return Success. */
 int main() {
-	pcm_tests(); failure_tests(); playback_tests(); service_tests();
-	std::cout << "ES8311 codec, bounded stereo PCM, lazy init, mute, rollover, and DMA failures passed\n";
+	pcm_tests(); sequence_tests(); failure_tests(); playback_tests(); service_tests();
+	delayed_service_tests(); sequence_mute_tests();
+	std::cout << "ES8311 codec, PCM sequences, delayed rendering, DMA drain, mute, and failures passed\n";
 }

@@ -66,17 +66,27 @@ first permitted cue. Merely enabling sound leaves the backend `armed`.
 The codec uses the existing shared I2C bus on SDA15/SCL14. Playback is
 16 kHz, signed 16-bit Philips I2S with identical left/right samples,
 MCLK=256× sample rate on GPIO16, BCLK=9, WS=45, and data out=8.
-GPIO46 enables the speaker amplifier only while a nonzero tone is requested.
+GPIO46 enables the speaker amplifier during a cue and its bounded DMA drain.
 No RX channel is allocated and microphone data on GPIO10 is not captured.
 Initialization follows the
 [official V2 audio example](https://github.com/waveshareteam/ESP32-S3-Touch-AMOLED-1.8/tree/78e13f852929c2ab4f9d5e0ad1c50ea378dbf2b4/examples/arduino-v2/examples/15_ES8311).
 
-A dedicated task owns PCM generation and DMA writes with a 20 ms timeout;
-only the main task accesses I2C and settings. Commands expire after 100 ms
-without refresh, preventing a stuck tone if rendering stalls. Master/night
-mute immediately lowers the amplifier enable. Once first used, the worker
+A dedicated task owns note timing, sample-level 5 ms fades, PCM generation,
+and DMA writes with a 20 ms timeout; only the main task accesses I2C and
+settings. Each cue is copied once with its current level, at most five notes
+and one second total. It finishes on the sample clock even when rendering
+stalls, without the old 100 ms refresh expiry. The low-level single-tone
+diagnostic adapter still expires after 100 ms. The amplifier stays enabled
+through internal pauses and five silent 5 ms blocks after the cue, allowing
+the four DMA descriptors to drain. Master/night/category cancellation immediately
+lowers the amplifier enable; DMA errors do so in the worker itself.
+Once first used, the worker
 and I2S channel remain allocated and stream silence while muted, avoiding
 repeated allocation and cross-task teardown.
+
+Native regressions reproduce main-loop polls every 80/160 ms and verify both
+notes of short tap/face cues and the longer manual test. These do not measure
+actual frame stalls or prove physical speaker audibility on the board.
 
 On this board the level is 1–30% PCM amplitude, not PWM duty or measured
 loudness; codec digital volume is fixed at the reference example's 85%.
@@ -92,6 +102,15 @@ ESP32 core 3.3.12, and the library pins in `TESTING.md`. The device reported
 confirmed audible tones and working horizontal swipes. The native suite passed.
 Volume-range calibration, physical master/night mute checks, and extended
 BLE/display/audio operation remain unverified. Test settings were RAM-only.
+
+On 2026-10-21 the sample-clocked cue fix passed the full native suite and was
+built/uploaded to the AMOLED V2 on COM6 using PlatformIO 6.1.19,
+Espressif32 platform 8.0.0, and Arduino core 3.3.12. The existing and generated
+partition layouts matched, including NVS. The device answered USB commands and
+reported `i2s-ready` after three manual test requests at level 10. The user
+then disconnected/powered off the board during RAM-setting restoration; no
+`save` was sent, so the saved profile remains unchanged. Physical audibility
+and the affected eye reactions during animations still need user confirmation.
 
 ## Motion presets
 
