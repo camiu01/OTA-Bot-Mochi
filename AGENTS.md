@@ -56,6 +56,12 @@ arduino-cli compile --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=opi,FlashSiz
   --build-property "compiler.cpp.extra_flags=-DMOCHI_BOARD_AMOLED_18" OTA-bot-Mochi
 ```
 
+A `platformio.ini` at the repository root mirrors both profiles as the
+environments `esp32s3-lcd` (default) and `esp32s3-amoled`. It is a local
+alternative to the Arduino CLI path, which remains the CI and reference route;
+CI does not build the PlatformIO environments. See
+`docs/TESTING.md#platformio-alternative`.
+
 Do not enable OPI PSRAM on the 1.69 OLD board: that revision routes the buzzer
 to GPIO33 and the power-control lines to GPIO35/GPIO36, which the octal PSRAM
 interface claims on the ESP32-S3. That build beeped continuously and crashed

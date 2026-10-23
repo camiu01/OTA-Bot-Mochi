@@ -283,18 +283,24 @@ See [GitHub Actions workflow](CI.md) for cached builds and downloadable artifact
 `platformio.ini` at the repository root mirrors both Arduino CLI profiles with
 `src_dir = OTA-bot-Mochi`, the same library pins (ESP32Time 2.0.6,
 NimBLE-Arduino 2.5.1, ChronosESP32 1.9.1, GFX Library for Arduino 1.6.9), and
-`espressif32 @ 8.0.0` (Arduino core 3.3.12, close to the CI pin 3.3.11):
+`espressif32 @ 8.0.0` (Arduino core 3.3.12, close to the CI pin 3.3.11). The
+default environment is `esp32s3-lcd`, so a bare `pio run` builds only the LCD
+profile; pass `-e` explicitly and build/upload only the environment matching
+the physical board. Uploading replaces the installed application, as with the
+Arduino CLI path.
 
 ```sh
-pio run -e esp32s3-lcd      # Waveshare LCD-1.69 OLD, PSRAM disabled
+pio run -e esp32s3-lcd      # Waveshare LCD-1.69 OLD, PSRAM disabled (default env)
 pio run -e esp32s3-amoled   # Waveshare AMOLED-1.8 V2, OPI PSRAM
-pio run -e esp32s3-amoled -t upload
-pio device monitor
+pio device list
+pio run -e esp32s3-amoled --target upload --upload-port COM3
+pio device monitor --port COM3 --baud 115200
 ```
 
-Both environments were built successfully with PlatformIO 6.2.0 on 2026-10-20.
-Arduino CLI remains the CI and reference path; PlatformIO is an equivalent
-local alternative.
+Both environments were built successfully with PlatformIO 6.2.0 on 2026-10-20,
+and one AMOLED V2 upload through this path is recorded in `SOUND.md`
+(2026-10-21). Arduino CLI remains the CI and reference path: CI does not build
+the PlatformIO environments, and building one path does not verify the other.
 
 ### Linux serial permissions
 
