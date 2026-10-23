@@ -144,10 +144,23 @@ Do not improvise battery, speaker, or power connections from this table.
 
 ## Build and flash
 
-These instructions match the repository's Arduino CLI workflow. Arduino IDE 2.x is also documented, but the
-CLI makes the board profile and dependency versions explicit. No PlatformIO or ESP-IDF project is configured.
+The firmware is an Arduino C++ sketch, and two build-tool paths are configured for it. Choose **one** path,
+and use the profile matching the physical board; you do not need both workflows.
 
-### 1. Prerequisites
+- **Arduino CLI** is the primary path: CI compiles both board profiles with it, and the versions below are the
+  CI pins. Arduino IDE 2.x is also documented, but the CLI makes the board profile and dependency versions
+  explicit.
+- **PlatformIO** is an alternative local path, configured in [platformio.ini](platformio.ini) with two
+  environments that mirror the same board profiles.
+
+There is no standalone ESP-IDF project: the ESP32 Arduino core embeds ESP-IDF underneath, but this repository
+builds Arduino sketches only. The two paths pin slightly different toolchains (CI pins ESP32 core 3.3.11;
+PlatformIO resolves Arduino core 3.3.12 through `espressif32 @ 8.0.0`), so a successful build on one path does
+not verify the other.
+
+### Arduino CLI (primary path)
+
+#### 1. Prerequisites
 
 Install **Arduino CLI 1.2.0** and put `arduino-cli` in PATH. The IDE-bundled CLI is another supported route;
 see [toolchain setup](docs/TESTING.md#arduino-cli). You also need Git and the board's USB data connection.
@@ -160,7 +173,7 @@ see [toolchain setup](docs/TESTING.md#arduino-cli). You also need Git and the bo
 | ESP32Time | 2.0.6 |
 | NimBLE-Arduino | 2.5.1 |
 
-### 2. Clone
+#### 2. Clone
 
 ```sh
 git clone https://github.com/camiu01/OTA-Bot-Mochi.git
@@ -169,7 +182,7 @@ cd OTA-Bot-Mochi
 
 Run these single-line commands from the repository root, individually, in PowerShell or a POSIX shell.
 
-### 3. Install the core and libraries
+#### 3. Install the core and libraries
 
 ```sh
 arduino-cli core update-index --additional-urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
@@ -178,7 +191,7 @@ arduino-cli lib install "ESP32Time@2.0.6" "NimBLE-Arduino@2.5.1"
 arduino-cli lib install --no-deps "ChronosESP32@1.9.1" "GFX Library for Arduino@1.6.9"
 ```
 
-### 4. Select a target and compile
+#### 4. Select a target and compile
 
 Compile **only the profile matching your board**. Separate build directories keep its binaries apart.
 
@@ -197,7 +210,7 @@ arduino-cli compile --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=opi,FlashSiz
 The sketch is [OTA-bot-Mochi.ino](OTA-bot-Mochi/OTA-bot-Mochi.ino); Arduino compiles its `src/` modules
 recursively. Selecting "ESP32S3 Dev Module" alone does not select the AMOLED profile.
 
-### 5. Find the port and flash
+#### 5. Find the port and flash
 
 ```sh
 arduino-cli board list
@@ -222,7 +235,7 @@ Upload replaces the installed application. Do not erase flash or change partitio
 No precompiled binary is asserted to be available. The [workflow](.github/workflows/checks.yml) configures
 artifacts/release packaging; [CI notes](docs/CI.md) explain its unverified remote-release status.
 
-### 6. First boot
+#### 6. First boot
 
 Keep the board still in its intended desk position while the IMU takes its initial reference. Open the serial
 console if needed:
@@ -235,8 +248,59 @@ Look for `UI ready`, the detected touch address, and `IMU ready` or `IMU unavail
 startup shows an animated OTA BOT / MOCHI title for 2.2 seconds, then a silent eye greeting. Defaults
 are white MOCHI eyes, neutral mood, 30% day brightness, and sound off.
 
-These commands were checked statically, not executed to build or flash this source. Earlier AMOLED bring-up
-used core **3.3.12**, not the CI-pinned 3.3.11; that does not validate the current source or pinned build.
+These Arduino CLI commands were checked statically, not executed to build or flash this source. Earlier
+AMOLED bring-up used core **3.3.12**, not the CI-pinned 3.3.11; that does not validate the current source or
+pinned build.
+
+### PlatformIO (alternative path)
+
+`platformio.ini` at the repository root mirrors both board profiles with the same library pins, 16 MB flash,
+and a 115200-baud serial monitor. Its default environment is `esp32s3-lcd`, so a bare `pio run` builds only
+the LCD profile; always pass `-e` explicitly. Board revisions and pin assignments are in
+[Boards](docs/BOARDS.md).
+
+| Environment | Target board | Relevant configuration | Verification status |
+| --- | --- | --- | --- |
+| `esp32s3-lcd` (default) | Waveshare ESP32-S3-Touch-LCD-1.69 **OLD**, ST7789 240x280 | `-DMOCHI_BOARD_LCD_169=1`, USB CDC on boot, 16 MB flash, PSRAM off (never enable OPI on this revision) | Local build recorded 2026-10-20 with PlatformIO 6.2.0 in [Testing](docs/TESTING.md#platformio-alternative); not built by CI |
+| `esp32s3-amoled` | Waveshare ESP32-S3-Touch-AMOLED-1.8 **V2**, CO5300 368x448 | `-DMOCHI_BOARD_AMOLED_18=1`, USB CDC on boot, 16 MB flash, `qio_opi` memory type (OPI PSRAM required) | Local build recorded 2026-10-20; one bench upload recorded 2026-10-21 in [Sound](docs/SOUND.md); hardware remains only partially validated; not built by CI |
+
+The configuration uses `espressif32 @ 8.0.0` with the Arduino framework, which resolves Arduino core 3.3.12.
+CI does not build these environments, and a compiling environment is not hardware validation; the PSRAM
+settings above are not interchangeable.
+
+1. Install [PlatformIO Core](https://docs.platformio.org/en/latest/core/installation.html) so `pio` is in
+   `PATH`. Git and the board's USB data connection are needed as in the Arduino CLI prerequisites above.
+2. From the repository root, build the environment matching your board:
+
+	```sh
+	pio run -e esp32s3-lcd
+	pio run -e esp32s3-amoled
+	```
+
+3. Close other serial monitors, then find the upload port:
+
+	```sh
+	pio device list
+	```
+
+4. Upload **only** the environment matching the physical board. Replace `COM3` with the detected port, such
+   as `/dev/ttyACM0` on Linux:
+
+	```sh
+	pio run -e esp32s3-lcd --target upload --upload-port COM3
+	pio run -e esp32s3-amoled --target upload --upload-port COM3
+	```
+
+5. Open the serial monitor and check the same first-boot diagnostics as step 6 above (`UI ready`, the
+   detected touch address, and `IMU ready` or `IMU unavailable; using idle eyes`):
+
+	```sh
+	pio device monitor --port COM3 --baud 115200
+	```
+
+Uploading replaces the installed application, exactly as with the Arduino CLI path; do not erase flash or
+change partitions. Never flash the AMOLED image to the LCD board or the reverse: the two profiles require
+different PSRAM configurations (see [Wiring and board configuration](#wiring-and-board-configuration)).
 
 ## Controls and everyday use
 

@@ -10,6 +10,7 @@ published releases (including prereleases), and
    rendering against a raster substitute and automatic-face policies.
 2. **firmware:** After tests pass, compile both LCD and AMOLED profiles with
    Arduino CLI. Core, CLI, and library versions are pinned in the workflow.
+   The PlatformIO environments in `platformio.ini` are not built by CI.
 3. **artifacts:** Attach both builds to the workflow run as
    `mochi-esp32s3-<commit SHA>` and `mochi-esp32s3-amoled-<commit SHA>`,
    retained for 14 days.
