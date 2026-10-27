@@ -61,7 +61,7 @@ static void preference_tests() {
 		uint8_t bytes[SETTINGS_BYTES];
 		settings_encode(p, bytes);
 		CompanionSettings decoded;
-		assert(bytes[0] == 5 && SETTINGS_BYTES == 13);
+		assert(bytes[0] == 6 && SETTINGS_BYTES == 13);
 		assert(settings_decode(bytes, sizeof(bytes), decoded) && decoded.mood == value);
 		String command = String("mood ") + settings_mood_name(value);
 		auto parsed = settings_parse(command.c_str(), p);
@@ -243,6 +243,112 @@ static void automatic_cycle_guard() {
 	assert(settings_update(saved));
 }
 
+/** @brief Long random scenes finish before restoration or an IMU face, including across rollover. */
+static void automatic_scene_duration() {
+	for (Expression face : {GAUGE, PONG, GLOW, HEADLIGHTS, DANCING, STARGAZING}) {
+		const uint32_t length = face == GAUGE || face == PONG ? 12000 :
+			(face == GLOW ? 9600 : (face == HEADLIGHTS ? 3600 : 6000));
+		const uint32_t choice = uint32_t(face) - 2;
+		for (uint32_t start : {12000u, UINT32_MAX - 1000}) {
+			FacePolicy policy;
+			policy.reset(NEUTRAL, start - 12000);
+			assert(policy.update(start, true, true, choice) == face);
+			for (uint32_t t = 50; t < length; t += 50) {
+				policy.sample(0.4f, 0, 0, start + t, true);
+				assert(policy.update(start + t, true, true, choice) == face);
+			}
+			assert(policy.update(start + length, true, true, choice, false) == NEUTRAL);
+			policy.reset(NEUTRAL, start - 12000);
+			assert(policy.update(start, true, false, choice) == face);
+			assert(policy.update(start + 1, false, false, choice) == NEUTRAL);
+		}
+	}
+}
+
+/** @brief Scene entry retains lateral gaze, then moves continuously to center without trails. */
+static void scene_entry_motion() {
+	auto left_edge = [](const Arduino_GFX &gfx) {
+		int16_t edge = 240;
+		for (int16_t y = 0; y < 280; ++y) {
+			for (int16_t x = 0; x < edge; ++x) {
+				if (gfx.pixels[y * 240 + x] != 0) { edge = x; break; }
+			}
+		}
+		return edge;
+	};
+	for (uint8_t value = 0; value < EXPRESSION_COUNT; ++value) {
+		Expression expression = Expression(value);
+		bool performance = expression >= DANCING && expression <= ENRAGED;
+		if (expression != PONG && expression != GAUGE && !performance) { continue; }
+		for (int16_t offset : {int16_t(-18), int16_t(18)}) {
+			Arduino_GFX gfx(240, 280);
+			eyes_init(&gfx); eyes_set_style(MOCHI);
+			eyes_set_expression(expression);
+			EyeState &st = eyes_state();
+			st.saccadeX = offset;
+			for (uint32_t now = 0; now < 1000; now += 20) { eyes_life_step(now, 20); }
+			st.lastMs = 0;
+			eyes_draw();
+			int16_t first = left_edge(gfx), previous = first;
+			uint32_t end = performance ? 580 : 800;
+			for (uint32_t elapsed = 20; elapsed <= end; elapsed += 20) {
+				st.lastMs = elapsed;
+				eyes_draw();
+				int16_t current = left_edge(gfx);
+				assert(offset < 0 ? current >= previous : current <= previous);
+				assert(abs(current - previous) <= 2);
+				auto dirty = gfx.pixels;
+				st.dirtyInit = false; eyes_draw();
+				assert(dirty == gfx.pixels);
+				previous = current;
+			}
+			assert(offset < 0 ? previous > first + 7 : previous < first - 7);
+		}
+	}
+}
+
+/** @brief Playback modes chain full cycles, bound groups, preserve overrides, and wrap safely. */
+static void face_flow_tests() {
+	for (uint8_t mode = FACE_RETURN; mode < FACE_FLOW_COUNT; ++mode) {
+		FacePolicy policy;
+		uint32_t now = UINT32_MAX - 1000;
+		policy.reset(NEUTRAL, now - 12000);
+		Expression face = policy.update(now, true, false, 0, true, mode);
+		assert(face == HAPPY);
+		for (uint8_t i = 1; i <= 5; ++i) {
+			uint32_t length = FacePolicy::cycle_duration(face);
+			assert(policy.update(now + length - 1, true, false, 0, false, mode) == face);
+			now += length;
+			Expression next = policy.update(now, true, false, 0, false, mode);
+			if (mode == FACE_RETURN || (mode == FACE_GROUP5 && i == 5)) {
+				assert(next == NEUTRAL);
+				break;
+			}
+			assert(next != NEUTRAL && next != face && next != DIZZY);
+			if (mode == FACE_SEQUENCE) { assert(next == Expression(uint8_t(face) + 1)); }
+			face = next;
+		}
+		assert(policy.update(now + 1, false, false, 0, false, mode) == NEUTRAL);
+		policy.tap(now + 2, 0);
+		Expression tapped = policy.update(now + 2, false, false, 0, false, mode);
+		assert(tapped != NEUTRAL);
+		assert(policy.update(now + 3002, false, false, 0, false, mode) == NEUTRAL);
+	}
+	FacePolicy ordered;
+	ordered.reset(LOVE, 0);
+	uint32_t now = 12000;
+	bool visited[EXPRESSION_COUNT] = {};
+	for (uint16_t i = 0; i < EXPRESSION_COUNT * 2; ++i) {
+		Expression face = ordered.update(now, true, false, 0, true, FACE_SEQUENCE);
+		assert(face != LOVE && face != NEUTRAL && face != DIZZY);
+		visited[face] = true;
+		now += FacePolicy::cycle_duration(face);
+	}
+	for (uint8_t i = 1; i < EXPRESSION_COUNT; ++i) {
+		if (i != LOVE && i != DIZZY) { assert(visited[i]); }
+	}
+}
+
 /** @brief Run shared model, profile and panel scene checks. @return Success. */
 int main() {
 	assert(settings_init());
@@ -252,10 +358,13 @@ int main() {
 	effect_cycles();
 	gauge_limiter();
 	automatic_cycle_guard();
+	automatic_scene_duration();
+	scene_entry_motion();
+	face_flow_tests();
 	assert(eye_mix(0xFFFF, 0x0841, 0) == 0x0841);
 	assert(eye_mix(0xFFFF, 0x0841, 100) == 0xFFFF);
 	animated_faces(240, 280);
 	animated_faces(368, 448);
 	animated_faces(128, 160);
-	std::cout << "Reference faces, animated scenes, v5 profiles, and Pong physics passed\n";
+	std::cout << "Reference faces, animated scenes, v6 profiles, playback modes, and Pong physics passed\n";
 }

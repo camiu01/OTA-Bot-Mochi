@@ -5,6 +5,7 @@
  */
 #pragma once
 #include "eyes_types.h"
+#include "face_presets.h"
 
 struct EyeBox { int16_t x, y, w, h, radius; bool left; };
 struct EyeLayout { EyeBox left, right; };
@@ -58,84 +59,36 @@ struct EyeMeasures {
 	int16_t w, h, dy, nominal, gap, ox, oy, bank, radius;
 };
 
-/** @brief Resolve one eye's expression-driven measures before the panel fit. @param cfg Config. @param st State. @param left Side. @return Unscaled measures. */
-inline EyeMeasures eye_measures(const EyeConfig &cfg, const EyeState &st, bool left) {
-	int16_t w = cfg.eyeW, h = cfg.eyeH, dy = 0;
-	switch (cfg.expression) {
-		case SURPRISED: w += 8; h += 12; break;
-		case AWE: w += 12; h = w; dy = -6; break;
-		case SCARED: w = w * 60 / 100; h += 12; break;
-		case HAPPY: w += 4; h = h * 65 / 100; break;
-		case SAD: w -= 4; h = h * 82 / 100; dy = 5; break;
-		case SAD_DOWN: w -= 6; h = h * 65 / 100; dy = 12; break;
-		case SAD_UP: w += 2; h = h * 90 / 100; dy = -8; break;
-		case ANGRY: w += 6; h = h * 68 / 100; break;
-		case FURIOUS: w += 10; h = h * 48 / 100; dy = 3; break;
-		case WORRIED: w = w * 85 / 100; h = h * 95 / 100; dy = -5; break;
-		case SLEEPY: h = h * 35 / 100; break;
-		case SQUINT: h = h * 45 / 100; break;
-		case FOCUSED: w += 8; h = h * 48 / 100; break;
-		case EXCITED: w += 8; h += 10; dy = -4; break;
-		case TERRIFIED: w -= 6; h += 24; dy = -5; break;
-		case PANICKED: w += 6; h += 14; break;
-		case GLEE: w += 10; h = h * 48 / 100; dy = -4; break;
-		case GRIN: w += 12; h = h * 78 / 100; break;
-		case CAT: w -= 4; break;
-		case SHY: w = w * 75 / 100; h = h * 62 / 100; dy = 10; break;
-		case TIRED: h = h * 70 / 100; break;
-		case GLUM: h = h * 75 / 100; break;
-		case CRYING: h = h * 85 / 100; break;
-		case DEADPAN: h = 12; break;
-		case MILD_HAPPY: h = h * 88 / 100; break;
-		case POUT: w += 4; h = h * 85 / 100; break;
-		case KISS: w = w * 60 / 100; h = h * 70 / 100; break;
-		case NERVOUS: w = w * 82 / 100; h = h * 88 / 100; break;
-		case SHOCKED: w += 12; h += 24; break;
-		case LAZY: w += 6; h = h * 55 / 100; dy = 5; break;
-		case DOZE: w -= 4; h = h * 22 / 100; dy = 8; break;
-		case DAYDREAM: w += 6; h = h * 92 / 100; break;
-		case GRUMPY: w -= 2; h = h * 60 / 100; dy = 5; break;
-		case ZEN: w += 8; h = h * 38 / 100; break;
-		case MERCIFUL: h = h * 85 / 100; break;
-		case MANIC: w += 10; h += left ? 18 : 2; break;
-		case BEAMING: w += 12; h = h * 60 / 100; dy = -6; break;
-		case IDEA: w += 4; h += 4; break;
-		case POWER: h = h * 50 / 100; break;
-		case HYPER: w += 6; h += 6; break;
-		case SQUISH: w += 10; h = h * 65 / 100; break;
-		case ARC_HAPPY: case ARC_SAD: h = h * 55 / 100; break;
-		case SQUEEZED: h = h * 60 / 100; break;
-		case TILTED: h = h * 92 / 100; dy = left ? -6 : 6; break;
-		default: break;
-	}
-	int16_t nominal_w = eye_limit(w, 20, 88);
+/** @brief Apply one style-relative eye definition before the unchanged panel fit. */
+inline EyeMeasures eye_preset_measures(const EyeConfig &cfg, const EyeState &st, bool left, const FacePreset *preset) {
+	const FaceEye neutral{};
+	const FaceEye &eye = preset ? (left ? preset->left : preset->right) : neutral;
+	int16_t w = cfg.eyeW * face_percent(eye.widthScale) / 100 + eye.widthDelta;
+	int16_t h = cfg.eyeH * face_percent(eye.heightScale) / 100 + eye.heightDelta;
+	if (eye.heightFromWidth) { h = w; }
+	if (eye.height) { h = eye.height; }
+	h = h * face_percent(eye.openness) / 100;
+	int16_t dy = eye.offsetY, nominal = eye_limit(w, 20, 88);
 	if (cfg.asym && !st.blinking) {
-		if (cfg.expression == SKEPTIC) { w += left ? 4 : -8; h += left ? 6 : -16; }
-		if (cfg.expression == SUSPICIOUS) { dy = left ? -5 : 5; }
-		if (cfg.expression == SLEEPY_EYES) { h = h * (left ? 45 : 30) / 100; }
-		if (cfg.expression == PROUD) { h = h * (left ? 85 : 70) / 100; }
-		if (cfg.expression == SMUG) { h = h * (left ? 80 : 55) / 100; }
-		if (cfg.expression == CONFUSED) { w += left ? 6 : -6; h += left ? 8 : -10; }
-		if (cfg.expression == CURIOUS) { dy = left ? 0 : -6; }
-		if (cfg.expression == WONDERING) { dy = left ? 0 : -5; }
-		if (cfg.expression == ZOMBIE) { h = h * (left ? 55 : 100) / 100; }
-		if (cfg.expression == WINK && !left) { h = 6; }
-		if (cfg.expression == SMIRK) { h = h * (left ? 70 : 100) / 100; }
-		if (cfg.expression == MELTING) { h = h * (left ? 100 : 50) / 100; dy += left ? 0 : 6; }
-		if (cfg.expression == GROGGY) { h = h * (left ? 100 : 55) / 100; dy += left ? 0 : 4; }
-		if (cfg.expression == SASSY) { dy += left ? -5 : 1; }
-		if (cfg.expression == CHEEKY) { h = h * (left ? 100 : 18) / 100; }
-		if (cfg.expression == FLIRT) { h = h * (left ? 88 : 66) / 100; dy += left ? 0 : 3; }
+		w = w * face_percent(eye.asym.widthScale) / 100 + eye.asym.widthDelta;
+		h = h * face_percent(eye.asym.heightScale) / 100 + eye.asym.heightDelta;
+		if (eye.asym.height) { h = eye.asym.height; }
+		dy += eye.asym.offsetY;
 	}
 	w = eye_limit(w, 20, 92);
 	h = st.blinking ? 6 : eye_limit(h, 12, 130);
 	int16_t gap = eye_limit(cfg.eyeGap, 16, 48);
-	int16_t ox = eye_limit(st.saccadeX + st.tiltX, -20, 20);
-	int16_t oy = eye_limit(st.saccadeY + st.tiltY + st.floatY, -18, 18);
-	// Sustained lateral load rolls the pair, so cornering reads as a lean and not only a shift.
-	// Kept small and mirror-symmetric; the sign is a hardware mount detail, see TODO.md.
+	int16_t gazeX = preset ? int16_t(preset->gazeX * 20) : 0;
+	int16_t gazeY = preset ? int16_t(preset->gazeY * 18) : 0;
+	int16_t ox = eye_limit(st.saccadeX + st.tiltX + gazeX, -20, 20);
+	int16_t oy = eye_limit(st.saccadeY + st.tiltY + st.floatY + gazeY, -18, 18);
 	int16_t bank = eye_limit(st.tiltX / 3, -4, 4);
-	return {w, h, dy, nominal_w, gap, ox, oy, bank, cfg.radius};
+	return {w, h, dy, nominal, gap, ox, oy, bank, cfg.radius};
+}
+
+/** @brief Resolve the selected face before panel scaling. */
+inline EyeMeasures eye_measures(const EyeConfig &cfg, const EyeState &st, bool left) {
+	return eye_preset_measures(cfg, st, left, face_preset(cfg.expression));
 }
 
 /** @brief Scale measures to the actual panel and center the pair on it. @param cfg Config. @param m Unscaled measures. @param left Side. @return Geometry. */

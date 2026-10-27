@@ -5,6 +5,7 @@
  */
 #pragma once
 #include "eyes_types.h"
+#include "face_flow.h"
 #include <math.h>
 
 class FacePolicy {
@@ -16,6 +17,7 @@ class FacePolicy {
 	uint32_t last_sample = 0;
 	bool sampled = false;
 	int8_t direction = 0;
+	uint8_t chain_count = 0, sequence_index = 0;
 
 	/**
 	 * @brief Start a bounded reaction from an explicit pool, avoiding the base and repeats.
@@ -34,6 +36,7 @@ class FacePolicy {
 		duration = dur; random_delay = 12000 + choice % 18001;
 		active = true; motion = false; manual = true; qualifying = false;
 		affection = false;
+		chain_count = 0;
 	}
 
 	/**
@@ -49,17 +52,20 @@ class FacePolicy {
 	 * @brief Start a bounded automatic reaction covering the whole expression set.
 	 * @param now Time.
 	 * @param choice Random input.
+	 * @param mode Playback mode.
 	 */
-	void automatic_face(uint32_t now, uint32_t choice) {
+	void automatic_face(uint32_t now, uint32_t choice, uint8_t mode) {
 		static constexpr uint8_t pool_size = uint8_t(EXPRESSION_COUNT - 2);
-		uint8_t index = uint8_t(choice % pool_size);
+		uint8_t index = mode == FACE_SEQUENCE ? sequence_index : uint8_t(choice % pool_size);
 		Expression value = automatic_at(index);
 		while (value == base || value == previous || value == face) {
 			index = uint8_t((index + 1) % pool_size);
 			value = automatic_at(index);
 		}
 		face = previous = value; started = last_random = now;
-		duration = 3000; random_delay = 12000 + choice % 18001;
+		sequence_index = uint8_t((index + 1) % pool_size);
+		if (chain_count < 5) { ++chain_count; }
+		duration = cycle_duration(value); random_delay = 12000 + choice % 18001;
 		active = true; motion = false; manual = false; qualifying = false;
 		affection = false;
 	}
@@ -76,6 +82,13 @@ class FacePolicy {
 	}
 
 public:
+	/** @brief Complete visible loop length. @param value Mood. @return Milliseconds. */
+	static uint32_t cycle_duration(Expression value) {
+		if (value >= DANCING && value <= ENRAGED) { return 6000; }
+		if (value == GAUGE || value == PONG) { return 12000; }
+		if (value == GLOW) { return 9600; }
+		return value == HEADLIGHTS ? 3600 : 3000;
+	}
 	/** @brief Distinguish an automatic reaction from base/manual restoration. @return Automatic reaction. */
 	bool automatic() const { return active && !manual; }
 	/** @brief Trigger a temporary face even with automation off. @param now Time. @param choice Random input. */
@@ -125,7 +138,8 @@ public:
 	 * @param enabled IMU mood opt-in.
 	 */
 	void sample(float x, float y, float z, uint32_t now, bool enabled) {
-		if (active && manual && uint32_t(now - started) < duration) { qualifying = false; return; }
+		if (active && (manual || (!motion && duration > 3000)) &&
+			uint32_t(now - started) < duration) { qualifying = false; return; }
 		if (sampled && uint32_t(now - last_sample) > 150) { qualifying = false; }
 		last_sample = now; sampled = true;
 		if (!enabled || !isfinite(x) || !isfinite(y) || !isfinite(z)) { qualifying = false; return; }
@@ -154,14 +168,24 @@ public:
 	 * @param choice Random input.
 	 * @return Active mood, with IMU taking priority over random.
 	 * @param ready Selected mood has finished its visible cycle; does not cancel an active reaction.
+	 * @param mode Return, group of five, ordered sequence, or continuous random playback.
 	 */
-	Expression update(uint32_t now, bool random_enabled, bool imu_enabled, uint32_t choice, bool ready = true) {
+	Expression update(uint32_t now, bool random_enabled, bool imu_enabled, uint32_t choice,
+			bool ready = true, uint8_t mode = FACE_RETURN) {
+		bool expired = active && uint32_t(now - started) >= duration;
+		if (expired && !manual && !motion && random_enabled && mode != FACE_RETURN &&
+			(mode != FACE_GROUP5 || chain_count < 5)) {
+			automatic_face(now, choice, mode);
+			return face;
+		}
 		if (active && (uint32_t(now - started) >= duration || (motion ? !imu_enabled : (!random_enabled && !manual)))) {
 			active = false;
+			chain_count = 0;
+			if (mode == FACE_GROUP5) { last_random = now; }
 		}
 		if (!random_enabled) { last_random = now; }
 		if (ready && !active && random_enabled && uint32_t(now - last_random) >= random_delay) {
-			automatic_face(now, choice);
+			automatic_face(now, choice, mode);
 		}
 		return active ? face : base;
 	}

@@ -10,13 +10,22 @@ static const char *const labels[][2] = {
 	UI_TRANSLATIONS(UI_ROW)
 #undef UI_ROW
 };
-static_assert(sizeof(labels) / sizeof(labels[0]) == uint8_t(Text::Count), "Every UI key requires both translations");
+static_assert(sizeof(labels) / sizeof(labels[0]) == uint16_t(Text::Count), "Every UI key requires both translations");
 /** @brief Read a translation without indexing outside its table. @param key Key. @param language Language. @return Text. */
 const char *tr_language(Text key, uint8_t language) {
-	return key < Text::Count ? labels[uint8_t(key)][language < 2 ? language : 0] : "?";
+	return key < Text::Count ? labels[uint16_t(key)][language < 2 ? language : 0] : "?";
 }
 /** @brief Translate using current RAM preferences. @param key Key. @return Text. */
 const char *tr(Text key) { return tr_language(key, settings_get().language); }
+
+/** @brief Six task-based sections without consuming expression translation IDs. */
+const char *tr_settings_tab(uint8_t index) {
+	static const char *titles[][2] = {
+		{"LOOK", "ASPETTO"}, {"DISPLAY", "DISPLAY"}, {"FACES", "FACCE"},
+		{"SENSORS", "SENSORI"}, {"SOUND", "SUONI"}, {"SYSTEM", "SISTEMA"}
+	};
+	return index < 6 ? titles[index][settings_get().language == 1 ? 1 : 0] : "?";
+}
 
 /** @brief Expression labels kept in the same order as the Expression enum. */
 static const Text expressions[EXPRESSION_COUNT] = {
@@ -44,12 +53,14 @@ static const Text expressions[EXPRESSION_COUNT] = {
 	Text::ExprSwinging, Text::ExprBlinding, Text::ExprBuzzing, Text::ExprSick,
 	Text::ExprSplash, Text::ExprSpraying, Text::ExprSushi, Text::ExprEnergetic,
 	Text::ExprSmoke, Text::ExprMenacing, Text::ExprHello, Text::ExprDistracted,
-	Text::ExprLookLeft, Text::ExprLookRight, Text::ExprLookDown, Text::ExprStargazing
+	Text::ExprLookLeft, Text::ExprLookRight, Text::ExprLookDown, Text::ExprStargazing,
+	Text::ExprMistake, Text::ExprEncouragement, Text::ExprAdore, Text::ExprLaughing,
+	Text::ExprEnraged
 };
 
-static_assert(uint8_t(Text::ExprNeutral) + EXPRESSION_COUNT - 1 == uint8_t(Text::ExprStargazing),
+static_assert(uint16_t(Text::ExprNeutral) + EXPRESSION_COUNT - 1 == uint16_t(Text::ExprEnraged),
 	"Expression labels must stay contiguous to match Expression values");
-static_assert(uint16_t(Text::Count) < 255, "Text must fit uint8_t with 255 reserved for invalid keys");
+static_assert(uint16_t(Text::Count) < 65535, "Text keys must stay below the reserved invalid key");
 
 /** @brief Localize an eye expression by its stable Expression value. @param index Expression value. @return Label, or "?" when out of range. */
 const char *tr_expression(uint8_t index) {
@@ -65,5 +76,12 @@ const char *tr_choice(uint8_t group, uint8_t index) {
 	if (group == 1 && index < 6) { return tr(colors[index]); }
 	if (group == 2) { return tr_expression(index); }
 	if (group == 3 && index < 3) { return tr(animations[index]); }
+	if (group == 4 && index < FACE_FLOW_COUNT) {
+		static const char *modes[][2] = {
+			{"Return", "Ritorno"}, {"Group of 5", "Gruppo di 5"},
+			{"Sequence", "Sequenza"}, {"Continuous", "Continua"}
+		};
+		return modes[index][settings_get().language == 1 ? 1 : 0];
+	}
 	return "?";
 }

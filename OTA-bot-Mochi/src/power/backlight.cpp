@@ -87,3 +87,10 @@ void backlight_configure(uint8_t percent, bool dim) {
 
 /** @brief Report configured brightness. @return Percent, or 100 when PWM failed. */
 uint8_t backlight_brightness() { return pwm_ready ? policy.brightness : 100; }
+
+void backlight_suspend() {
+	apply(0);
+#if LCD_BL >= 0
+	if (!pwm_ready) { digitalWrite(LCD_BL, LOW); }
+#endif
+}

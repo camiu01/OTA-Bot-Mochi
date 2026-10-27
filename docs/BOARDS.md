@@ -80,4 +80,58 @@ not full validation of the checks below. In bring-up order:
    TX-only 16 kHz I2S, with amplifier enable on GPIO46. Confirm audibility,
    level, mute, and no touch/display interference using `sound test`;
    native tests cannot establish physical sound. See `SOUND.md`.
-8. Battery/charging through the AXP2101 is not driven at all yet.
+8. Battery/charging measurements and charging configuration through the AXP2101
+   remain unimplemented. The PWR-key registers are configured separately below.
+
+## AMOLED V2 PWR button
+
+The side button marked **PWR**, not BOOT, uses the AXP2101's autonomous power
+sequencer. At startup the firmware configures a **4-second hold to power off**
+and a **1-second hold to power on**. Release the button between the two actions.
+This is PMU power-off, not display blanking or ESP32 deep sleep. It requires a
+valid USB or battery supply; removing all power also removes the PMU's state.
+USB insertion can power the board on independently of the button.
+
+Configuration uses the existing shared I2C bus at address `0x34`, read-modify-write
+and read-back verification of `0x22` (long-press enable, power-off rather than
+restart) and `0x27` (OFFLEVEL/ONLEVEL). Thermal protection, IRQ timing, regulator
+voltages, rail enables and charging settings are preserved. No GPIO is repurposed.
+
+The configuration follows the official [AXP2101 datasheet](https://files.waveshare.com/wiki/common/X-power-AXP2101_SWcharge_V1.0.pdf),
+sections 6.5.4, 6.13.2.20 and 6.13.2.25. Missing PMU, bus failure or failed
+configuration produces a startup diagnostic and leaves the UI usable; button
+behavior then depends on the PMU's existing configuration.
+
+Power-off discards RAM-only edits, timers and BLE connections. Use explicit
+**SAVE** before powering off to retain preference changes; the button does not
+write preferences. A short press is not assigned a new firmware action.
+Native tests verify registers and error paths, not physical switching or standby
+current. Verify PWR off/on on battery and USB on the actual V2 board.
+
+## LCD 1.69 OLD PWR button
+
+The [original board schematic](https://files.waveshare.com/wiki/ESP32-S3-Touch-LCD-1.69/ESP32-S3-Touch-LCD-1.69.pdf)
+confirms **SYS_EN=GPIO35**, driving the SS8050/AO3401 battery-power latch, and
+**SYS_OUT=GPIO36**, the active-low **PWR/Key2** input. These are not the GPIO40/41
+assignments of newer boards. BOOT and RESET retain their original functions.
+OPI PSRAM must remain disabled because it conflicts with these original-board pins.
+
+Hold PWR for **4 seconds, then release** to shut down. The startup press is
+ignored until release; short clicks and contact bounce do not shut down.
+The firmware asserts the battery latch before initializing storage/display.
+
+- **Battery only:** shutdown blanks the display, silences audio, stops BLE and
+  releases the power latch. Press PWR again to start, holding it until startup.
+- **USB connected:** USB bypasses the battery switch, so physical power removal
+  is impossible through that latch. The same action enters light sleep with a
+  dark display and BLE/audio stopped. A PWR press wakes the CPU and restarts the
+  firmware, restoring only explicitly saved settings.
+
+GPIO36 is not RTC-capable on ESP32-S3, so deep sleep cannot wake from this PWR
+input. GPIO light-sleep wake is armed and checked before stopping services.
+If wake configuration fails, the UI remains running. A sleep-entry failure
+restarts the firmware rather than leaving it dark and unresponsive.
+
+Native tests cover hold/release/debounce/rollover, latch control, wake setup
+failures and backlight shutdown on core 2/3. Physical switching, USB wake and
+current consumption remain unverified on the original LCD hardware.

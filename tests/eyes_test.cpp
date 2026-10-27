@@ -144,7 +144,7 @@ static void random_tests() {
 		Expression face = wide.update(12000 + choice * 30000, true, false, choice);
 		saw_dizzy = saw_dizzy || face == DIZZY;
 		saw_neutral = saw_neutral || face == NEUTRAL;
-		saw_last = saw_last || face == STARGAZING;
+		saw_last = saw_last || face == ENRAGED;
 	}
 	assert(!saw_dizzy && !saw_neutral && saw_last);
 }
@@ -315,11 +315,14 @@ static void integration_tests() {
 	eyes_update(test_now);
 	assert(eyes_config().expression != NEUTRAL && eyes_config().style == MOCHI);
 	assert(settings_get().mood == 0);
+	Expression automatic = eyes_config().expression;
 	test_now = 15000;
 	eyes_update(test_now);
-	assert(eyes_config().expression == NEUTRAL);
+	assert(eyes_config().expression ==
+		(FacePolicy::cycle_duration(automatic) == 3000 ? NEUTRAL : automatic));
 	p.random_faces = false;
 	settings_update(p);
+	assert(eyes_config().expression == NEUTRAL);
 	test_now = 16000;
 	eyes_faces_tap(test_now, 120, 140);
 	Expression tapped = eyes_config().expression;

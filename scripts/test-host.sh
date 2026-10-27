@@ -10,6 +10,12 @@ runtime=(
 	"$root/OTA-bot-Mochi/src/settings/settings.cpp"
 	"$root/OTA-bot-Mochi/src/settings/usb_commands.cpp"
 	"$root/OTA-bot-Mochi/src/power/battery.cpp"
+	"$root/OTA-bot-Mochi/src/eyes/face_catalog.cpp"
+	"$root/OTA-bot-Mochi/src/eyes/face_dispatch.cpp"
+	"$root/OTA-bot-Mochi/src/eyes/face_primitives.cpp"
+	"$root/OTA-bot-Mochi/src/eyes/face_glyph_primitives.cpp"
+	"$root/OTA-bot-Mochi/src/eyes/eye_shapes.cpp"
+	"$root/OTA-bot-Mochi/src/eyes/eye_lids.cpp"
 	"$root/OTA-bot-Mochi/src/eyes/eyes_anim.cpp"
 	"$root/OTA-bot-Mochi/src/eyes/eyes_expression.cpp"
 	"$root/OTA-bot-Mochi/src/eyes/eyes_faces.cpp"
@@ -41,6 +47,9 @@ g++ -std=c++17 -Wall -Wextra -Werror -I "$root/tests/stubs" -DMOCHI_BOARD_AMOLED
 	"$root/OTA-bot-Mochi/src/sound/buzzer_output.cpp" "$root/OTA-bot-Mochi/src/power/battery.cpp"
 build_test swipe "$root/tests/swipe_test.cpp"
 build_test startup "$root/tests/startup_test.cpp"
+power_button=("$root/tests/power_button_test.cpp" "$root/OTA-bot-Mochi/src/power/power_button.cpp" "$root/OTA-bot-Mochi/src/power/power_button_lcd.cpp" "$root/OTA-bot-Mochi/src/bus/i2c_bus.cpp")
+build_test power-button-lcd "${power_button[@]}"
+build_test power-button-amoled -DMOCHI_BOARD_AMOLED_18 "${power_button[@]}"
 # This legacy fixture uses 240x280 touch coordinates; ui-panel covers scaled panels.
 build_test ui -DLCD_WIDTH=240 -DLCD_HEIGHT=280 "${runtime[@]}" \
 	"$root/tests/ui_test.cpp" \
@@ -56,12 +65,14 @@ build_test settings "${runtime[@]}" \
 	"$root/OTA-bot-Mochi/src/settings/settings_menu.cpp" \
 	"$root/tests/stubs/imu_noop.cpp"
 render_runtime=()
+build_test face-preset "${runtime[@]}" "$root/tests/face_preset_test.cpp" "$root/tests/stubs/imu_noop.cpp"
 for source in "${runtime[@]}"; do
 	if [[ "$source" != "$root/tests/stubs/eyes_draw.cpp" ]]; then render_runtime+=("$source"); fi
 done
-render_eyes=("$root/OTA-bot-Mochi/src/eyes/eyes_draw.cpp" "$root/OTA-bot-Mochi/src/eyes/eye_shapes.cpp" \
-	"$root/OTA-bot-Mochi/src/eyes/eye_lids.cpp" "$root/tests/stubs/imu_noop.cpp")
+render_eyes=("$root/OTA-bot-Mochi/src/eyes/eyes_draw.cpp" "$root/tests/stubs/imu_noop.cpp")
 build_test eyes "${render_runtime[@]}" "$root/tests/eyes_test.cpp" "${render_eyes[@]}"
+build_test face-preset-raster "${render_runtime[@]}" "$root/tests/face_preset_raster_test.cpp" "${render_eyes[@]}"
+build_test all-faces-raster -O2 -DALL_FACES_RASTER "${render_runtime[@]}" "$root/tests/face_preset_raster_test.cpp" "${render_eyes[@]}"
 build_test faces "${render_runtime[@]}" "$root/tests/face_unique_test.cpp" "${render_eyes[@]}"
 build_test panel "${render_runtime[@]}" "$root/tests/eye_scaling_test.cpp" "${render_eyes[@]}"
 build_test accent "${render_runtime[@]}" "$root/tests/eye_accent_test.cpp" "${render_eyes[@]}"

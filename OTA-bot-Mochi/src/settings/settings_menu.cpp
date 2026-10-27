@@ -31,8 +31,13 @@ constexpr int16_t GRID_H = 24;
 constexpr uint8_t GRID_ROWS_TOTAL = (EXPRESSION_COUNT + GRID_COLS - 1) / GRID_COLS;
 constexpr uint8_t GRID_MAX_FIRST = GRID_ROWS_TOTAL > GRID_ROWS ? GRID_ROWS_TOTAL - GRID_ROWS : 0;
 
+enum MenuTab : uint8_t { TAB_LOOK, TAB_LIGHT, TAB_FACES, TAB_MOTION, TAB_AUDIO, TAB_SYSTEM, TAB_COUNT };
+
 /** @brief Number of rows in the current panel. */
-uint8_t row_count() { return tab == 4 && !sound_options ? 5 : (tab == 1 ? 5 : 4); }
+uint8_t row_count() {
+	static const uint8_t counts[] = {3, 4, 3, 5, 5, 3};
+	return tab == TAB_AUDIO && sound_options ? 4 : counts[tab];
+}
 
 /** @brief Close the grid and restore the tab rows. */
 void grid_close() { grid_open = false; grid_first_row = 0; first_row = 0; }
@@ -43,15 +48,8 @@ void row(Arduino_GFX *gfx, uint8_t index, const char *label, const String &value
 	int16_t design_y = int16_t(90 + (index - first_row) * 44);
 	ui_card(gfx, design_y, 40);
 	int16_t y = ui_s(design_y);
-	int16_t label_w = ui_s(84), value_x = ui_s(116), value_w = ui_s(100);
-	if (ui_scale() > 100) {
-		// Doubled text outgrows the design boxes: trade value columns for label columns.
-		label_w = ui_s(104);
-		value_x = ui_s(134);
-		value_w = ui_s(82);
-	}
-	ui_label(gfx, label, ui_s(24), y + ui_s(16), label_w, 1, UI_MUTED);
-	ui_label(gfx, value, value_x, y + ui_s(16), value_w, 1, UI_ACCENT);
+	ui_label(gfx, label, ui_s(24), y + ui_s(5), ui_s(192), 1, UI_MUTED);
+	ui_label(gfx, value, ui_s(24), y + ui_s(23), ui_s(192), 1, UI_ACCENT);
 }
 
 /** @brief Cycle to the next bounded brightness preset. @param value Current. @param night Night range. @return Next. */
@@ -76,23 +74,25 @@ void change_row(uint8_t index) {
 			grid_first_row = focus > GRID_MAX_FIRST ? GRID_MAX_FIRST : focus;
 			return;
 		}
-		if (index == 3) { p.route_large = !p.route_large; }
 	} else if (tab == 1) {
 		if (index == 0) { p.brightness = next_brightness(p.brightness, false); }
 		if (index == 1) { p.night = !p.night; }
 		if (index == 2) { p.night_brightness = next_brightness(p.night_brightness, true); }
 		if (index == 3) { p.dim = !p.dim; }
-		if (index == 4) { p.flipped = !p.flipped; }
 	} else if (tab == 2) {
-		if (index == 0) { p.dashboard = !p.dashboard; }
-		if (index == 1) { p.shake = !p.shake; }
-		if (index == 2) { p.random_faces = !p.random_faces; }
-		if (index == 3) { p.imu_faces = !p.imu_faces; }
-	} else if (tab == 3) {
 		if (index == 0) { p.animation = (p.animation + 1) % 3; }
-		if (index == 1) { p.language = (p.language + 1) % 2; }
+		if (index == 1) { p.random_faces = !p.random_faces; }
+		if (index == 2) { p.face_flow = (p.face_flow + 1) % FACE_FLOW_COUNT; }
+	} else if (tab == 3) {
+		if (index == 0) { p.imu_faces = !p.imu_faces; }
+		if (index == 1) { p.shake = !p.shake; }
 		if (index == 2) { if (!eyes_imu_calibrate()) { imu_orientation().status = ImuCalibration::Failed; } return; }
 		if (index == 3) { imu_orientation().enabled = !imu_orientation().enabled; return; }
+		if (index == 4) { p.flipped = !p.flipped; }
+	} else if (tab == TAB_SYSTEM) {
+		if (index == 0) { p.language = (p.language + 1) % 2; }
+		if (index == 1) { p.dashboard = !p.dashboard; }
+		if (index == 2) { p.route_large = !p.route_large; }
 	} else if (sound_options) {
 		if (index == 0) { p.sound_faces = !p.sound_faces; }
 		if (index == 1) { p.sound_timer = !p.sound_timer; }
@@ -116,31 +116,33 @@ void basic_rows(Arduino_GFX *gfx, const CompanionSettings &p) {
 		row(gfx, 0, tr(Text::EyesLabel), tr_choice(0, p.style));
 		row(gfx, 1, tr(Text::ColorLabel), tr_choice(1, p.color));
 		row(gfx, 2, tr(Text::MoodLabel), tr_choice(2, p.mood));
-		row(gfx, 3, tr(Text::RouteDefault), tr(p.route_large ? Text::Large : Text::Details));
 	} else if (tab == 1) {
 		row(gfx, 0, tr(Text::DayLevel), String(p.brightness) + "%");
 		row(gfx, 1, tr(Text::Night), on_off(p.night));
 		row(gfx, 2, tr(Text::NightLevel), String(p.night_brightness) + "%");
 		row(gfx, 3, tr(Text::IdleDim), on_off(p.dim));
-		row(gfx, 4, tr(Text::ScreenFlip), tr(p.flipped ? Text::Flipped : Text::Normal));
 	} else {
-		row(gfx, 0, tr(Text::Dashboard), on_off(p.dashboard));
-		row(gfx, 1, tr(Text::Shake), on_off(p.shake));
-		row(gfx, 2, tr(Text::RandomMood), on_off(p.random_faces));
-		row(gfx, 3, tr(Text::ImuMood), on_off(p.imu_faces));
+		row(gfx, 0, tr(Text::Animation), tr_choice(3, p.animation));
+		row(gfx, 1, tr(Text::RandomMood), on_off(p.random_faces));
+		row(gfx, 2, tr(Text::FaceFlow), tr_choice(4, p.face_flow));
 	}
 }
 /** @brief Draw motion/language or audio options. @param gfx Canvas. @param p Profile. */
 void extra_rows(Arduino_GFX *gfx, const CompanionSettings &p) {
 	if (tab == 3) {
-		row(gfx, 0, tr(Text::Animation), tr_choice(3, p.animation));
-		row(gfx, 1, tr(Text::Language), p.language ? "Italiano" : "English");
+		row(gfx, 0, tr(Text::ImuMood), on_off(p.imu_faces));
+		row(gfx, 1, tr(Text::Shake), on_off(p.shake));
 		ImuCalibration status = imu_orientation().status;
 		row(gfx, 2, tr(Text::CalibrateImu), tr(status == ImuCalibration::Sampling ? Text::Calibrating :
 			(status == ImuCalibration::Ready ? (imu_orientation().save_failed ? Text::Failed :
 				(imu_orientation().persisted ? Text::Saved : Text::Calibrated)) :
 				(status == ImuCalibration::Failed ? Text::Failed : Text::Calibrate))));
 		row(gfx, 3, tr(Text::AutoRotate), on_off(imu_orientation().enabled));
+		row(gfx, 4, tr(Text::ScreenFlip), tr(p.flipped ? Text::Flipped : Text::Normal));
+	} else if (tab == TAB_SYSTEM) {
+		row(gfx, 0, tr(Text::Language), p.language ? "Italiano" : "English");
+		row(gfx, 1, tr(Text::Dashboard), on_off(p.dashboard));
+		row(gfx, 2, tr(Text::RouteDefault), tr(p.route_large ? Text::Large : Text::Details));
 	} else if (sound_options) {
 		row(gfx, 0, tr(Text::Faces), on_off(p.sound_faces));
 		row(gfx, 1, tr(Text::TimerLabel), on_off(p.sound_timer));
@@ -221,13 +223,12 @@ bool grid_cell(int16_t x, int16_t y) {
 void settings_menu_draw(Arduino_GFX *gfx) {
 	if (grid_open) { grid_draw(gfx); return; }
 	const CompanionSettings &p = settings_get();
-	static const Text tabs[] = {Text::LookTab, Text::LightTab, Text::DriveTab, Text::MoveTab, Text::AudioTab};
 	gfx->fillRoundRect(ui_s(2), ui_s(52), ui_s(68), ui_s(36), ui_s(8), UI_CARD);
 	gfx->fillRoundRect(ui_s(170), ui_s(52), ui_s(68), ui_s(36), ui_s(8), UI_CARD);
 	ui_label(gfx, "<", ui_s(30), ui_s(62), ui_s(24), 2, UI_TEXT);
 	ui_label(gfx, ">", ui_s(198), ui_s(62), ui_s(24), 2, UI_TEXT);
-	ui_label(gfx, tr(tabs[tab]), ui_s(84), ui_s(58), ui_s(72), 1, UI_ACCENT);
-	ui_label(gfx, String(tab + 1) + "/5", ui_s(108), ui_s(74), ui_s(24), 1, UI_MUTED);
+	ui_label(gfx, tr_settings_tab(tab), ui_s(78), ui_s(58), ui_s(84), 1, UI_ACCENT);
+	ui_label(gfx, String(tab + 1) + "/" + String(uint8_t(TAB_COUNT)), ui_s(108), ui_s(74), ui_s(24), 1, UI_MUTED);
 	if (tab < 3) { basic_rows(gfx, p); } else { extra_rows(gfx, p); }
 	if (row_count() > 3) {
 		uint8_t max_scroll = row_count() - 3;
@@ -251,7 +252,7 @@ MenuAction settings_menu_tap(int16_t x, int16_t y) {
 	}
 	if (y >= ui_s(52) && y < ui_s(90)) {
 		if (x >= ui_s(72) && x < ui_s(168)) { return MenuAction::None; }
-		tab = (tab + (x < ui_s(72) ? 4 : 1)) % 5;
+		tab = (tab + (x < ui_s(72) ? TAB_COUNT - 1 : 1)) % TAB_COUNT;
 		sound_options = false; first_row = 0;
 		return MenuAction::Changed;
 	}

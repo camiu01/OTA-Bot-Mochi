@@ -15,29 +15,33 @@ rows. Changes are live in RAM and do not write flash while browsing.
 | --- | --- | --- |
 | LOOK | Eyes | normal, mochi, bloub, trapez |
 | LOOK | Color | white, mint, cyan, amber, pink, blue |
-| LOOK | Mood | opens a 3-column grid of all 118 expressions/animated moods in five full-height rows; tap a cell, swipe to scroll |
-| LOOK | Route default | large / details |
-| LIGHT | Day level | 5, 10, 20, 30, 50, 70, 90% |
-| LIGHT | Night | off / on |
-| LIGHT | Night level | 1, 3, 5, 8, 12, 20% |
-| LIGHT | Idle dim | off / on |
-| LIGHT | Screen flip | normal / flipped |
-| DRIVE | Dashboard | on / off |
-| DRIVE | Shake dizzy | off / on |
-| DRIVE | Random mood | off / on |
-| DRIVE | IMU mood | off / on |
-| MOVE | Animation | calm / dasai / playful |
-| MOVE | Language | English / Italiano |
-| MOVE | IMU zero | calibrate / keep still / SAVED / FAILED |
-| MOVE | Auto rotate | on / off, session-only, requires calibration |
-| AUDIO | Sound | off / on |
-| AUDIO | Level | PWM duty level, 1–30% by USB |
-| AUDIO | Night mute | on / off |
-| AUDIO | Sound options | open separate face/timer/alert/ambient switches |
-| AUDIO | Test sound | two short bench tones; reports off/night mute/PWM failure |
+| LOOK | Mood | opens a 3-column grid of all 123 expressions/animated moods in five full-height rows; tap a cell, swipe to scroll |
+| DISPLAY | Day level | 5, 10, 20, 30, 50, 70, 90% |
+| DISPLAY | Night | off / on |
+| DISPLAY | Night level | 1, 3, 5, 8, 12, 20% |
+| DISPLAY | Idle dim | off / on |
+| FACES | Animation | calm / dasai / playful |
+| FACES | Random mood | off / on |
+| FACES | Face flow | return / group of 5 / sequence / continuous |
+| SENSORS | IMU mood | off / on |
+| SENSORS | Shake dizzy | off / on |
+| SENSORS | IMU zero | calibrate / keep still / SAVED / FAILED |
+| SENSORS | Auto rotate | on / off, session-only, requires calibration |
+| SENSORS | Screen flip | normal / flipped |
+| SOUND | Sound | off / on |
+| SOUND | Level | PWM duty level, 1–30% by USB |
+| SOUND | Night mute | on / off |
+| SOUND | Sound options | open separate face/timer/alert/ambient switches |
+| SOUND | Test sound | two short bench tones; reports off/night mute/PWM failure |
+| SYSTEM | Language | English / Italiano |
+| SYSTEM | Dashboard | on / off |
+| SYSTEM | Route default | large / details |
 
 Three 44-pixel row targets are visible at a time. Swipe up/down to reach the
-remaining rows; AUDIO's test is the final row. Tabs and bottom actions stay fixed.
+remaining rows; SOUND's test is the final row. Tabs and bottom actions stay fixed.
+Each row places its label above its value, giving both the full text width.
+The six sections have localized titles; FACES keeps playback controls visible
+together without scrolling.
 Scrolling does not edit or save preferences. Horizontal swipes still change the
 main page. Each row card is one unambiguous 44-pixel target aligned to its
 visible bounds, so the bottom of a card never activates the next row; grid rows
@@ -57,7 +61,7 @@ persists only after SAVE; `set flip on|off` is the USB equivalent.
 
 With the device parked, first use **Screen flip** if needed so the screen is
 readable. Hold Mochi still in its normal upright mounting position, then choose
-**MOVE → IMU zero**. Twenty stable samples (about one second) establish a gaze
+**SENSORS → IMU zero**. Twenty stable samples (about one second) establish a gaze
 zero and gravity reference. Movement restarts the average; after five seconds
 without a stable result it reports FAILED. A missing sensor also reports FAILED.
 Retry while still. Do not calibrate while driving. A successful calibration is
@@ -111,8 +115,9 @@ Headlights paints slow-pulsing side beams. All
 three scale to both LCD and AMOLED and remain separate from the real clock
 and playable Pong tools.
 
-Twenty-one [original colored performances](ANIMATIONS.md), from `dancing` through
-`stargazing`, add reversible six-second sequences. They restore the selected
+Twenty-six [original colored performances](ANIMATIONS.md), from `dancing` through
+`enraged`, add reversible six-second sequences. `mistake` displays `OTA BOT!`;
+`encouragement` displays `GO OTA BOT!`. They restore the selected
 eye color at the end and wait for a complete cycle before automatic reactions.
 Their semantic colors do not change the saved palette.
 
@@ -139,6 +144,7 @@ set dashboard on
 set shake off
 set dim off
 set random on
+set face-flow group5
 set imu-face on
 set flip on
 set route large
@@ -173,7 +179,7 @@ This is a session-only override, not an unsaved preference: SAVE for other field
 does not persist it. It survives route updates and page changes but resets on reboot.
 Hold a stationary finger on Route for 1.2 seconds to use the configured default again.
 
-In Settings → LOOK, **Route default** selects the preferred layout; SAVE writes
+In Settings → SYSTEM, **Route default** selects the preferred layout; SAVE writes
 it to NVS. USB equivalents:
 
 ```text
@@ -207,20 +213,27 @@ Default firmware preferences:
 
 ## Automatic expressions
 
-Enable **Random mood** and/or **IMU mood** in DRIVE, then SAVE. They change
+Enable **Random mood** in FACES and/or **IMU mood** in SENSORS, then SAVE. They change
 expressions only, not the selected eye style or saved color. Render-only mood
 colors follow the visible expression, including temporary reactions.
 
 Automatic reactions wait for the selected mood to complete a visible cycle:
 12 seconds for Gauge/Pong, 9.6 seconds for Glow, 3.6 seconds for Headlights,
-and three seconds for other non-neutral expressions. Timing starts when the
+six seconds for performances, and three seconds for other non-neutral expressions. Timing starts when the
 renderer actually shows the mood, including after returning from a reaction.
 Neutral allows automatic reactions immediately. Touch reactions remain immediate;
 decorative tilt/gaze keeps running while automatic mood changes wait.
 
-- **Random:** The first change is after 12 seconds; subsequent intervals are
-  12–30 seconds. Each reaction lasts three seconds and returns to the selected
-  base mood. Automatic reactions draw from the whole expression set (every
+- **Random:** The first change is after 12 seconds. **Face flow** selects playback:
+  **Return** keeps the original one-face-then-base behavior (12–30-second
+  start intervals); **Group of 5** chains five random faces, then rests on the
+  selected base for 12–30 seconds; **Sequence** continuously visits faces in
+  enum/menu order; **Continuous** chains random faces without base pauses.
+  All four require Random mood on. USB: `set face-flow return|group5|sequence|continuous`.
+  SAVE persists the mode; older profiles default to Return.
+  Each face keeps its complete cycle: ordinary faces three seconds, performances
+  six seconds, Gauge/Pong twelve, Glow 9.6, and Headlights 3.6.
+  Automatic reactions draw from the whole expression set (every
   expression except neutral and the special dizzy state), avoiding the base
   mood and consecutive duplicates. Touch reactions keep a curated playful pool
   of 27 choices (happy, glee, focused, skeptic, love, awe, sleepy eyes,
@@ -233,8 +246,9 @@ decorative tilt/gaze keeps running while automatic mood changes wait.
   in one direction for 350ms produces focused.
 - **IMU vertical axis:** A mount-relative Z deflection of at least 0.8g for
   100ms produces surprised. One isolated sample is not enough.
-- IMU reactions last 2.2 seconds with a five-second cooldown. They take priority
-  over random changes. Disabling an option or choosing a manual mood restores
+- IMU reactions last 2.2 seconds with a five-second cooldown. Long automatic
+  scenes finish before an ordinary IMU mood can replace them. IMU can interrupt
+  ordinary random faces. Disabling Random mood or choosing a manual mood restores
   the base. Shake-to-dizzy remains a separate opt-in and has the highest priority
   once the selected mood's visible cycle is complete.
 
@@ -269,8 +283,9 @@ tone band (see [Audio and motion](SOUND.md)).
 A hold still opens Settings and a swipe does not also trigger a random face.
 These reactions remain available in dashboard mode, which only calms idle motion.
 
-The full profile is stored as a validated thirteen-byte version-five NVS blob
-with a checksum; version five adds the Screen flip flag. Twelve-byte
+The full profile is stored as a validated thirteen-byte version-six NVS blob
+with a checksum; version six adds Face flow alongside the Screen flip flag.
+Thirteen-byte version-five profiles retain Screen flip and default to Return. Twelve-byte
 version-four and eight-byte versions one/two/three profiles retain their
 existing choices, with Screen flip defaulting off, sound options disabled by
 the master switch, English UI, and Dasai motion. Versions one/two default the new

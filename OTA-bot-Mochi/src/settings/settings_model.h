@@ -7,8 +7,9 @@
 #include <stdint.h>
 #include <string.h>
 #include "../eyes/eyes_types.h"
+#include "../eyes/face_flow.h"
 constexpr uint8_t SETTINGS_V4_BYTES = 12;	/**< Stored size of the retired version-four profile. */
-constexpr uint8_t SETTINGS_BYTES = 13;		/**< Stored size of the current version-five profile. */
+constexpr uint8_t SETTINGS_BYTES = 13;		/**< Stored size of the current version-six profile. */
 
 struct CompanionSettings {
 	uint8_t style = 1;
@@ -21,6 +22,7 @@ struct CompanionSettings {
 	bool shake = false;
 	bool dim = false;
 	bool random_faces = false;
+	uint8_t face_flow = FACE_RETURN;
 	bool imu_faces = false;
 	bool route_large = true;
 	bool sound = false;
@@ -56,12 +58,19 @@ inline const char *settings_animation_name(uint8_t index) {
 /** @brief Name a locale. @param index Choice. @return ISO-like code. */
 inline const char *settings_language_name(uint8_t index) { return index == 0 ? "en" : (index == 1 ? "it" : "unknown"); }
 
+/** @brief Stable USB playback names. @param index Mode. @return Name. */
+inline const char *settings_face_flow_name(uint8_t index) {
+	static const char *names[] = {"return", "group5", "sequence", "continuous"};
+	return index < FACE_FLOW_COUNT ? names[index] : "unknown";
+}
+
 /** @brief Validate persisted or incoming values. @param value Settings. @return All fields valid. */
 inline bool settings_valid(const CompanionSettings &value) {
 	return value.style < 4 && value.color < 6 && value.mood < EXPRESSION_COUNT &&
 		value.brightness >= 5 && value.brightness <= 90 &&
 		value.night_brightness >= 1 && value.night_brightness <= 20 &&
-		value.sound_level >= 1 && value.sound_level <= 30 && value.animation < 3 && value.language < 2;
+		value.sound_level >= 1 && value.sound_level <= 30 && value.animation < 3 && value.language < 2 &&
+		value.face_flow < FACE_FLOW_COUNT;
 }
 
 /**
@@ -70,7 +79,7 @@ inline bool settings_valid(const CompanionSettings &value) {
  * @param bytes Output thirteen-byte profile.
  */
 inline void settings_encode(const CompanionSettings &value, uint8_t bytes[SETTINGS_BYTES]) {
-	bytes[0] = 5;
+	bytes[0] = 6;
 	bytes[1] = value.style; bytes[2] = value.color; bytes[3] = value.mood;
 	bytes[4] = value.brightness; bytes[5] = value.night_brightness;
 	bytes[6] = value.night | (value.dashboard << 1) | (value.shake << 2) | (value.dim << 3);
@@ -79,7 +88,7 @@ inline void settings_encode(const CompanionSettings &value, uint8_t bytes[SETTIN
 	bytes[7] = value.sound | (value.sound_faces << 1) | (value.sound_timer << 2) |
 		(value.sound_alerts << 3) | (value.sound_ambient << 4) | (value.sound_night_mute << 5);
 	bytes[8] = value.sound_level; bytes[9] = value.animation; bytes[10] = value.language;
-	bytes[11] = value.flipped ? 1 : 0;
+	bytes[11] = uint8_t(value.flipped) | (value.face_flow << 1);
 	bytes[12] = 0xA5;
 	for (uint8_t i = 0; i < 12; ++i) { bytes[12] ^= bytes[i]; }
 }
@@ -87,7 +96,7 @@ inline void settings_encode(const CompanionSettings &value, uint8_t bytes[SETTIN
 /**
  * @brief Validate and decode a stored profile, leaving output untouched on failure.
  * @param bytes Input profile.
- * @param length Actual buffer length: eight for v1-v3, twelve for v4, thirteen for v5.
+ * @param length Actual buffer length: eight for v1-v3, twelve for v4, thirteen for v5-v6.
  * @param value Output settings.
  * @return Valid version, checksum, flags, and fields.
  */
@@ -95,7 +104,7 @@ inline bool settings_decode(const uint8_t *bytes, size_t length, CompanionSettin
 	if (!bytes || (length != 8 && length != SETTINGS_V4_BYTES && length != SETTINGS_BYTES)) { return false; }
 	if ((length == 8 && (bytes[0] < 1 || bytes[0] > 3)) ||
 		(length == SETTINGS_V4_BYTES && bytes[0] != 4) ||
-		(length == SETTINGS_BYTES && bytes[0] != 5)) { return false; }
+		(length == SETTINGS_BYTES && bytes[0] != 5 && bytes[0] != 6)) { return false; }
 	uint8_t checksum = 0xA5;
 	for (size_t i = 0; i + 1 < length; ++i) { checksum ^= bytes[i]; }
 	if (bytes[length - 1] != checksum) { return false; }
@@ -115,8 +124,9 @@ inline bool settings_decode(const uint8_t *bytes, size_t length, CompanionSettin
 		next.sound_level = bytes[8]; next.animation = bytes[9]; next.language = bytes[10];
 	}
 	if (bytes[0] >= 5) {
-		if (bytes[11] & ~1U) { return false; }
+		if (bytes[11] & (bytes[0] == 5 ? ~1U : ~7U)) { return false; }
 		next.flipped = bytes[11] & 1;
+		if (bytes[0] >= 6) { next.face_flow = bytes[11] >> 1; }
 	}
 	if (!settings_valid(next)) { return false; }
 	value = next;

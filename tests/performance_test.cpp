@@ -18,14 +18,14 @@
 
 /** @brief All new moods round-trip through names, both languages and unchanged v5 bytes. */
 static void preferences() {
-	assert(HEADLIGHTS == 96 && DANCING == 97 && LOOK_DOWN == 116 && STARGAZING == 117);
+	assert(HEADLIGHTS == 96 && DANCING == 97 && LOOK_DOWN == 116 && STARGAZING == 117 && ENRAGED == 122);
 	for (uint8_t mood = DANCING; mood < EXPRESSION_COUNT; ++mood) {
 		CompanionSettings p = settings_get();
 		p.mood = mood;
 		uint8_t bytes[SETTINGS_BYTES];
 		settings_encode(p, bytes);
 		CompanionSettings decoded;
-		assert(bytes[0] == 5 && SETTINGS_BYTES == 13);
+		assert(bytes[0] == 6 && SETTINGS_BYTES == 13);
 		assert(settings_decode(bytes, sizeof(bytes), decoded) && decoded.mood == mood);
 		String command = String("mood ") + settings_mood_name(mood);
 		auto parsed = settings_parse(command.c_str(), p);
@@ -288,15 +288,36 @@ static void colors() {
 	}
 }
 
+/** @brief Banners use our name, remain bounded, and disappear at both endpoints. */
+static void banner_regressions() {
+	for (auto panel : {std::pair<int16_t, int16_t>{240, 280}, {368, 448}, {128, 160}, {160, 128}}) {
+		Arduino_GFX gfx(panel.first, panel.second);
+		EyeConfig cfg{}; cfg.screenW = panel.first; cfg.screenH = panel.second;
+		cfg.fgColor = 0xFFFF;
+		for (Expression mood : {MISTAKE, ENCOURAGEMENT}) {
+			cfg.expression = mood;
+			for (uint32_t elapsed : {0u, 1500u, 3000u, 4500u, 5400u, 6000u}) {
+				gfx.text.clear();
+				eye_performance_background(&gfx, cfg, EyeLayout{}, elapsed);
+				if (elapsed == 0 || elapsed >= 5400) { assert(gfx.text.empty()); continue; }
+				assert(!gfx.text.empty());
+				for (const auto &line : gfx.text) {
+					assert(line == (mood == MISTAKE ? "OTA BOT!" : "GO OTA BOT!"));
+				}
+			}
+		}
+	}
+}
+
 /** @brief Validate new moods without running device firmware or copying reference assets. @return Success. */
 int main() {
 	assert(settings_init());
 	CompanionSettings saved = settings_get();
-	preferences(); automatic_guard(); colors();
+	preferences(); automatic_guard(); colors(); banner_regressions();
 	raster(240, 280); raster(368, 448); raster(128, 160); raster(160, 128);
 	scene_regressions(240, 280); scene_regressions(368, 448);
 	scene_regressions(128, 160); scene_regressions(160, 128);
 	upward_pupils();
 	assert(settings_update(saved));
-	std::cout << "21 colored performances, clean equalizer, single sushi, car turbos and stargazing passed\n";
+	std::cout << "26 colored performances, clean equalizer, single sushi, car turbos and stargazing passed\n";
 }

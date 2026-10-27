@@ -117,8 +117,29 @@ static void grid_checks() {
 	assert(settings_get().mood == 4);
 	assert(settings_menu_tap(ui_s(180), ui_s(250)) == MenuAction::Changed);
 	assert(!settings_menu_grid_open());
-	assert(settings_menu_scroll(1) || settings_menu_scroll(-1));
-	assert(settings_menu_scroll(-1));
+	assert(!settings_menu_scroll(1) && !settings_menu_scroll(-1));
+}
+
+/** @brief Every playback mode is reachable in both languages on the current panel. */
+static void flow_menu_checks(Arduino_GFX &gfx) {
+	CompanionSettings saved = settings_get();
+	for (uint8_t language = 0; language < 2; ++language) {
+		CompanionSettings p = saved; p.language = language; p.face_flow = FACE_RETURN;
+		assert(settings_update(p));
+		assert(settings_menu_tap(ui_s(200), ui_s(70)) == MenuAction::Changed);
+		assert(settings_menu_tap(ui_s(200), ui_s(70)) == MenuAction::Changed);
+		assert(!settings_menu_scroll(1));
+		for (uint8_t mode = 0; mode < FACE_FLOW_COUNT; ++mode) {
+			assert(settings_get().face_flow == mode);
+			assert(strcmp(tr_choice(4, mode), "?") != 0);
+			settings_menu_draw(&gfx);
+			assert(settings_menu_tap(ui_s(120), ui_s(200)) == MenuAction::Changed);
+		}
+		assert(settings_get().face_flow == FACE_RETURN);
+		assert(settings_menu_tap(ui_s(30), ui_s(70)) == MenuAction::Changed);
+		assert(settings_menu_tap(ui_s(30), ui_s(70)) == MenuAction::Changed);
+	}
+	assert(settings_update(saved));
 }
 
 /** @brief Desk cards, timer buttons, and the strip below the scaled field. */
@@ -208,6 +229,7 @@ int main() {
 	page_render_checks(gfx, watch);
 	menu_checks();
 	grid_checks();
+	flow_menu_checks(gfx);
 	desk_checks();
 	play_checks(gfx, watch);
 	std::cout << "Pages and menu layout passed on " << LCD_WIDTH << "x" << LCD_HEIGHT << "\n";

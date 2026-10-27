@@ -245,6 +245,11 @@
 	X(ExprLookRight, "look right", "guarda destra") \
 	X(ExprLookDown, "look down", "guarda giu") \
 	X(ExprStargazing, "stargazing", "cielo stellato") \
+	X(ExprMistake, "mistake", "errore") \
+	X(ExprEncouragement, "encourage", "incoraggia") \
+	X(ExprAdore, "adore", "adorare") \
+	X(ExprLaughing, "laughing", "ridere") \
+	X(ExprEnraged, "enraged", "infuriato") \
 	X(Calm, "calm", "calmo") \
 	X(Dasai, "normal", "normale") \
 	X(Playful, "playful", "vivace") \
@@ -259,9 +264,10 @@
 	X(SoundNight, "SOUND: NIGHT MUTE", "SUONI: MUTO NOTTE") \
 	X(SoundArmed, "SOUND: ARMED", "SUONI: ABILITATI") \
 	X(SoundReady, "SOUND: PWM READY", "SUONI: PWM PRONTO") \
-	X(SoundError, "SOUND: PWM FAILED", "SUONI: ERRORE PWM")
+		X(SoundError, "SOUND: PWM FAILED", "SUONI: ERRORE PWM") \
+		X(FaceFlow, "Face flow", "Ciclo facce")
 
-enum class Text : uint8_t {
+enum class Text : uint16_t {
 #define UI_ENUM(key, en, it) key,
 	UI_TRANSLATIONS(UI_ENUM)
 #undef UI_ENUM
@@ -269,6 +275,8 @@ enum class Text : uint8_t {
 };
 /** @brief Get a label using active settings. @param key Key. @return Static text. */
 const char *tr(Text key);
+/** @brief Localized settings section title. @param index Section index. @return Title or "?". */
+const char *tr_settings_tab(uint8_t index);
 /** @brief Inspect a translation safely. @param key Key. @param language 0 English/1 Italian. @return Text. */
 const char *tr_language(Text key, uint8_t language);
 /** @brief Localize preset groups without changing USB names. @param group 0 style/1 color/2 mood/3 animation. @param index Choice. @return Label. */

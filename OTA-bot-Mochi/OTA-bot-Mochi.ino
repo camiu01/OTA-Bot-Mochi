@@ -31,6 +31,7 @@
 #include "src/ui/startup.h"
 #include "src/power/backlight.h"
 #include "src/power/battery.h"
+#include "src/power/power_button_shutdown.h"
 #include "src/settings/settings.h"
 #include "src/settings/settings_menu.h"
 #include "src/settings/usb_commands.h"
@@ -286,8 +287,10 @@ void handle_auto_page(uint32_t now) {
 
 /** @brief Initialize display, snapshot lock, BLE, eyes, and touch. */
 void setup() {
+	bool power_ready = power_button_init();
 	Serial.begin(115200);
 	if (!settings_init()) { Serial.println("Settings storage unavailable; using RAM defaults"); }
+	if (!power_ready) { Serial.println("PWR button configuration unavailable"); }
 	init_screen();
 	if (!ui_state_init()) {
 		Serial.println("UI state initialization failed; BLE not started");
@@ -304,7 +307,7 @@ void setup() {
 	sound_init(millis());
 	startup.begin(millis());
 	last_frame_ms = millis() - FRAME_INTERVAL_MS;
-	Serial.printf("UI ready, free heap: %u bytes\n", ESP.getFreeHeap());
+	Serial.printf("UI ready, free heap: %lu bytes\n", static_cast<unsigned long>(ESP.getFreeHeap()));
 }
 
 /**
@@ -323,6 +326,7 @@ void update_backlight(uint32_t now) {
 
 /** @brief Service BLE and touch continuously, rendering only complete changed frames. */
 void loop() {
+	handle_power_button(watch, display, screen_ready, millis());
 	settings_usb_poll();
 	watch.loop();
 	delay(1);

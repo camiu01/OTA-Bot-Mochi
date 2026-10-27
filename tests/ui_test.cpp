@@ -369,11 +369,11 @@ static void weather_order_tests(ChronosESP32 &watch) {
 
 /** @brief Both locales have complete, bounded labels and repaint all pages after a live switch. */
 static void locale_tests(Arduino_GFX &gfx, ChronosESP32 &watch) {
-	for (uint8_t key = 0; key < uint8_t(Text::Count); ++key) {
+	for (uint16_t key = 0; key < uint16_t(Text::Count); ++key) {
 		assert(strlen(tr_language(static_cast<Text>(key), 0)) && strlen(tr_language(static_cast<Text>(key), 1)));
 	}
 	assert(strcmp(tr_language(Text::Clock, 255), "CLOCK") == 0);
-	assert(strcmp(tr_language(static_cast<Text>(255), 0), "?") == 0);
+	assert(strcmp(tr_language(static_cast<Text>(65535), 0), "?") == 0);
 	auto p = settings_get(); p.language = 1; settings_update(p);
 	for (uint8_t page = 0; page < uint8_t(UiPage::Count); ++page) {
 		screens_draw(&gfx, watch, static_cast<UiPage>(page), 31000000 + page * 1000);

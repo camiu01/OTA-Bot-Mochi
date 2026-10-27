@@ -6,7 +6,6 @@
 #include "eyes_faces.h"
 #include "face_policy.h"
 #include "eyes_api.h"
-#include "eye_performances.h"
 #include "../settings/settings.h"
 #include "../../pin_config.h"
 #include <Arduino.h>
@@ -48,9 +47,7 @@ bool eyes_faces_automatic_ready(uint32_t now) {
 	if (base == NEUTRAL) { return true; }
 	const EyeState &state = eyes_state();
 	if (!state.effectClockInit || state.effectExpression != base || state.dizzyUntilMs != 0) { return false; }
-	uint32_t cycle = eye_performance(base) ? 6000 : base == GAUGE || base == PONG ? 12000 :
-		(base == GLOW ? 9600 : (base == HEADLIGHTS ? 3600 : 3000));
-	return uint32_t(now - state.effectStartMs) >= cycle;
+	return uint32_t(now - state.effectStartMs) >= FacePolicy::cycle_duration(base);
 }
 
 /**
@@ -97,7 +94,7 @@ void eyes_faces_pet(uint32_t now, int16_t x, int16_t y) {
 void eyes_faces_step(uint32_t now) {
 	const CompanionSettings &p = settings_get();
 	Expression face = policy.update(now, p.random_faces, p.imu_faces, uint32_t(random(1000000L)),
-		eyes_faces_automatic_ready(now));
+		eyes_faces_automatic_ready(now), p.face_flow);
 	EyeState &state = eyes_state();
 	if (state.dizzyUntilMs != 0) { state.savedExpr = face; }
 	else {

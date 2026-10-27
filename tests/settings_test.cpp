@@ -38,7 +38,7 @@ static void persistence_tests() {
 	value.sound = true; value.sound_faces = false; value.sound_alerts = false;
 	value.sound_ambient = false; value.sound_night_mute = false;
 	value.sound_level = 18; value.animation = 2; value.language = 1;
-	value.flipped = true;
+	value.flipped = true; value.face_flow = FACE_GROUP5;
 	assert(settings_update(value));
 	assert(eyes_config().style == TRAPEZ && eyes_config().fgColor == 0x07FF);
 	assert(backlight_brightness() == 5 && test_flash_writes == 0);
@@ -51,6 +51,7 @@ static void persistence_tests() {
 	assert(!settings_get().sound_ambient && !settings_get().sound_night_mute);
 	assert(settings_get().sound_level == 18 && settings_get().animation == 2 && settings_get().language == 1);
 	assert(settings_get().flipped);
+	assert(settings_get().face_flow == FACE_GROUP5);
 	value = settings_get(); value.color = 4;
 	settings_update(value); test_save_fails = true;
 	assert(!settings_save() && settings_dirty());
@@ -76,7 +77,7 @@ static void migration_tests() {
 	test_profile.assign(bytes, bytes + 8);
 	assert(settings_init() && settings_get().color == 3);
 	assert(decoded.route_large);
-	assert(settings_dirty() && settings_save() && test_profile[0] == 5 && test_profile.size() == SETTINGS_BYTES);
+	assert(settings_dirty() && settings_save() && test_profile[0] == 6 && test_profile.size() == SETTINGS_BYTES);
 	bytes[0] = 2; bytes[6] = 0x32; bytes[7] = 0xA5;
 	for (uint8_t i = 0; i < 7; ++i) { bytes[7] ^= bytes[i]; }
 	assert(settings_decode(bytes, sizeof(bytes), decoded) && decoded.random_faces && decoded.imu_faces && decoded.route_large);
@@ -91,7 +92,13 @@ static void migration_tests() {
 	assert(from_v4.style == 2 && from_v4.color == 3 && from_v4.mood == LOVE && !from_v4.flipped);
 	test_profile.assign(v4, v4 + SETTINGS_V4_BYTES);
 	assert(settings_init() && settings_get().style == 2 && !settings_get().flipped);
-	assert(settings_dirty() && settings_save() && test_profile[0] == 5 && test_profile.size() == SETTINGS_BYTES);
+	assert(settings_dirty() && settings_save() && test_profile[0] == 6 && test_profile.size() == SETTINGS_BYTES);
+	uint8_t v5[SETTINGS_BYTES];
+	CompanionSettings old; old.flipped = true;
+	settings_encode(old, v5);
+	v5[0] = 5; v5[12] = 0xA5;
+	for (uint8_t i = 0; i < 12; ++i) { v5[12] ^= v5[i]; }
+	assert(settings_decode(v5, sizeof(v5), decoded) && decoded.flipped && decoded.face_flow == FACE_RETURN);
 	settings_defaults();
 }
 
@@ -101,7 +108,7 @@ static void mood_range_tests() {
 	CompanionSettings legacy; legacy.mood = LOVE;
 	uint8_t legacy_bytes[SETTINGS_BYTES];
 	settings_encode(legacy, legacy_bytes);
-	assert(legacy_bytes[0] == 5);
+	assert(legacy_bytes[0] == 6);
 	CompanionSettings decoded;
 	assert(settings_decode(legacy_bytes, sizeof(legacy_bytes), decoded) && decoded.mood == LOVE);
 	// The wider expression range reuses the same byte, so no new profile version is needed.
@@ -132,6 +139,12 @@ static void usb_tests() {
 	assert(settings_parse("set color cyan extra", current).action == UsbAction::Invalid);
 	assert(settings_parse("set shake yes", current).action == UsbAction::Invalid);
 	assert(settings_parse("set random on", current).profile.random_faces);
+	for (uint8_t mode = 0; mode < FACE_FLOW_COUNT; ++mode) {
+		String command = String("set face-flow ") + settings_face_flow_name(mode);
+		auto parsed = settings_parse(command.c_str(), current);
+		assert(parsed.action == UsbAction::Set && parsed.profile.face_flow == mode);
+	}
+	assert(settings_parse("set face-flow invalid", current).action == UsbAction::Invalid);
 	assert(settings_parse("set imu-face on", current).profile.imu_faces);
 	assert(settings_parse("set flip on", current).profile.flipped);
 	assert(!settings_parse("set flip off", current).profile.flipped);
@@ -216,27 +229,28 @@ static void menu_tests() {
 	assert(settings_get().color == 1);
 	assert(UI_ACCENT == 0x6FBA && UI_TEXT == UI_ACCENT && UI_WARM == UI_ACCENT);
 	assert(UI_CARD != UI_BG && UI_MUTED != UI_TEXT);
-	assert(settings_menu_scroll(1));
 	assert(!settings_menu_scroll(1));
-	settings_menu_tap(20, 202);
-	assert(!settings_get().route_large);
 	assert(settings_menu_tap(210, 65) == MenuAction::Changed);
 	settings_menu_draw(&gfx);
 	settings_menu_tap(20, 155);
 	assert(settings_get().night);
-	// The LIGHT panel has a fifth row: Screen flip reaches the rotation toggle by scrolling.
-	assert(settings_menu_scroll(1) && settings_menu_scroll(1) && !settings_menu_scroll(1));
+	// DISPLAY keeps brightness controls together; orientation belongs to SENSORS.
+	assert(settings_menu_scroll(1) && !settings_menu_scroll(1));
 	assert(settings_menu_tap(20, 200) == MenuAction::Changed);
-	assert(settings_get().flipped);
+	assert(settings_get().dim);
 	assert(settings_menu_tap(210, 65) == MenuAction::Changed);
 	settings_menu_draw(&gfx);
+	settings_menu_tap(20, 100);
+	assert(settings_get().animation == 2);
 	settings_menu_tap(20, 140);
-	assert(settings_get().shake);
-	settings_menu_tap(20, 185);
-	assert(settings_menu_scroll(1));
-	settings_menu_tap(20, 202);
-	assert(settings_get().random_faces && settings_get().imu_faces);
+	assert(settings_get().random_faces);
 	assert(settings_menu_tap(-1, 100) == MenuAction::None);
+	assert(!settings_menu_scroll(1));
+	for (uint8_t mode = 1; mode <= FACE_FLOW_COUNT; ++mode) {
+		assert(settings_menu_tap(20, 202) == MenuAction::Changed);
+		assert(settings_get().face_flow == mode % FACE_FLOW_COUNT);
+		settings_menu_draw(&gfx);
+	}
 	assert(settings_menu_tap(240, 119) == MenuAction::None);
 	settings_menu_tap(20, 240);
 	assert(!settings_dirty());
@@ -248,15 +262,21 @@ static void menu_tests() {
 	test_save_fails = false;
 	assert(settings_menu_tap(160, 240) == MenuAction::Exit);
 	settings_menu_tap(210, 65);
-	assert(settings_menu_scroll(1));
-	assert(!settings_menu_scroll(1));
-	assert(settings_menu_scroll(-1));
 	settings_menu_tap(20, 100);
-	assert(settings_get().animation == 2);
+	assert(settings_get().imu_faces);
 	settings_menu_tap(20, 140);
-	assert(settings_get().language == 1 && strcmp(tr(Text::Settings), "IMPOSTAZIONI") == 0);
-	settings_menu_draw(&gfx);
+	assert(settings_get().shake);
+	assert(settings_menu_scroll(1) && settings_menu_scroll(1) && !settings_menu_scroll(1));
+	settings_menu_tap(20, 202);
+	assert(settings_get().flipped);
 	settings_menu_tap(210, 65);
+	settings_menu_tap(210, 65);
+	settings_menu_tap(20, 100);
+	assert(settings_get().language == 1 && strcmp(tr(Text::Settings), "IMPOSTAZIONI") == 0);
+	settings_menu_tap(20, 202);
+	assert(!settings_get().route_large);
+	settings_menu_draw(&gfx);
+	settings_menu_tap(30, 65);
 	settings_menu_tap(20, 100);
 	assert(settings_get().sound);
 	assert(settings_menu_scroll(1));
@@ -275,6 +295,7 @@ static void menu_tests() {
 	assert(test_flash_writes == writes);
 	assert(settings_menu_scroll(-1) && settings_menu_scroll(-1));
 	assert(settings_menu_tap(160, 240) == MenuAction::Exit);
+	settings_menu_tap(239, 52);
 	settings_menu_tap(239, 52);
 	assert(!settings_menu_scroll(-1));
 	uint8_t style = settings_get().style;
@@ -325,8 +346,7 @@ static void menu_tests() {
 	assert(settings_menu_tap(167, 89) == MenuAction::None);
 	assert(settings_menu_tap(71, 52) == MenuAction::Changed);
 	assert(settings_menu_tap(168, 89) == MenuAction::Changed);
-	assert(settings_menu_scroll(1));
-	assert(settings_menu_scroll(-1));
+	assert(!settings_menu_scroll(1));
 	assert(!settings_menu_scroll(-1));
 	settings_defaults();
 	settings_apply();
@@ -354,9 +374,9 @@ static void format_tests() {
 	bytes[10] = 2; bytes[11] ^= 2;
 	assert(!settings_decode(bytes, sizeof(bytes), decoded));
 	assert(decoded.color == 3);
-	// Version-five flip bytes reject reserved bits, and versions never mix across lengths.
+	// Version-six playback/flip bytes reject reserved bits; versions cannot mix lengths.
 	settings_encode(p, bytes);
-	bytes[11] |= 2;
+	bytes[11] |= 8;
 	bytes[12] = 0xA5;
 	for (uint8_t i = 0; i < 12; ++i) { bytes[12] ^= bytes[i]; }
 	assert(!settings_decode(bytes, sizeof(bytes), decoded));

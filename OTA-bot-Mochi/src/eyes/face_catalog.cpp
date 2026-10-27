@@ -1,0 +1,255 @@
+#include "face_presets.h"
+#include "faces/neutral.h"
+#include "faces/happy.h"
+#include "faces/sad.h"
+#include "faces/angry.h"
+#include "faces/surprised.h"
+#include "faces/sleepy.h"
+#include "faces/love.h"
+#include "faces/dizzy.h"
+#include "faces/glee.h"
+#include "faces/worried.h"
+#include "faces/focused.h"
+#include "faces/annoyed.h"
+#include "faces/skeptic.h"
+#include "faces/frustrated.h"
+#include "faces/unimpressed.h"
+#include "faces/suspicious.h"
+#include "faces/squint.h"
+#include "faces/furious.h"
+#include "faces/scared.h"
+#include "faces/awe.h"
+#include "faces/sleepy_eyes.h"
+#include "faces/sad_down.h"
+#include "faces/sad_up.h"
+#include "faces/excited.h"
+#include "faces/terrified.h"
+#include "faces/disgusted.h"
+#include "faces/shy.h"
+#include "faces/proud.h"
+#include "faces/tired.h"
+#include "faces/grin.h"
+#include "faces/panicked.h"
+#include "faces/glum.h"
+#include "faces/smug.h"
+#include "faces/deadpan.h"
+#include "faces/zombie.h"
+#include "faces/confused.h"
+#include "faces/curious.h"
+#include "faces/wink.h"
+#include "faces/wondering.h"
+#include "faces/star.h"
+#include "faces/crying.h"
+#include "faces/swirly.h"
+#include "faces/cat.h"
+#include "faces/halo.h"
+#include "faces/devil.h"
+#include "faces/fire.h"
+#include "faces/moon.h"
+#include "faces/sparkle.h"
+#include "faces/bolt.h"
+#include "faces/diamond.h"
+#include "faces/ring.h"
+#include "faces/target.h"
+#include "faces/money.h"
+#include "faces/mild_happy.h"
+#include "faces/smirk.h"
+#include "faces/pout.h"
+#include "faces/kiss.h"
+#include "faces/nervous.h"
+#include "faces/shocked.h"
+#include "faces/melting.h"
+#include "faces/lazy.h"
+#include "faces/doze.h"
+#include "faces/groggy.h"
+#include "faces/daydream.h"
+#include "faces/grumpy.h"
+#include "faces/sassy.h"
+#include "faces/cheeky.h"
+#include "faces/flirt.h"
+#include "faces/zen.h"
+#include "faces/merciful.h"
+#include "faces/manic.h"
+#include "faces/side_eye.h"
+#include "faces/beaming.h"
+#include "faces/music.h"
+#include "faces/low_batt.h"
+#include "faces/power.h"
+#include "faces/loading.h"
+#include "faces/idea.h"
+#include "faces/hyper.h"
+#include "faces/squish.h"
+#include "faces/derp.h"
+#include "faces/glitch.h"
+#include "faces/twitch.h"
+#include "faces/sneeze.h"
+#include "faces/judge.h"
+#include "faces/question.h"
+#include "faces/calculating.h"
+#include "faces/cyborg.h"
+#include "faces/arc_happy.h"
+#include "faces/arc_sad.h"
+#include "faces/squeezed.h"
+#include "faces/tilted.h"
+#include "faces/pong.h"
+#include "faces/clock_eyes.h"
+#include "faces/gauge.h"
+#include "faces/glow.h"
+#include "faces/headlights.h"
+#include "faces/dancing.h"
+#include "faces/police.h"
+#include "faces/rain.h"
+#include "faces/growing.h"
+#include "faces/shrink.h"
+#include "faces/swinging.h"
+#include "faces/blinding.h"
+#include "faces/buzzing.h"
+#include "faces/sick.h"
+#include "faces/splash.h"
+#include "faces/spraying.h"
+#include "faces/sushi.h"
+#include "faces/energetic.h"
+#include "faces/smoke.h"
+#include "faces/menacing.h"
+#include "faces/hello.h"
+#include "faces/distracted.h"
+#include "faces/look_left.h"
+#include "faces/look_right.h"
+#include "faces/look_down.h"
+#include "faces/stargazing.h"
+#include "faces/mistake.h"
+#include "faces/encouragement.h"
+#include "faces/adore.h"
+#include "faces/laughing.h"
+#include "faces/enraged.h"
+
+/** @brief Complete ID-ordered catalog; names remain checked against the public table. */
+constexpr FacePresetEntry FACE_PRESETS[EXPRESSION_COUNT] = {
+	{NEUTRAL, face_defs::neutral_face::preset},
+	{HAPPY, face_defs::happy_face::preset},
+	{SAD, face_defs::sad_face::preset},
+	{ANGRY, face_defs::angry_face::preset},
+	{SURPRISED, face_defs::surprised_face::preset},
+	{SLEEPY, face_defs::sleepy_face::preset},
+	{LOVE, face_defs::love_face::preset},
+	{DIZZY, face_defs::dizzy_face::preset},
+	{GLEE, face_defs::glee_face::preset},
+	{WORRIED, face_defs::worried_face::preset},
+	{FOCUSED, face_defs::focused_face::preset},
+	{ANNOYED, face_defs::annoyed_face::preset},
+	{SKEPTIC, face_defs::skeptic_face::preset},
+	{FRUSTRATED, face_defs::frustrated_face::preset},
+	{UNIMPRESSED, face_defs::unimpressed_face::preset},
+	{SUSPICIOUS, face_defs::suspicious_face::preset},
+	{SQUINT, face_defs::squint_face::preset},
+	{FURIOUS, face_defs::furious_face::preset},
+	{SCARED, face_defs::scared_face::preset},
+	{AWE, face_defs::awe_face::preset},
+	{SLEEPY_EYES, face_defs::sleepy_eyes_face::preset},
+	{SAD_DOWN, face_defs::sad_down_face::preset},
+	{SAD_UP, face_defs::sad_up_face::preset},
+	{EXCITED, face_defs::excited_face::preset},
+	{TERRIFIED, face_defs::terrified_face::preset},
+	{DISGUSTED, face_defs::disgusted_face::preset},
+	{SHY, face_defs::shy_face::preset},
+	{PROUD, face_defs::proud_face::preset},
+	{TIRED, face_defs::tired_face::preset},
+	{GRIN, face_defs::grin_face::preset},
+	{PANICKED, face_defs::panicked_face::preset},
+	{GLUM, face_defs::glum_face::preset},
+	{SMUG, face_defs::smug_face::preset},
+	{DEADPAN, face_defs::deadpan_face::preset},
+	{ZOMBIE, face_defs::zombie_face::preset},
+	{CONFUSED, face_defs::confused_face::preset},
+	{CURIOUS, face_defs::curious_face::preset},
+	{WINK, face_defs::wink_face::preset},
+	{WONDERING, face_defs::wondering_face::preset},
+	{STAR, face_defs::star_face::preset},
+	{CRYING, face_defs::crying_face::preset},
+	{SWIRLY, face_defs::swirly_face::preset},
+	{CAT, face_defs::cat_face::preset},
+	{HALO, face_defs::halo_face::preset},
+	{DEVIL, face_defs::devil_face::preset},
+	{FIRE, face_defs::fire_face::preset},
+	{MOON, face_defs::moon_face::preset},
+	{SPARKLE, face_defs::sparkle_face::preset},
+	{BOLT, face_defs::bolt_face::preset},
+	{DIAMOND, face_defs::diamond_face::preset},
+	{RING, face_defs::ring_face::preset},
+	{TARGET, face_defs::target_face::preset},
+	{MONEY, face_defs::money_face::preset},
+	{MILD_HAPPY, face_defs::mild_happy_face::preset},
+	{SMIRK, face_defs::smirk_face::preset},
+	{POUT, face_defs::pout_face::preset},
+	{KISS, face_defs::kiss_face::preset},
+	{NERVOUS, face_defs::nervous_face::preset},
+	{SHOCKED, face_defs::shocked_face::preset},
+	{MELTING, face_defs::melting_face::preset},
+	{LAZY, face_defs::lazy_face::preset},
+	{DOZE, face_defs::doze_face::preset},
+	{GROGGY, face_defs::groggy_face::preset},
+	{DAYDREAM, face_defs::daydream_face::preset},
+	{GRUMPY, face_defs::grumpy_face::preset},
+	{SASSY, face_defs::sassy_face::preset},
+	{CHEEKY, face_defs::cheeky_face::preset},
+	{FLIRT, face_defs::flirt_face::preset},
+	{ZEN, face_defs::zen_face::preset},
+	{MERCIFUL, face_defs::merciful_face::preset},
+	{MANIC, face_defs::manic_face::preset},
+	{SIDE_EYE, face_defs::side_eye_face::preset},
+	{BEAMING, face_defs::beaming_face::preset},
+	{MUSIC, face_defs::music_face::preset},
+	{LOW_BATT, face_defs::low_batt_face::preset},
+	{POWER, face_defs::power_face::preset},
+	{LOADING, face_defs::loading_face::preset},
+	{IDEA, face_defs::idea_face::preset},
+	{HYPER, face_defs::hyper_face::preset},
+	{SQUISH, face_defs::squish_face::preset},
+	{DERP, face_defs::derp_face::preset},
+	{GLITCH, face_defs::glitch_face::preset},
+	{TWITCH, face_defs::twitch_face::preset},
+	{SNEEZE, face_defs::sneeze_face::preset},
+	{JUDGE, face_defs::judge_face::preset},
+	{QUESTION, face_defs::question_face::preset},
+	{CALCULATING, face_defs::calculating_face::preset},
+	{CYBORG, face_defs::cyborg_face::preset},
+	{ARC_HAPPY, face_defs::arc_happy_face::preset},
+	{ARC_SAD, face_defs::arc_sad_face::preset},
+	{SQUEEZED, face_defs::squeezed_face::preset},
+	{TILTED, face_defs::tilted_face::preset},
+	{PONG, face_defs::pong_face::preset},
+	{CLOCK_EYES, face_defs::clock_eyes_face::preset},
+	{GAUGE, face_defs::gauge_face::preset},
+	{GLOW, face_defs::glow_face::preset},
+	{HEADLIGHTS, face_defs::headlights_face::preset},
+	{DANCING, face_defs::dancing_face::preset},
+	{POLICE, face_defs::police_face::preset},
+	{RAIN, face_defs::rain_face::preset},
+	{GROWING, face_defs::growing_face::preset},
+	{SHRINK, face_defs::shrink_face::preset},
+	{SWINGING, face_defs::swinging_face::preset},
+	{BLINDING, face_defs::blinding_face::preset},
+	{BUZZING, face_defs::buzzing_face::preset},
+	{SICK, face_defs::sick_face::preset},
+	{SPLASH, face_defs::splash_face::preset},
+	{SPRAYING, face_defs::spraying_face::preset},
+	{SUSHI, face_defs::sushi_face::preset},
+	{ENERGETIC, face_defs::energetic_face::preset},
+	{SMOKE, face_defs::smoke_face::preset},
+	{MENACING, face_defs::menacing_face::preset},
+	{HELLO, face_defs::hello_face::preset},
+	{DISTRACTED, face_defs::distracted_face::preset},
+	{LOOK_LEFT, face_defs::look_left_face::preset},
+	{LOOK_RIGHT, face_defs::look_right_face::preset},
+	{LOOK_DOWN, face_defs::look_down_face::preset},
+	{STARGAZING, face_defs::stargazing_face::preset},
+	{MISTAKE, face_defs::mistake_face::preset},
+	{ENCOURAGEMENT, face_defs::encouragement_face::preset},
+	{ADORE, face_defs::adore_face::preset},
+	{LAUGHING, face_defs::laughing_face::preset},
+	{ENRAGED, face_defs::enraged_face::preset},
+};
+static_assert(face_entries_valid(FACE_PRESETS), "Every expression requires one valid ID-ordered face");
+
+/** @brief Check catalog IDs and parameter ranges. */
+bool face_catalog_valid() { return face_entries_valid(FACE_PRESETS); }

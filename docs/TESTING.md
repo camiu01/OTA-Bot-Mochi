@@ -31,14 +31,20 @@ and `MOCHI_BOARD_AMOLED_18` for AMOLED checks, so an Arduino IDE selection in
 An explicit LCD CLI build can likewise use
 `--build-property "compiler.cpp.extra_flags=-DMOCHI_BOARD_LCD_169"`.
 The real eye renderer also runs against a native raster substitute: all four
-styles, all 118 expressions/animated moods, and both blink states (944 combinations), a proof
+styles, all 123 expressions/animated moods, and both blink states (984 combinations), a proof
 that every expression renders differently from NEUTRAL on every style, that no
-two names draw the same pixels on any style (pairwise uniqueness, 27612
+two names draw the same pixels on any style (pairwise uniqueness, 30012
 comparisons), solid-style pupil/highlight exclusion, trapezoid symmetry, IMU
 gaze/roll bounds, radius limits, and dirty-region erasure are checked. The
 configured palette has its own suite: resting emotions and symbols must keep
 the selected ink on every style, across three selected body colors.
 The petting heart must use the selected body color and erase without trails.
+The face catalog checks compile the documented C++17 per-eye preset example and
+validate all 123 IDs/names, parameter ranges, USB selection and settings round-trips.
+Two frozen pre-refactor raster fixtures check pixels and dirty bounds across six
+panels and four styles; the expanded fixture samples 47,232 frames across all
+123 expressions. See [Editing and adding a face](ADDING_A_FACE.md) for scope and
+the rule against regenerating baselines from the refactored renderer.
 Related emotion families must differ in at least ten percent of their combined
 occupied-pixel masks, independent of color, on LCD, AMOLED, and a small panel.
 The face suite also exercises 24 GIF-informed reaction loops on four panel
@@ -47,7 +53,7 @@ priority, frame-local color blends, solid-style exclusions, and
 dirty-versus-full redraw equality.
 The colored
 performances also have a dedicated `performance_test.cpp` suite covering all
-twenty-one additions on four panel rasters: reversible endpoints, frame-local
+twenty-six additions on four panel rasters: reversible endpoints, frame-local
 semantic colors, clean-redraw equality, unchanged v5 preferences, and complete
 six-second automatic-reaction protection, including timestamp rollover. Scene
 regressions require exactly twelve ordinary equalizer columns and intact eye
@@ -74,6 +80,13 @@ version-four and older migration, the reboot verb, EN/IT
 label completeness and layout, out-of-order weather packets/sync throttling,
 animated dirty regions, sound notes/priorities/mute/rollover/failures, and actual
 PWM adapters against core-2/core-3 shared-timer mocks.
+AMOLED PWR-key tests verify the AXP2101's 4-second off/1-second on timing,
+preservation of unrelated power/charging bits, missing-device/read/write failures
+and idempotent setup. LCD tests check the original GPIO35 power hold, GPIO36
+wake, debounced hold/release, ignored startup press, rollover and wake/sleep
+failure paths. Backlight suspension is checked on core 2 and 3 without changing
+saved brightness or the buzzer's PWM timer. Physical off/on, USB wake and standby
+current still require a board test; see [Boards](BOARDS.md).
 Additional checks exercise all six shared color palettes, filled touch gutters,
 row/tab/footer edges with row hits aligned to their visible cards, contiguous
 grid-cell rows, 58-pixel desk hub cards, 50-pixel timer buttons, contextual

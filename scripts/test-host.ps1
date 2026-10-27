@@ -27,6 +27,12 @@ try {
 		"$root\OTA-bot-Mochi\src\settings\settings.cpp",
 		"$root\OTA-bot-Mochi\src\settings\usb_commands.cpp",
 		"$root\OTA-bot-Mochi\src\power\battery.cpp",
+		"$root\OTA-bot-Mochi\src\eyes\face_catalog.cpp",
+		"$root\OTA-bot-Mochi\src\eyes\face_dispatch.cpp",
+		"$root\OTA-bot-Mochi\src\eyes\face_primitives.cpp",
+		"$root\OTA-bot-Mochi\src\eyes\face_glyph_primitives.cpp",
+		"$root\OTA-bot-Mochi\src\eyes\eye_shapes.cpp",
+		"$root\OTA-bot-Mochi\src\eyes\eye_lids.cpp",
 		"$root\OTA-bot-Mochi\src\eyes\eyes_anim.cpp",
 		"$root\OTA-bot-Mochi\src\eyes\eyes_expression.cpp",
 		"$root\OTA-bot-Mochi\src\eyes\eyes_faces.cpp",
@@ -51,16 +57,22 @@ try {
 	)
 	Invoke-HostTest 'swipe' @("$root\tests\swipe_test.cpp")
 	Invoke-HostTest 'startup' @("$root\tests\startup_test.cpp")
+	$powerButton = @("$root\tests\power_button_test.cpp", "$root\OTA-bot-Mochi\src\power\power_button.cpp",
+		"$root\OTA-bot-Mochi\src\power\power_button_lcd.cpp", "$root\OTA-bot-Mochi\src\bus\i2c_bus.cpp")
+	Invoke-HostTest 'power-button-lcd' $powerButton
+	Invoke-HostTest 'power-button-amoled' $powerButton @('-DMOCHI_BOARD_AMOLED_18')
 	# This legacy fixture uses 240x280 touch coordinates; ui-panel covers scaled panels.
 	Invoke-HostTest 'ui' ($runtime + $ui) @('-DLCD_WIDTH=240', '-DLCD_HEIGHT=280')
 	Invoke-HostTest 'imu' ($runtime + @("$root\tests\imu_test.cpp", "$root\OTA-bot-Mochi\src\eyes\eyes_imu.cpp"))
 	$settings = @("$root\tests\settings_test.cpp", "$root\OTA-bot-Mochi\src\settings\settings_menu.cpp",
 		"$root\tests\stubs\imu_noop.cpp")
 	Invoke-HostTest 'settings' ($runtime + $settings)
+	Invoke-HostTest 'face-preset' ($runtime + @("$root\tests\face_preset_test.cpp", "$root\tests\stubs\imu_noop.cpp"))
 	$renderRuntime = @($runtime | Where-Object { $_ -ne "$root\tests\stubs\eyes_draw.cpp" })
-	$renderEyes = @("$root\OTA-bot-Mochi\src\eyes\eyes_draw.cpp", "$root\OTA-bot-Mochi\src\eyes\eye_shapes.cpp",
-		"$root\OTA-bot-Mochi\src\eyes\eye_lids.cpp", "$root\tests\stubs\imu_noop.cpp")
+	$renderEyes = @("$root\OTA-bot-Mochi\src\eyes\eyes_draw.cpp", "$root\tests\stubs\imu_noop.cpp")
 	Invoke-HostTest 'eyes' ($renderRuntime + @("$root\tests\eyes_test.cpp") + $renderEyes)
+	Invoke-HostTest 'face-preset-raster' ($renderRuntime + @("$root\tests\face_preset_raster_test.cpp") + $renderEyes)
+	Invoke-HostTest 'all-faces-raster' ($renderRuntime + @("$root\tests\face_preset_raster_test.cpp") + $renderEyes) @('-O2', '-DALL_FACES_RASTER')
 	Invoke-HostTest 'faces' ($renderRuntime + @("$root\tests\face_unique_test.cpp") + $renderEyes)
 	Invoke-HostTest 'panel' ($renderRuntime + @("$root\tests\eye_scaling_test.cpp") + $renderEyes)
 	Invoke-HostTest 'accent' ($renderRuntime + @("$root\tests\eye_accent_test.cpp") + $renderEyes)
@@ -87,5 +99,14 @@ try {
 	Invoke-HostTest 'es8311' $codec @('-DMOCHI_BOARD_AMOLED_18')
 	Write-Output 'All host tests passed'
 } finally {
-	Remove-Item -LiteralPath $output -Recurse -Force
+	# Windows can briefly retain a lock on a just-exited test executable.
+	for ($attempt = 0; $attempt -lt 5; ++$attempt) {
+		try {
+			Remove-Item -LiteralPath $output -Recurse -Force
+			break
+		} catch {
+			if ($attempt -eq 4) { throw }
+			Start-Sleep -Milliseconds 100
+		}
+	}
 }

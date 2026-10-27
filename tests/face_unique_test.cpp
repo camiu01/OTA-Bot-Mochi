@@ -15,6 +15,7 @@
 #include "../OTA-bot-Mochi/src/settings/settings.h"
 #include <assert.h>
 #include <algorithm>
+#include <cmath>
 #include <iostream>
 #include <map>
 #include <string>

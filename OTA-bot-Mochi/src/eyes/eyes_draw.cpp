@@ -80,14 +80,24 @@ static void animate_box(EyeBox &box, const EyeLifeFrame &pose, const EyeConfig &
 	box.radius = eye_limit(box.radius, 0, (box.w < box.h ? box.w : box.h) / 2);
 }
 
+/** @brief Ease the live pose into a stable scene origin before its morph. @param layout Centered eyes. @param cfg Mood. @param drawing Live gaze. @param pose Live opening. @param elapsed Entry time. */
+static void scene_entry(EyeLayout &layout, const EyeConfig &cfg, const EyeState &drawing,
+		const EyeLifeFrame &pose, uint32_t elapsed) {
+	if (elapsed >= 800) { return; }
+	EyeLayout live = eye_layout(cfg, drawing);
+	animate_box(live.left, pose, cfg); animate_box(live.right, pose, cfg);
+	float t = elapsed / 800.0f;
+	t = t * t * (3 - 2 * t);
+	layout.left = eye_scene_box(live.left, layout.left, t);
+	layout.right = eye_scene_box(live.right, layout.right, t);
+}
+
 /** @brief Draw a full-face animated scene instead of the pair. @param gfx Canvas. @param cfg Config. @param st State. @param layout Eyes. @return Scene handled. */
 static bool paint_scene(Arduino_GFX *gfx, const EyeConfig &cfg, uint32_t elapsed, const EyeLayout &layout) {
-	if (cfg.expression != GAUGE && cfg.expression != PONG) { return false; }
+	const FacePreset *p = face_preset(cfg.expression);
+	if (!p || !p->scene) { return false; }
 	float t = eye_scene_amount(elapsed);
-	if (t == 0) { return false; }
-	if (cfg.expression == GAUGE) { eye_scene_gauge(gfx, cfg, layout, elapsed, t); }
-	else { eye_scene_pong(gfx, cfg, layout, elapsed, t); }
-	return true;
+	return t != 0 && p->scene(gfx, cfg, layout, elapsed, t);
 }
 
 /** @brief Render distinct style silhouettes and mask lids after pupils to avoid floating highlights. */
@@ -103,20 +113,20 @@ void eyes_draw() {
 		drawing.saccadeX = drawing.saccadeY = drawing.floatY = 0;
 		drawing.tiltX = pose.x; drawing.tiltY = pose.y;
 	}
-	bool scene = cfg.expression == PONG || cfg.expression == GAUGE || eye_performance(cfg.expression);
+	const FacePreset *preset = face_preset(cfg.expression);
+	bool scene = preset && preset->fullScene;
 	uint32_t elapsed = eye_effect_elapsed(st, cfg.expression);
+	EyeLayout layout = eye_layout(cfg, scene ? EyeState{} : drawing);
+	if (scene && pose.active) { scene_entry(layout, cfg, drawing, pose, elapsed); }
 	if (scene) { drawing = EyeState{}; }
-	EyeLayout layout = eye_layout(cfg, drawing);
 	if (pose.active && !scene) { animate_box(layout.left, pose, cfg); animate_box(layout.right, pose, cfg); }
 	if (!drawing.blinking && !scene) { eye_reaction_layout(cfg, layout, elapsed); }
 	eye_performance_layout(cfg, layout, elapsed);
-	if (cfg.expression == STARGAZING) {
-		drawing.saccadeY = -int16_t(layout.left.h * eye_stargazing_look(elapsed) / 2);
-	}
+	if (preset && preset->drawing) { preset->drawing(drawing, layout, elapsed); }
 	cfg.fgColor = eye_reaction_ink(cfg, elapsed);
 	wipe(gfx, cfg, st);
 	EyeState effects = st;
-	if (cfg.expression == GLOW || cfg.expression == HEADLIGHTS) { effects.lastMs = elapsed; }
+	if (preset && preset->background) { effects.lastMs = elapsed; }
 	eye_effect_background(gfx, cfg, effects, layout);
 	eye_performance_background(gfx, cfg, layout, elapsed);
 	if (!paint_scene(gfx, cfg, elapsed, layout) && !eye_performance_scene(gfx, cfg, layout, elapsed)) {

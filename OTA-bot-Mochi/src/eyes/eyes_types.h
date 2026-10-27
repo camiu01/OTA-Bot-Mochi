@@ -161,12 +161,17 @@ enum Expression : uint8_t {
 	LOOK_LEFT = 114,	/**< Deliberate left glance and return. */
 	LOOK_RIGHT = 115,	/**< Deliberate right glance and return. */
 	LOOK_DOWN = 116,	/**< Deliberate downward glance and return. */
-	STARGAZING = 117	/**< Eyes look up at a twinkling starry sky, then return. */
+	STARGAZING = 117,	/**< Eyes look up at a twinkling starry sky, then return. */
+	MISTAKE = 118,	/**< Flattened eyes beneath glitching "OTA BOT!" text. */
+	ENCOURAGEMENT = 119,	/**< Hopping eyes above a "GO OTA BOT!" banner. */
+	ADORE = 120,	/**< Pink swelling eyes with rising hearts. */
+	LAUGHING = 121,	/**< Squeezed bouncing eyes with tear droplets. */
+	ENRAGED = 122	/**< Narrow shaking red eyes with an anger burst. */
 };
 
 /** @brief Number of defined expressions, bounding menus, parsers, and lookups. */
-constexpr uint8_t EXPRESSION_COUNT = uint8_t(STARGAZING) + 1;
-static_assert(EXPRESSION_COUNT == 118,
+constexpr uint8_t EXPRESSION_COUNT = uint8_t(ENRAGED) + 1;
+static_assert(EXPRESSION_COUNT == 123,
 	"Expression enum, names, i18n labels and documentation must be extended together");
 
 /**
@@ -195,7 +200,8 @@ inline const char *eyes_expression_name(Expression expr) {
 		"gauge", "glow", "headlights", "dancing", "police", "rain", "growing",
 		"shrink", "swinging", "blinding", "buzzing", "sick", "splash", "spraying",
 		"sushi", "energetic", "smoke", "menacing", "hello", "distracted",
-		"look_left", "look_right", "look_down", "stargazing"
+		"look_left", "look_right", "look_down", "stargazing",
+		"mistake", "encouragement", "adore", "laughing", "enraged"
 	};
 	static_assert(sizeof(names) / sizeof(names[0]) == EXPRESSION_COUNT,
 		"eyes_expression_name() entries must match Expression values one for one");

@@ -37,7 +37,7 @@ testing on both boards. See the validation limits below.
 
 | Feature | Observable behavior |
 | --- | --- |
-| Animated eyes | Four styles (`mochi`, `bloub`, `normal`, `trapez`), with blinking, idle gaze, and 118 selectable moods |
+| Animated eyes | Four styles (`mochi`, `bloub`, `normal`, `trapez`), with blinking, idle gaze, and 123 selectable moods |
 | Touch reactions | Taps, double taps, and vertical petting strokes trigger temporary faces, then restore the selected mood |
 | Motion reactions | Accelerometer changes relative to the startup position move the gaze; optional motion moods and shake-to-dizzy reactions |
 | Digital and analog clocks | Display phone-synchronized time; continue while disconnected, but require another sync after reboot |
@@ -48,6 +48,7 @@ testing on both boards. See the validation limits below.
 | Weather display | Shows phone-supplied conditions and up to three forecast entries, with missing/stale states; a device issue remains unresolved |
 | Optional sound | Short generated chirps for reactions, timers, and alerts; category switches and night mute; off by default |
 | Personalization | Eye colors, brightness, 180-degree screen flip, motion presets, EN/IT labels, and explicitly saved preferences |
+| Power button | AMOLED V2: PWR 4s off / 1s on. LCD OLD: hold PWR 4s and release to turn off, press to restart; USB uses light sleep. Hardware switching requires board validation |
 
 Eyes and local desk Pong/timers work without a phone. Clocks need an initial Chronos time sync after each
 boot. Weather, notifications, calls, and navigation depend on the phone and the **Chronos companion app**.
@@ -279,7 +280,7 @@ page is not a save. Timer/Pong state and temporary route layouts are session-onl
 
 | Option | Available configuration |
 | --- | --- |
-| Appearance | Four eye styles, six body/UI colors, 118 moods; distinct shapes and GIF-informed reactions with temporary colors |
+| Appearance | Four eye styles, six body/UI colors, 123 moods; distinct shapes and GIF-informed reactions with temporary colors |
 | Animation | `calm`, `dasai`, `playful`; optional random moods and IMU moods |
 | Orientation | Normal or 180-degree flip, including matching touch and IMU mapping; no 90-degree mode |
 | Lighting | Day 5–90%, night 1–20%, manual night selection, optional idle dimming |

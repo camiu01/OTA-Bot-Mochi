@@ -20,6 +20,7 @@ inline void delay(uint32_t ms) { test_now += ms; }
 // Match Arduino's global symbol so backend state cannot accidentally shadow it.
 void tone(uint8_t pin, unsigned int frequency, unsigned long duration = 0);
 constexpr uint8_t INPUT_PULLUP = 2;
+inline int digitalRead(uint8_t pin) { return test_gpio_levels[pin]; }
 inline long random(long maximum) { return maximum > 0 ? std::rand() % maximum : 0; }
 inline long random(long minimum, long maximum) { return minimum + random(maximum - minimum); }
 /** @brief Controlled ADC samples for native battery tests; zero models an unfitted divider. */

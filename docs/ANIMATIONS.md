@@ -81,6 +81,15 @@ These are native raster previews, not device photographs.
 | 115 | `look_right` | Pink eyes glance right, then return |
 | 116 | `look_down` | Violet eyes glance down, then return |
 | 117 | `stargazing` | Small blue eyes settle together at the bottom, then look up at slowly twinkling stars |
+| 118 | `mistake` | Flattened jittering eyes above an original glitching `OTA BOT!` banner |
+| 119 | `encouragement` | Hopping eyes above `GO OTA BOT!` and a growing underline |
+| 120 | `adore` | Swelling pink eyes surrounded by rising hearts |
+| 121 | `laughing` | Squeezed bouncing eyes with falling blue tear droplets |
+| 122 | `enraged` | Narrow red shaking eyes below a small anger burst |
+
+The two banners use the built-in bitmap font, not source lettering or logos.
+Other references still reuse the thematic moods listed below; they are not
+separate reproductions of every GIF.
 
 Each addition uses an entry-relative six-second loop: selected-color eyes for
 0.6 seconds, a 0.9-second eased transformation, three seconds of performance,
@@ -116,7 +125,8 @@ Existing mood behavior is retained; these are not 63 newly recreated sequences.
 
 | Reference names | Firmware mood |
 | --- | --- |
-| adore, love | `love` |
+| adore | `adore` |
+| love | `love` |
 | angry, fierce | `angry` |
 | blank | `neutral` |
 | blinding | `blinding` |
@@ -130,11 +140,14 @@ Existing mood behavior is retained; these are not 63 newly recreated sequences.
 | dizzy | `swirly` |
 | down | `look_down` |
 | drowsy | `groggy` |
-| encouragement, hello | `hello` |
+| encouragement | `encouragement` |
+| hello | `hello` |
 | energetic | `energetic` |
-| enraged, furious | `furious` |
+| enraged | `enraged` |
+| furious | `furious` |
 | fast, rush, speed | `gauge` |
-| giggle, laughing | `glee` |
+| giggle | `glee` |
+| laughing | `laughing` |
 | glowing | `glow` |
 | growing | `growing` |
 | handsome | `smug` |
@@ -142,7 +155,7 @@ Existing mood behavior is retained; these are not 63 newly recreated sequences.
 | irritated | `annoyed` |
 | left | `look_left` |
 | menacing | `menacing` |
-| mistake | `glitch` |
+| mistake | `mistake` |
 | playful | `pong` |
 | police | `police` |
 | rain | `rain` |

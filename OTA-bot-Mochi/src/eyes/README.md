@@ -24,7 +24,13 @@ rounded even though the TRAPEZ preset sets `radius` to 0. The left eye is always
 canonical evaluation and the right eye is its exact horizontal mirror, which keeps
 the reflected halves pixel-identical.
 
-## Expressions and animated moods (118)
+## Expressions and animated moods (123)
+
+Each expression has its own `faces/<canonical_name>.h`, containing its per-eye
+`FacePreset` and expression-specific effects. `face_catalog.cpp` registers all
+123 definitions; reusable primitives and the render pipeline remain shared.
+For parameters, a compiled example and registration, see
+[Adding a face](../../../docs/ADDING_A_FACE.md).
 
 | Value | Name | Look |
 |---|---|---|
@@ -126,11 +132,12 @@ the reflected halves pixel-identical.
 | 95 | GLOW | Selected-color-to-hues-to-selected-color cycle with soft halos around the current style |
 | 96 | HEADLIGHTS | Slow-pulsing outward light cones behind the current style |
 
-The first 97 expressions keep their numeric values. IDs 97–117 add twenty-one
+The first 118 expressions keep their numeric values. IDs 97–122 provide twenty-six
 [original colored performances](../../../docs/ANIMATIONS.md), including their
 names, timing and reference correspondence. The additions
 omit mouths, cheeks and eyebrows. Existing LOVE, CRYING and angry faces remain
-available rather than gaining duplicate names.
+available. The appended `adore`, `laughing`, and `enraged` performances add
+distinct scenery rather than replacing those ordinary moods.
 
 Select these moods in Settings → LOOK → Mood, or use USB commands such as
 `mood arc_happy`, `mood squeezed`, `mood pong`, and `mood clock_eyes`.
@@ -176,7 +183,7 @@ Every expression must work on all four styles, which the native suite enforces:
 - Non-solid styles (NORMAL, BLOUB) additionally shift the pupil, using either a
   plain circle or the same glyph as a coloured pupil, except for LOVE and STAR.
 
-`glyph()` in `eye_shapes.cpp` is the single dispatch for all of them. Every primitive
+`glyph()` in `eye_shapes.cpp` dispatches to the selected face's glyph callback. Every primitive
 stays inside a circle of radius `s` around its centre, which is what guarantees that
 whole-eye marks and pupil-sized marks both stay inside the dirty region.
 
@@ -194,18 +201,18 @@ angry eyes narrow into deeper slopes, and startled eyes range from thin tall
 capsules to round wonder eyes. Native tests compare occupied-pixel masks,
 without relying on color differences.
 
-`eye_reactions.h` adds three-second, entry-relative reactions to 24 ordinary
+Face-owned callbacks add three-second, entry-relative reactions to 24 ordinary
 moods, informed by the user-supplied local GIF references. Closed chevrons,
 sleepy arcs, flowing tear curtains, asymmetric eye openings, startled stretching,
 and sneeze recovery remain bounded to the current eye geometry. LOVE,
 ANGRY, GRUMPY, and FURIOUS also fade to themed body colors during the reaction,
 then restore the selected ink. MOCHI/TRAPEZ spirals replace the entire eye.
-`eye_crying.h` keeps clean neutral eyes and rounded closed lids above attached
+`faces/crying.h` keeps clean neutral eyes and rounded closed lids above attached
 blue water with soft downward highlights. The eyes widen as they close; remaining
 water drains downward before reopening. Lids do not change to the water color.
 No GIF assets, mouths, extra framebuffers, or saved settings are added.
 
-Blink renders as a thin horizontal line. Per-eye geometry is applied only when
+Blink renders as a thin horizontal line. Legacy conditional asymmetry applies only when
 `cfg.asym` is set, which `eyes_set_style()` enables for BLOUB alone: SKEPTIC,
 SUSPICIOUS, SLEEPY_EYES, PROUD, SMUG, CONFUSED, CURIOUS, WONDERING, ZOMBIE, WINK,
 SMIRK, MELTING, GROGGY, SASSY, CHEEKY and FLIRT. On the other three styles those

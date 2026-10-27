@@ -214,7 +214,7 @@
 
 /* =========================== [S9] System Control & Power =========================== */
 /** @defgroup sys System & Power
- *  @brief Legacy power pin candidates, not verified for battery measurements.
+ *  @brief Board-specific power control; battery measurement remains unverified.
  *  @{
  */
 #if defined(MOCHI_BOARD_AMOLED_18)
@@ -222,8 +222,8 @@
 #define SYS_OUT    -1  /**< Unused: power rails are managed by the AXP2101 PMU */
 #define BAT_ADC    -1  /**< No ADC divider: battery data would come from the AXP2101 */
 #else
-#define SYS_EN     35  /**< Legacy system-enable candidate; not driven by firmware. */
-#define SYS_OUT    36  /**< Legacy system-output candidate; not driven by firmware. */
+#define SYS_EN     35  /**< Original board: active-high battery-power hold (SS8050/AO3401). */
+#define SYS_OUT    36  /**< Original board: active-low PWR/Key2 input. */
 #define BAT_ADC    1   /**< Unverified ADC candidate; do not assume a battery divider ratio. */
 #endif
 /** @} */  // end of sys

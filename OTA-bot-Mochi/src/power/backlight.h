@@ -30,3 +30,5 @@ void backlight_update(uint32_t now, bool touching, bool keep_awake);
 void backlight_configure(uint8_t percent, bool dim);
 /** @brief Read the selected brightness. @return Percent brightness. */
 uint8_t backlight_brightness();
+/** @brief Force darkness before power-off without changing saved brightness. */
+void backlight_suspend();
