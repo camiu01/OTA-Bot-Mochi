@@ -44,6 +44,10 @@ arduino-cli compile --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=opi,FlashSiz
   --build-property "compiler.cpp.extra_flags=-DMOCHI_BOARD_AMOLED_18" OTA-bot-Mochi
 ```
 
+The same two profiles are also available as the PlatformIO environments
+`esp32s3-lcd` and `esp32s3-amoled` in `platformio.ini`; see
+[Testing](TESTING.md#platformio-alternative).
+
 See `docs/TESTING.md` for the toolchain setup and `docs/UI.md` for the shared
 layout rules.
 
