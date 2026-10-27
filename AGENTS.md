@@ -7,7 +7,8 @@ This is an Arduino C++ firmware project, not a desktop application. Open
 The default target is Waveshare **ESP32-S3-Touch-LCD-1.69 OLD**, ST7789, 240x280.
 A second profile, selected with `-DMOCHI_BOARD_AMOLED_18`, targets the Waveshare
 **ESP32-S3-Touch-AMOLED-1.8 V2**, CO5300 AMOLED, 368x448; its hardware details
-are unverified and tracked in `docs/BOARDS.md` and `TODO.md`.
+have user-confirmed functional operation, with per-board measurements and
+endurance records still incomplete in `docs/BOARDS.md` and `TODO.md`.
 For the 1.69 board the numeric assignments in `pin_config.h` follow that board's
 official Waveshare schematic: touch, RTC, and IMU share one I2C bus (SDA=11,
 SCL=10) driven through `src/bus/i2c_bus.*`, and the buzzer is GPIO33 (new
@@ -51,7 +52,7 @@ unless explicitly requested. The reproducible build commands are:
 # LCD board (default)
 arduino-cli compile --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=disabled,FlashSize=16M" OTA-bot-Mochi
 
-# AMOLED board (V2, hardware-unverified)
+# AMOLED board (V2; see docs/BOARDS.md for validation limits)
 arduino-cli compile --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=opi,FlashSize=16M" \
   --build-property "compiler.cpp.extra_flags=-DMOCHI_BOARD_AMOLED_18" OTA-bot-Mochi
 ```
@@ -96,8 +97,8 @@ on native tests and provides downloadable binaries, not automatic OTA deployment
   legacy geometry.
 - Settings update RAM immediately, apply colors/brightness/eye preferences,
   and increment a renderer revision. Only explicit SAVE writes the NVS profile.
-  Version five is thirteen bytes; preserve validated twelve-byte v4 and
-  eight-byte v1–v3 migration.
+  Version six is thirteen bytes (Face flow); preserve thirteen-byte v5,
+  twelve-byte v4 and eight-byte v1–v3 migration.
   Session route overrides and local timer state are deliberately not persisted.
 - `ui_theme.*` owns the shared palette/primitives; `i18n.*` owns built-in EN/IT
   labels. USB vocabulary remains English, and received phone content is not

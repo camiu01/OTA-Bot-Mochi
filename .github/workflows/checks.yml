@@ -90,6 +90,8 @@ jobs:
           cd "$RUNNER_TEMP/firmware"
           {
             printf 'Commit: %s\n' "$GITHUB_SHA"
+            printf 'Source ref: %s\n' "$GITHUB_REF"
+            printf 'Build run: %s/%s/actions/runs/%s\n' "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID"
             printf 'Arduino CLI: %s\n' "$ARDUINO_CLI_VERSION"
             printf 'ESP32 core: %s\n' "$ESP32_CORE_VERSION"
             printf 'FQBN: %s\n' "$BOARD_FQBN"
@@ -102,11 +104,30 @@ jobs:
           cd "$RUNNER_TEMP/firmware-amoled"
           {
             printf 'Commit: %s\n' "$GITHUB_SHA"
-            printf 'Profile: -DMOCHI_BOARD_AMOLED_18 (Waveshare ESP32-S3-Touch-AMOLED-1.8 V2, unverified on hardware)\n'
+            printf 'Source ref: %s\n' "$GITHUB_REF"
+            printf 'Build run: %s/%s/actions/runs/%s\n' "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID"
+            printf 'Arduino CLI: %s\n' "$ARDUINO_CLI_VERSION"
+            printf 'ESP32 core: %s\n' "$ESP32_CORE_VERSION"
+            printf 'Libraries: ESP32Time 2.0.6; NimBLE-Arduino 2.5.1; ChronosESP32 1.9.1; GFX Library for Arduino 1.6.9\n'
+            printf 'Profile: -DMOCHI_BOARD_AMOLED_18 (Waveshare ESP32-S3-Touch-AMOLED-1.8 V2)\n'
             printf 'FQBN: esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=opi,FlashSize=16M\n'
             printf 'The 8MB octal PSRAM holds the 368x448 frame canvas; see docs/BOARDS.md.\n'
           } > BUILD-INFO.txt
           sha256sum -- *.bin > SHA256SUMS.txt
+          for directory in "$RUNNER_TEMP/firmware" "$RUNNER_TEMP/firmware-amoled"; do
+            profile="$BOARD_FQBN"
+            if [[ "$directory" == *firmware-amoled ]]; then
+              profile="esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=opi,FlashSize=16M"
+            fi
+            {
+              printf '\nResolved compiler and framework tools:\n'
+              arduino-cli compile --fqbn "$profile" --show-properties "$GITHUB_WORKSPACE/OTA-bot-Mochi" | \
+                grep -E '^(runtime.tools.*\.path|compiler\.(c|cpp)\.(cmd|flags)|build\.(partitions|flash_mode|flash_freq))='
+              arduino-cli core list
+              arduino-cli lib list
+            } >> "$directory/BUILD-INFO.txt"
+            (cd "$directory" && sha256sum --check SHA256SUMS.txt)
+          done
       - name: Publish downloadable firmware artifact
         uses: actions/upload-artifact@v4
         with:
@@ -158,4 +179,4 @@ jobs:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
           gh release upload "$RELEASE_TAG" "$RUNNER_TEMP/release-assets/"* \
-            --repo "$GH_REPO" --clobber
+            --repo "$GH_REPO"

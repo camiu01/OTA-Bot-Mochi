@@ -57,6 +57,7 @@ try {
 	)
 	Invoke-HostTest 'swipe' @("$root\tests\swipe_test.cpp")
 	Invoke-HostTest 'startup' @("$root\tests\startup_test.cpp")
+	Invoke-HostTest 'render-metrics' @("$root\tests\render_metrics_test.cpp")
 	$powerButton = @("$root\tests\power_button_test.cpp", "$root\OTA-bot-Mochi\src\power\power_button.cpp",
 		"$root\OTA-bot-Mochi\src\power\power_button_lcd.cpp", "$root\OTA-bot-Mochi\src\bus\i2c_bus.cpp")
 	Invoke-HostTest 'power-button-lcd' $powerButton

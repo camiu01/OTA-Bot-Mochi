@@ -13,8 +13,20 @@ Choose the files for your board:
 
 *-full.bin is the merged bootloader, partition table and application image.
 Flash it at address 0x0. It overwrites flash, including saved settings.
+Use it for first installation or recovery; it is not a settings-preserving update.
 *-app.bin is only the application, for an existing matching partition layout.
 Never flash an app-only image at address 0x0.
+For updates, verify the installed partition table and target application offset
+first. Do not guess an offset or mix partition layouts, board profiles or PSRAM
+settings. An app update with an unchanged NVS layout normally preserves saved
+preferences; erase-flash and full images can remove preferences and calibration.
+
+With esptool 5 installed, close serial monitors and replace COM3 with your port:
+python -m esptool --chip esp32s3 --port COM3 write-flash 0x0 mochi-lcd-169-full.bin
+OR, for AMOLED V2 only:
+python -m esptool --chip esp32s3 --port COM3 write-flash 0x0 mochi-amoled-18-v2-full.bin
+These commands WRITE the device. Do not run both or use erase-flash.
+See docs/INSTALLING.md in the matching source revision for update instructions.
 
 Check SHA256SUMS.txt and the board's BUILD-INFO.txt before flashing.
 These files do not perform automatic OTA or update a connected device.

@@ -36,6 +36,7 @@
 #include "src/settings/settings_menu.h"
 #include "src/settings/usb_commands.h"
 #include "src/bus/i2c_bus.h"
+#include "runtime_diagnostics.h"
 
 ChronosESP32 watch("OTA bot");
 #if MOCHI_BOARD_LCD_169
@@ -332,6 +333,9 @@ void loop() {
 	delay(1);
 	if (!screen_ready) { return; }
 	uint32_t now = millis();
+#if MOCHI_RUNTIME_DIAGNOSTICS
+	runtime_diagnostics::poll(now);
+#endif
 	handle_touch(now);
 	eyes_imu_poll(now);
 	bool flip = imu_orientation().target(settings_get().flipped);
@@ -353,11 +357,20 @@ void loop() {
 		eyes_faces_greet(now);
 		switch_screen(UiPage::Eyes, now);
 	}
+#if MOCHI_RUNTIME_DIAGNOSTICS
+	uint32_t draw_started = micros();
+#endif
 	bool changed = screens_draw(gfx, watch, current_screen, now);
 	if (current_screen == UiPage::Eyes && !screens_calling()) {
 		if (changed) { eyes_state().dirtyInit = false; }
 		eyes_update(now);
 		changed = true;
 	}
+#if MOCHI_RUNTIME_DIAGNOSTICS
+	uint32_t draw_finished = micros();
+#endif
 	if (changed) { gfx->flush(); }
+#if MOCHI_RUNTIME_DIAGNOSTICS
+	runtime_diagnostics::metrics.record(draw_started, draw_finished, changed ? micros() : draw_finished);
+#endif
 }

@@ -11,6 +11,22 @@ The firmware targets the Waveshare **ESP32-S3-Touch-LCD-1.69 OLD** and, through 
 
 [Hardware](#hardware) · [Build and flash](#build-and-flash) · [Controls](#controls-and-everyday-use) · [Configuration](#configuration) · [Known limits](#limitations-and-troubleshooting)
 
+## Start here
+
+- **Without a phone:** animated eyes, touch/motion reactions, Pong and local timers.
+- **With Chronos:** time synchronization, notifications/calls, weather and navigation.
+  Clocks keep time while disconnected, but need synchronization after reboot.
+- **Board:** use exactly LCD **1.69 OLD** (PSRAM disabled) or AMOLED **1.8 V2**
+  (OPI PSRAM). Other revisions are not interchangeable.
+- **Install:** download a [release](https://github.com/camiu01/OTA-Bot-Mochi/releases)
+  and follow [first installation versus update](docs/INSTALLING.md).
+  Source builds are described below.
+- **Evidence:** the user reports “everything works”; this is general functional
+  confirmation, not a two-board or endurance certificate. See
+  [validation records](docs/HARDWARE_VALIDATION.md) and [release evidence](docs/CI.md).
+- **Limits:** no wireless firmware updater, verified battery runtime, or AMOLED
+  charging/battery driver. “OTA” in the name does not imply OTA updates.
+
 ## See it in action
 
 ![Emulator views of the desk menu, playable Pong, and analog clock](docs/images/desk-tools.png)
@@ -39,13 +55,13 @@ testing on both boards. See the validation limits below.
 | --- | --- |
 | Animated eyes | Four styles (`mochi`, `bloub`, `normal`, `trapez`), with blinking, idle gaze, and 123 selectable moods |
 | Touch reactions | Taps, double taps, and vertical petting strokes trigger temporary faces, then restore the selected mood |
-| Motion reactions | Accelerometer changes relative to the startup position move the gaze; optional motion moods and shake-to-dizzy reactions |
+| Motion reactions | Accelerometer changes relative to saved calibration (or a temporary startup reference) move the gaze; optional motion moods and shake-to-dizzy reactions |
 | Digital and analog clocks | Display phone-synchronized time; continue while disconnected, but require another sync after reboot |
 | Desk tools | Large clock, time/weather overview, device status, playable Pong, and local timers |
 | Timer / Pomodoro | 5-minute or 15-minute timer, or one 25-minute work / 5-minute rest pair; keeps running when viewing another page |
 | Phone navigation | Displays received turn instructions, icon, distance, ETA, and speed when supplied |
-| Alerts and calls | Displays the latest notification with message pagination and incoming caller information; calls must be handled on the phone |
-| Weather display | Shows phone-supplied conditions and up to three forecast entries, with missing/stale states; a device issue remains unresolved |
+| Alerts and calls | Keeps eight local alerts with browsing, dismissal and message pagination; displays incoming caller information; calls must be handled on the phone |
+| Weather display | Shows phone-supplied conditions and up to three forecast entries, with missing/stale states |
 | Optional sound | Short generated chirps for reactions, timers, and alerts; category switches and night mute; off by default |
 | Personalization | Eye colors, brightness, 180-degree screen flip, motion presets, EN/IT labels, and explicitly saved preferences |
 | Power button | AMOLED V2: PWR 4s off / 1s on. LCD OLD: hold PWR 4s and release to turn off, press to restart; USB uses light sleep. Hardware switching requires board validation |
@@ -60,7 +76,7 @@ back; `clock_eyes` is a decorative animation, not the actual clock; `glow` cycle
 `headlights` expands beams over 1.2 seconds before softly pulsing. See the
 [eye engine reference](OTA-bot-Mochi/src/eyes/README.md) for all mood names.
 
-Twenty-one [original colored performances](docs/ANIMATIONS.md) add an equalizer,
+Twenty-six [original colored performances](docs/ANIMATIONS.md) add an equalizer,
 rain, red/blue lights, growing/shrinking eyes, car turbochargers, a single sushi,
 deliberate glances and a starry sky. They use reversible six-second loops, not bundled GIFs.
 
@@ -71,14 +87,12 @@ A [240x280 gallery](docs/images/colored-performances-240.png) shows the LCD layo
 
 ### Experimental and incompletely validated
 
-- The AMOLED V2 profile has partial physical bring-up recorded in
-  [Boards](docs/BOARDS.md): visible eyes, horizontal swipes, and audible ES8311
-  bench tones. This is not full validation of orientation, brightness, BLE, or audio.
-- New eye scenes/transitions, desk Pong, analog-clock controls, and IMU response
-  still need checks on the actual boards and mounting.
-- Weather parsing and synchronization are implemented, but the reported device
-  weather failure is still open. Live phone-navigation and reconnection checks
-  also remain on the device checklist.
+- AMOLED V2 bring-up and later user functional confirmation are recorded in
+  [Boards](docs/BOARDS.md). The latest general confirmation supersedes the
+  reported weather/audio failures, but does not enumerate settings or duration.
+- Repeatable per-board checks of orientation, brightness, audio categories,
+  navigation, calibration restoration and reconnection remain useful release
+  acceptance work, not additional known failures. LCD OLD needs separate checks.
 - LCD battery percentage is an uncalibrated, plausibility-gated estimate.
   AMOLED battery data and charging state are not implemented.
 
@@ -108,8 +122,9 @@ AMOLED V1 (SH8601), or other ESP32 display boards.
 | Phone with Chronos | BLE companion app | Optional separately; required for phone features | Time sync, route data, alerts, and weather |
 | Battery / enclosure | No validated battery wiring specification or enclosure files supplied | Not required for USB-powered use | Battery integration and mechanical design remain outside this setup |
 
-No external buttons are required. The firmware has no physical-button UI binding; its controls use the
-touchscreen and USB console.
+No external buttons are required. Everyday UI controls use touch and USB;
+the integrated PWR button has board-specific shutdown/wake behavior described in
+[Boards](docs/BOARDS.md). BOOT and RESET are not additional menu controls.
 
 Power documentation specifies a regulated USB source, but does not establish current budget, battery connector
 polarity, charging limits, or measured runtime. Do not infer a battery connection from the GPIO names. Never
@@ -148,10 +163,10 @@ Do not improvise battery, speaker, or power connections from this table.
 The firmware is an Arduino C++ sketch, and two build-tool paths are configured for it. Choose **one** path,
 and use the profile matching the physical board; you do not need both workflows.
 
-- **Arduino CLI** is the primary path: CI compiles both board profiles with it, and the versions below are the
+- **Arduino CLI** is the CI/reference path: CI compiles both board profiles with it, and the versions below are the
   CI pins. Arduino IDE 2.x is also documented, but the CLI makes the board profile and dependency versions
   explicit.
-- **PlatformIO** is an alternative local path, configured in [platformio.ini](platformio.ini) with two
+- **PlatformIO** is the main local verification path for this consolidation, configured in [platformio.ini](platformio.ini) with two
   environments that mirror the same board profiles.
 
 There is no standalone ESP-IDF project: the ESP32 Arduino core embeds ESP-IDF underneath, but this repository
@@ -159,7 +174,7 @@ builds Arduino sketches only. The two paths pin slightly different toolchains (C
 PlatformIO resolves Arduino core 3.3.12 through `espressif32 @ 8.0.0`), so a successful build on one path does
 not verify the other.
 
-### Arduino CLI (primary path)
+### Arduino CLI (CI/reference path)
 
 #### 1. Prerequisites
 
@@ -233,12 +248,13 @@ arduino-cli upload --port COM3 --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=o
 ```
 
 Upload replaces the installed application. Do not erase flash or change partitions; saved settings may be lost.
-No precompiled binary is asserted to be available. The [workflow](.github/workflows/checks.yml) configures
-artifacts/release packaging; [CI notes](docs/CI.md) explain its unverified remote-release status.
+Precompiled v1.2.0 binaries are available. Use [installation instructions](docs/INSTALLING.md)
+for release images and [CI evidence](docs/CI.md) for their source revision and build results.
 
 #### 6. First boot
 
-Keep the board still in its intended desk position while the IMU takes its initial reference. Open the serial
+Keep the board still in its intended desk position. The IMU restores saved calibration,
+or uses a temporary reference until SENSORS → IMU zero succeeds. Open the serial
 console if needed:
 
 ```sh
@@ -249,9 +265,10 @@ Look for `UI ready`, the detected touch address, and `IMU ready` or `IMU unavail
 startup shows an animated OTA BOT / MOCHI title for 2.2 seconds, then a silent eye greeting. Defaults
 are white MOCHI eyes, neutral mood, 30% day brightness, and sound off.
 
-These Arduino CLI commands were checked statically, not executed to build or flash this source. Earlier
-AMOLED bring-up used core **3.3.12**, not the CI-pinned 3.3.11; that does not validate the current source or
-pinned build.
+These Arduino CLI commands were not executed locally during this consolidation.
+The inspected v1.2.0 CI run built both profiles at core **3.3.11**; earlier
+AMOLED device bring-up used **3.3.12**. Neither build result identifies which
+binary is currently installed or proves hardware operation.
 
 ### PlatformIO (alternative path)
 
@@ -339,8 +356,9 @@ See [UI](docs/UI.md) and [Desk tools](docs/DESK.md).
 
 ### Runtime: touch menu or USB console
 
-Preferences apply immediately in RAM. Only explicit SAVE / `save` writes the validated NVS profile; leaving a
-page is not a save. Timer/Pong state and temporary route layouts are session-only.
+Preferences apply immediately in RAM. Only explicit SAVE / `save` writes the validated settings profile;
+leaving a page is not a save. Successful IMU zero separately saves calibration automatically.
+Timer/Pong state, automatic-rotation switch and temporary route layouts are session-only.
 
 | Option | Available configuration |
 | --- | --- |
@@ -348,7 +366,7 @@ page is not a save. Timer/Pong state and temporary route layouts are session-onl
 | Animation | `calm`, `dasai`, `playful`; optional random moods and IMU moods |
 | Orientation | Normal or 180-degree flip, including matching touch and IMU mapping; no 90-degree mode |
 | Lighting | Day 5–90%, night 1–20%, manual night selection, optional idle dimming |
-| Motion | Shake and IMU-expression on/off switches; ordinary IMU gaze remains active when the sensor is ready |
+| Motion | Shake and IMU-expression switches, saved IMU zero and session-only automatic 180° rotation; ordinary gaze remains active when the sensor is ready |
 | Route / calls | Large/details default and dashboard call-overlay policy |
 | Sound | Master switch, level 1–30, face/timer/alert/ambient categories, night mute |
 | Language | English or Italian UI; USB commands remain English and phone text is not translated |
@@ -417,7 +435,7 @@ gyroscope fusion, attitude measurement, or autonomous movement.
 | Blank display, beeping, or crashes after changing board options | Check the exact board revision, controller, FQBN, and PSRAM setting first. Never use OPI PSRAM on LCD OLD. On AMOLED, inspect panel-expander and framebuffer initialization diagnostics; do not rewire reset pins by guesswork. |
 | No touch or no tilt response | Read the touch/IMU startup diagnostics. Touch probes `0x15`/`0x38`; QMI8658C checks identity `0x05` at `0x6B`/`0x6A`. Confirm the profile and shared bus. Idle eyes still work without a ready IMU. |
 | Clock stays at `--:--` | Connect and synchronize through Chronos. Every reboot needs a new sync; the board RTC is not used. |
-| Weather missing | The physical weather issue is still open. Check Chronos weather configuration, permissions, connection/subscription, and USB `weather` counters; `weather sync` queues a rate-limited app request. Native parser tests do not prove delivery. |
+| Weather missing | Check Chronos weather configuration, permissions, connection/subscription, and USB `weather` counters; `weather sync` queues a rate-limited app request. The earlier failure was superseded by user confirmation, not by native parser tests. |
 | Route inactive or missing turn icon | Start navigation on the phone and check BLE. The firmware waits for complete matching icon packets; it does not invent a turn. Live interoperability remains a device check. |
 | Sound silent | Sound defaults off. Inspect `sound`, master/night mute, and category settings; `sound test` requests bench tones but respects mute. Ready status does not prove audibility. |
 | Battery says NOT MEASURED | This is intentional without plausible LCD ADC readings. The divider/calibration is unverified; AMOLED AXP2101 battery/charging support is absent. Do not add a guessed divider or battery connection. |
@@ -425,7 +443,8 @@ gyroscope fusion, attitude measurement, or autonomous movement.
 | Upload port unavailable | Close other serial monitors; select the discovered port. Follow the documented Linux serial-permission guidance in [Testing](docs/TESTING.md#linux-serial-permissions), not a flash erase/reset workaround. |
 | Text shows `?` or approximate characters | The bounded bitmap font approximates common Latin accents; unsupported Unicode and emoji are not fully rendered. |
 
-IMU axis direction depends on mounting, and thresholds are not physically calibrated. No autonomous
+IMU zero saves a mounting reference; decorative reaction thresholds still lack measured
+accuracy validation. No autonomous
 locomotion, GPS, call answering, voice interaction, ambient-light detection, or firmware OTA updater is
 implemented. Power consumption, battery runtime, extended BLE/audio stability, and full LCD/AMOLED
 touch/orientation validation remain open. The Chronos metadata uses nearby rectangular presets rather than
@@ -455,6 +474,7 @@ The native SDL2 emulator needs a matching GCC/SDL2 toolchain:
 
 Linux/macOS uses `bash tools/run-emulator.sh`; setup and controls are in
 [Testing](docs/TESTING.md#host-lcd-emulator-sdl2).
+See [Adding a face](docs/ADDING_A_FACE.md) for the compiled minimal example and registration checks.
 See [Contributing](CONTRIBUTING.md) for tabs, small cohesive functions/files, English documentation, and
 Conventional Commits. The [Code of Conduct](CODE_OF_CONDUCT.md) and [Security policy](SECURITY.md) apply.
 
@@ -471,3 +491,5 @@ Images are repository emulator captures, not manufacturer photographs. ES8311 in
 Waveshare's V2 example in [Sound](docs/SOUND.md). The legacy [FreeSans header](OTA-bot-Mochi/FreeSansBold12pt7b.h)
 records generation through `moononournation/ArduinoFreeFontFile` and its original glyph-license notice.
 Third-party library/font terms still apply; the project's license does not replace those notices.
+See the [direct dependency inventory](docs/DEPENDENCIES.md); it is not a complete
+transitive license audit or legal certification.

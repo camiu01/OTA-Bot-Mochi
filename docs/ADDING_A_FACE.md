@@ -12,6 +12,10 @@ priority and saved settings remain in their existing tables.
 
 ## Per-eye parameters
 
+For the simple path, edit an existing preset's named dimensions/openness/gaze,
+keep its name/ID and callbacks, then run the native tests. No new registration
+or advanced callback knowledge is needed. Registration is only for a new face.
+
 The firmware uses C++17. Use a constexpr lambda with named assignments, rather
 than C++20 designated initializers. This compiled example is also available in
 [`examples/simple_face.h`](examples/simple_face.h):
@@ -67,7 +71,7 @@ the panel budget and test them on the smallest supported panels.
 names. Every face and the complete ID-ordered catalog have compile-time checks.
 Native tests also check that preset names match the public name table.
 
-## Effects in the same file
+## Advanced: effects in the same file
 
 Face-specific procedures live beside the preset. Attach only the callbacks the
 face needs: `lids`, `glyph`, `reactionMotion`, `reactionBody`, `referenceBody`,

@@ -14,7 +14,7 @@ turn arrows. Details retains speed, ETA/duration, and the smaller turn card.
 
 Swipe down on Route to switch temporarily between large and details. Hold on
 Route for 1.2 seconds to restore the configured default. Choose and SAVE
-**Settings → LOOK → Route default** for future
+**Settings → SYSTEM → Route default** for future
 boots. [Settings](SETTINGS.md) documents USB commands and session/save separation.
 Starting real navigation in Chronos opens Route as before; repeated route updates
 do not pull you back after a manual page change.

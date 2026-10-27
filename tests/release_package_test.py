@@ -47,6 +47,12 @@ class ReleasePackageTest(unittest.TestCase):
 			digest, name = line.split("  ", 1)
 			self.assertEqual(digest, hashlib.sha256((self.output / name).read_bytes()).hexdigest())
 		self.assertIn("including saved settings", (self.output / "FLASHING.txt").read_text())
+		notes = (self.output / "FLASHING.txt").read_text()
+		self.assertIn("first installation", notes)
+		self.assertIn("verify the installed partition table", notes)
+		self.assertIn("calibration", notes)
+		for board in ("lcd-169", "amoled-18-v2"):
+			self.assertIn(f"write-flash 0x0 mochi-{board}-full.bin", notes)
 
 	def test_missing_build_fails_before_creating_output(self):
 		(self.amoled / "OTA-bot-Mochi.ino.merged.bin").unlink()

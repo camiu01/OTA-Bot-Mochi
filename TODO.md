@@ -3,11 +3,19 @@
 ## Device status, user-confirmed on 2026-10-20
 
 The user reports that the functional checks on the Waveshare
-ESP32-S3-Touch-AMOLED-1.8 V2 work, except for some sounds. The completed device
+ESP32-S3-Touch-AMOLED-1.8 V2 work, initially except for some sounds. The completed device
 checks below record that report, not physical testing performed by the agent.
 Native tests separately cover portable logic and failure handling.
 This confirmation does not establish measurements, remote CI results, or
 validation of unimplemented hardware capabilities.
+
+**Update, 2026-10-27:** the user reports “everything works”. Treat this as
+general functional confirmation superseding the earlier audio complaint,
+not as an individually recorded pass for every checked item below. Exact
+installed commit, toolchain, settings combinations, two-board coverage and
+session duration were not supplied with that confirmation. The detailed lists
+combine implemented behavior and historical user reports; use
+[Hardware validation](docs/HARDWARE_VALIDATION.md) for repeatable acceptance records.
 
 ### Chronos, clock, and connectivity
 
@@ -82,20 +90,19 @@ Auto rotate's switch remains session-only; calibration itself is persistent.
 - [x] Record touch response at `0x15` and working horizontal swipes.
 - [x] Implement the ES8311/I2S speaker backend with bounded, non-blocking PCM.
 - [x] Confirm audible ES8311 bench tones at level 10 on 2026-10-19.
-- [x] Verify the other functional device controls on AMOLED V2; some audio remains faulty.
+- [x] Record user confirmation of functional operation, including the later general audio confirmation.
 
-## Open functional issue: AMOLED sounds
+## AMOLED sounds: user-confirmed functional resolution
 
-- [ ] Fix the sounds that still do not work on the physical AMOLED V2.
-  Some cues are audible, so the speaker is not wholly nonfunctional.
-  Identify the failing cues and the relevant master/category/night-mute/level
-  settings before changing the ES8311 playback path.
-  A native reproduction on 2026-10-21 found that 80 ms polling could silence
-  short cues while the long test remained audible. Complete, bounded cues now
-  run on the PCM worker's sample clock, with a DMA drain before amplifier-off;
-  physical confirmation during animations is still required.
-- [ ] Recheck the affected cues on the physical board after the fix, including
-  coexistence with display, touch, and BLE.
+The v1.2.0 release describes audio stabilization. A native reproduction on
+2026-10-21 found that 80 ms polling could silence short cues while the long
+test remained audible. Bounded cues now use the PCM worker's sample clock and
+DMA drain. The latest general user confirmation supersedes the remaining
+functional complaint; the agent did not listen to or test physical audio.
+
+- [ ] Record category/master/night-mute/level combinations during animations,
+  display, touch and BLE, and a continuous session of at least two hours.
+  This is missing structured evidence, not a newly reported sound failure.
 
 ## Remaining capabilities and engineering work
 
@@ -130,7 +137,9 @@ These are not additional reported failures of the working Chronos/IMU/UI paths.
 - [x] Add GitHub Actions native checks, firmware compilation, and downloadable binaries.
 - [x] Document the AMOLED bring-up and user-reported board behavior.
 - [ ] Record the exact toolchain/board options used for the latest user device checks.
-- [ ] Confirm a green remote firmware CI run; local host tests do not prove remote CI.
+- [x] Confirm v1.2.0 remote host, firmware (both profiles), and release jobs:
+  run 40499404191 at e0ac13ad78ba5467062553ea8833125f7ca6d140 succeeded.
+  This does not validate later workspace changes; see `docs/CI.md`.
 - [ ] Implement automatic OTA deployment if requested; binaries are not deployed automatically.
 
 See `docs/UI.md`, `docs/SETTINGS.md`, `docs/BOARDS.md`, and `docs/TESTING.md`

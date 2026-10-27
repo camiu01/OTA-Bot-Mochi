@@ -20,7 +20,7 @@ rows. Changes are live in RAM and do not write flash while browsing.
 | DISPLAY | Night | off / on |
 | DISPLAY | Night level | 1, 3, 5, 8, 12, 20% |
 | DISPLAY | Idle dim | off / on |
-| FACES | Animation | calm / dasai / playful |
+| FACES | Animation | Calm / Normal / Playful (USB values `calm` / `dasai` / `playful`) |
 | FACES | Random mood | off / on |
 | FACES | Face flow | return / group of 5 / sequence / continuous |
 | SENSORS | IMU mood | off / on |
@@ -29,7 +29,7 @@ rows. Changes are live in RAM and do not write flash while browsing.
 | SENSORS | Auto rotate | on / off, session-only, requires calibration |
 | SENSORS | Screen flip | normal / flipped |
 | SOUND | Sound | off / on |
-| SOUND | Level | PWM duty level, 1–30% by USB |
+| SOUND | Level | 1–30% by USB: LCD PWM duty / AMOLED PCM amplitude, not measured loudness |
 | SOUND | Night mute | on / off |
 | SOUND | Sound options | open separate face/timer/alert/ambient switches |
 | SOUND | Test sound | two short bench tones; reports off/night mute/PWM failure |
@@ -37,8 +37,8 @@ rows. Changes are live in RAM and do not write flash while browsing.
 | SYSTEM | Dashboard | on / off |
 | SYSTEM | Route default | large / details |
 
-Three 44-pixel row targets are visible at a time. Swipe up/down to reach the
-remaining rows; SOUND's test is the final row. Tabs and bottom actions stay fixed.
+Use previous/next arrows to cycle the six sections. Three 44-pixel row targets are visible at a time. Swipe up/down to reach the
+remaining rows; SOUND's test is the final row. Section arrows and bottom actions stay fixed.
 Each row places its label above its value, giving both the full text width.
 The six sections have localized titles; FACES keeps playback controls visible
 together without scrolling.
@@ -93,8 +93,9 @@ Changing Screen flip after calibration invalidates the active reference for that
 session, allowing a manual override and fresh calibration; the saved reference
 will be loaded again on reboot unless replaced by another successful calibration.
 Turning Auto rotate off returns to the manual Screen flip.
-Physical mounting, thresholds, and touch alignment still
-need validation on the AMOLED V2; no 90/270-degree layout is implemented.
+The user reports general functional operation on AMOLED V2. Exact mounting,
+thresholds and touch-alignment acceptance records remain to be captured per board;
+no 90/270-degree layout is implemented.
 
 The background stays black. MOCHI and TRAPEZ are solid eyes without pupils or
 highlights; BLOUB has black pupils and white highlights, and NORMAL has black
@@ -261,8 +262,8 @@ The same sensor also drives a bounded decorative gaze, separate from the mood
 reactions above. It is clamped to ±14 pixels, damped, and only recenters below
 about 0.1g of sustained load, so a gentle curve keeps the eyes displaced for the
 whole bend instead of averaging back to centre. The eye pair also rolls by up to
-4 pixels while leaning. Both effects are decorative and remain unverified on real
-hardware; see `TODO.md`.
+4 pixels while leaning. Both effects are decorative; the user confirmed IMU
+operation, not measured motion accuracy or every mounting; see `TODO.md`.
 
 For solid MOCHI/TRAPEZ, love, dizzy and star draw whole-eye hearts, crosses and
 stars, while crying, the ten symbol faces (halo, devil, fire, moon, sparkle,

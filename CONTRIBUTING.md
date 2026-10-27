@@ -6,7 +6,7 @@
 
 1. Clone the repository:
 ```sh
-git clone https://github.com/lorenzocamuso/OTA-Bot-Mochi.git
+git clone https://github.com/camiu01/OTA-Bot-Mochi.git
 cd OTA-Bot-Mochi
 ```
 
@@ -20,7 +20,7 @@ cd OTA-Bot-Mochi
 
 ## Project Layout
 
-- `OTA-Bot-Mochi.ino`: setup, loop, Chronos callbacks, screens
+- `OTA-bot-Mochi/OTA-bot-Mochi.ino`: setup, loop and Chronos callbacks (module paths below are relative to this sketch directory)
 - `src/eyes/`: Eyes Engine sources, public API via `eyes_api.h`
 - `src/ui/`: shared theme, BLE snapshots, utility screens, bounded text layout
 - `src/clock/`: synchronized, region-based clock face
@@ -58,4 +58,7 @@ the [device checklist](docs/TESTING.md).
 - Use Conventional Commits (for example `feat(eyes): add sleepy blink rate`)
 - Never commit secrets, keys, tokens, or personal data
 - Keep changes focused and update docs when behavior changes
-- Confirm a clean Arduino build and upload pass before requesting review
+- Run native tests and both sequential PlatformIO builds from `docs/TESTING.md`.
+  CI independently builds with pinned Arduino CLI dependencies.
+- Report hardware checks separately; an upload is not required for a code-only PR.
+  Never claim physical validation from native mocks or a successful compile.

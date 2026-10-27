@@ -7,7 +7,7 @@ official Waveshare schematic and demo (`beePin = 33`; the new revision uses GPIO
 Sound is **off by default** and never allocates PWM/GPIO merely because firmware
 booted.
 
-In Settings → AUDIO, enable Sound, choose a level, and optionally open Sound
+In Settings → SOUND, enable Sound, choose a level, and optionally open Sound
 options for independent face, timer, notification/call, and ambient switches.
 BACK returns from these options. SAVE explicitly persists the profile.
 Outside the menu, tapping the top status strip on Clock, Route, Alerts, Weather,
@@ -15,8 +15,7 @@ or desk tools toggles the same master switch for the session and chirps once
 when unmuting; the strip is inactive on Eyes and in Settings, and SAVE persists
 that RAM value with the rest of the profile. The header speaker icon is crossed
 out whenever sound is off, night-muted, or unusable after a PWM failure; on
-Eyes, which has no header, the same glyph appears in the top-right corner only
-in those silent states.
+Eyes has no audio-status glyph, including while muted.
 
 ```text
 set sound on
@@ -110,11 +109,18 @@ partition layouts matched, including NVS. The device answered USB commands and
 reported `i2s-ready` after three manual test requests at level 10. The user
 then disconnected/powered off the board during RAM-setting restoration; no
 `save` was sent, so the saved profile remains unchanged. Physical audibility
-and the affected eye reactions during animations still need user confirmation.
+and the affected eye reactions were not individually confirmed in that session.
+
+On 2026-10-27 the user's general “everything works” confirmation superseded the
+remaining audio complaint, consistent with v1.2.0's audio-stabilization notes.
+This is user-reported functional operation, not agent hardware testing or an
+enumeration of mute/category/level combinations. A recorded two-hour concurrent
+BLE/display/audio session and loudness measurements remain outstanding.
 
 ## Motion presets
 
-Settings → MOVE offers **calm**, **dasai**, and **playful**. All use smoother gaze
+Settings → FACES offers **Calm**, **Normal**, and **Playful** (USB values
+`calm`, `dasai`, `playful`). All use smoother gaze
 and soft blinks; expression changes hand off through a roughly 320ms close/open
 transition rather than a sudden shape replacement. Expressive presets add double
 blink, wink, side glance, curious lean, bounce/stretch, and nod.
@@ -130,7 +136,7 @@ save
 
 ## English / Italian UI
 
-Settings → MOVE → Language changes labels immediately in RAM; SAVE persists them.
+Settings → SYSTEM → Language changes labels immediately in RAM; SAVE persists them.
 
 ```text
 set language it
@@ -153,13 +159,14 @@ and the Weather footer or `weather sync` requests another, at most once per 30s.
 never location or payloads. If current packets remain zero, check the paired
 Chronos app, weather enablement, internet, and manual city/location permission.
 The firmware cannot fetch provider data itself or grant phone permissions.
-The user-reported weather failure remains a **device-validation TODO**, not a
-confirmed fix on the board.
+The user confirmed weather operation on 2026-10-20, superseding the earlier
+failure. The later general functional confirmation is consistent with that report.
+Native parser tests alone would not establish phone-to-board delivery.
 
 ## No audible sound
 
 Sound is opt-in. Enabling it does not continuously play a tone; ambient cues are
-infrequent and suppressed outside idle Eyes. In AUDIO, turn Sound on, check
+infrequent and suppressed outside idle Eyes. In SOUND, turn Sound on, check
 Night mute, scroll down to **Test sound**, and tap it while testing on the bench.
 This explicit two-tone test ignores category switches but respects master/night
 mute, duty limits, cooldown, and PWM failures. It does not save anything.

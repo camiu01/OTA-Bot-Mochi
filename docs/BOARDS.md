@@ -61,13 +61,19 @@ Both profiles run the same host suites; the AMOLED size is not a mock:
   buzzer, touch reset, and backlight guards must build and link;
 - the SDL emulator previews any geometry with `--size 368x448`.
 
-## What still needs the physical AMOLED board (unverified)
+## Physical AMOLED evidence and remaining measurements
 
 The profile compiles, links, and passes every native check. On 2026-10-19 it
 also built and uploaded with ESP32 core 3.3.12: the device reported UI/IMU
 ready and touch at `0x15`; the user confirmed visible eyes, working horizontal
 swipes, and audible ES8311 bench tones at level 10. This is partial bring-up,
-not full validation of the checks below. In bring-up order:
+not full validation of the checks below. Later user reports confirmed Chronos,
+weather, navigation and IMU/UI operation; the latest general “everything works”
+confirmation supersedes the earlier audio complaint. It does not establish an
+exact installed commit, every settings combination, LCD coverage, a two-hour
+session or power measurements. Use [Hardware validation](HARDWARE_VALIDATION.md)
+to record the remaining per-board acceptance evidence. The following remain
+bring-up/recheck details, not a list of newly reported failures:
 
 1. Expander reset release at `0x20`, then confirm the panel answers (any
    visible fill in `init_screen()`).

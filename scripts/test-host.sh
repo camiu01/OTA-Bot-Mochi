@@ -47,6 +47,7 @@ g++ -std=c++17 -Wall -Wextra -Werror -I "$root/tests/stubs" -DMOCHI_BOARD_AMOLED
 	"$root/OTA-bot-Mochi/src/sound/buzzer_output.cpp" "$root/OTA-bot-Mochi/src/power/battery.cpp"
 build_test swipe "$root/tests/swipe_test.cpp"
 build_test startup "$root/tests/startup_test.cpp"
+build_test render-metrics "$root/tests/render_metrics_test.cpp"
 power_button=("$root/tests/power_button_test.cpp" "$root/OTA-bot-Mochi/src/power/power_button.cpp" "$root/OTA-bot-Mochi/src/power/power_button_lcd.cpp" "$root/OTA-bot-Mochi/src/bus/i2c_bus.cpp")
 build_test power-button-lcd "${power_button[@]}"
 build_test power-button-amoled -DMOCHI_BOARD_AMOLED_18 "${power_button[@]}"

@@ -26,7 +26,9 @@ GitHub secret is needed. Build jobs have read-only repository permissions;
 only the release job has `contents: write` through `GITHUB_TOKEN`.
 
 The artifact includes the available binary/ELF output, `BUILD-INFO.txt` with the
-commit and exact build profile, and `SHA256SUMS.txt` for the `.bin` files.
+commit, source ref/tag, run URL, CLI/core/library versions, resolved tool paths
+and build profile, and `SHA256SUMS.txt` for the `.bin` files. The source ref is
+a branch on non-release builds, not necessarily a tag.
 
 ## Activate and download
 
@@ -61,9 +63,9 @@ After the workflow succeeds, the release's Assets section contains:
 | `FLASHING.txt` | Board selection, image types, and flashing warnings |
 
 The workflow builds the release tag's commit, not the current tip of `main`.
-It uses only artifacts from that run. Re-running the release job replaces
-assets with the same names; it does not change the release notes or create a
-second release. A release created by another workflow using `GITHUB_TOKEN`
+It uses only artifacts from that run. Upload refuses existing asset names:
+do not replace published firmware by rerunning attachment. Prepare corrections
+under a new release tag instead. A release created by another workflow using `GITHUB_TOKEN`
 does not trigger a new release workflow; this setup expects a user-published
 release.
 
@@ -81,6 +83,35 @@ Run `python tests/release_package_test.py`. It uses fake artifacts to check boar
 names, contents, checksums, missing/empty input failures, and refusal to overwrite
 an existing output directory. CI runs it before compiling firmware.
 
-The release workflow has not yet been run on GitHub. Local packaging tests are
-not proof that remote compilation, repository permissions, or release attachment
-has succeeded. Check the release's Actions run before using its binaries.
+## Inspected release evidence (2026-10-27)
+
+The public GitHub tag API resolves **v1.2.0** to
+`e0ac13ad78ba5467062553ea8833125f7ca6d140`, also the local starting HEAD.
+The [release run 40499404191](https://github.com/camiu01/OTA-Bot-Mochi/actions/runs/40499404191)
+reports **success** for `host`, `firmware`, and `release`. Its individual steps
+include successful native/packaging tests and both Arduino CLI board builds.
+These conclusions were read from the run's jobs API, not inferred from uploaded files.
+
+The [v1.2.0 release](https://github.com/camiu01/OTA-Bot-Mochi/releases/tag/v1.2.0)
+has the eight assets listed above: four binaries, two build records, flashing
+notes and checksums. Both full images are 16,777,216 bytes. The seven published
+checksum entries match the corresponding SHA-256 digests reported by GitHub's
+asset metadata. This metadata comparison is **not** an independent download and
+rehash of the binary bytes. Users should verify their own downloads.
+
+Published AMOLED BUILD-INFO identifies commit/FQBN/profile but omits CLI,
+core and library versions; the tagged workflow supplies those (CLI 1.2.0,
+core 3.3.11, libraries listed above/in README). It also labels hardware
+unverified, predating the consolidated functional-user report. Do not edit
+those published assets: the local workflow improves metadata for the **next**
+release and removes `--clobber`. At the time of local validation, this changed
+workflow had not run remotely; a later push starts a separate run to inspect.
+
+Release notes describe audio stabilization. The latest general user confirmation
+supersedes the earlier audio complaint, not the need for a recorded endurance
+test. Alert history is phone-notification history, not a persistent system-event
+log. No exact installed release hash, settings matrix, two-board certification,
+power measurements or two-hour result follows from those notes.
+
+Local packaging tests are not proof that a future remote run or attachment will
+succeed. Check every release's own run. For safe flashing, see [Installing](INSTALLING.md).

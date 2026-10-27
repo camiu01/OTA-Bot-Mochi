@@ -21,10 +21,10 @@ This percentage is **brightness, not battery charge**.
 - Tap the top status strip, above the page title, on Clock, Route, Alerts,
   Weather, or any desk tool to mute or unmute every sound for the session;
   unmuting chirps once. The strip is inactive on Eyes (where taps are face
-  reactions) and inside Settings. This edits the RAM profile like the AUDIO
-  tab does, so a Settings SAVE persists it too.
-- A downward swipe on Clock opens Scrivania: the large clock, overview, local
-  timer, and device status, without adding them to the primary swipe
+  reactions) and inside Settings. This edits the RAM profile like the SOUND
+  section does, so a Settings SAVE persists it too.
+- A downward swipe on Clock opens Scrivania: large clock, overview, local
+  timer, device status, Pong and analog clock, without adding them to the primary swipe
   carousel. See [Desk tools](DESK.md).
 - A short tap on Eyes requests a temporary random face and makes the eyes
   glance toward the touch point for a couple of seconds. It does not change
@@ -41,10 +41,10 @@ This percentage is **brightness, not battery charge**.
 - Eyes has no header or audio-status icon, even when muted. Other pages keep
   the speaker status in their header, with sound waves when enabled and a
   cross when audio cannot sound.
-- Settings → LIGHT → **Screen flip** mounts the whole interface upside down
+- Settings → SENSORS → **Screen flip** mounts the whole interface upside down
   for bottom-up installations. Touch targets and the IMU gaze follow the
   180-degree rotation, and the choice is saved with the profile.
-- Settings → MOVE → **IMU zero** calibrates the sensor while parked and still.
+- Settings → SENSORS → **IMU zero** calibrates the sensor while parked and still.
   **Auto rotate** follows calibrated 180-degree turnovers, on every page.
   Successful calibration is saved automatically and restored at boot; repeat
   IMU zero to replace it. Only the Auto rotate switch is session-only.
@@ -60,13 +60,13 @@ This percentage is **brightness, not battery charge**.
   to be released, avoiding a page change underneath a settings tap.
 - Hold still for 1.2 seconds on the eyes screen to open Settings. A swipe or
   moving finger is not also treated as a tap or hold.
-- The desk hub presents four large 108x92-pixel cards in a 2x2 grid, and the
+- The desk hub presents six 108x58-pixel cards in a 2x3 grid (design coordinates), and the
   local timer uses a full-width 50-pixel START/PAUSE accent button with
   48-pixel RESET and MODE buttons, so every desk control is a comfortable
   parked-use target.
 - Use settings only while parked. The firmware cannot determine whether the
   vehicle is stationary and does not lock controls based on vehicle speed.
-- Tap LOOK, LIGHT, DRIVE, MOVE, and AUDIO to change appearance and comfort options.
+- Use the section arrows for LOOK, DISPLAY, FACES, SENSORS, SOUND and SYSTEM.
   Tap SAVE to persist them, then EYES to return. Changes apply immediately in RAM.
 - Settings show three larger rows at a time. Swipe vertically to reach remaining
   rows; the scroll indicator shows the position. Tabs and SAVE/EYES stay fixed.
@@ -76,7 +76,7 @@ This percentage is **brightness, not battery charge**.
   shows five rows of 72x24-pixel cells as contiguous full-height targets; only
   the thin column gutters stay inert. Settings categories use previous/next
   arrows with 72x38-pixel targets below the title, a central category name and
-  a 1/5 position indicator. They wrap around and reset panel scrolling; tapping
+  a 1/6 position indicator. They wrap around and reset panel scrolling; tapping
   the name does nothing. SAVE/Back each owns a 120x58-pixel
   target extending to the bottom edge. Their visible buttons are enlarged too,
   with no overlapping actions. Short taps tolerate up to 18 pixels of movement
@@ -127,11 +127,11 @@ See [Settings](SETTINGS.md) for all touch controls, USB commands, and persistenc
   guessed turn. Ending navigation or disconnecting shows an inactive state.
   The default large layout emphasizes a 96x96 icon, distance, and two larger
   instruction lines. DETAILS retains speed and ETA. The VIEW button is temporary;
-  the LOOK tab's Route default is separately saved.
+  the SYSTEM section's Route default is separately saved.
 - **Calls:** Incoming caller label and amber emphasis on the Alerts page in
   dashboard mode. Dismissal or disconnection removes the call view.
-- **Settings:** Five parked-use tabs for appearance, lighting, dashboard, motion/language,
-  and optional audio
+- **Settings:** Six parked-use sections for appearance, display, faces, sensors,
+  sound and system
   behavior. Style, color, and mood changes are previewed by returning to Eyes.
 
 UI labels support English/Italian; USB command vocabulary and received phone
@@ -214,7 +214,9 @@ driving-maneuver classifier; repeated rough-road motion can still resemble a
 shake, so leave it disabled in the car. The reaction lasts two seconds and
 restores the selected mood. Disabling shake cancels a pending reaction.
 
-No AXP2101 presence or charger status is assumed. Battery percentage is a
+AXP2101 PWR-key setup probes and checks the PMU, but no charging driver or
+charger status is implemented. Battery percentage is a
 best-effort, plausibility-gated estimate from `BAT_ADC`; without plausible
-hardware the Device status page shows NOT MEASURED. Legacy power-pin candidates
-in `pin_config.h` remain unused.
+hardware the Device status page shows NOT MEASURED. The LCD SYS_EN/SYS_OUT pins
+in `pin_config.h` have board-specific PWR handling described in [Boards](BOARDS.md);
+they do not establish battery calibration or measured standby behavior.

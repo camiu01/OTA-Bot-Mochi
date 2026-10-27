@@ -75,8 +75,8 @@ migration.
 Additional checks cover contextual tools without extra carousel pages, temporary
 route layout versus saved defaults, version-two migration, local timer rollover/
 pause/Pomodoro completion, and eye-tap/double-tap/glance/greeting reactions with
-automation disabled. Expanded tests cover version-five thirteen-byte profiles with
-version-four and older migration, the reboot verb, EN/IT
+automation disabled. Expanded tests cover version-six thirteen-byte profiles with
+version-five, version-four and older migration, Face flow, the reboot verb, EN/IT
 label completeness and layout, out-of-order weather packets/sync throttling,
 animated dirty regions, sound notes/priorities/mute/rollover/failures, and actual
 PWM adapters against core-2/core-3 shared-timer mocks.
@@ -276,7 +276,7 @@ arduino-cli compile --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=opi,FlashSiz
 ```
 
 CI compiles and publishes both profiles on every push; the AMOLED artifacts are
-marked as hardware-unverified.
+build outputs, not physical validation. See [CI evidence](CI.md).
 PSRAM stays disabled: the OLD revision routes the buzzer to GPIO33 and the
 power-control lines SYS_EN/SYS_OUT to GPIO35/GPIO36, which the ESP32-S3 octal
 PSRAM interface claims. A build with `PSRAM=opi` beeped the buzzer continuously
@@ -284,11 +284,11 @@ and crashed in the shared I2C driver on 2026-10-13. The 8 MB onboard PSRAM
 therefore remains unused. Upload replaces existing firmware.
 On Linux, replace `COM3` with the port reported by `board list`, often `/dev/ttyACM0`.
 
-The core and library versions above were found installed on the workstation on
-2026-10-13. They are reproducible dependency pins, **not a claim that the new
-firmware has passed a build or upload**. Firmware compilation and upload are
-reserved for the user. GitHub Actions includes a firmware build job for future
-pushes; it has not been run during this change.
+The pins above are the CI configuration. The v1.2.0 release run successfully
+built both profiles with them; see [CI evidence](CI.md). This does not establish
+which firmware is installed on a device. No upload was performed during the
+2026-10-27 consolidation. Local verification uses PlatformIO; Arduino CLI remains
+the independent CI/reference path.
 See [GitHub Actions workflow](CI.md) for cached builds and downloadable artifacts.
 
 ### PlatformIO alternative
@@ -315,6 +315,14 @@ and one AMOLED V2 upload through this path is recorded in `SOUND.md`
 (2026-10-21). Arduino CLI remains the CI and reference path: CI does not build
 the PlatformIO environments, and building one path does not verify the other.
 
+On 2026-10-27 both environments again reported SUCCESS locally using PlatformIO
+Core 6.1.19, Espressif32 8.0.0, Arduino core 3.3.12 and Xtensa compiler package
+14.2.0+20260121. These are compilation results, not uploads or hardware results.
+Build the environments sequentially; never run competing builds in the same
+directory. The generic devkit board banner says 8 MB; the project overrides flash
+to 16 MB. Check the generated configuration rather than treating that banner as
+the Waveshare hardware specification.
+
 ### Linux serial permissions
 
 Check the owner/group with `ls -l /dev/ttyACM0`. On distributions using `dialout`:
@@ -328,10 +336,49 @@ Do not make the device world-writable. Close other serial monitors before upload
 
 ## Device validation checklist
 
+### Local consolidation evidence, 2026-10-27
+
+- `.\scripts\test-host.ps1` reported **All host tests passed**, including the
+  compiled guide/catalog, settings migration, independent frozen raster fixtures,
+  both board power-button policies, PWM and ES8311 tests. Fixtures were not changed.
+- `python tests/release_package_test.py`: **4 tests passed**. The added diagnostic
+  timing test also passed with C++17 and `-Wall -Wextra -Werror`; both native
+  runners now include it. POSIX runner syntax was checked, not its full suite run.
+- Both PlatformIO environments built with `MOCHI_RUNTIME_DIAGNOSTICS=1`:
+  LCD **320.98 s**, AMOLED **314.73 s**, combined command exit **0**.
+  See [diagnostic measurement boundaries](HARDWARE_VALIDATION.md).
+- Final standard rebuilds, without the diagnostic flag, also passed sequentially:
+  `pio run -e esp32s3-lcd -j 4` **219.77 s** and
+  `pio run -e esp32s3-amoled -j 4` **222.28 s**, each exit **0**.
+  Earlier interrupted standard attempts are not counted as passes.
+  Static RAM reports were 51,244 / 51,520 bytes respectively, not runtime heap
+  measurements; the final local artifacts use the standard configuration.
+- Compiler warnings remain in pinned dependencies: ChronosESP32 calls deprecated
+  `NimBLEService::start()` and has two unused `enabled` variables; an Arduino_GFX
+  driver hides the core's `Print::flush()` overload. No dependency source was
+  modified to hide these warnings.
+- An initial diagnostic build was interrupted because PowerShell treated native
+  stderr as `NativeCommandError`. Its leftover process tree was stopped before
+  retrying. The successful run preserved stderr in logs, allowed warning output,
+  and checked actual process exit status. This was not a firmware-code fix.
+- Workflow YAML/gates and all shell blocks passed local checks. The metadata
+  generation block executed successfully against two temporary fixture artifacts
+  with a mocked CLI, including both checksum checks. This does not replace a real
+  run of the changed workflow on GitHub; only the existing v1.2.0 run was inspected.
+- Before the subsequent user-requested commit/push, no upload, hardware experiment,
+  new remote workflow run or publication was performed. Binary asset checks compared published checksums with GitHub digests,
+  not independently downloaded binary bytes.
+
+Use the shorter [repeatable acceptance procedure and record format](HARDWARE_VALIDATION.md)
+for each board/release. It includes saved IMU calibration, PWR controls, two-hour
+operation and opt-in heap/render-call diagnostics. The detailed cases below are
+procedures, not uncompleted bug reports; historical user confirmation is recorded
+separately in TODO.
+
 1. Confirm startup reports `UI ready`, a touch controller address, and `IMU ready`
    or an explicit missing-sensor diagnostic. Mochi must greet with a brief silent
    face that returns to the selected mood within three seconds. Touch, RTC, and the
-   IMU share one I2C bus at SDA=11/SCL=10; if touch answers but `IMU unavailable`
+   IMU share one I2C bus at SDA=11/SCL=10 on LCD OLD, SDA=15/SCL=14 on AMOLED V2; if touch answers but `IMU unavailable`
    persists, suspect the sensor identity or wiring rather than the bus pins.
 2. Swipe through all screens and test repeated/edge gestures. Swipe down on Clock
    to open Scrivania, down on Route to toggle the layout, down on Weather to
@@ -373,9 +420,9 @@ Do not make the device world-writable. Close other serial monitors before upload
    TRAPEZ eyes are mirrored with rounded corners and no protruding spikes.
    Enable Random mood and check temporary expressions and restoration; enable
    IMU mood on the bench to test sustained X/Y/Z deflections rather than isolated
-   bumps. Finally, drive a gentle curve and confirm the gaze holds through the bend
-   and the pair leans; flip the sign in `eye_geometry.h` if the roll goes the wrong
-   way for that mounting.
+   bumps. Use controlled stationary bench tilts to check gaze and lean; record
+   mounting and observed direction before proposing code changes. Do not operate
+   or observe test controls while driving.
 10. Run an extended BLE session and measure heap, power, and battery runtime.
 11. Battery reading is best-effort on unverified hardware. Open Clock → DESK
     TOOLS → DEVICE STATUS with no battery fitted: the row must read NOT MEASURED
@@ -384,7 +431,7 @@ Do not make the device world-writable. Close other serial monitors before upload
     multimeter across the discharge curve; do not treat the native conversion
     tests as physical validation.
 
-Also test a downward swipe on Clock into Scrivania and all four tools. Verify
+Also test a downward swipe on Clock into Scrivania and all six tools. Verify
 large clock legibility, timer continuation while viewing other pages,
 default-silent completion, and reboot reset. Confirm every hub card and timer
 button is an easy parked-use target, a downward swipe on Route toggles the
@@ -401,7 +448,7 @@ finger on each recognized stroke, and end within six seconds of the
 first stroke. On Eyes, confirm no audio-status icon appears at startup, while
 muted, or after enabling sound elsewhere and returning. Other pages must keep
 a recognizable speaker in their header, with waves when enabled and a cross
-when muted. Flip LIGHT → Screen flip while parked: the interface, touch
+when muted. Flip SENSORS → Screen flip while parked: the interface, touch
 targets, and menus must rotate together, tilting must still read in your frame,
 SAVE plus reboot must keep it, and `set flip off` must restore the panel
 orientation.
@@ -410,7 +457,7 @@ Enable sound only on the bench first. Check tone/level, category switches,
 night mute, timer cues, and no backlight flicker while changing tone frequency.
 Eye reactions must chirp in varied pitches inside their family band (low and slow
 for sleepy faces, high bounce for surprised ones), not one fixed note.
-Use AUDIO → Test sound or USB `sound test`, then `sound`, to distinguish mute
+Use SOUND → Test sound or USB `sound test`, then `sound`, to distinguish mute
 from PWM failure. PWM-ready status alone cannot establish physical audibility.
 Check three-row scrolling, fixed tabs/actions, edge taps, and no value changes
 during vertical gestures. Tap near the bottom edge of a visible row card: it
@@ -419,9 +466,10 @@ larger cells whose rows are fully tappable with only the column gutters inert.
 Cycle every eye color and verify all utility pages
 follow it, without losing text readability.
 Switch EN/IT, SAVE, reboot, and check language persistence. Verify smooth face
-handoffs and all idle gestures. For the reported weather failure, inspect USB
-`weather` counters and try `weather sync` plus app weather configuration; do not
-mark the physical weather issue resolved from native tests alone.
+handoffs and all idle gestures. If weather fails again, inspect USB
+`weather` counters and try `weather sync` plus app weather configuration.
+The earlier weather failure was superseded by user confirmation on 2026-10-20,
+not by native tests.
 
 Battery percentage is a plausibility-gated best-effort estimate, deliberately
 reported as NOT MEASURED when readings are implausible. Charging state remains
