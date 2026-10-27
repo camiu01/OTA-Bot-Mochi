@@ -5,6 +5,7 @@
  */
 #pragma once
 #include "../face_support.h"
+#include "../face_backgrounds.h"
 namespace face_defs { namespace uwu_face {
 /** @brief One brief closed-eye squeeze interrupts the tall U pose, then recovers. */
 inline EyeBox target(const EyeConfig &cfg, bool left, uint32_t elapsed) {
@@ -49,6 +50,7 @@ inline bool scene(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeLayout &layou
 inline constexpr FacePreset preset = [] {
 	FacePreset p; p.name = "uwu"; p.performance = p.fullScene = true;
 	p.performanceInk = eye_rgb(190, 220, 255); p.performanceScene = scene;
+	p.background = face_backgrounds::soft; p.bounds = face_backgrounds::full_bounds;
 	return p;
 }();
 static_assert(face_preset_valid(preset), "Invalid uwu face");

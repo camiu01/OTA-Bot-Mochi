@@ -5,6 +5,7 @@
  */
 #pragma once
 #include "../face_support.h"
+#include "../face_backgrounds.h"
 namespace face_defs { namespace neon_face {
 /** @brief Reuse the bounded halo geometry to bloom outward without another canvas. */
 inline void glare(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b, uint16_t tube, float a) {
@@ -45,6 +46,7 @@ inline uint16_t color(const EyeConfig &, bool left, uint32_t elapsed) {
 inline constexpr FacePreset preset = [] {
 	FacePreset p; p.name = "neon"; p.performance = p.fullScene = true;
 	p.performanceColor = color; p.performanceScene = scene;
+	p.background = face_backgrounds::tubes; p.bounds = face_backgrounds::full_bounds;
 	return p;
 }();
 static_assert(face_preset_valid(preset), "Invalid neon face");

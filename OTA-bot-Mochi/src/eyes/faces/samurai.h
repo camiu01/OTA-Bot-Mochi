@@ -5,6 +5,7 @@
  */
 #pragma once
 #include "../face_support.h"
+#include "../face_backgrounds.h"
 namespace face_defs { namespace samurai_face {
 /** @brief Morph toward a smaller low left eye and a larger high right eye. */
 inline void layout(const EyeConfig &cfg, EyeBox &b, uint32_t, float a) {
@@ -63,6 +64,7 @@ inline bool scene(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeLayout &layou
 inline constexpr FacePreset preset = [] {
 	FacePreset p; p.name = "samurai"; p.performance = p.fullScene = true;
 	p.performanceInk = eye_rgb(170, 215, 250); p.layout = layout; p.performanceScene = scene;
+	p.background = face_backgrounds::sun; p.bounds = face_backgrounds::full_bounds;
 	return p;
 }();
 static_assert(face_preset_valid(preset), "Invalid samurai face");

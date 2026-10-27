@@ -5,6 +5,7 @@
  */
 #pragma once
 #include "../face_support.h"
+#include "../face_backgrounds.h"
 namespace face_defs { namespace wheels_face {
 /** @brief Morph style bodies into bounded tires with moving metal spokes. */
 inline bool scene(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeLayout &layout, uint32_t elapsed, float a) {
@@ -29,6 +30,7 @@ inline bool scene(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeLayout &layou
 inline constexpr FacePreset preset = [] {
 	FacePreset p; p.name = "wheels"; p.performance = p.fullScene = true;
 	p.performanceInk = eye_rgb(95, 130, 165); p.performanceScene = scene;
+	p.background = face_backgrounds::road; p.bounds = face_backgrounds::full_bounds;
 	return p;
 }();
 static_assert(face_preset_valid(preset), "Invalid wheels face");

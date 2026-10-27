@@ -5,6 +5,7 @@
  */
 #pragma once
 #include "../face_support.h"
+#include "../face_backgrounds.h"
 namespace face_defs { namespace yokai_face {
 /** @brief Draw small horns and wandering wisps rather than character artwork. */
 inline void scenery(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeLayout &layout, uint32_t elapsed, float a) {
@@ -29,6 +30,7 @@ inline void motion(bool left, uint32_t phase, float a, float &, float &sy, float
 inline constexpr FacePreset preset = [] {
 	FacePreset p; p.name = "yokai"; p.performance = p.fullScene = true;
 	p.performanceInk = eye_rgb(245, 130, 75); p.scenery = scenery; p.performanceMotion = motion;
+	p.background = face_backgrounds::night; p.bounds = face_backgrounds::full_bounds;
 	return p;
 }();
 static_assert(face_preset_valid(preset), "Invalid yokai face");

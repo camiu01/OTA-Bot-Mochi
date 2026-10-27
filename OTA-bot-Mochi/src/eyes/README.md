@@ -219,6 +219,35 @@ SUSPICIOUS, SLEEPY_EYES, PROUD, SMUG, CONFUSED, CURIOUS, WONDERING, ZOMBIE, WINK
 SMIRK, MELTING, GROGGY, SASSY, CHEEKY and FLIRT. On the other three styles those
 faces fall back to their lid masks, which is why each one carries a distinct lid.
 
+## Themed backdrops
+
+`face_backgrounds.h` owns static procedural backdrops drawn behind seven
+themed performances: MECHA (Gundam-style armour), SAMURAI (hinomaru sun),
+TITAN (cracked rock and steam), YOKAI (moon and embers), NEON (dim edge
+tubes), WHEELS (asphalt and lane dashes) and UWU (layered soft halos). GLOW
+and HEADLIGHTS keep their pre-existing legacy backgrounds.
+
+Each preset wires the painter through `FacePreset::background` and the shared
+`face_backgrounds::full_bounds` dirty hook. Constraints the painters and
+`tests/face_background_test.cpp` enforce:
+
+- Geometry derives from the *resting* eye layout of the panel, never from the
+  animated scene-entry layout, so a backdrop is time-independent and the
+  performance cycle tests still observe one static frame per mood.
+- Only the rows and columns the pair leaves free are painted, so eye ink,
+  blink masks and carved interiors stay untouched, and MOCHI/TRAPEZ never
+  receive pure `0xF800`/`0x07E0` pixels.
+- Colors are blended from `cfg.bgColor`, so the selected palette and the
+  night theme keep their meaning, and every value stays below full strength.
+- `p.bounds` reports full-screen dirty bounds so partial redraws repaint the
+  backdrop exactly.
+
+`tests/reference_test.cpp` subtracts a backdrop-only reference frame when it
+measures scene-entry eye motion, which keeps the edge metric on the eye
+silhouette alone. Candidate faces still without a backdrop: TRAFFIC, SAKURA,
+BAMBOO and UPSIDE_DOWN. Extending the set to the frozen IDs (1-122) would
+require re-recording the raster fixtures.
+
 ## Panel adaptation
 
 Style presets are tuned on the 240x280 reference panel (`EYE_REF_W`/`EYE_REF_H`).

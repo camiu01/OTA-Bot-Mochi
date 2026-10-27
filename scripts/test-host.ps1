@@ -83,6 +83,7 @@ try {
 	Invoke-HostTest 'samurai' ($renderRuntime + @("$root\tests\samurai_test.cpp") + $renderEyes)
 	Invoke-HostTest 'uwu' ($renderRuntime + @("$root\tests\uwu_test.cpp") + $renderEyes)
 	Invoke-HostTest 'neon' ($renderRuntime + @("$root\tests\neon_test.cpp") + $renderEyes)
+	Invoke-HostTest 'face-background' ($renderRuntime + @("$root\tests\face_background_test.cpp") + $renderEyes)
 	$uiPanel = @(
 		"$root\tests\ui_panel_test.cpp",
 		"$root\OTA-bot-Mochi\src\ui\screens.cpp",

@@ -5,6 +5,7 @@
  */
 #pragma once
 #include "../face_support.h"
+#include "../face_backgrounds.h"
 namespace face_defs { namespace titan_face {
 /** @brief Pulse angular energy ribs without recreating a character's face. */
 inline void scenery(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeLayout &, uint32_t elapsed, float a) {
@@ -29,6 +30,7 @@ inline void motion(bool, uint32_t phase, float a, float &sx, float &sy, float &,
 inline constexpr FacePreset preset = [] {
 	FacePreset p; p.name = "titan"; p.performance = p.fullScene = true;
 	p.performanceInk = eye_rgb(245, 170, 100); p.scenery = scenery; p.performanceMotion = motion;
+	p.background = face_backgrounds::wall; p.bounds = face_backgrounds::full_bounds;
 	return p;
 }();
 static_assert(face_preset_valid(preset), "Invalid titan face");

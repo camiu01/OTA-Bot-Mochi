@@ -83,6 +83,7 @@ build_test performance "${render_runtime[@]}" "$root/tests/performance_test.cpp"
 build_test samurai "${render_runtime[@]}" "$root/tests/samurai_test.cpp" "${render_eyes[@]}"
 build_test uwu "${render_runtime[@]}" "$root/tests/uwu_test.cpp" "${render_eyes[@]}"
 build_test neon "${render_runtime[@]}" "$root/tests/neon_test.cpp" "${render_eyes[@]}"
+build_test face-background "${render_runtime[@]}" "$root/tests/face_background_test.cpp" "${render_eyes[@]}"
 ui_panel=("${runtime[@]}" \
 	"$root/tests/ui_panel_test.cpp" \
 	"$root/OTA-bot-Mochi/src/ui/screens.cpp" \
