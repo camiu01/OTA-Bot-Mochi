@@ -29,6 +29,8 @@ bool power_button_poll(uint32_t now) {
 	return button.update(digitalRead(SYS_OUT) == LOW, now);
 }
 
+bool power_button_preview(uint32_t) { return false; }
+
 bool power_button_prepare_sleep() {
 	if (digitalRead(SYS_OUT) == LOW) { return false; }
 	if (gpio_wakeup_enable(gpio_num_t(SYS_OUT), GPIO_INTR_LOW_LEVEL) != ESP_OK) { return false; }

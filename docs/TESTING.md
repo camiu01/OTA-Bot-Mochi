@@ -87,6 +87,21 @@ wake, debounced hold/release, ignored startup press, rollover and wake/sleep
 failure paths. Backlight suspension is checked on core 2 and 3 without changing
 saved brightness or the buzzer's PWM timer. Physical off/on, USB wake and standby
 current still require a board test; see [Boards](BOARDS.md).
+Startup tests tie the three-second farewell to the PMU's remaining hold after
+its one-second long-key event. Continuous-playback tests reject the last eight
+IDs and adjacent visual families across all bases and rollover, including
+repeated random inputs. Samurai tests cover its asymmetry, inclined blade,
+moving glint, clean return and preservation of every eye pixel while the blade
+fades, on six panels and all four styles. Both native runners include these tests.
+UwU checks verify tall top-open cups, cheek placement, its brief squeeze,
+an empty mouth region and clean reversible cycles. Neon checks verify a hollow
+center and outward glare falloff relative to each style's actual silhouette,
+not just its rectangular bounds.
+Continuous playback also faces two simulated minutes of sustained IMU input,
+including timer rollover. The regression counts actual random selections,
+not repeated IMU reactions. Repeated Shake overrides must expire after two
+seconds and allow playback to keep advancing, even when sensor reads fail.
+These checks do not establish that every reported physical stall is resolved.
 Additional checks exercise all six shared color palettes, filled touch gutters,
 row/tab/footer edges with row hits aligned to their visible cards, contiguous
 grid-cell rows, 58-pixel desk hub cards, 50-pixel timer buttons, contextual

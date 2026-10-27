@@ -1,7 +1,7 @@
 # Editing and adding a face
 
 Every existing expression has one file in `OTA-bot-Mochi/src/eyes/faces/`:
-123 files, named after the canonical USB names. Each file owns an immutable
+134 files, named after the canonical USB names. Each file owns an immutable
 `FacePreset` and its expression-specific drawing and animation procedures.
 For example, edit `faces/curious.h` for CURIOUS or `faces/crying.h` for CRYING.
 
@@ -135,6 +135,10 @@ not `HEAD`. Never regenerate them from a refactored renderer to hide a mismatch.
   2,952 fingerprints covering 6,912 sampled frames.
 - `tests/fixtures/all_faces_raster.h`: full migration baseline, 2,952
   fingerprints covering 47,232 sampled frames. All 123 faces have 16 samples.
+
+Both frozen fixtures still cover only the original IDs 0–122. Appended IDs
+123–133 have independent cycle/dirty-redraw tests, including non-black backgrounds,
+timestamp rollover, six panels and all four styles; the frozen data is unchanged.
 
 Both cover six panels (240x280, 240x320, 320x480, 368x448, 128x160, 160x128)
 and all four styles. The expanded fixture exercises asymmetry, blink, two

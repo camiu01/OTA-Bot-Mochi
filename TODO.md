@@ -58,6 +58,12 @@ The confirmation on 2026-10-20 supersedes the weather failure reported on
 
 ### IMU, eyes, touch, and controls
 
+- [ ] Verify the revised samurai's inclined eyes/blade on both physical panels, including entry/return without detached eye fragments.
+- [ ] Check tall UwU eyes/cheeks (no mouth) and neon glare appearance/frame time on both physical panels.
+- [ ] Check Continuous playback's recent-ID/visual-family separation during an extended device session.
+- [ ] Recheck the user-reported temporary-face stall with Continuous, IMU mood and Shake enabled on AMOLED V2; native tests fix reproduced IMU starvation and verify bounded Shake recovery, not physical resolution.
+- [ ] On AMOLED V2, verify the three-second farewell reaches the four-second PWR cutoff without an additional blank-screen hold; check early-release cancellation on USB and battery.
+
 - [x] Verify QMI8658C detection, accelerometer operation, and gaze direction.
 - [x] Verify mounting-relative gaze, eye-pair roll, and shake-to-dizzy restoration.
 - [x] Calibrate from stable parked samples, with timeout/missing-sensor feedback.
@@ -110,6 +116,11 @@ These are not additional reported failures of the working Chronos/IMU/UI paths.
 
 ### Battery, charging, and power measurements
 
+- [ ] Verify the AMOLED V2 PWR farewell on battery and USB: closing/fading eyes,
+  cancellation on early release, ignored startup hold, and autonomous four-second
+  cutoff with a stalled main loop. Native tests are not physical validation.
+- [ ] Verify AMOLED BOOT page cycling, wraparound, held/bouncing presses and
+  suppression during startup, shutdown, visible calls and touch contact.
 - [x] Add plausibility-gated battery ADC scaffolding and NOT MEASURED fallback.
 - [x] Add adjustable brightness and optional idle dimming with touch wake.
 - [ ] Implement an AXP2101 battery/charging driver for AMOLED V2 if needed;

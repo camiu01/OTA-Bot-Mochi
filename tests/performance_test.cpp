@@ -309,6 +309,35 @@ static void banner_regressions() {
 	}
 }
 
+/** @brief Appended GIF themes survive rollover and non-black dirty redraws on every panel/style. */
+static void appended_cycles() {
+	const int16_t panels[][2] = {{240,280}, {240,320}, {320,480}, {368,448}, {128,160}, {160,128}};
+	assert(TRAFFIC == 123 && YOKAI == 133 && EXPRESSION_COUNT == 134);
+	for (const auto &panel : panels) {
+		Arduino_GFX gfx(panel[0], panel[1]);
+		eyes_init(&gfx);
+		for (uint8_t style = 0; style < 4; ++style) {
+			eyes_set_style(EyeStyle(style));
+			eyes_set_eye_colors(0x0841, 0xFFFF, 0xF800, 0x07E0);
+			for (uint8_t id = TRAFFIC; id < EXPRESSION_COUNT; ++id) {
+				eyes_state() = EyeState{};
+				eyes_set_expression(Expression(id));
+				uint32_t entry = UINT32_MAX - 1000;
+				eyes_state().lastMs = entry; eyes_draw();
+				auto first = gfx.pixels;
+				for (uint32_t t = 125; t <= 6000; t += 125) {
+					eyes_state().lastMs = entry + t; eyes_draw();
+					auto frame = gfx.pixels;
+					eyes_state().dirtyInit = false; eyes_draw();
+					assert(gfx.pixels == frame);
+					if (t >= 5500) { assert(frame == first); }
+				}
+				assert(eyes_config().fgColor == 0xFFFF && eyes_config().bgColor == 0x0841);
+			}
+		}
+	}
+}
+
 /** @brief Validate new moods without running device firmware or copying reference assets. @return Success. */
 int main() {
 	assert(settings_init());
@@ -318,6 +347,7 @@ int main() {
 	scene_regressions(240, 280); scene_regressions(368, 448);
 	scene_regressions(128, 160); scene_regressions(160, 128);
 	upward_pupils();
+	appended_cycles();
 	assert(settings_update(saved));
-	std::cout << "26 colored performances, clean equalizer, single sushi, car turbos and stargazing passed\n";
+	std::cout << "37 colored performances, original scene regressions and appended GIF-theme cycles passed\n";
 }

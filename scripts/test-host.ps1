@@ -57,6 +57,7 @@ try {
 	)
 	Invoke-HostTest 'swipe' @("$root\tests\swipe_test.cpp")
 	Invoke-HostTest 'startup' @("$root\tests\startup_test.cpp")
+	Invoke-HostTest 'face-variety' @("$root\tests\face_variety_test.cpp")
 	Invoke-HostTest 'render-metrics' @("$root\tests\render_metrics_test.cpp")
 	$powerButton = @("$root\tests\power_button_test.cpp", "$root\OTA-bot-Mochi\src\power\power_button.cpp",
 		"$root\OTA-bot-Mochi\src\power\power_button_lcd.cpp", "$root\OTA-bot-Mochi\src\bus\i2c_bus.cpp")
@@ -79,6 +80,9 @@ try {
 	Invoke-HostTest 'accent' ($renderRuntime + @("$root\tests\eye_accent_test.cpp") + $renderEyes)
 	Invoke-HostTest 'reference' ($renderRuntime + @("$root\tests\reference_test.cpp") + $renderEyes)
 	Invoke-HostTest 'performance' ($renderRuntime + @("$root\tests\performance_test.cpp") + $renderEyes)
+	Invoke-HostTest 'samurai' ($renderRuntime + @("$root\tests\samurai_test.cpp") + $renderEyes)
+	Invoke-HostTest 'uwu' ($renderRuntime + @("$root\tests\uwu_test.cpp") + $renderEyes)
+	Invoke-HostTest 'neon' ($renderRuntime + @("$root\tests\neon_test.cpp") + $renderEyes)
 	$uiPanel = @(
 		"$root\tests\ui_panel_test.cpp",
 		"$root\OTA-bot-Mochi\src\ui\screens.cpp",

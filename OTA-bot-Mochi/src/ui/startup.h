@@ -1,15 +1,17 @@
 /**
  * @file startup.h
- * @brief Silent, time-driven boot title; callers keep servicing BLE, USB and touch.
+ * @brief Silent, time-driven boot/farewell title; callers keep servicing BLE, USB and touch.
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #pragma once
 #include <Arduino_GFX_Library.h>
+#include "../power/power_button.h"
 
 /** @brief Main-task startup animation with unsigned rollover-safe timing. */
 class StartupAnimation {
 	uint32_t started = 0;
 	bool enabled = false;
+	bool closing = false;
 
 	/** @brief Shade RGB565 against black. @param ink Color. @param level Percent. @return Shaded color. */
 	static uint16_t shade(uint16_t ink, uint16_t level) {
@@ -26,14 +28,20 @@ class StartupAnimation {
 	}
 public:
 	static constexpr uint32_t DURATION_MS = 2200; /**< Visible boot duration. */
+	static constexpr uint32_t SHUTDOWN_MS = PowerButtonTiming::FAREWELL_MS; /**< Remaining hold until PMU power-off. */
 	/** @brief Start after hardware initialization. @param now Timestamp. */
-	void begin(uint32_t now) { started = now; enabled = true; }
+	void begin(uint32_t now) { started = now; enabled = true; closing = false; }
+	/** @brief Reverse the opening eyes and fade to black. @param now Timestamp. */
+	void begin_shutdown(uint32_t now) { begin(now); closing = true; }
 	/** @brief Whether the intro still owns the screen. @param now Timestamp. @return Intro active. */
-	bool active(uint32_t now) const { return enabled && uint32_t(now - started) < DURATION_MS; }
+	bool active(uint32_t now) const {
+		return enabled && uint32_t(now - started) < (closing ? SHUTDOWN_MS : DURATION_MS);
+	}
 	/** @brief Render one frame without delaying or flushing. @param gfx Canvas. @param now Timestamp. @param ink Theme color. @return Intro painted, false after completion. */
 	bool draw(Arduino_GFX *gfx, uint32_t now, uint16_t ink) const {
 		if (!gfx || !active(now)) { return false; }
 		uint32_t elapsed = now - started;
+		if (closing) { elapsed = 1000 - elapsed * 1000 / SHUTDOWN_MS; }
 		int16_t w = gfx->width(), h = gfx->height();
 		int16_t scale = w * 100 / 240 < h * 100 / 280 ? w * 100 / 240 : h * 100 / 280;
 		uint8_t title_size = scale >= 140 ? 4 : (scale >= 80 ? 3 : 2);

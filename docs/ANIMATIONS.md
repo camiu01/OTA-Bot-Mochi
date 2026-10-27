@@ -86,6 +86,17 @@ These are native raster previews, not device photographs.
 | 120 | `adore` | Swelling pink eyes surrounded by rising hearts |
 | 121 | `laughing` | Squeezed bouncing eyes with falling blue tear droplets |
 | 122 | `enraged` | Narrow red shaking eyes below a small anger burst |
+| 123 | `traffic` | Decorative red/amber/green dot-grid lamps, not a real traffic signal |
+| 124 | `neon` | Blue/violet outlines with slow color breathing and a four-layer soft glare |
+| 125 | `wheels` | Two counter-rotating five-spoke wheels |
+| 126 | `sakura` | Pink swaying eyes beneath drifting petals |
+| 127 | `samurai` | Asymmetric inclined blue eyes above a broad diagonal steel blade with a traveling glint |
+| 128 | `mecha` | Yellow visor eyes, original armor outlines and a scanner |
+| 129 | `bamboo` | Pink bobbing eyes between two swaying bamboo stalks |
+| 130 | `titan` | Expanding amber eyes framed by pulsing angular energy ribs |
+| 131 | `upside_down` | Eyes follow a reversible half-turn orbit, without rotating UI or touch |
+| 132 | `uwu` | Tall pale-blue U-shaped eyes, a brief squeeze and tilted cheek strokes, without a mouth |
+| 133 | `yokai` | Ember eyes beneath small horns with orbiting flame wisps |
 
 The two banners use the built-in bitmap font, not source lettering or logos.
 Other references still reuse the thematic moods listed below; they are not
@@ -106,6 +117,27 @@ Turbo housings grow to roughly one third of the panel width each. Their intake
 faces tilt toward the center; smoke puffs rise from the outer exhausts and fade.
 Dancing draws its morphing eyes after the background columns, so intermediate
 frames cannot acquire black vertical cuts.
+
+The additional local batch contains 74 GIFs. Only the eleven missing themes
+above were appended; IDs 0–122 and their drawings were left unchanged.
+Anime references produce original thematic scenery, not character likenesses.
+No source lettering, branding, mouths, noose imagery or extracted assets are
+included. The correspondence below explicitly distinguishes reused themes
+from new performances, rather than promising a recreation of each source clip.
+
+The samurai interpretation follows the reference's small low left eye, larger
+high right eye, rising eye contours and diagonal blade, rather than a red headband.
+Three fine upward wisps accompany each eye. A shaded steel ribbon crosses the
+lower face with a moving narrow highlight; there is no full-screen flash.
+The blade is painted before the eyes so its fade cannot cut through either
+silhouette or leave detached fragments during entry and return.
+
+UwU follows the local reference's tall top-open U eyes and cheek strokes.
+Its eyes briefly squeeze closed and reopen, with exact return to the selected
+style at both loop endpoints. The mouth is deliberately omitted, as requested.
+Neon keeps a hollow center while four style-shaped, progressively dimmer outer
+halos create a colored glare. Both effects remain frame-local and use no
+additional framebuffer or stored image assets.
 
 Automatic Random/IMU/shake reactions wait for the complete visible cycle.
 Deliberate touch reactions can still interrupt it. Returning from a reaction
@@ -181,3 +213,66 @@ Existing mood behavior is retained; these are not 63 newly recreated sequences.
 | tough | `focused` |
 | wink | `wink` |
 | yawn | `doze` |
+
+## Additional local batch correspondence
+
+Filenames omit `.gif`. These are thematic associations; existing effects are
+not reworked to match variants of a source animation.
+
+| Local filenames | Firmware mood |
+| --- | --- |
+| `0` | `neutral` |
+| `UwU` | `uwu` (new) |
+| `angry`, `angry2`, `gian_du` | `angry`, `enraged` |
+| `angry3`, `xi_lua` | `fire` (existing flame theme) |
+| `aot` | `titan` (new, original energy-rib theme) |
+| `bee` | `buzzing` |
+| `chong_mat` | `swirly` |
+| `cry`, `cry2`, `khoc` | `crying` |
+| `cuoi`, `happy_2` | `squeezed`, `laughing` |
+| `cuoi_khinh_bi` | `judge` |
+| `dasai`, `dasai2`, `mochidoo` | `mistake` (original OTA BOT banner, no source branding) |
+| `demon_slayer` | `bamboo` (new, original grove theme) |
+| `den_giao_thong` | `traffic` (new) |
+| `den_pha`, `den_pha_ex` | `headlights` |
+| `devil`, `devil_2` | `devil` |
+| `devil_eyes` | `menacing` |
+| `distracted` | `distracted` |
+| `egg` | `happy` (eye-only smile) |
+| `glitch`, `noname` | `glitch` |
+| `gundam` | `mecha` (new, original visor theme) |
+| `hand_some` | `smug` |
+| `hat_xi`, `hat_xi_2` | `sneeze` |
+| `hehe` | `smirk` |
+| `intro`, `mochi` | `hello` (eye-only greeting, no source text/character) |
+| `keep_it_up` | `encouragement` |
+| `leu_leu` | `cheeky` |
+| `love`, `love2` | `love`, `adore` |
+| `music` | `dancing` |
+| `neon` | `neon` (new) |
+| `ngac_nhien` | `surprised` |
+| `ngap` | `doze` |
+| `nheo_mat`, `squint` | `squint` |
+| `nhin_ben_phai` | `look_right` |
+| `nhin_ben_trai` | `look_left` |
+| `nhin_xuong` | `look_down` |
+| `police` | `police` |
+| `pong` | `pong` |
+| `rain` | `rain` |
+| `rainbow` | `glow` |
+| `sakura` | `sakura` (new) |
+| `samurai` | `samurai` (new) |
+| `scared` | `scared` |
+| `sleepy` | `sleepy` |
+| `smile` | `mild_happy` |
+| `smirk` | `smirk` |
+| `speed`, `speed_ex`, `toc_do` | `gauge` |
+| `star` | `stargazing` |
+| `sung_nuoc`, `sung_nuoc_2` | `spraying`, `splash` |
+| `sushi` | `sushi` |
+| `thong_long`, `thu_nho` | `shrink` (eye shrinking only; no noose scene) |
+| `turbo` | `energetic` |
+| `up_size_down` | `upside_down` (new) |
+| `wheels` | `wheels` (new) |
+| `xi_khoi` | `smoke` |
+| `yakura` | `yokai` (new, original ember/wisp theme) |

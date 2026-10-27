@@ -113,6 +113,31 @@ static void calibration_storage_tests() {
 	test_nvs.clear();
 }
 
+/** @brief Shake expires after two seconds and continuous playback advances after repeated overrides. */
+static void continuous_shake_recovery() {
+	test_now = 50000;
+	CompanionSettings p = settings_get();
+	p.mood = NEUTRAL; p.random_faces = p.imu_faces = p.shake = true; p.face_flow = FACE_CONTINUOUS;
+	assert(settings_update(p));
+	// Sensor read failures must not prevent an already-started override from expiring.
+	i2c_bus().read_ok = false;
+	Expression previous = NEUTRAL;
+	unsigned changes = 0;
+	for (uint32_t elapsed = 0; elapsed <= 120000; elapsed += 50) {
+		test_now = 50000 + elapsed;
+		if (elapsed % 10000 == 0) { eyes_imu_trigger_shake(test_now); }
+		eyes_update(test_now);
+		if (elapsed % 10000 == 1950) { assert(eyes_state().dizzyUntilMs != 0); }
+		if (elapsed % 10000 >= 2000) {
+			assert(eyes_state().dizzyUntilMs == 0 && eyes_config().expression != DIZZY);
+			if (eyes_config().expression != previous && eyes_config().expression != NEUTRAL) { ++changes; }
+			previous = eyes_config().expression;
+		}
+	}
+	assert(changes > 10);
+	i2c_bus().read_ok = true;
+}
+
 /** @brief Test scale, road-noise handling, shake opt-in, and restoration. @return Success. */
 int main() {
 	assert(settings_init());
@@ -215,6 +240,7 @@ int main() {
 	assert(imu_orientation().status == ImuCalibration::Ready && imu_orientation().save_failed);
 	assert(test_nvs["mochi-imu/zero"] == saved_zero && test_flash_writes == writes + 1);
 	test_save_fails = false;
+	continuous_shake_recovery();
 	std::cout << "IMU setup, mount-relative gaze, shake opt-in/cooldown, and restoration passed\n";
 	return 0;
 }

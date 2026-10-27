@@ -278,7 +278,7 @@ static void scene_entry_motion() {
 	};
 	for (uint8_t value = 0; value < EXPRESSION_COUNT; ++value) {
 		Expression expression = Expression(value);
-		bool performance = expression >= DANCING && expression <= ENRAGED;
+		bool performance = eye_performance(expression);
 		if (expression != PONG && expression != GAUGE && !performance) { continue; }
 		for (int16_t offset : {int16_t(-18), int16_t(18)}) {
 			Arduino_GFX gfx(240, 280);

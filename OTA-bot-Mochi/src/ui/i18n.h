@@ -250,6 +250,17 @@
 	X(ExprAdore, "adore", "adorare") \
 	X(ExprLaughing, "laughing", "ridere") \
 	X(ExprEnraged, "enraged", "infuriato") \
+	X(ExprTraffic, "traffic", "semaforo") \
+	X(ExprNeon, "neon", "neon") \
+	X(ExprWheels, "wheels", "ruote") \
+	X(ExprSakura, "sakura", "petali") \
+	X(ExprSamurai, "samurai", "samurai") \
+	X(ExprMecha, "mecha", "mecha") \
+	X(ExprBamboo, "bamboo", "bambu") \
+	X(ExprTitan, "titan", "titano") \
+	X(ExprUpsideDown, "upside down", "capovolto") \
+	X(ExprUwu, "uwu", "uwu") \
+	X(ExprYokai, "yokai", "yokai") \
 	X(Calm, "calm", "calmo") \
 	X(Dasai, "normal", "normale") \
 	X(Playful, "playful", "vivace") \

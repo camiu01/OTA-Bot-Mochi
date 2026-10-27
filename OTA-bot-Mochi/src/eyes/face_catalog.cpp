@@ -122,6 +122,17 @@
 #include "faces/adore.h"
 #include "faces/laughing.h"
 #include "faces/enraged.h"
+#include "faces/traffic.h"
+#include "faces/neon.h"
+#include "faces/wheels.h"
+#include "faces/sakura.h"
+#include "faces/samurai.h"
+#include "faces/mecha.h"
+#include "faces/bamboo.h"
+#include "faces/titan.h"
+#include "faces/upside_down.h"
+#include "faces/uwu.h"
+#include "faces/yokai.h"
 
 /** @brief Complete ID-ordered catalog; names remain checked against the public table. */
 constexpr FacePresetEntry FACE_PRESETS[EXPRESSION_COUNT] = {
@@ -248,6 +259,17 @@ constexpr FacePresetEntry FACE_PRESETS[EXPRESSION_COUNT] = {
 	{ADORE, face_defs::adore_face::preset},
 	{LAUGHING, face_defs::laughing_face::preset},
 	{ENRAGED, face_defs::enraged_face::preset},
+	{TRAFFIC, face_defs::traffic_face::preset},
+	{NEON, face_defs::neon_face::preset},
+	{WHEELS, face_defs::wheels_face::preset},
+	{SAKURA, face_defs::sakura_face::preset},
+	{SAMURAI, face_defs::samurai_face::preset},
+	{MECHA, face_defs::mecha_face::preset},
+	{BAMBOO, face_defs::bamboo_face::preset},
+	{TITAN, face_defs::titan_face::preset},
+	{UPSIDE_DOWN, face_defs::upside_down_face::preset},
+	{UWU, face_defs::uwu_face::preset},
+	{YOKAI, face_defs::yokai_face::preset},
 };
 static_assert(face_entries_valid(FACE_PRESETS), "Every expression requires one valid ID-ordered face");
 

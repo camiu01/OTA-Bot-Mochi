@@ -53,6 +53,15 @@ This percentage is **brightness, not battery charge**.
   and automatic page changes wait until the intro ends. Mochi then greets with a
   brief three-second temporary face played
   silently; the selected mood returns automatically.
+- On AMOLED V2, holding PWR starts the title after one second, then closes the
+  eyes and fades over the remaining three seconds to the autonomous power-off.
+  The farewell no longer finishes well before the four-second hold. Keep holding to shut
+  down; releasing early restores the previous page.
+- On AMOLED V2, click and release BOOT to advance through Eyes, Clock, Route,
+  Alerts, Weather and Settings, then wrap to Eyes. Desk tools advance from
+  their Clock parent to Route. Holding does not repeat. Clicks during startup,
+  shutdown, a visible call overlay or a held touch are discarded. Holding BOOT
+  during reset still selects the chip's firmware download mode.
 - New notifications automatically open Alerts, including while a route is active.
   Starting actual phone navigation automatically opens Route. Regular route/icon
   updates do not pull you back after a manual swipe. If both events arrive in the

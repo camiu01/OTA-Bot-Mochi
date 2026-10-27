@@ -24,11 +24,11 @@ rounded even though the TRAPEZ preset sets `radius` to 0. The left eye is always
 canonical evaluation and the right eye is its exact horizontal mirror, which keeps
 the reflected halves pixel-identical.
 
-## Expressions and animated moods (123)
+## Expressions and animated moods (134)
 
 Each expression has its own `faces/<canonical_name>.h`, containing its per-eye
 `FacePreset` and expression-specific effects. `face_catalog.cpp` registers all
-123 definitions; reusable primitives and the render pipeline remain shared.
+134 definitions; reusable primitives and the render pipeline remain shared.
 For parameters, a compiled example and registration, see
 [Adding a face](../../../docs/ADDING_A_FACE.md).
 
@@ -132,10 +132,11 @@ For parameters, a compiled example and registration, see
 | 95 | GLOW | Selected-color-to-hues-to-selected-color cycle with soft halos around the current style |
 | 96 | HEADLIGHTS | Slow-pulsing outward light cones behind the current style |
 
-The first 118 expressions keep their numeric values. IDs 97–122 provide twenty-six
+The original 123 expressions keep their numeric values. IDs 97–133 provide thirty-seven
 [original colored performances](../../../docs/ANIMATIONS.md), including their
 names, timing and reference correspondence. The additions
-omit mouths, cheeks and eyebrows. Existing LOVE, CRYING and angry faces remain
+omit mouths and eyebrows; UwU adds the requested cheek strokes around taller
+U-shaped eyes, without a mouth. Existing LOVE, CRYING and angry faces remain
 available. The appended `adore`, `laughing`, and `enraged` performances add
 distinct scenery rather than replacing those ordinary moods.
 

@@ -53,7 +53,7 @@ testing on both boards. See the validation limits below.
 
 | Feature | Observable behavior |
 | --- | --- |
-| Animated eyes | Four styles (`mochi`, `bloub`, `normal`, `trapez`), with blinking, idle gaze, and 123 selectable moods |
+| Animated eyes | Four styles (`mochi`, `bloub`, `normal`, `trapez`), with blinking, idle gaze, and 134 selectable moods |
 | Touch reactions | Taps, double taps, and vertical petting strokes trigger temporary faces, then restore the selected mood |
 | Motion reactions | Accelerometer changes relative to saved calibration (or a temporary startup reference) move the gaze; optional motion moods and shake-to-dizzy reactions |
 | Digital and analog clocks | Display phone-synchronized time; continue while disconnected, but require another sync after reboot |
@@ -362,7 +362,7 @@ Timer/Pong state, automatic-rotation switch and temporary route layouts are sess
 
 | Option | Available configuration |
 | --- | --- |
-| Appearance | Four eye styles, six body/UI colors, 123 moods; distinct shapes and GIF-informed reactions with temporary colors |
+| Appearance | Four eye styles, six body/UI colors, 134 moods; distinct shapes and GIF-informed reactions with temporary colors |
 | Animation | `calm`, `dasai`, `playful`; optional random moods and IMU moods |
 | Orientation | Normal or 180-degree flip, including matching touch and IMU mapping; no 90-degree mode |
 | Lighting | Day 5–90%, night 1–20%, manual night selection, optional idle dimming |

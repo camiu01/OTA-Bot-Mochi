@@ -29,6 +29,7 @@
 #include "src/sound/sound.h"
 #include "src/ui/ui_theme.h"
 #include "src/ui/startup.h"
+#include "src/ui/boot_button.h"
 #include "src/power/backlight.h"
 #include "src/power/battery.h"
 #include "src/power/power_button_shutdown.h"
@@ -57,6 +58,9 @@ AutoPagePolicy auto_page;
 bool screen_ready = false;
 bool applied_flip = false;
 StartupAnimation startup;
+StartupAnimation shutdown_animation;
+bool shutting_down = false;
+BootPageButton boot_button;
 bool starting = true;
 uint32_t last_frame_ms = 0;
 uint32_t activity_revision = 0;
@@ -234,7 +238,12 @@ void handle_touch(uint32_t now) {
 	int16_t pet_x = 0, pet_y = 0;
 	bool pet = touch_take_pet(pet_x, pet_y);
 	int8_t scroll = touch_take_scroll();
-	if (starting) { return; }
+	UiPage boot_target = boot_button.poll(now, current_screen,
+		starting || shutting_down || touch_pressed() || screens_calling());
+	if (boot_target != current_screen) {
+		backlight_activity(now); switch_screen(boot_target, now); return;
+	}
+	if (starting || shutting_down) { return; }
 	if (tap && y < 50 && !screens_calling() && current_screen != UiPage::Eyes &&
 		current_screen != UiPage::Settings) {
 		toggle_quick_sound(now);
@@ -278,7 +287,7 @@ void handle_touch(uint32_t now) {
 
 /** @brief Follow new Chronos events without changing screens from BLE callbacks. @param now Timestamp. */
 void handle_auto_page(uint32_t now) {
-	if (starting) { return; }
+	if (starting || shutting_down) { return; }
 	UiPage target = auto_page.update(current_screen, ui_page_events(), touch_pressed());
 	if (target != current_screen) {
 		backlight_activity(now);
@@ -289,6 +298,7 @@ void handle_auto_page(uint32_t now) {
 /** @brief Initialize display, snapshot lock, BLE, eyes, and touch. */
 void setup() {
 	bool power_ready = power_button_init();
+	boot_button.begin(millis());
 	Serial.begin(115200);
 	if (!settings_init()) { Serial.println("Settings storage unavailable; using RAM defaults"); }
 	if (!power_ready) { Serial.println("PWR button configuration unavailable"); }
@@ -322,7 +332,7 @@ void update_backlight(uint32_t now) {
 		if (!settings_get().dashboard || current_screen == UiPage::Notification ||
 			current_screen == UiPage::Navigation) { backlight_activity(now); }
 	}
-	backlight_update(now, touch_pressed(), screens_keep_awake());
+	backlight_update(now, touch_pressed(), screens_keep_awake() || shutting_down);
 }
 
 /** @brief Service BLE and touch continuously, rendering only complete changed frames. */
@@ -333,6 +343,13 @@ void loop() {
 	delay(1);
 	if (!screen_ready) { return; }
 	uint32_t now = millis();
+	bool preview = power_button_preview(now);
+	if (preview != shutting_down) {
+		shutting_down = preview;
+		if (preview) { shutdown_animation.begin_shutdown(now); }
+		backlight_activity(now);
+		switch_screen(current_screen, now);
+	}
 #if MOCHI_RUNTIME_DIAGNOSTICS
 	runtime_diagnostics::poll(now);
 #endif
@@ -351,6 +368,11 @@ void loop() {
 	update_backlight(now);
 	if ((uint32_t)(now - last_frame_ms) < FRAME_INTERVAL_MS) { return; }
 	last_frame_ms = now;
+	if (shutting_down) {
+		if (!shutdown_animation.draw(gfx, now, UI_TEXT)) { gfx->fillScreen(UI_BG); }
+		gfx->flush();
+		return;
+	}
 	if (starting) {
 		if (startup.draw(gfx, now, UI_TEXT)) { gfx->flush(); return; }
 		starting = false;

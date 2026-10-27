@@ -30,8 +30,35 @@ static void check(int16_t w, int16_t h) {
 	assert(!intro.draw(nullptr, 499, 0xFFFF));
 }
 
+/** @brief Farewell reuses branding, closes eyes, fades, finishes and handles rollover. */
+static void shutdown_check(int16_t w, int16_t h) {
+	StartupAnimation outro;
+	Arduino_GFX gfx(w, h);
+	outro.begin_shutdown(10000);
+	assert(outro.draw(&gfx, 10000, 0xFFFF));
+	assert(std::find(gfx.text.begin(), gfx.text.end(), "OTA BOT") != gfx.text.end());
+	assert(std::find(gfx.text.begin(), gfx.text.end(), "MOCHI") != gfx.text.end());
+	auto open = std::count(gfx.pixels.begin(), gfx.pixels.end(), 0xFFFF);
+	assert(outro.draw(&gfx, 10000 + StartupAnimation::SHUTDOWN_MS / 2, 0xFFFF));
+	assert(std::count(gfx.pixels.begin(), gfx.pixels.end(), 0xFFFF) < open);
+	assert(outro.draw(&gfx, 10000 + StartupAnimation::SHUTDOWN_MS - 1, 0xFFFF));
+	assert(std::count(gfx.pixels.begin(), gfx.pixels.end(), 0) == w * h);
+	assert(!outro.draw(&gfx, 10000 + StartupAnimation::SHUTDOWN_MS, 0xFFFF));
+	assert(!outro.active(10000 + StartupAnimation::SHUTDOWN_MS));
+	uint32_t entry = UINT32_MAX - 500;
+	outro.begin_shutdown(entry);
+	uint32_t last = entry + StartupAnimation::SHUTDOWN_MS - 1;
+	assert(outro.active(last) && outro.draw(&gfx, last, 0xFFFF));
+	assert(!outro.active(last + 1));
+	outro.begin(20000);
+	assert(outro.active(21200));
+}
+
 /** @brief Execute boot-animation regressions without hardware. @return Success. */
 int main() {
+	static_assert(StartupAnimation::SHUTDOWN_MS + PowerButtonTiming::LONG_IRQ_MS ==
+		PowerButtonTiming::POWER_OFF_MS, "Farewell must end at autonomous power-off");
 	check(240, 280); check(368, 448); check(128, 160);
+	shutdown_check(240, 280); shutdown_check(368, 448); shutdown_check(128, 160);
 	std::cout << "Startup title, animation, panel bounds, duration and rollover passed\n";
 }

@@ -15,7 +15,7 @@ rows. Changes are live in RAM and do not write flash while browsing.
 | --- | --- | --- |
 | LOOK | Eyes | normal, mochi, bloub, trapez |
 | LOOK | Color | white, mint, cyan, amber, pink, blue |
-| LOOK | Mood | opens a 3-column grid of all 123 expressions/animated moods in five full-height rows; tap a cell, swipe to scroll |
+| LOOK | Mood | opens a 3-column grid of all 134 expressions/animated moods in five full-height rows; tap a cell, swipe to scroll |
 | DISPLAY | Day level | 5, 10, 20, 30, 50, 70, 90% |
 | DISPLAY | Night | off / on |
 | DISPLAY | Night level | 1, 3, 5, 8, 12, 20% |
@@ -230,6 +230,14 @@ decorative tilt/gaze keeps running while automatic mood changes wait.
   start intervals); **Group of 5** chains five random faces, then rests on the
   selected base for 12–30 seconds; **Sequence** continuously visits faces in
   enum/menu order; **Continuous** chains random faces without base pauses.
+  Continuous excludes the last eight selected IDs and the two most recent
+  visual families (for example, happy variants or sleepy variants), as well as
+  the current/base family. History resets after an explicit mood change or reboot.
+  Sequence, Group of 5 and Return keep their existing selection rules.
+  In Continuous, an expired IMU reaction hands control directly back to random
+  playback. It does not restart the 12–30-second idle wait, which repeated
+  sensor reactions could otherwise postpone indefinitely. Shake still uses
+  its bounded two-second override; neither sensor option is disabled.
   All four require Random mood on. USB: `set face-flow return|group5|sequence|continuous`.
   SAVE persists the mode; older profiles default to Return.
   Each face keeps its complete cycle: ordinary faces three seconds, performances

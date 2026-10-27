@@ -102,10 +102,26 @@ This is PMU power-off, not display blanking or ESP32 deep sleep. It requires a
 valid USB or battery supply; removing all power also removes the PMU's state.
 USB insertion can power the board on independently of the button.
 
+After a fresh PWR hold reaches one second, the firmware previews shutdown with
+the OTA BOT / MOCHI title, closing eyes and a three-second fade to black.
+The farewell now fills the remaining hold up to the PMU's four-second cutoff,
+rather than ending early and leaving a further hold on a black screen.
+Keep holding through the farewell until power cuts. Releasing earlier
+cancels the preview and restores the previous page. Boot-time holds and short
+clicks do not start it. BLE, USB, touch polling and local timers keep running;
+touch actions and automatic page changes are suppressed during the preview.
+The PMU's autonomous cutoff remains enabled even if the firmware stalls.
+The 40 ms event poll and display scheduling can offset the visual endpoint
+slightly; timing and physical cutoff still require verification on the V2 board.
+
 Configuration uses the existing shared I2C bus at address `0x34`, read-modify-write
 and read-back verification of `0x22` (long-press enable, power-off rather than
-restart) and `0x27` (OFFLEVEL/ONLEVEL). Thermal protection, IRQ timing, regulator
-voltages, rail enables and charging settings are preserved. No GPIO is repurposed.
+restart), `0x27` (OFFLEVEL/ONLEVEL and one-second IRQ timing), and `0x41`
+(PWR edge/long-press IRQ enables). The main task polls `0x49` every 40 ms and
+acknowledges only those key events using write-one-to-clear semantics.
+Read/acknowledgement failures cancel the preview rather than leaving the UI dark.
+Thermal protection, unrelated IRQs, regulator voltages, rail enables and charging
+settings are preserved. No GPIO is repurposed.
 
 The configuration follows the official [AXP2101 datasheet](https://files.waveshare.com/wiki/common/X-power-AXP2101_SWcharge_V1.0.pdf),
 sections 6.5.4, 6.13.2.20 and 6.13.2.25. Missing PMU, bus failure or failed
@@ -117,6 +133,12 @@ Power-off discards RAM-only edits, timers and BLE connections. Use explicit
 write preferences. A short press is not assigned a new firmware action.
 Native tests verify registers and error paths, not physical switching or standby
 current. Verify PWR off/on on battery and USB on the actual V2 board.
+
+At runtime **BOOT (GPIO0, active low)** advances the six-page carousel once on
+release, with 30 ms debounce and no repeat while held. The input uses a pull-up;
+it is never driven as an output and its reset-time download-mode role is unchanged.
+Startup/shutdown, visible call overlays and touch contact suppress the shortcut.
+The LCD profile's BOOT behavior is unchanged.
 
 ## LCD 1.69 OLD PWR button
 

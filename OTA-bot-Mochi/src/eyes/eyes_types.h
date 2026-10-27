@@ -166,12 +166,23 @@ enum Expression : uint8_t {
 	ENCOURAGEMENT = 119,	/**< Hopping eyes above a "GO OTA BOT!" banner. */
 	ADORE = 120,	/**< Pink swelling eyes with rising hearts. */
 	LAUGHING = 121,	/**< Squeezed bouncing eyes with tear droplets. */
-	ENRAGED = 122	/**< Narrow shaking red eyes with an anger burst. */
+	ENRAGED = 122,	/**< Narrow shaking red eyes with an anger burst. */
+	TRAFFIC = 123,	/**< Decorative red/amber/green lamp eyes. */
+	NEON = 124,	/**< Breathing hollow eye outlines. */
+	WHEELS = 125,	/**< Counter-rotating five-spoke wheels. */
+	SAKURA = 126,	/**< Pink eyes beneath falling petals. */
+	SAMURAI = 127,	/**< Asymmetric inclined eyes above a diagonal steel blade. */
+	MECHA = 128,	/**< Original robot visor and scanner. */
+	BAMBOO = 129,	/**< Pink eyes in a swaying bamboo grove. */
+	TITAN = 130,	/**< Expanding amber eyes with red energy ribs. */
+	UPSIDE_DOWN = 131,	/**< Reversible orbital half-turn. */
+	UWU = 132,	/**< Tall U-shaped eyes and tilted cheeks, without a mouth. */
+	YOKAI = 133	/**< Ember eyes with horns and drifting wisps. */
 };
 
 /** @brief Number of defined expressions, bounding menus, parsers, and lookups. */
-constexpr uint8_t EXPRESSION_COUNT = uint8_t(ENRAGED) + 1;
-static_assert(EXPRESSION_COUNT == 123,
+constexpr uint8_t EXPRESSION_COUNT = uint8_t(YOKAI) + 1;
+static_assert(EXPRESSION_COUNT == 134,
 	"Expression enum, names, i18n labels and documentation must be extended together");
 
 /**
@@ -201,7 +212,9 @@ inline const char *eyes_expression_name(Expression expr) {
 		"shrink", "swinging", "blinding", "buzzing", "sick", "splash", "spraying",
 		"sushi", "energetic", "smoke", "menacing", "hello", "distracted",
 		"look_left", "look_right", "look_down", "stargazing",
-		"mistake", "encouragement", "adore", "laughing", "enraged"
+		"mistake", "encouragement", "adore", "laughing", "enraged",
+		"traffic", "neon", "wheels", "sakura", "samurai", "mecha",
+		"bamboo", "titan", "upside_down", "uwu", "yokai"
 	};
 	static_assert(sizeof(names) / sizeof(names[0]) == EXPRESSION_COUNT,
 		"eyes_expression_name() entries must match Expression values one for one");

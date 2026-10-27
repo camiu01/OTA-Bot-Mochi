@@ -27,7 +27,12 @@ public:
 		if (!present[address] || sent.empty()) { return 1; }
 		pointer = sent[0];
 		if (sent.size() > 1 && pointer == fail_write_register) { return 1; }
-		for (size_t i = 1; i < sent.size(); ++i) { registers[address][pointer++] = sent[i]; }
+		for (size_t i = 1; i < sent.size(); ++i, ++pointer) {
+			// AXP2101 IRQ status is write-one-to-clear, unlike configuration.
+			if (address == 0x34 && pointer >= 0x48 && pointer <= 0x4A) {
+				registers[address][pointer] &= uint8_t(~sent[i]);
+			} else { registers[address][pointer] = sent[i]; }
+		}
 		return 0;
 	}
 	uint8_t requestFrom(uint8_t target, uint8_t count) {

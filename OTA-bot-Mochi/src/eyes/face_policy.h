@@ -6,6 +6,7 @@
 #pragma once
 #include "eyes_types.h"
 #include "face_flow.h"
+#include "face_variety.h"
 #include <math.h>
 
 class FacePolicy {
@@ -18,6 +19,7 @@ class FacePolicy {
 	bool sampled = false;
 	int8_t direction = 0;
 	uint8_t chain_count = 0, sequence_index = 0;
+	FaceVariety variety;
 
 	/**
 	 * @brief Start a bounded reaction from an explicit pool, avoiding the base and repeats.
@@ -58,11 +60,13 @@ class FacePolicy {
 		static constexpr uint8_t pool_size = uint8_t(EXPRESSION_COUNT - 2);
 		uint8_t index = mode == FACE_SEQUENCE ? sequence_index : uint8_t(choice % pool_size);
 		Expression value = automatic_at(index);
-		while (value == base || value == previous || value == face) {
+		while (value == base || value == previous || value == face ||
+			(mode == FACE_CONTINUOUS && variety.excludes(value, face, base))) {
 			index = uint8_t((index + 1) % pool_size);
 			value = automatic_at(index);
 		}
 		face = previous = value; started = last_random = now;
+		if (mode == FACE_CONTINUOUS) { variety.remember(value); }
 		sequence_index = uint8_t((index + 1) % pool_size);
 		if (chain_count < 5) { ++chain_count; }
 		duration = cycle_duration(value); random_delay = 12000 + choice % 18001;
@@ -84,7 +88,7 @@ class FacePolicy {
 public:
 	/** @brief Complete visible loop length. @param value Mood. @return Milliseconds. */
 	static uint32_t cycle_duration(Expression value) {
-		if (value >= DANCING && value <= ENRAGED) { return 6000; }
+		if (value >= DANCING && uint8_t(value) < EXPRESSION_COUNT) { return 6000; }
 		if (value == GAUGE || value == PONG) { return 12000; }
 		if (value == GLOW) { return 9600; }
 		return value == HEADLIGHTS ? 3600 : 3000;
@@ -173,7 +177,8 @@ public:
 	Expression update(uint32_t now, bool random_enabled, bool imu_enabled, uint32_t choice,
 			bool ready = true, uint8_t mode = FACE_RETURN) {
 		bool expired = active && uint32_t(now - started) >= duration;
-		if (expired && !manual && !motion && random_enabled && mode != FACE_RETURN &&
+		// Continuous playback resumes after an IMU reaction instead of restarting its idle wait.
+		if (expired && !manual && (!motion || mode == FACE_CONTINUOUS) && random_enabled && mode != FACE_RETURN &&
 			(mode != FACE_GROUP5 || chain_count < 5)) {
 			automatic_face(now, choice, mode);
 			return face;

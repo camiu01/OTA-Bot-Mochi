@@ -221,6 +221,7 @@
 #define SYS_EN     -1  /**< Unused: power rails are managed by the AXP2101 PMU */
 #define SYS_OUT    -1  /**< Unused: power rails are managed by the AXP2101 PMU */
 #define BAT_ADC    -1  /**< No ADC divider: battery data would come from the AXP2101 */
+#define BOOT_BUTTON 0 /**< Active-low BOOT key; runtime page shortcut only. */
 #else
 #define SYS_EN     35  /**< Original board: active-high battery-power hold (SS8050/AO3401). */
 #define SYS_OUT    36  /**< Original board: active-low PWR/Key2 input. */

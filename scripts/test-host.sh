@@ -47,6 +47,7 @@ g++ -std=c++17 -Wall -Wextra -Werror -I "$root/tests/stubs" -DMOCHI_BOARD_AMOLED
 	"$root/OTA-bot-Mochi/src/sound/buzzer_output.cpp" "$root/OTA-bot-Mochi/src/power/battery.cpp"
 build_test swipe "$root/tests/swipe_test.cpp"
 build_test startup "$root/tests/startup_test.cpp"
+build_test face-variety "$root/tests/face_variety_test.cpp"
 build_test render-metrics "$root/tests/render_metrics_test.cpp"
 power_button=("$root/tests/power_button_test.cpp" "$root/OTA-bot-Mochi/src/power/power_button.cpp" "$root/OTA-bot-Mochi/src/power/power_button_lcd.cpp" "$root/OTA-bot-Mochi/src/bus/i2c_bus.cpp")
 build_test power-button-lcd "${power_button[@]}"
@@ -79,6 +80,9 @@ build_test panel "${render_runtime[@]}" "$root/tests/eye_scaling_test.cpp" "${re
 build_test accent "${render_runtime[@]}" "$root/tests/eye_accent_test.cpp" "${render_eyes[@]}"
 build_test reference "${render_runtime[@]}" "$root/tests/reference_test.cpp" "${render_eyes[@]}"
 build_test performance "${render_runtime[@]}" "$root/tests/performance_test.cpp" "${render_eyes[@]}"
+build_test samurai "${render_runtime[@]}" "$root/tests/samurai_test.cpp" "${render_eyes[@]}"
+build_test uwu "${render_runtime[@]}" "$root/tests/uwu_test.cpp" "${render_eyes[@]}"
+build_test neon "${render_runtime[@]}" "$root/tests/neon_test.cpp" "${render_eyes[@]}"
 ui_panel=("${runtime[@]}" \
 	"$root/tests/ui_panel_test.cpp" \
 	"$root/OTA-bot-Mochi/src/ui/screens.cpp" \
