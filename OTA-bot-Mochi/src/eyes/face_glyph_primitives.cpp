@@ -195,7 +195,9 @@ void low_batt(Arduino_GFX *gfx, int16_t x, int16_t y, int16_t s, uint16_t color)
 	int16_t w = int16_t(s * 6 / 5), h = int16_t(s * 3 / 4);
 	gfx->drawRect(int16_t(x - w / 2), int16_t(y - h / 2), w, h, color);
 	gfx->fillRect(int16_t(x + w / 2), int16_t(y - h / 4), 2, int16_t(h / 2), color);
-	gfx->fillRect(int16_t(x - w / 2 + 2), int16_t(y - h / 2 + 2), int16_t(w / 4), int16_t(h - 4), color);
+	if (h > 4) {
+		gfx->fillRect(int16_t(x - w / 2 + 2), int16_t(y - h / 2 + 2), int16_t(w / 4), int16_t(h - 4), color);
+	}
 }
 
 /** @brief Shared music_note drawing primitive. */

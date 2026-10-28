@@ -5,6 +5,7 @@
  */
 #include "../OTA-bot-Mochi/src/eyes/eyes_api.h"
 #include "../OTA-bot-Mochi/src/eyes/eye_life.h"
+#include "../OTA-bot-Mochi/src/eyes/face_support.h"
 #include "../OTA-bot-Mochi/src/settings/settings.h"
 #include <assert.h>
 #include <fstream>
@@ -16,6 +17,17 @@
 #include "fixtures/face_raster.h"
 #endif
 #endif
+
+/** @brief Battery glyphs keep valid dimensions while a blink shrinks the charge interior away. */
+static void low_battery_sizes() {
+	Arduino_GFX gfx(40, 40);
+	for (int16_t s = 0; s <= 64; ++s) {
+		gfx.fillScreen(0);
+		face_primitives::low_batt(&gfx, 20, 20, s, 0xFFFF);
+		if (s == 4) { assert(gfx.pixels[20 * 40 + 20] == 0); }
+		if (s == 8) { assert(gfx.pixels[19 * 40 + 18] == 0xFFFF); }
+	}
+}
 
 /** @brief Hash fixed-width words in a platform-independent order. */
 static void word(uint64_t &hash, uint16_t value) {
@@ -73,6 +85,7 @@ static uint64_t fingerprint(Arduino_GFX &gfx, Expression expression) {
 /** @brief Compare all expressions on the six supported native panel fixtures. */
 int main(int argc, char **argv) {
 	assert(settings_init());
+	low_battery_sizes();
 #ifdef RECORD_FACE_BASELINE
 	assert(argc == 2);
 	std::ofstream output(argv[1]);
