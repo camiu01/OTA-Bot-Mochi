@@ -93,8 +93,10 @@ IDs and adjacent visual families across all bases and rollover, including
 repeated random inputs. Samurai tests cover its asymmetry, inclined blade,
 moving glint, clean return and preservation of every eye pixel while the blade
 fades, on six panels and all four styles. Both native runners include these tests.
-UwU checks verify tall top-open cups, cheek placement, its brief squeeze,
-an empty mouth region and clean reversible cycles. Neon checks verify a hollow
+UwU checks verify white top-open U eyes, separate pink cheeks, the absence of
+a mouth and decorative backdrop, and clean reversible cycles. Background-only handoff
+checks verify full-strength eye ink while scenery fades, including clean redraws
+and timer rollover. Neon checks verify a hollow
 center and outward glare falloff relative to each style's actual silhouette,
 not just its rectangular bounds.
 Continuous playback also faces two simulated minutes of sustained IMU input,

@@ -41,6 +41,7 @@ static void check(int16_t width, int16_t height, EyeStyle style) {
 	assert(pair.left.y > pair.right.y);
 	assert(samurai::blade_top(cfg, width / 8) > samurai::blade_top(cfg, width * 7 / 8));
 	eyes_state() = EyeState{}; eyes_draw();
+	eyes_state().lastMs = 6000; eyes_draw();
 	auto first = gfx.pixels;
 	eyes_state().lastMs = 3000; eyes_draw();
 	auto performed = gfx.pixels;

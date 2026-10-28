@@ -16,6 +16,7 @@ artifacts/
 # Python cache
 __pycache__/
 *.py[cod]
+.venv/
 
 # PlatformIO build output
 .pio/
@@ -23,3 +24,6 @@ __pycache__/
 # Local emulator captures and security reports
 /tools/*.ppm
 /security-findings.json
+
+# Generated native GIF exports
+/exports/

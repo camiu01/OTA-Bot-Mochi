@@ -5,6 +5,7 @@
  */
 #pragma once
 #include "../face_support.h"
+#include "../face_ambient_backgrounds.h"
 namespace face_defs { namespace traffic_face {
 /** @brief Fade sequential colors through the shared reversible loop. */
 inline uint16_t color(const EyeConfig &, bool, uint32_t elapsed) {
@@ -39,7 +40,8 @@ inline bool scene(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeLayout &layou
 }
 /** @brief Register the decorative lamp performance. */
 inline constexpr FacePreset preset = [] {
-	FacePreset p; p.name = "traffic"; p.performance = p.fullScene = true;
+	FacePreset p; p.name = "traffic"; p.background = face_backgrounds::city;
+	p.bounds = face_backgrounds::full_bounds; p.performance = p.fullScene = true;
 	p.performanceColor = color; p.scenery = scenery; p.performanceScene = scene;
 	return p;
 }();

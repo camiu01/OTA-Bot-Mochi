@@ -50,6 +50,30 @@ checks text bounds; sensor tests exercise identity, acknowledged writes, range,
 tilt, and shake behavior. Real display, BLE, and hardware behavior still require
 the [device checklist](docs/TESTING.md).
 
+### Visual check for new or changed faces
+
+When adding a face or changing its drawing, motion, colors, or backdrop, **generate
+and watch its GIF before submitting the change**. Passing native assertions alone
+is not enough. Use the [GIF exporter](docs/GIF_EXPORT.md):
+
+```sh
+# Linux; replace uwu with the new or changed face's canonical name.
+./tools/export-gifs.sh --mood uwu --size 240x280 --seconds 12
+./tools/export-gifs.sh --mood uwu --size 368x448 --seconds 12
+./tools/export-gifs.sh --mood uwu --from mecha --size 368x448
+```
+
+On Windows, use `.\tools\export-gifs.bat` with the same arguments. Inspect a complete
+animation cycle on both target panel sizes and all four styles (`--style mochi`,
+`bloub`, `normal`, `trapez`). Check silhouette readability, intended colors,
+blink/morph behavior, clipping, trails, and clean return to rest. For backdrop
+changes, inspect transitions both into and out of the changed face; backgrounds
+must fade without dimming the eyes or disappearing abruptly.
+
+Include the checked faces, styles, panel sizes, and visual result in the PR, with
+representative GIFs attached when possible. Keep generated exports out of commits.
+GIFs are native software previews, not proof of physical display behavior.
+
 ---
 
 ## Pull Request Rules
@@ -58,6 +82,7 @@ the [device checklist](docs/TESTING.md).
 - Use Conventional Commits (for example `feat(eyes): add sleepy blink rate`)
 - Never commit secrets, keys, tokens, or personal data
 - Keep changes focused and update docs when behavior changes
+- For new or changed faces, complete and report the GIF visual check above.
 - Run native tests and both sequential PlatformIO builds from `docs/TESTING.md`.
   CI independently builds with pinned Arduino CLI dependencies.
 - Report hardware checks separately; an upload is not required for a code-only PR.

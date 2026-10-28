@@ -11,7 +11,7 @@
 void eyes_set_expression(Expression expr) {
 	eyes_faces_base(expr);
 	EyeState &state = eyes_state();
-	state.effectClockInit = false;
+	if (state.effectExpression == expr) { state.effectClockInit = false; }
 	if (state.dizzyUntilMs != 0) { state.savedExpr = expr; return; }
 	eyes_config().expression = expr;
 }

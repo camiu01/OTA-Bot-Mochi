@@ -10,6 +10,7 @@
 #include "eye_shapes.h"
 #include "eye_palette.h"
 #include "eye_life.h"
+#include "eye_backdrop.h"
 #include "eye_reference.h"
 #include "eye_reactions.h"
 #include "eye_effects.h"
@@ -100,7 +101,7 @@ static bool paint_scene(Arduino_GFX *gfx, const EyeConfig &cfg, uint32_t elapsed
 	return t != 0 && p->scene(gfx, cfg, layout, elapsed, t);
 }
 
-/** @brief Render distinct style silhouettes and mask lids after pupils to avoid floating highlights. */
+/** @brief Render style silhouettes, scenery and the complete face handoff. */
 void eyes_draw() {
 	Arduino_GFX *gfx = eyes_gfx();
 	if (!gfx) { return; }
@@ -125,9 +126,7 @@ void eyes_draw() {
 	if (preset && preset->drawing) { preset->drawing(drawing, layout, elapsed); }
 	cfg.fgColor = eye_reaction_ink(cfg, elapsed);
 	wipe(gfx, cfg, st);
-	EyeState effects = st;
-	if (preset && preset->background) { effects.lastMs = elapsed; }
-	eye_effect_background(gfx, cfg, effects, layout);
+	bool backdropLeaving = eye_backdrop_draw(gfx, cfg, st, layout, elapsed, pose.active);
 	eye_performance_background(gfx, cfg, layout, elapsed);
 	if (!paint_scene(gfx, cfg, elapsed, layout) && !eye_performance_scene(gfx, cfg, layout, elapsed)) {
 		EyeConfig left = cfg, right = cfg;
@@ -141,6 +140,6 @@ void eyes_draw() {
 	}
 	store_union(st, eye_effect_bounds(cfg, layout), cfg);
 	// Particles and reversible morphs travel beyond the ordinary pair's rectangle.
-	if (eye_performance(cfg.expression)) { st.prevX = st.prevY = 0; st.prevW = cfg.screenW; st.prevH = cfg.screenH; }
+	if (backdropLeaving || eye_performance(cfg.expression)) { st.prevX = st.prevY = 0; st.prevW = cfg.screenW; st.prevH = cfg.screenH; }
 	if (st.heartUntilMs != 0) { extend_heart(st); }
 }

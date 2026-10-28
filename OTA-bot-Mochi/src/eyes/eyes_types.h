@@ -242,10 +242,21 @@ struct EyeConfig {
 	uint16_t screenH;	/**< Canvas height in pixels, read from the display. */
 };
 
+/** @brief Transient scenery timing, independent of the eye expression clock. */
+struct EyeBackdropState {
+	EyeConfig config{};
+	uint32_t since = 0;
+	uint32_t frozenElapsed = 0;
+	bool initialized = false;
+	bool leaving = false;
+};
+
 /**
  * @brief Mutable animation state singleton.
  */
 struct EyeState {
+	EyeBackdropState backdrop; /**< Outgoing scenery, never persisted. */
+	float backdropOpacity = 1; /**< Frame-local backdrop fade; never applied to eye ink. */
 	Expression effectExpression = NEUTRAL; /**< Last rendered mood for effect timing. */
 	uint32_t effectStartMs = 0; /**< Effect entry time, never persisted. */
 	bool effectClockInit = false; /**< First render initializes the effect clock. */

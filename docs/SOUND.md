@@ -122,7 +122,8 @@ BLE/display/audio session and loudness measurements remain outstanding.
 Settings → FACES offers **Calm**, **Normal**, and **Playful** (USB values
 `calm`, `dasai`, `playful`). All use smoother gaze
 and soft blinks; expression changes hand off through a roughly 320ms close/open
-transition rather than a sudden shape replacement. Expressive presets add double
+transition rather than a sudden shape replacement. Decorative backdrops fade
+separately; eye ink is never dimmed by the backdrop transition. Expressive presets add double
 blink, wink, side glance, curious lean, bounce/stretch, and nod.
 
 Dashboard mode caps motion intensity; night reduces it further. Presets do not

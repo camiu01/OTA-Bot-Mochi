@@ -5,6 +5,7 @@
  */
 #pragma once
 #include "../face_support.h"
+#include "../face_ambient_backgrounds.h"
 
 namespace face_defs { namespace moon_face {
 using namespace face_primitives;
@@ -19,6 +20,8 @@ inline bool glyph(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b, int16
 inline constexpr FacePreset preset = [] {
 	FacePreset p;
 	p.name = "moon";
+	p.background = face_backgrounds::stars;
+	p.bounds = face_backgrounds::full_bounds;
 	p.glyph = glyph;
 	return p;
 }();

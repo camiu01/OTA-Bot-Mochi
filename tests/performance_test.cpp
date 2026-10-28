@@ -242,6 +242,7 @@ static void raster(int16_t width, int16_t height) {
 			EyeState &st = eyes_state();
 			st.lastMs = 10000;
 			eyes_draw();
+			st.lastMs = 16000; eyes_draw();
 			auto first = gfx.pixels;
 			bool changed = false, colored = false;
 			for (uint32_t t = 0; t <= 6000; t += 125) {
@@ -324,6 +325,7 @@ static void appended_cycles() {
 				eyes_set_expression(Expression(id));
 				uint32_t entry = UINT32_MAX - 1000;
 				eyes_state().lastMs = entry; eyes_draw();
+				eyes_state().lastMs = entry + 6000; eyes_draw();
 				auto first = gfx.pixels;
 				for (uint32_t t = 125; t <= 6000; t += 125) {
 					eyes_state().lastMs = entry + t; eyes_draw();

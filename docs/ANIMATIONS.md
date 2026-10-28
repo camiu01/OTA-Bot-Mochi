@@ -49,6 +49,36 @@ regions include the moving eyes. Automatic reactions still wait for the complete
 ordinary three-second cycle. These are eye-only interpretations, not
 frame-for-frame GIF playback.
 
+## Background-only dissolve
+
+Only decorative backdrops fade. Eye changes keep their normal 320 ms close/open
+handoff. The outgoing backdrop survives that handoff and fades out over its own
+1.2 seconds, even when the next face has no backdrop. Only then does the incoming
+backdrop ease in over 1.2 seconds. Rapid selections update the destination without
+cutting off or restarting the outgoing fade.
+Eye bodies, pupils, highlights and performance colors do not use backdrop opacity.
+The fade is applied while drawing backdrop colors, without blending the complete
+canvas, changing brightness, allocating another framebuffer or writing settings.
+
+## Themed backdrop entry
+
+MECHA, SAMURAI, TITAN, YOKAI, NEON, WHEELS, SAKURA, BAMBOO, TRAFFIC, MOON,
+ZEN and DAYDREAM backdrops fade in over
+1.2 seconds when the mood changes, with a smooth start and stop. Their final
+geometry stays unchanged; backdrop contrast is reduced to 55% of its previous
+blend strength so the selected eye ink remains dominant. The fade does not restart each performance
+cycle and does not change the eye ink or the saved palette.
+
+Sakura adds a muted branch and four petals with a small, smooth drift during the
+middle of its performance. Bamboo adds stationary distant stems below the eyes;
+Traffic adds a low, sparse skyline. These accents leave the eye row clear and
+return to the same settled frame at the end of each performance.
+
+Moon has seven dim stars above the crescent eyes. Zen adds two thin, stationary
+water ripples below the eye pair. Daydream has two small muted clouds with a
+slow, short drift and a smooth return. All three use the same 1.2-second entry
+and preserve the selected eye ink, saved settings and existing silhouettes.
+
 ## New performance moods
 
 Select Settings > LOOK > Mood, or type `mood dancing` in the USB/emulator console.
@@ -95,7 +125,7 @@ These are native raster previews, not device photographs.
 | 129 | `bamboo` | Pink bobbing eyes between two swaying bamboo stalks |
 | 130 | `titan` | Expanding amber eyes framed by pulsing angular energy ribs |
 | 131 | `upside_down` | Eyes follow a reversible half-turn orbit, without rotating UI or touch |
-| 132 | `uwu` | Tall pale-blue U-shaped eyes, a brief squeeze and tilted cheek strokes, without a mouth |
+| 132 | `uwu` | White top-open U-shaped eyes with separate pink cheeks, without a mouth or backdrop |
 | 133 | `yokai` | Ember eyes beneath small horns with orbiting flame wisps |
 
 The two banners use the built-in bitmap font, not source lettering or logos.
@@ -132,9 +162,10 @@ lower face with a moving narrow highlight; there is no full-screen flash.
 The blade is painted before the eyes so its fade cannot cut through either
 silhouette or leave detached fragments during entry and return.
 
-UwU follows the local reference's tall top-open U eyes and cheek strokes.
-Its eyes briefly squeeze closed and reopen, with exact return to the selected
-style at both loop endpoints. The mouth is deliberately omitted, as requested.
+UwU has two white, tall top-open U-shaped eyes with separate rounded pink cheeks.
+There is no mouth or decorative background. The temporary white eye ink and pink
+blush do not change the selected palette.
+It morphs back to the selected style at both performance endpoints.
 Neon keeps a hollow center while four style-shaped, progressively dimmer outer
 halos create a colored glare. Both effects remain frame-local and use no
 additional framebuffer or stored image assets.

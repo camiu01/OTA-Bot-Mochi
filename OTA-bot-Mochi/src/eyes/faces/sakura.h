@@ -5,6 +5,7 @@
  */
 #pragma once
 #include "../face_support.h"
+#include "../face_ambient_backgrounds.h"
 namespace face_defs { namespace sakura_face {
 /** @brief Drift original paired-circle petals without particle storage. */
 inline void scenery(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeLayout &, uint32_t elapsed, float a) {
@@ -25,7 +26,8 @@ inline void motion(bool, uint32_t phase, float a, float &, float &, float &dx, f
 }
 /** @brief Register the petal performance. */
 inline constexpr FacePreset preset = [] {
-	FacePreset p; p.name = "sakura"; p.performance = p.fullScene = true;
+	FacePreset p; p.name = "sakura"; p.background = face_backgrounds::petals;
+	p.bounds = face_backgrounds::full_bounds; p.performance = p.fullScene = true;
 	p.performanceInk = eye_rgb(245, 135, 185); p.scenery = scenery; p.performanceMotion = motion;
 	return p;
 }();

@@ -17,7 +17,8 @@ static void check(int16_t w, int16_t h, EyeStyle style) {
 	Arduino_GFX gfx(w, h), bare(w, h);
 	eyes_init(&gfx); eyes_set_style(style); eyes_life_reset();
 	eyes_set_eye_colors(0x0841, 0xFFFF, 0xF800, 0x07E0); eyes_set_expression(NEON);
-	eyes_state() = EyeState{}; eyes_draw(); auto rest = gfx.pixels;
+	eyes_state() = EyeState{}; eyes_draw();
+	eyes_state().lastMs = 6000; eyes_draw(); auto rest = gfx.pixels;
 	eyes_state().lastMs = 3000; eyes_draw(); auto lit = gfx.pixels;
 	const EyeConfig &cfg = eyes_config();
 	EyeLayout pair = eye_layout(cfg, EyeState{});

@@ -44,6 +44,12 @@ Left to right: `arc_happy`, `squeezed`, `tilted`, and `clock_eyes`.
 The gauge is an animation, not a speed/RPM instrument. Glow returns to the selected eye color; headlight beams grow outward
 from the eyes. These still images do not show the transitions.
 
+To generate animated previews of any face or face transition, double-click
+`tools/export-gifs.bat` on Windows. See [GIF export](docs/GIF_EXPORT.md) for setup,
+batch export and LCD/AMOLED sizes.
+Double-click `tools/export-all-gifs.bat` to export every face, one GIF per file.
+On Linux, use `./tools/export-gifs.sh` or `./tools/export-all-gifs.sh` with the same options.
+
 ## What it does
 
 "Available" below means implemented in the current source. It does not mean every feature has passed physical

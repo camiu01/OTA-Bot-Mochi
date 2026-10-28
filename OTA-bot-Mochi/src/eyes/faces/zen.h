@@ -5,6 +5,7 @@
  */
 #pragma once
 #include "../face_support.h"
+#include "../face_ambient_backgrounds.h"
 
 namespace face_defs { namespace zen_face {
 using namespace face_primitives;
@@ -19,6 +20,8 @@ inline void lids(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b) {
 inline constexpr FacePreset preset = [] {
 	FacePreset p;
 	p.name = "zen";
+	p.background = face_backgrounds::ripples;
+	p.bounds = face_backgrounds::full_bounds;
 	p.left.widthDelta = 8;
 	p.right.widthDelta = 8;
 	p.left.heightScale = 0.38f;

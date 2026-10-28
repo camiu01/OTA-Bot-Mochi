@@ -5,6 +5,7 @@
  */
 #pragma once
 #include "../face_support.h"
+#include "../face_ambient_backgrounds.h"
 
 namespace face_defs { namespace daydream_face {
 using namespace face_primitives;
@@ -18,6 +19,8 @@ inline void lids(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b) {
 inline constexpr FacePreset preset = [] {
 	FacePreset p;
 	p.name = "daydream";
+	p.background = face_backgrounds::clouds;
+	p.bounds = face_backgrounds::full_bounds;
 	p.left.widthDelta = 6;
 	p.right.widthDelta = 6;
 	p.left.heightScale = 0.92f;
