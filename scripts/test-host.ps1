@@ -56,6 +56,18 @@ try {
 		"$root\tests\stubs\imu_noop.cpp"
 	)
 	Invoke-HostTest 'swipe' @("$root\tests\swipe_test.cpp")
+	$ota = @("$root\tests\ota_test.cpp", "$root\OTA-bot-Mochi\src\update\ota_update.cpp")
+	Invoke-HostTest 'ota-lcd' $ota @('-I', "$root\tests\stubs\ota")
+	Invoke-HostTest 'ota-amoled' $ota @('-I', "$root\tests\stubs\ota", '-DMOCHI_BOARD_AMOLED_18')
+	$otaQr = @("$root\tests\ota_qr_test.cpp", "$root\OTA-bot-Mochi\src\update\ota_qr.cpp")
+	Invoke-HostTest 'ota-qr-lcd' $otaQr @('-I', "$root\tests\stubs\ota")
+	Invoke-HostTest 'ota-qr-amoled' $otaQr @('-I', "$root\tests\stubs\ota", '-DMOCHI_BOARD_AMOLED_18')
+	$otaScreen = @("$root\tests\ota_screen_test.cpp", "$root\OTA-bot-Mochi\src\update\ota_screen.cpp",
+		"$root\OTA-bot-Mochi\src\update\ota_qr.cpp", "$root\tests\stubs\imu_noop.cpp")
+	Invoke-HostTest 'ota-screen-lcd' ($runtime + $otaScreen) @('-I', "$root\tests\stubs\ota")
+	Invoke-HostTest 'ota-screen-amoled' ($runtime + $otaScreen) @('-I', "$root\tests\stubs\ota", '-DMOCHI_BOARD_AMOLED_18')
+	& g++ -std=c++17 -Wall -Wextra -Werror -I "$root\tests\stubs" -DMOCHI_BOARD_LCD_169 -fsyntax-only "$root\OTA-bot-Mochi\src\update\ota_screen.cpp"
+	if ($LASTEXITCODE -ne 0) { throw 'OTA screen syntax check failed' }
 	Invoke-HostTest 'startup' @("$root\tests\startup_test.cpp")
 	Invoke-HostTest 'face-variety' @("$root\tests\face_variety_test.cpp")
 	Invoke-HostTest 'render-metrics' @("$root\tests\render_metrics_test.cpp")

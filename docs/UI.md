@@ -10,6 +10,11 @@ This percentage is **brightness, not battery charge**.
 
 ## Controls
 
+- Settings → SYSTEM → **Firmware update** opens a temporary Wi-Fi maintenance
+  screen, outside the six-page carousel. Its password and browser address are
+  shown on the display; normal controls pause until exit, timeout or restart.
+  See [OTA](OTA.md) for first-install requirements and safety limits.
+
 - Swipe left/right through Eyes, Clock, Route, Alerts, Weather, and Settings.
 - Vertical swipes follow the contextual layers: swipe **down** on Clock to open
   Scrivania (desk tools), swipe **up** on Scrivania to return to Clock, and

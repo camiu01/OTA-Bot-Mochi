@@ -12,6 +12,16 @@
 	X(Alerts, "ALERTS", "NOTIFICHE") \
 	X(Weather, "WEATHER", "METEO") \
 	X(Settings, "SETTINGS", "IMPOSTAZIONI") \
+	X(FirmwareUpdate, "Firmware update", "Aggiorna firmware") \
+	X(OtaWifi, "Connect to Wi-Fi:", "Connetti al Wi-Fi:") \
+	X(OtaPassword, "Wi-Fi password:", "Password Wi-Fi:") \
+	X(OtaBrowser, "Open browser:", "Apri nel browser:") \
+	X(OtaReady, "Ready / 5 min timeout", "Pronto / scade in 5 min") \
+	X(OtaWriting, "Writing / keep power on", "Scrittura / non spegnere") \
+	X(OtaRestart, "Verified / restarting", "Verificato / riavvio") \
+	X(OtaScan, "Scan to join Wi-Fi", "Scansiona per Wi-Fi") \
+	X(OtaDetails, "DETAILS", "DETTAGLI") \
+	X(OtaQr, "WI-FI QR", "QR WI-FI") \
 	X(Desk, "DESK TOOLS", "SCRIVANIA") \
 	X(BigClock, "BIG CLOCK", "OROLOGIO GRANDE") \
 	X(Overview, "DESK OVERVIEW", "RIEPILOGO") \

@@ -1,7 +1,8 @@
 # Install a release safely
 
-These are user-operated USB flashing instructions, not wireless OTA.
-No firmware is uploaded by the test or build commands.
+These are user-operated USB flashing instructions. After the first OTA-capable
+USB installation, use [local wireless updates](OTA.md) with the matching
+`*-app.bin` downloaded from a release. No firmware is uploaded by tests or builds.
 
 ## Choose the board first
 
@@ -56,6 +57,11 @@ use the manufacturer's documented BOOT/RESET download-mode procedure for your
 exact board, not guessed GPIO wiring or an erase workaround.
 
 ## Update an existing installation
+
+For an installation already using the **16 MB OTA layout v1** and an OTA-capable
+firmware, follow [the browser upload procedure](OTA.md). The first transition
+from v1.2.0 or another pre-OTA layout requires USB installation of the full image.
+Record settings first: a partition migration is not a settings-preserving update.
 
 An **`*-app.bin`** contains only the application. It is not a first-install image
 and must **never** be written at `0x0`.

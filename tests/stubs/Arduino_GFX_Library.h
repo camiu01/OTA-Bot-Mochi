@@ -37,6 +37,8 @@ class Arduino_GFX : public Raster {
 		cursor_x += 6 * size;
 	}
 public:
+	/** @brief Native canvas has no physical display to flush. */
+	void flush() {}
 	unsigned int paints = 0;
 	std::vector<std::string> text;
 	/** @brief Allocate a panel-sized canvas. @param panel_w Width in pixels. @param panel_h Height in pixels. */

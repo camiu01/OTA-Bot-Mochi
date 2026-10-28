@@ -275,6 +275,10 @@ static void menu_tests() {
 	assert(settings_get().language == 1 && strcmp(tr(Text::Settings), "IMPOSTAZIONI") == 0);
 	settings_menu_tap(20, 202);
 	assert(!settings_get().route_large);
+	assert(settings_menu_scroll(1));
+	unsigned int ota_writes = test_flash_writes;
+	assert(settings_menu_tap(20, 202) == MenuAction::Update);
+	assert(test_flash_writes == ota_writes);
 	settings_menu_draw(&gfx);
 	settings_menu_tap(30, 65);
 	settings_menu_tap(20, 100);

@@ -267,9 +267,13 @@ static void automatic_scene_duration() {
 
 /** @brief Scene entry retains lateral gaze, then moves continuously to center without trails. */
 static void scene_entry_motion() {
-	// Themed backdrops paint a static frame outside the pair; subtract it so the
-	// edge metric keeps measuring the eye silhouette alone.
-	auto left_edge = [](const Arduino_GFX &gfx, const Arduino_GFX &backdrop) {
+	// Subtract the same-time backdrop so its fade cannot masquerade as eye motion.
+	auto left_edge = [](const Arduino_GFX &gfx, EyeConfig cfg, uint32_t elapsed) {
+		Arduino_GFX backdrop(240, 280);
+		backdrop.fillScreen(cfg.bgColor);
+		EyeState resting{};
+		resting.lastMs = elapsed;
+		eye_effect_background(&backdrop, cfg, resting, eye_layout(cfg, resting));
 		int16_t edge = 240;
 		for (int16_t y = 0; y < 280; ++y) {
 			for (int16_t x = 0; x < edge; ++x) {
@@ -286,22 +290,22 @@ static void scene_entry_motion() {
 			Arduino_GFX gfx(240, 280);
 			eyes_init(&gfx); eyes_set_style(MOCHI);
 			eyes_set_expression(expression);
-			Arduino_GFX backdrop(240, 280);
-			backdrop.fillScreen(0);
 			EyeConfig cfg = eyes_config();
-			EyeState resting{};
-			eye_effect_background(&backdrop, cfg, resting, eye_layout(cfg, resting));
 			EyeState &st = eyes_state();
 			st.saccadeX = offset;
 			for (uint32_t now = 0; now < 1000; now += 20) { eyes_life_step(now, 20); }
 			st.lastMs = 0;
 			eyes_draw();
-			int16_t first = left_edge(gfx, backdrop), previous = first;
+			int16_t first = left_edge(gfx, cfg, 0), previous = first;
 			uint32_t end = performance ? 580 : 800;
 			for (uint32_t elapsed = 20; elapsed <= end; elapsed += 20) {
 				st.lastMs = elapsed;
 				eyes_draw();
-				int16_t current = left_edge(gfx, backdrop);
+				int16_t current = left_edge(gfx, cfg, elapsed);
+				if (!(offset < 0 ? current >= previous : current <= previous)) {
+					std::cerr << "scene entry " << eyes_expression_name(expression) << " offset " << offset
+						<< " elapsed " << elapsed << " previous " << previous << " current " << current << "\n";
+				}
 				assert(offset < 0 ? current >= previous : current <= previous);
 				assert(abs(current - previous) <= 2);
 				auto dirty = gfx.pixels;

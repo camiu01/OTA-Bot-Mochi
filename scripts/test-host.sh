@@ -46,6 +46,17 @@ g++ -std=c++17 -Wall -Wextra -Werror -I "$root/tests/stubs" -DMOCHI_BOARD_AMOLED
 	"$root/OTA-bot-Mochi/src/touch/touch.cpp" "$root/OTA-bot-Mochi/src/power/backlight.cpp" \
 	"$root/OTA-bot-Mochi/src/sound/buzzer_output.cpp" "$root/OTA-bot-Mochi/src/power/battery.cpp"
 build_test swipe "$root/tests/swipe_test.cpp"
+ota=("$root/tests/ota_test.cpp" "$root/OTA-bot-Mochi/src/update/ota_update.cpp")
+build_test ota-lcd -I "$root/tests/stubs/ota" "${ota[@]}"
+build_test ota-amoled -I "$root/tests/stubs/ota" -DMOCHI_BOARD_AMOLED_18 "${ota[@]}"
+ota_qr=("$root/tests/ota_qr_test.cpp" "$root/OTA-bot-Mochi/src/update/ota_qr.cpp")
+build_test ota-qr-lcd -I "$root/tests/stubs/ota" "${ota_qr[@]}"
+build_test ota-qr-amoled -I "$root/tests/stubs/ota" -DMOCHI_BOARD_AMOLED_18 "${ota_qr[@]}"
+ota_screen=("$root/tests/ota_screen_test.cpp" "$root/OTA-bot-Mochi/src/update/ota_screen.cpp"
+	"$root/OTA-bot-Mochi/src/update/ota_qr.cpp" "$root/tests/stubs/imu_noop.cpp")
+build_test ota-screen-lcd -I "$root/tests/stubs/ota" "${runtime[@]}" "${ota_screen[@]}"
+build_test ota-screen-amoled -I "$root/tests/stubs/ota" -DMOCHI_BOARD_AMOLED_18 "${runtime[@]}" "${ota_screen[@]}"
+g++ -std=c++17 -Wall -Wextra -Werror -I "$root/tests/stubs" -DMOCHI_BOARD_LCD_169 -fsyntax-only "$root/OTA-bot-Mochi/src/update/ota_screen.cpp"
 build_test startup "$root/tests/startup_test.cpp"
 build_test face-variety "$root/tests/face_variety_test.cpp"
 build_test render-metrics "$root/tests/render_metrics_test.cpp"

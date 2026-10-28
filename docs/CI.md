@@ -11,6 +11,8 @@ published releases (including prereleases), and
 2. **firmware:** After tests pass, compile both LCD and AMOLED profiles with
    Arduino CLI. Core, CLI, and library versions are pinned in the workflow.
    The PlatformIO environments in `platformio.ini` are not built by CI.
+   Both builds use the sketch-local 16 MB OTA partition table and
+   `upload.maximum_size=6553600` for each 6.25 MiB application slot.
 3. **artifacts:** Attach both builds to the workflow run as
    `mochi-esp32s3-<commit SHA>` and `mochi-esp32s3-amoled-<commit SHA>`,
    retained for 14 days.
@@ -80,7 +82,8 @@ releases, upload over USB, or deploy OTA to a board.
 ## Local packaging check
 
 Run `python tests/release_package_test.py`. It uses fake artifacts to check board
-names, contents, checksums, missing/empty input failures, and refusal to overwrite
+names, board/layout markers, partition layout, CI size limits, contents,
+checksums, missing/empty input failures, and refusal to overwrite
 an existing output directory. CI runs it before compiling firmware.
 
 ## Inspected release evidence (2026-10-27)

@@ -35,7 +35,7 @@ enum MenuTab : uint8_t { TAB_LOOK, TAB_LIGHT, TAB_FACES, TAB_MOTION, TAB_AUDIO, 
 
 /** @brief Number of rows in the current panel. */
 uint8_t row_count() {
-	static const uint8_t counts[] = {3, 4, 3, 5, 5, 3};
+	static const uint8_t counts[] = {3, 4, 3, 5, 5, 4};
 	return tab == TAB_AUDIO && sound_options ? 4 : counts[tab];
 }
 
@@ -143,6 +143,7 @@ void extra_rows(Arduino_GFX *gfx, const CompanionSettings &p) {
 		row(gfx, 0, tr(Text::Language), p.language ? "Italiano" : "English");
 		row(gfx, 1, tr(Text::Dashboard), on_off(p.dashboard));
 		row(gfx, 2, tr(Text::RouteDefault), tr(p.route_large ? Text::Large : Text::Details));
+		row(gfx, 3, tr(Text::FirmwareUpdate), tr(Text::Open));
 	} else if (sound_options) {
 		row(gfx, 0, tr(Text::Faces), on_off(p.sound_faces));
 		row(gfx, 1, tr(Text::TimerLabel), on_off(p.sound_timer));
@@ -268,6 +269,7 @@ MenuAction settings_menu_tap(int16_t x, int16_t y) {
 	if (y >= ui_s(94) && y < ui_s(222)) {
 		uint8_t index = uint8_t(first_row + (y - ui_s(94)) / ui_s(44));
 		uint8_t count = row_count();
+		if (tab == TAB_SYSTEM && index == 3) { return MenuAction::Update; }
 		if (index < count) { change_row(index); return MenuAction::Changed; }
 	}
 	return MenuAction::None;

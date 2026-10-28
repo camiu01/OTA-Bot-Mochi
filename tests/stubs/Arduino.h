@@ -72,6 +72,13 @@ public:
 	void replace(char from, char to) {
 		for (char &c : value) { if (c == from) { c = to; } }
 	}
+	void replace(const char *from, const char *to) {
+		size_t position = 0;
+		while ((position = value.find(from, position)) != std::string::npos) {
+			value.replace(position, strlen(from), to);
+			position += strlen(to);
+		}
+	}
 	String &operator+=(char c) { value += c; return *this; }
 	friend String operator+(const String &a, const String &b) { return a.value + b.value; }
 	friend bool operator==(const String &a, const String &b) { return a.value == b.value; }

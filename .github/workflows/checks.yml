@@ -69,6 +69,7 @@ jobs:
           set -euo pipefail
           arduino-cli compile --jobs 4 --warnings all \
             --fqbn "$BOARD_FQBN" \
+            --build-property "upload.maximum_size=6553600" \
             --build-property "compiler.cpp.extra_flags=-DMOCHI_BOARD_LCD_169" \
             --build-path "$RUNNER_TEMP/arduino-build" \
             --output-dir "$RUNNER_TEMP/firmware" \
@@ -79,6 +80,7 @@ jobs:
           set -euo pipefail
           arduino-cli compile --jobs 4 --warnings all \
             --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=opi,FlashSize=16M" \
+            --build-property "upload.maximum_size=6553600" \
             --build-property "compiler.cpp.extra_flags=-DMOCHI_BOARD_AMOLED_18" \
             --build-path "$RUNNER_TEMP/arduino-build-amoled" \
             --output-dir "$RUNNER_TEMP/firmware-amoled" \
@@ -98,6 +100,7 @@ jobs:
             printf 'Libraries: ESP32Time 2.0.6; NimBLE-Arduino 2.5.1; ChronosESP32 1.9.1; GFX Library for Arduino 1.6.9\n'
             printf 'Reference board: Waveshare ESP32-S3-Touch-LCD-1.69 OLD\n'
             printf 'Profile: -DMOCHI_BOARD_LCD_169\n'
+            printf 'Partitions: sketch partitions.csv, Mochi 16MB OTA layout v1, two 0x640000-byte app slots\n'
             printf 'Confirm the 16MB flash profile; PSRAM must stay disabled on the OLD board.\n'
           } > BUILD-INFO.txt
           sha256sum -- *.bin > SHA256SUMS.txt
@@ -110,6 +113,7 @@ jobs:
             printf 'ESP32 core: %s\n' "$ESP32_CORE_VERSION"
             printf 'Libraries: ESP32Time 2.0.6; NimBLE-Arduino 2.5.1; ChronosESP32 1.9.1; GFX Library for Arduino 1.6.9\n'
             printf 'Profile: -DMOCHI_BOARD_AMOLED_18 (Waveshare ESP32-S3-Touch-AMOLED-1.8 V2)\n'
+            printf 'Partitions: sketch partitions.csv, Mochi 16MB OTA layout v1, two 0x640000-byte app slots\n'
             printf 'FQBN: esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=opi,FlashSize=16M\n'
             printf 'The 8MB octal PSRAM holds the 368x448 frame canvas; see docs/BOARDS.md.\n'
           } > BUILD-INFO.txt

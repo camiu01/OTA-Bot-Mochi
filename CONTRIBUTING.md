@@ -16,6 +16,10 @@ cd OTA-Bot-Mochi
 
 4. Select `ESP32S3 Dev Module`, enable USB CDC On Boot, and verify your board's flash/PSRAM options before building and uploading. See [Testing](docs/TESTING.md).
 
+Keep the sketch-local 16 MB OTA partition layout. The first installation over an
+older layout needs the [USB migration procedure](docs/INSTALLING.md); an
+application-only upload cannot migrate it.
+
 ---
 
 ## Project Layout
@@ -26,6 +30,7 @@ cd OTA-Bot-Mochi
 - `src/clock/`: synchronized, region-based clock face
 - `src/power/`: PWM backlight and host-testable brightness policy
 - `src/touch/`: touch probing and horizontal gesture tracker
+- `src/update/`: local Wi-Fi firmware maintenance, image validation and QR screen
 - `pin_config.h`: all pin mappings, fully remappable
 - `gfx_helper.h` / `gfx_helper.cpp`: display helpers, palette, text layout
 - `images.h`: splash, icons, bitmaps

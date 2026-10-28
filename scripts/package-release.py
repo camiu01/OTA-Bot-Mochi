@@ -16,6 +16,14 @@ Flash it at address 0x0. It overwrites flash, including saved settings.
 Use it for first installation or recovery; it is not a settings-preserving update.
 *-app.bin is only the application, for an existing matching partition layout.
 Never flash an app-only image at address 0x0.
+Wireless updates: install this OTA-capable version and its 16MB OTA layout by
+USB first. Then choose Settings > SYSTEM > Firmware update, connect to the
+temporary Mochi-Update Wi-Fi using the displayed QR or manual password, and open
+http://192.168.4.1 in a browser. Upload only the matching *-app.bin.
+Download the release before joining the device Wi-Fi (it has no Internet).
+Keep stable USB power connected. The session closes after five minutes.
+Older releases without the embedded board/layout marker are rejected.
+See docs/OTA.md for safety limits and the HTTP interface.
 For updates, verify the installed partition table and target application offset
 first. Do not guess an offset or mix partition layouts, board profiles or PSRAM
 settings. An app update with an unchanged NVS layout normally preserves saved
@@ -37,6 +45,10 @@ def package(lcd: Path, amoled: Path, output: Path) -> None:
 	"""Validate both builds before creating the release asset directory."""
 	copies = []
 	for board, source in (("lcd-169", lcd), ("amoled-18-v2", amoled)):
+		app = source / "OTA-bot-Mochi.ino.bin"
+		marker = f"MOCHI-OTA-v1:{board}:16m-v1:END".encode("ascii")
+		if not app.is_file() or marker not in app.read_bytes():
+			raise ValueError(f"Missing OTA board/layout marker for {board}: {app}")
 		for filename, suffix in (
 			("OTA-bot-Mochi.ino.bin", "app.bin"),
 			("OTA-bot-Mochi.ino.merged.bin", "full.bin"),

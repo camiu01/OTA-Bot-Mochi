@@ -37,10 +37,13 @@ different touch wiring; it is not covered.
 
 ```sh
 # LCD board (default)
-arduino-cli compile --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=disabled,FlashSize=16M" OTA-bot-Mochi
+arduino-cli compile --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=disabled,FlashSize=16M" \
+  --build-property "upload.maximum_size=6553600" \
+  --build-property "compiler.cpp.extra_flags=-DMOCHI_BOARD_LCD_169" OTA-bot-Mochi
 
 # AMOLED board (V2)
 arduino-cli compile --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=opi,FlashSize=16M" \
+  --build-property "upload.maximum_size=6553600" \
   --build-property "compiler.cpp.extra_flags=-DMOCHI_BOARD_AMOLED_18" OTA-bot-Mochi
 ```
 

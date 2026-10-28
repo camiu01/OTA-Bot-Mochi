@@ -1,5 +1,18 @@
 # TODO
 
+## Local OTA, new implementation, hardware validation pending
+
+- [x] Fix the eye-motion reference test by subtracting its same-time backdrop; the complete native runner reports all host tests passed (2026-10-28).
+- [ ] Compile both profiles with the pinned CI toolchain, checking the new Wi-Fi code, flash size and heap headroom.
+- [ ] USB-install the 16 MB OTA layout v1 on each board; record settings/calibration migration effects.
+- [ ] Update both directions between two trusted OTA-capable releases via the browser, retaining saved settings and calibration.
+- [ ] Test phone/desktop browsers, temporary WPA2 credentials, five-minute expiry, BACK and Wi-Fi shutdown.
+- [ ] Scan the Wi-Fi QR on LCD OLD and AMOLED V2 with Android/iOS cameras; verify eight-character password entry, QR/details switching, fresh sessions, rotation and manual fallback.
+- [ ] Check upload progress, Wi-Fi/BLE coexistence and post-OTA Chronos reconnection on LCD OLD and AMOLED V2.
+- [ ] Reject renamed wrong-board, old pre-marker, full, corrupt, oversized and truncated images on real hardware.
+- [ ] Test controlled upload interruption/recovery with USB recovery available; do not assume native tests prove power-loss safety.
+- [ ] Record whether boot-health rollback or signed firmware is required before wider deployment; neither is enabled.
+
 ## Device status, user-confirmed on 2026-10-20
 
 The user reports that the functional checks on the Waveshare

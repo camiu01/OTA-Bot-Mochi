@@ -137,6 +137,12 @@ Physical speaker audibility and loudness still require the bench test in
 
 ## Host LCD emulator (SDL2)
 
+The host emulator is not an OTA radio/flash simulator. Six native OTA suites
+(updater, QR and maintenance screen for LCD and AMOLED) use transport, flash and
+encoder doubles. They cover image/auth failures, streaming, timeout/reboot,
+credential renewal, QR bounds/quiet zone and EN/IT screen states. Physical QR
+scanning and wireless updates remain in the [OTA checklist](../TODO.md).
+
 `tools/run-emulator.sh` builds a native window that drives the same UI code the
 tests link: real page routing, the production gesture policies, settings, sound
 and backlight services, the USB command parser, and the real eye renderer, all
@@ -272,7 +278,7 @@ arduino-cli core install esp32:esp32@3.3.11 --additional-urls https://espressif.
 arduino-cli lib install "ESP32Time@2.0.6" "NimBLE-Arduino@2.5.1"
 arduino-cli lib install --no-deps "ChronosESP32@1.9.1" "GFX Library for Arduino@1.6.9"
 arduino-cli board list
-arduino-cli compile --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=disabled,FlashSize=16M" --build-property "compiler.cpp.extra_flags=-DMOCHI_BOARD_LCD_169" OTA-bot-Mochi
+arduino-cli compile --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=disabled,FlashSize=16M" --build-property "upload.maximum_size=6553600" --build-property "compiler.cpp.extra_flags=-DMOCHI_BOARD_LCD_169" OTA-bot-Mochi
 arduino-cli upload --port COM3 --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=disabled,FlashSize=16M" OTA-bot-Mochi
 arduino-cli monitor --port COM3 --config baudrate=115200
 ```
@@ -289,12 +295,36 @@ SRAM, so it compiles with octal PSRAM enabled and the board macro:
 
 ```sh
 arduino-cli compile --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=opi,FlashSize=16M" \
+  --build-property "upload.maximum_size=6553600" \
   --build-property "compiler.cpp.extra_flags=-DMOCHI_BOARD_AMOLED_18" OTA-bot-Mochi
 ```
 
 CI compiles and publishes both profiles on every push; the AMOLED artifacts are
 build outputs, not physical validation. See [CI evidence](CI.md).
-PSRAM stays disabled: the OLD revision routes the buzzer to GPIO33 and the
+
+For a verbose **build only** on Windows with the IDE-bundled CLI:
+
+```powershell
+$cli = 'C:\Program Files\Arduino IDE\resources\app\lib\backend\resources\arduino-cli.exe'
+& $cli compile --verbose --warnings all --jobs 4 `
+  --fqbn 'esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=opi,FlashSize=16M' `
+  --build-property 'upload.maximum_size=6553600' `
+  --build-property 'compiler.cpp.extra_flags=-DMOCHI_BOARD_AMOLED_18' `
+  --build-path "$PWD\build\ota-amoled" `
+  --output-dir "$PWD\build\ota-amoled-artifacts" `
+  "$PWD\OTA-bot-Mochi"
+```
+
+Run from the repository root. This example targets AMOLED V2 and never opens a
+serial port. For LCD OLD, use `PSRAM=disabled`, `MOCHI_BOARD_LCD_169` and separate
+LCD output/build directories.
+
+The sketch-local `partitions.csv` supplies the 16 MB OTA layout. The explicit
+`upload.maximum_size=6553600` matches one app slot; without it Arduino CLI keeps
+the board menu's old 1.25 MiB limit even when using the custom CSV. In Arduino IDE,
+select the **Custom** partition scheme (if provided by the core) and keep the
+application below 6,553,600 bytes. See [OTA](OTA.md) before migrating a device.
+On LCD OLD, PSRAM stays disabled: the OLD revision routes the buzzer to GPIO33 and the
 power-control lines SYS_EN/SYS_OUT to GPIO35/GPIO36, which the ESP32-S3 octal
 PSRAM interface claims. A build with `PSRAM=opi` beeped the buzzer continuously
 and crashed in the shared I2C driver on 2026-10-13. The 8 MB onboard PSRAM

@@ -36,6 +36,7 @@ rows. Changes are live in RAM and do not write flash while browsing.
 | SYSTEM | Language | English / Italiano |
 | SYSTEM | Dashboard | on / off |
 | SYSTEM | Route default | large / details |
+| SYSTEM | Firmware update | temporary Wi-Fi and browser upload of a matching release `*-app.bin`; see [OTA](OTA.md) |
 
 Use previous/next arrows to cycle the six sections. Three 44-pixel row targets are visible at a time. Swipe up/down to reach the
 remaining rows; SOUND's test is the final row. Section arrows and bottom actions stay fixed.

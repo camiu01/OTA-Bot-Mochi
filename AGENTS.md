@@ -50,10 +50,13 @@ unless explicitly requested. The reproducible build commands are:
 
 ```sh
 # LCD board (default)
-arduino-cli compile --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=disabled,FlashSize=16M" OTA-bot-Mochi
+arduino-cli compile --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=disabled,FlashSize=16M" \
+  --build-property "upload.maximum_size=6553600" \
+  --build-property "compiler.cpp.extra_flags=-DMOCHI_BOARD_LCD_169" OTA-bot-Mochi
 
 # AMOLED board (V2; see docs/BOARDS.md for validation limits)
 arduino-cli compile --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=opi,FlashSize=16M" \
+  --build-property "upload.maximum_size=6553600" \
   --build-property "compiler.cpp.extra_flags=-DMOCHI_BOARD_AMOLED_18" OTA-bot-Mochi
 ```
 
@@ -62,6 +65,10 @@ environments `esp32s3-lcd` (default) and `esp32s3-amoled`. It is a local
 alternative to the Arduino CLI path, which remains the CI and reference route;
 CI does not build the PlatformIO environments. See
 `docs/TESTING.md#platformio-alternative`.
+
+Both profiles use the sketch-local `partitions.csv` (16 MB OTA layout v1).
+The Arduino CLI size override above matches each 6.25 MiB slot; do not omit it.
+Migrating from the old layout requires user-authorized USB installation.
 
 Do not enable OPI PSRAM on the 1.69 OLD board: that revision routes the buzzer
 to GPIO33 and the power-control lines to GPIO35/GPIO36, which the octal PSRAM

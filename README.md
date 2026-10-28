@@ -24,8 +24,10 @@ The firmware targets the Waveshare **ESP32-S3-Touch-LCD-1.69 OLD** and, through 
 - **Evidence:** the user reports “everything works”; this is general functional
   confirmation, not a two-board or endurance certificate. See
   [validation records](docs/HARDWARE_VALIDATION.md) and [release evidence](docs/CI.md).
-- **Limits:** no wireless firmware updater, verified battery runtime, or AMOLED
-  charging/battery driver. “OTA” in the name does not imply OTA updates.
+- **Wireless updates:** after the first OTA-capable USB installation, upload
+  your board's release `*-app.bin` through the [local OTA screen](docs/OTA.md).
+  Hardware validation of this new updater is still pending.
+- **Limits:** no verified battery runtime or AMOLED charging/battery driver.
 
 ## See it in action
 
@@ -70,6 +72,7 @@ testing on both boards. See the validation limits below.
 | Weather display | Shows phone-supplied conditions and up to three forecast entries, with missing/stale states |
 | Optional sound | Short generated chirps for reactions, timers, and alerts; category switches and night mute; off by default |
 | Personalization | Eye colors, brightness, 180-degree screen flip, motion presets, EN/IT labels, and explicitly saved preferences |
+| Local firmware update | Temporary WPA2 network, on-screen Wi-Fi QR/manual credentials, browser upload of the matching release application |
 | Power button | AMOLED V2: PWR 4s off / 1s on. LCD OLD: hold PWR 4s and release to turn off, press to restart; USB uses light sleep. Hardware switching requires board validation |
 
 Eyes and local desk Pong/timers work without a phone. Clocks need an initial Chronos time sync after each
@@ -108,7 +111,8 @@ Battery/charging support, power/runtime measurements, and automatic OTA deployme
 No enclosure design or fabrication files are supplied.
 
 **About "OTA":** the BLE name is `OTA bot`; the repository does not explain the acronym's origin.
-No firmware OTA updater is implemented. Artifact/release packaging is not wireless deployment.
+Manual [local firmware OTA](docs/OTA.md) is available through a temporary Wi-Fi
+network. Artifact/release packaging does not automatically deploy firmware.
 
 ## Hardware
 
@@ -185,7 +189,7 @@ not verify the other.
 #### 1. Prerequisites
 
 Install **Arduino CLI 1.2.0** and put `arduino-cli` in PATH. The IDE-bundled CLI is another supported route;
-see [toolchain setup](docs/TESTING.md#arduino-cli). You also need Git and the board's USB data connection.
+see [toolchain setup](docs/TESTING.md#arduino-cli). You also need Git. A USB data connection is required for flashing, not compilation.
 
 | Dependency | Version |
 | --- | --- |
@@ -220,13 +224,13 @@ Compile **only the profile matching your board**. Separate build directories kee
 **LCD 1.69 OLD:**
 
 ```sh
-arduino-cli compile --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=disabled,FlashSize=16M" --build-property "compiler.cpp.extra_flags=-DMOCHI_BOARD_LCD_169" --build-path build/lcd OTA-bot-Mochi
+arduino-cli compile --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=disabled,FlashSize=16M" --build-property "upload.maximum_size=6553600" --build-property "compiler.cpp.extra_flags=-DMOCHI_BOARD_LCD_169" --build-path build/lcd OTA-bot-Mochi
 ```
 
 **AMOLED 1.8 V2:**
 
 ```sh
-arduino-cli compile --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=opi,FlashSize=16M" --build-property "compiler.cpp.extra_flags=-DMOCHI_BOARD_AMOLED_18" --build-path build/amoled OTA-bot-Mochi
+arduino-cli compile --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=opi,FlashSize=16M" --build-property "upload.maximum_size=6553600" --build-property "compiler.cpp.extra_flags=-DMOCHI_BOARD_AMOLED_18" --build-path build/amoled OTA-bot-Mochi
 ```
 
 The sketch is [OTA-bot-Mochi.ino](OTA-bot-Mochi/OTA-bot-Mochi.ino); Arduino compiles its `src/` modules
@@ -253,7 +257,9 @@ arduino-cli upload --port COM3 --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=d
 arduino-cli upload --port COM3 --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=opi,FlashSize=16M" --build-path build/amoled OTA-bot-Mochi
 ```
 
-Upload replaces the installed application. Do not erase flash or change partitions; saved settings may be lost.
+The first OTA-capable installation must install the new partition layout over USB.
+Follow [migration instructions](docs/INSTALLING.md) before writing an older installation.
+For later updates, keep the layout unchanged; erasing flash or writing full images can remove settings.
 Precompiled v1.2.0 binaries are available. Use [installation instructions](docs/INSTALLING.md)
 for release images and [CI evidence](docs/CI.md) for their source revision and build results.
 
@@ -271,7 +277,9 @@ Look for `UI ready`, the detected touch address, and `IMU ready` or `IMU unavail
 startup shows an animated OTA BOT / MOCHI title for 2.2 seconds, then a silent eye greeting. Defaults
 are white MOCHI eyes, neutral mood, 30% day brightness, and sound off.
 
-These Arduino CLI commands were not executed locally during this consolidation.
+The new OTA firmware does not yet have a completed local Arduino CLI build:
+the initial build reached the old board-size limit, and the corrected retry was
+cancelled. See [OTA validation limits](docs/OTA.md#validation-and-limits).
 The inspected v1.2.0 CI run built both profiles at core **3.3.11**; earlier
 AMOLED device bring-up used **3.3.12**. Neither build result identifies which
 binary is currently installed or proves hardware operation.
@@ -322,8 +330,9 @@ settings above are not interchangeable.
 	pio device monitor --port COM3 --baud 115200
 	```
 
-Uploading replaces the installed application, exactly as with the Arduino CLI path; do not erase flash or
-change partitions. Never flash the AMOLED image to the LCD board or the reverse: the two profiles require
+Before the first OTA-capable installation, follow the USB partition migration in
+[Installing](docs/INSTALLING.md). Later updates must keep that layout unchanged.
+Never flash the AMOLED image to the LCD board or the reverse: the two profiles require
 different PSRAM configurations (see [Wiring and board configuration](#wiring-and-board-configuration)).
 
 ## Controls and everyday use
@@ -376,7 +385,7 @@ Timer/Pong state, automatic-rotation switch and temporary route layouts are sess
 | Route / calls | Large/details default and dashboard call-overlay policy |
 | Sound | Master switch, level 1–30, face/timer/alert/ambient categories, night mute |
 | Language | English or Italian UI; USB commands remain English and phone text is not translated |
-| Connection | Fixed advertised name `OTA bot`; no runtime name, BLE-parameter, Wi-Fi, or credential menu |
+| Connection | Fixed BLE name `OTA bot`; temporary Wi-Fi only in manual firmware-update mode, no router credential menu |
 
 The sound level is PWM duty on LCD and PCM amplitude on AMOLED, not calibrated loudness. IMU sensitivity, dead
 zone, and reaction thresholds are source constants, not runtime sliders.
@@ -423,6 +432,7 @@ Paths below are relative to `OTA-bot-Mochi/`.
 | `src/settings/` | Validated preferences, legacy-profile migration, explicit NVS save, touch menu, and USB parser |
 | `src/sound/` | Cue scheduling and board-specific PWM or ES8311/I2S output |
 | `src/power/` | Brightness/dimming policy and best-effort battery estimate |
+| `src/update/` | Temporary Wi-Fi maintenance mode, browser upload, image validation, Wi-Fi QR and progress screen |
 
 The sketch services BLE, touch, timers, sound, and brightness between display frames scheduled 33 ms apart. An
 `Arduino_Canvas` composes a complete RGB565 frame before `flush()`. This uses RAM to avoid exposing partial
@@ -451,7 +461,7 @@ gyroscope fusion, attitude measurement, or autonomous movement.
 
 IMU zero saves a mounting reference; decorative reaction thresholds still lack measured
 accuracy validation. No autonomous
-locomotion, GPS, call answering, voice interaction, ambient-light detection, or firmware OTA updater is
+locomotion, GPS, call answering, voice interaction, or ambient-light detection is
 implemented. Power consumption, battery runtime, extended BLE/audio stability, and full LCD/AMOLED
 touch/orientation validation remain open. The Chronos metadata uses nearby rectangular presets rather than
 exact panel dimensions. See [TODO](TODO.md) and the [device
