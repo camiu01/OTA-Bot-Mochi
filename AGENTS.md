@@ -104,7 +104,7 @@ on native tests and provides downloadable binaries, not automatic OTA deployment
   legacy geometry.
 - Settings update RAM immediately, apply colors/brightness/eye preferences,
   and increment a renderer revision. Only explicit SAVE writes the NVS profile.
-  Version six is thirteen bytes (Face flow); preserve thirteen-byte v5,
+  Version seven is thirteen bytes (Phone mode); preserve thirteen-byte v5/v6,
   twelve-byte v4 and eight-byte v1–v3 migration.
   Session route overrides and local timer state are deliberately not persisted.
 - `ui_theme.*` owns the shared palette/primitives; `i18n.*` owns built-in EN/IT

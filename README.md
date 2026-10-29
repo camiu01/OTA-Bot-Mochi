@@ -11,9 +11,20 @@ The firmware targets the Waveshare **ESP32-S3-Touch-LCD-1.69 OLD** and, through 
 
 [Hardware](#hardware) · [Build and flash](#build-and-flash) · [Controls](#controls-and-everyday-use) · [Configuration](#configuration) · [Known limits](#limitations-and-troubleshooting)
 
+## Version 1.3.0 preparation
+
+The current source adds ANCS, saved Wi-Fi, automatic NTP/Open-Meteo weather,
+local web settings, global face exclusions and Tris since v1.2.1.
+Version 1.3.0 is the planned next minor release, not a published tag or release.
+See [Changelog](CHANGELOG.md) for changes, compatibility and validation limits.
+
 ## Start here
 
-- **Without a phone:** animated eyes, touch/motion reactions, Pong and local timers.
+- **Without a phone:** animated eyes, touch/motion reactions, Pong, Tris and local timers.
+- **With iPhone:** ANCS notifications without Chronos; select iPhone mode, SAVE,
+  restart and authorize notification access in iOS Bluetooth settings.
+- **With Wi-Fi:** saved 2.4 GHz connection, automatic NTP and city-based weather;
+  [configuration](docs/NETWORK.md) opens only when requested from Settings.
 - **With Chronos:** time synchronization, notifications/calls, weather and navigation.
   Clocks keep time while disconnected, but need synchronization after reboot.
 - **Board:** use exactly LCD **1.69 OLD** (PSRAM disabled) or AMOLED **1.8 V2**
@@ -21,8 +32,8 @@ The firmware targets the Waveshare **ESP32-S3-Touch-LCD-1.69 OLD** and, through 
 - **Install:** download a [release](https://github.com/camiu01/OTA-Bot-Mochi/releases)
   and follow [first installation versus update](docs/INSTALLING.md).
   Source builds are described below.
-- **Evidence:** the user reports “everything works”; this is general functional
-  confirmation, not a two-board or endurance certificate. See
+- **Evidence:** the user confirmed Wi-Fi, settings changes and ANCS notifications
+  working on AMOLED V2. These are functional reports, not a two-board or endurance certificate. See
   [validation records](docs/HARDWARE_VALIDATION.md) and [release evidence](docs/CI.md).
 - **Wireless updates:** after the first OTA-capable USB installation, upload
   your board's release `*-app.bin` through the [local OTA screen](docs/OTA.md).
@@ -64,14 +75,15 @@ testing on both boards. See the validation limits below.
 | Animated eyes | Four styles (`mochi`, `bloub`, `normal`, `trapez`), with blinking, idle gaze, and 135 selectable moods |
 | Touch reactions | Taps, double taps, and vertical petting strokes trigger temporary faces, then restore the selected mood |
 | Motion reactions | Accelerometer changes relative to saved calibration (or a temporary startup reference) move the gaze; optional motion moods and shake-to-dizzy reactions |
-| Digital and analog clocks | Display phone-synchronized time; continue while disconnected, but require another sync after reboot |
-| Desk tools | Large clock, time/weather overview, device status, playable Pong, and local timers |
+| Digital and analog clocks | Display Chronos- or NTP-synchronized time; continue offline, resynchronize after reboot |
+| Desk tools | Large clock, time/weather overview, device status, playable Pong and Tris, and local timers |
 | Timer / Pomodoro | 5-minute or 15-minute timer, or one 25-minute work / 5-minute rest pair; keeps running when viewing another page |
 | Phone navigation | Displays received turn instructions, icon, distance, ETA, and speed when supplied |
 | Alerts and calls | Keeps eight local alerts with browsing, dismissal and message pagination; displays incoming caller information; calls must be handled on the phone |
 | Weather display | Phone weather or optional saved Wi-Fi/Open-Meteo, with three forecasts and missing/stale states |
 | Optional sound | Short generated chirps for reactions, timers, and alerts; category switches and night mute; off by default |
-| Personalization | Eye colors, brightness, 180-degree screen flip, motion presets, EN/IT labels, and explicitly saved preferences |
+| iPhone notifications | ANCS alerts in local history; Phone mode requires SAVE and restart; no iPhone call overlay or navigation |
+| Personalization | Global face exclusions, local browser settings, eye colors, brightness, 180-degree screen flip, motion presets, EN/IT labels, and explicitly saved preferences |
 | Local firmware update | Temporary protected LAN session or WPA2 setup network, on-screen QR and browser upload of the matching release application |
 | Power button | AMOLED V2: PWR 4s off / 1s on. LCD OLD: hold PWR 4s and release to turn off, press to restart; USB uses light sleep. Hardware switching requires board validation |
 
@@ -114,8 +126,8 @@ Battery/charging support, power/runtime measurements, and automatic OTA deployme
 No enclosure design or fabrication files are supplied.
 
 **About "OTA":** the BLE name is `OTA bot`; the repository does not explain the acronym's origin.
-Manual [local firmware OTA](docs/OTA.md) is available through a temporary Wi-Fi
-network. Artifact/release packaging does not automatically deploy firmware.
+Manual [local firmware OTA](docs/OTA.md) uses a temporary authorized LAN session
+or a temporary configuration Wi-Fi network. Artifact/release packaging does not automatically deploy firmware.
 
 ## Hardware
 
@@ -349,11 +361,11 @@ of Clock, not additional carousel pages.
 | Tap / quick double tap on Eyes | Temporary random / playful face and a glance toward the touch |
 | Stroke vertically on Eyes | Temporary affectionate face and a short-lived heart near the finger |
 | Hold still on Eyes for 1.2 seconds | Open Settings |
-| Swipe down on Clock | Open the six-tool desk menu |
+| Swipe down on Clock | Open the seven-tool desk menu |
 | Swipe up from a tool / desk menu | Return to the desk menu / Clock |
 | Tap the court in desk Pong | Move the left paddle to that height; RESET starts a new game |
 | Swipe down on Route | Toggle large/details layout; holding Route restores the configured default |
-| Swipe down on Weather | Queue a phone synchronization request, not a direct forecast fetch |
+| Swipe down on Weather | Request configured Internet weather and, in Android mode, a rate-limited phone sync |
 | Tap the top status strip on a utility page | Toggle sound for the session; inactive on Eyes and Settings |
 | Tap SAVE in Settings | Persist the active preferences |
 
@@ -389,7 +401,8 @@ Timer/Pong state, automatic-rotation switch and temporary route layouts are sess
 | Route / calls | Large/details default and dashboard call-overlay policy |
 | Sound | Master switch, level 1–30, face/timer/alert/ambient categories, night mute |
 | Language | English or Italian UI; USB commands remain English and phone text is not translated |
-| Connection | Fixed BLE name `OTA bot`; temporary Wi-Fi only in manual firmware-update mode, no router credential menu |
+| Connection | BLE name `OTA bot`; Android/Chronos or iPhone/ANCS mode; saved 2.4 GHz Wi-Fi and manually opened LAN/AP settings |
+| Network and weather | Separate browser SAVE for Wi-Fi credentials, NTP server/time zone and selected weather city; see [Network](docs/NETWORK.md) |
 
 The sound level is PWM duty on LCD and PCM amplitude on AMOLED, not calibrated loudness. IMU sensitivity, dead
 zone, and reaction thresholds are source constants, not runtime sliders.
@@ -431,12 +444,14 @@ Paths below are relative to `OTA-bot-Mochi/`.
 | `src/bus/i2c_bus.*` | One shared I2C controller for board peripherals |
 | `src/touch/` | Controller probing, coordinate mapping, and separate tap/hold/swipe/petting policies |
 | `src/ui/` | Bounded BLE snapshots, page/event policies, utility views, session timer, palette, and EN/IT labels |
-| `src/clock/` | Chronos synchronization readiness and changed-field clock rendering |
-| `src/play/` | Shared bounded Pong simulation and clock/Pong drawing |
+| `src/ancs/` | iPhone ANCS bonding/discovery, bounded notification parsing and worker |
+| `src/network/` | Saved station preferences, background reconnection, automatic NTP and bounded HTTPS weather worker |
+| `src/clock/` | Clock synchronization readiness and changed-field clock rendering |
+| `src/play/` | Bounded Pong/Tris gameplay and clock/game drawing |
 | `src/settings/` | Validated preferences, legacy-profile migration, explicit NVS save, touch menu, and USB parser |
 | `src/sound/` | Cue scheduling and board-specific PWM or ES8311/I2S output |
 | `src/power/` | Brightness/dimming policy and best-effort battery estimate |
-| `src/update/` | Temporary Wi-Fi maintenance mode, browser upload, image validation, Wi-Fi QR and progress screen |
+| `src/update/` | Temporary LAN/AP maintenance, web settings/face editor, NTP, browser upload, image validation and QR screen |
 
 The sketch services BLE, touch, timers, sound, and brightness between display frames scheduled 33 ms apart. An
 `Arduino_Canvas` composes a complete RGB565 frame before `flush()`. This uses RAM to avoid exposing partial
@@ -454,8 +469,8 @@ gyroscope fusion, attitude measurement, or autonomous movement.
 | --- | --- |
 | Blank display, beeping, or crashes after changing board options | Check the exact board revision, controller, FQBN, and PSRAM setting first. Never use OPI PSRAM on LCD OLD. On AMOLED, inspect panel-expander and framebuffer initialization diagnostics; do not rewire reset pins by guesswork. |
 | No touch or no tilt response | Read the touch/IMU startup diagnostics. Touch probes `0x15`/`0x38`; QMI8658C checks identity `0x05` at `0x6B`/`0x6A`. Confirm the profile and shared bus. Idle eyes still work without a ready IMU. |
-| Clock stays at `--:--` | Connect and synchronize through Chronos. Every reboot needs a new sync; the board RTC is not used. |
-| Weather missing | Check Chronos weather configuration, permissions, connection/subscription, and USB `weather` counters; `weather sync` queues a rate-limited app request. The earlier failure was superseded by user confirmation, not by native parser tests. |
+| Clock stays at `--:--` | Sync through Chronos in Android mode or NTP on saved Wi-Fi in either mode. Reboot requires a new sync; the board RTC is not used. |
+| Weather missing | For Internet weather, save Wi-Fi and a city, then check link/NTP/refresh status in web settings. In Android mode, also check Chronos weather permissions and USB `weather` counters. Failed Internet refreshes retain cached data. |
 | Route inactive or missing turn icon | Start navigation on the phone and check BLE. The firmware waits for complete matching icon packets; it does not invent a turn. Live interoperability remains a device check. |
 | Sound silent | Sound defaults off. Inspect `sound`, master/night mute, and category settings; `sound test` requests bench tones but respects mute. Ready status does not prove audibility. |
 | Battery says NOT MEASURED | This is intentional without plausible LCD ADC readings. The divider/calibration is unverified; AMOLED AXP2101 battery/charging support is absent. Do not add a guessed divider or battery connection. |

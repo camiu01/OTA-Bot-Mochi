@@ -1,6 +1,6 @@
 # Local display and network settings
 
-Open **Settings → SYSTEM → Wi-Fi settings** (fifth row), or the face library's
+Open **Settings → SYSTEM → Wi-Fi settings** (sixth row, after Phone mode and Firmware update), or the face library's
 **Wi-Fi** button. When connected to a saved network, scan the display's web QR
 while your phone is on the same network. Otherwise join Mochi's displayed
 configuration network, open `http://192.168.4.1` and follow
@@ -32,11 +32,14 @@ Auto-rotation remains session-only, as on the display; IMU calibration uses its
 existing independent save. Display rotation follows the new preference after
 leaving maintenance mode.
 
+Phone mode is saved with display preferences and takes effect only after a
+manual restart. ANCS supplies iPhone notifications; Chronos runs in Android mode.
+
 Network settings have a separate **Save network, time and weather** button,
 independent revision, and atomic NVS record. City search is explicit and the
 selected result is saved before automatic weather starts.
 See [Saved Wi-Fi, automatic time and Internet weather](NETWORK.md) for the
-network API, password handling, provider privacy, intervals and fallback.
+network API, password handling, provider privacy, intervals and manual AP access.
 
 POST `/ntp` with `action=sync` requests time over the saved connected network.
 It returns 202, 409 when offline/busy, 429 for a refresh within 30 seconds,

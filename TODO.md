@@ -1,15 +1,21 @@
 # TODO
 
-## Local OTA, new implementation, hardware validation pending
+## Version 1.3.0 acceptance and local OTA
+
+Version 1.3.0 is the planned next release after v1.2.1, not a published tag.
+See [Changelog](CHANGELOG.md). Functional confirmations below are scoped to
+AMOLED V2 unless another board is explicitly recorded.
 
 - [x] Fix the eye-motion reference test by subtracting its same-time backdrop; the complete native runner reports all host tests passed (2026-10-28).
 - [ ] Compile both profiles with the pinned CI toolchain, checking the new Wi-Fi code, flash size and heap headroom.
-- [ ] USB-install the 16 MB OTA layout v1 on each board; record settings/calibration migration effects.
+- [x] Install/update AMOLED V2 over COM6 using unchanged 16 MB OTA layout v1; verify image hashes, reboot and retained saved settings (2026-10-29).
+- [ ] Verify LCD OLD installation/migration separately and record calibration effects.
 - [ ] Update both directions between two trusted OTA-capable releases via the browser, retaining saved settings and calibration.
-- [ ] Test phone/desktop browsers, temporary WPA2 credentials, five-minute expiry, BACK and Wi-Fi shutdown.
-- [ ] Physically verify web settings, IMU/audio actions and one-shot NTP on both boards: home Wi-Fi association/channel changes, invalid credentials, unreachable server, BACK/expiry, station shutdown, retained Chronos time and later phone resync. Native SNTP tests do not exercise real radio or UDP.
-- [x] User confirmed the previously uploaded Wi-Fi settings access works on AMOLED V2 (2026-10-29); this is not validation of the new saved-network/weather implementation.
-- [ ] Physically verify saved 2.4 GHz Wi-Fi across reboot, wrong-password/offline fallback, DHCP changes and authorized LAN QR, automatic NTP, city search, HTTPS/Open-Meteo forecasts, stale/offline cache, Forget, five-minute web expiry with station retained, and Wi-Fi/BLE/frame-rate/heap/power behavior on both boards.
+- [ ] Test phone/desktop browsers, temporary WPA2 credentials, five-minute expiry, BACK and setup-AP shutdown; enabled saved station must remain connected.
+- [ ] Complete remaining web IMU/audio actions and NTP failure cases on both boards: association/channel changes, invalid credentials, unreachable server, BACK/expiry, retained station ownership and time, and later Android/Chronos resync. Native SNTP tests do not exercise real radio or UDP.
+- [x] User confirmed Wi-Fi and settings changes working on AMOLED V2 (2026-10-29); this supersedes the earlier access-only report, not the detailed failure/endurance matrix.
+- [x] Remove automatic configuration-screen/AP opening; keep background connection and manual access only. Native startup/offline and manual-route checks passed.
+- [ ] Physically verify saved 2.4 GHz Wi-Fi across reboot, wrong-password/offline background retry without automatic configuration-screen opening, DHCP changes and authorized LAN QR, automatic NTP, city search, HTTPS/Open-Meteo forecasts, stale/offline cache, Forget, five-minute web expiry with station retained, and Wi-Fi/BLE/frame-rate/heap/power behavior on both boards.
 - [ ] Scan the Wi-Fi QR on LCD OLD and AMOLED V2 with Android/iOS cameras; verify eight-character password entry, QR/details switching, fresh sessions, rotation and manual fallback.
 - [ ] Check upload progress, Wi-Fi/BLE coexistence and post-OTA Chronos reconnection on LCD OLD and AMOLED V2.
 - [ ] Reject renamed wrong-board, old pre-marker, full, corrupt, oversized and truncated images on real hardware.
@@ -35,7 +41,8 @@ combine implemented behavior and historical user reports; use
 
 ### Chronos, clock, and connectivity
 
-- [ ] On both LCD OLD and AMOLED V2, save iPhone mode and restart, pair in Bluetooth settings, grant notification access, and verify ANCS delivery/reconnect. Then save Android mode, restart, and confirm Chronos still synchronizes and receives its existing data. Native ANCS tests do not prove iOS authorization or BLE radio behavior.
+- [x] User confirmed ANCS notifications working on iPhone with AMOLED V2 (2026-10-29).
+- [ ] Record ANCS reconnect after Bluetooth toggles/reboot and permission changes on AMOLED V2; switch back to Android with SAVE/restart and recheck Chronos. Repeat delivery/reconnect on LCD OLD. Basic delivery confirmation does not prove every recovery case.
 
 - [x] Verify Chronos pairing, disconnection, reconnection, and synchronization.
 - [x] Display connection state, synchronized time/date, and 12/24-hour mode.
@@ -167,7 +174,9 @@ These are not additional reported failures of the working Chronos/IMU/UI paths.
 - [x] Document Arduino CLI setup, dependency pins, build/upload commands, and native checks.
 - [x] Add GitHub Actions native checks, firmware compilation, and downloadable binaries.
 - [x] Document the AMOLED bring-up and user-reported board behavior.
-- [ ] Record the exact toolchain/board options used for the latest user device checks.
+- [x] Record local builds for source checkpoint `8b752ba`: PlatformIO 6.1.19, espressif32 8.0.0, Arduino core 3.3.12, Chronos 1.9.1, NimBLE 2.5.1, GFX 1.6.9 and ESP32Time 2.0.6; both board profiles compiled, LCD PSRAM disabled and AMOLED OPI enabled.
+- [x] Run targeted ANCS parser, profile migration, web settings and three-panel layout tests after ANCS integration.
+- [ ] Record the exact installed binary hash, phone OS and settings for each physical acceptance report. Inspect remote CI separately; local builds do not establish pinned Arduino CLI CI success.
 - [x] Confirm v1.2.0 remote host, firmware (both profiles), and release jobs:
   run 40499404191 at e0ac13ad78ba5467062553ea8833125f7ca6d140 succeeded.
   This does not validate later workspace changes; see `docs/CI.md`.

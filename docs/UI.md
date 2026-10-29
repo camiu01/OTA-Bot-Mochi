@@ -94,8 +94,8 @@ This percentage is **brightness, not battery charge**.
   its QR opens the router-assigned local address and authorizes access; otherwise
   join the displayed configuration network. The browser can save a home network,
   NTP hostname/time zone and a city for automatic Internet weather.
-  Network configuration also opens once after boot if no network is configured,
-  or association fails. BACK returns to normal operation; saved Wi-Fi stays on.
+  Network configuration never opens automatically, including when no network is
+  configured or association fails. BACK returns to normal operation; saved Wi-Fi stays on.
   See [Web settings](WEB_SETTINGS.md) and [Network](NETWORK.md).
 - Settings show three larger rows at a time. Swipe vertically to reach remaining
   rows; the scroll indicator shows the position. Tabs and SAVE/EYES stay fixed.
@@ -125,15 +125,16 @@ This percentage is **brightness, not battery charge**.
   No on-device answering/rejection is implemented.
 
 Automatic page changes run in the main task, never inside BLE callbacks. They
-wake the backlight at the selected day/night level. No timed return to Eyes is
-implemented; after an event you can swipe to another page.
+wake the backlight at the selected day/night level. An automatically opened Alerts page returns to Eyes after 60 seconds without a
+new notification or touch; touch postpones the return. A manual page selection
+cancels that automatic return. Other pages are not automatically timed out.
 
 See [Settings](SETTINGS.md) for all touch controls, USB commands, and persistence.
 
 ## Screen data
 
 - **Clock:** Synced time, seconds, date, connection state, and a clear waiting
-  state before the first completed phone sync. Respects Chronos 12/24-hour mode.
+  state before the first completed Chronos or NTP sync. Respects Chronos 12/24-hour mode.
   The local clock continues while disconnected; it needs resynchronization after
   a reboot. Only changed text fields are cleared and repainted.
 - **Alerts:** A local history of the last eight alerts, newest first, with app,
@@ -256,4 +257,6 @@ they do not establish battery calibration or measured standby behavior.
 
 ### iPhone notifications (ANCS)
 
-Select iPhone/ANCS under Phone mode, tap SAVE, and restart Mochi manually. Pair `OTA bot` from iPhone Bluetooth settings and approve notification access when iOS asks. Incoming iPhone alerts appear in the existing Alerts history; the on-screen Dismiss control removes only Mochi's local copy. If iOS does not offer notification access, remove the pairing and pair again. ANCS availability is controlled by iOS, so verify delivery and reconnection on the physical board. Chronos is used only in Android mode; iPhone mode has no phone-provided navigation or call overlay.
+Select iPhone/ANCS under Phone mode, tap SAVE, and restart Mochi manually. Pair `OTA bot` from iPhone Bluetooth settings and approve notification access when iOS asks. Incoming iPhone alerts appear in the existing Alerts history; the on-screen Dismiss control removes only Mochi's local copy. If iOS does not offer notification access, remove the pairing and pair again. The user confirmed ANCS notification delivery on AMOLED V2 on 2026-10-29.
+Reconnect, permission-revocation and long-session checks remain separate; LCD
+hardware coverage is not implied. ANCS availability is controlled by iOS. Chronos is used only in Android mode; iPhone mode has no phone-provided navigation or call overlay.

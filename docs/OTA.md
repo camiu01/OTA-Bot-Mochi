@@ -1,7 +1,7 @@
 # Local firmware updates
 
 Mochi can receive a manually downloaded GitHub release application through a
-temporary Wi-Fi access point. It does not contact GitHub, check for new versions,
+temporary authorized LAN session or Wi-Fi access point. It does not contact GitHub, check for new versions,
 or install anything automatically. Both board profiles use the same flow.
 
 ## First installation
@@ -34,7 +34,7 @@ Firmware compilation, uploading and physical validation remain user-operated.
    bootloader, or partition-table image.
 3. Save any changed settings explicitly. Keep Mochi on stable USB power.
 4. Open **Settings → SYSTEM → Firmware update**. Swipe the SYSTEM rows upward
-   to reach its fourth row. The Italian label is **Aggiorna firmware**.
+   to reach its fifth row, after Phone mode. The Italian label is **Aggiorna firmware**.
 5. If Mochi is connected to saved Wi-Fi, keep the phone on that same private
    network and scan the displayed browser QR. It includes the current DHCP
    address and temporary authorization; do not share it.
@@ -65,11 +65,14 @@ page. Open the displayed browser address after connecting.
 QR generation reuses the ESP32 framework's bundled encoder, caches at most a
 version-four matrix in RAM, and draws black/white modules at integer scale with
 a four-module white quiet zone. It does not use the eye palette or print
-credentials to the console. If encoding fails, manual connection instructions
-remain available. Upload progress and errors replace the QR automatically.
+credentials to the console. In AP mode, manual Wi-Fi connection instructions
+remain available if encoding fails. LAN authorization requires the token-bearing
+QR link; there is no separate manual passcode. Upload progress and errors replace
+the QR automatically.
 
-Normal animations, sound, page navigation, app synchronization, USB commands,
-and software power-button handling pause during maintenance. BLE callbacks can
+Normal animations, sound, page navigation, app synchronization and software
+power-button handling pause during maintenance. USB settings commands remain
+available in face/settings mode, but pause during firmware-upload mode. BLE callbacks can
 still retain bounded snapshots, but the normal Chronos loop is not serviced.
 Touch cancellation is unavailable while the synchronous HTTP upload is running.
 Do not use PWR/RESET/BOOT during writing; physical power controls cannot be
@@ -95,10 +98,9 @@ USB recovery remains necessary.
 WPA2 protects the isolated network. A random session token, exact Host check and
 same-origin browser requests guard the upload endpoint; no CORS is enabled.
 HTTP is not TLS. The board/layout marker and image checksum are **not a digital
-signature**: anyone with physical access to the displayed network password can
+signature**: someone with the session's local access and authorization can
 install a compatible malicious image. Secure Boot, signed releases, anti-rollback,
-Internet exposure, router credentials and remote deployment are outside this
-implementation. Do not forward the service or share its password.
+Internet exposure and remote deployment are outside this implementation. Do not forward the service or share its password.
 
 Host tests exercise both profiles, header/size validation, byte-split streaming,
 wrong board, auth failures, write/finalization failures, timeout and delayed
@@ -123,14 +125,17 @@ browser check.
 
 ## Local HTTP contract
 
-The only supported host is `192.168.4.1` (port 80), reachable on the temporary
-access point. There is no public API or GitHub API dependency.
+The supported Host is the session's displayed IPv4 address (port 80):
+`192.168.4.1` on the temporary AP, or the router-assigned address on saved Wi-Fi.
+Requests must arrive through that exact local interface. There is no public API
+or GitHub API dependency. The server exists only during a manual session.
 
 | Request | Inputs | Result |
 | --- | --- | --- |
-| `GET /` | `Host: 192.168.4.1` | `200 text/html`, local upload page containing a session token; `Cache-Control: no-store`; wrong Host: `403` |
-| `POST /update` | `Host: 192.168.4.1`, `X-Mochi-Token` from the page, decimal `X-Mochi-Size` equal to file bytes; multipart form with exactly one `firmware` file | `200 text/plain` only after validation and boot-slot selection, then reboot; `400` for invalid/incomplete images or flash errors; `403` for wrong Host/token or expired session |
-| Other paths | None | `404 text/plain` |
+| `GET /` | Exact displayed Host/interface | `200 text/html`; AP embeds its token, LAN takes authorization from the QR URL fragment; `Cache-Control: no-store`; wrong Host/interface: `403` |
+| `POST /update` | Exact displayed Host/interface, `X-Mochi-Token` from the AP page or LAN QR fragment, decimal `X-Mochi-Size` equal to file bytes; multipart form with exactly one `firmware` file | `200 text/plain` only after validation and boot-slot selection, then reboot; `400` for invalid/incomplete images or flash errors; `403` for wrong Host/token or expired session |
+| Settings/face/network routes | Authorized settings-mode session | See [Web settings](WEB_SETTINGS.md), [Face library](FACE_LIBRARY.md) and [Network](NETWORK.md); updates remain mode-isolated |
+| Unknown paths | None | `404 text/plain` |
 
 The browser supplies the multipart boundary and content type. No credentials
 belong in Git. A retry after failure should begin with a new physical session.

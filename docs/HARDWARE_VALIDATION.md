@@ -16,6 +16,16 @@ Compilation, installation and functional verification are three different events
 Repeat the procedure separately on LCD OLD and AMOLED V2. Never infer LCD
 coverage from the AMOLED report.
 
+## Latest functional reports (2026-10-29)
+
+The user confirmed Wi-Fi, settings changes and ANCS notifications working on
+AMOLED V2. These reports do not identify an exact installed binary hash or
+establish every reconnect/failure case. The source checkpoint `8b752ba` passed
+local LCD/AMOLED PlatformIO builds and targeted ANCS, settings, web and panel
+tests; the earlier complete native suite also passed before ANCS integration.
+No LCD physical pass, remote CI result, endurance or power measurement follows
+from these local checks. See [TODO](../TODO.md) for remaining acceptance work.
+
 ## Record for every check
 
 Copy this table into the test report, not a new empty repository file.
@@ -46,6 +56,9 @@ Do not include notification text, callers or location in logs/screenshots.
 | H7 | Enable sound on bench at level 10; test face/timer/alert categories, category-off, master-off, night mute; animate continuously and swipe | Permitted cues audible, forbidden cues silent; no frozen UI, touch interference or backlight flicker; record exact settings |
 | H8 | Edit color/language/brightness, reboot without SAVE; repeat with SAVE | Unsaved edits lost; explicitly saved values restored; separate IMU calibration retained |
 | H9 | Follow board-specific PWR procedure in BOARDS.md on USB; battery only if safely supported already | AMOLED 4s off/1s on; LCD 4s hold then release, USB light-sleep wake/reboot; no claim of zero standby current |
+| H11 | Save iPhone mode, restart, pair and allow notifications; send a synthetic alert; toggle Bluetooth and reboot; switch back to Android with SAVE/restart | ANCS alerts delivered and reconnects recover; Android Chronos still works; no iPhone call/navigation claim |
+| H12 | Save Wi-Fi, reboot, briefly remove router availability, then restore it; open settings manually, check LAN QR, close with BACK and repeat with expiry | Background reconnection without forced screen changes; authorized session closes while managed station remains connected |
+| H13 | Search/select/save weather city; refresh, lose network, restore it | NTP/weather update; cached weather survives failures; no phone dependency in Internet mode |
 | H10 | At least **two uninterrupted hours**, phone linked, alternating eyes/scenes and pages; synthetic alerts/weather/routes and sound every 10 minutes; reconnect every 30 minutes | No crash, spontaneous reset, stuck audio/UI or progressive failure; record elapsed time and diagnostic heap/timing trends, not just “works” |
 
 For H3, sampling/storage failures have native coverage, not physical fault

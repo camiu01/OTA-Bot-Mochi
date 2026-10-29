@@ -37,6 +37,7 @@ rows. Changes are live in RAM and do not write flash while browsing.
 | SYSTEM | Language | English / Italiano |
 | SYSTEM | Dashboard | on / off |
 | SYSTEM | Route default | large / details |
+| SYSTEM | Phone mode | Android/Chronos (default) or iPhone/ANCS; SAVE and restart to switch |
 | SYSTEM | Firmware update | temporary Wi-Fi and browser upload of a matching release `*-app.bin`; see [OTA](OTA.md) |
 | SYSTEM | Wi-Fi settings | temporary browser access to display settings, saved Wi-Fi, automatic NTP and city-based weather; see [Web settings](WEB_SETTINGS.md) and [Network](NETWORK.md) |
 

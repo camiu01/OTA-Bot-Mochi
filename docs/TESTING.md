@@ -25,6 +25,10 @@ isolation, night-safe idle dimming, timestamp rollover, IMU setup/scaling,
 mount-relative gaze, bump rejection, shake opt-in/cooldown/restoration, preference
 validation/save failures, USB command limits, automatic notification/route pages,
 preservation of manual page choices on route refresh, and touch-delayed switching.
+ANCS parser tests cover fragmented attributes, bounded lengths, wrong notification
+IDs and disconnect/reset behavior. They do not exercise iOS permissions or the
+NimBLE worker/radio. User-confirmed AMOLED delivery is recorded separately in
+[Hardware validation](HARDWARE_VALIDATION.md).
 Saved-network tests cover independent record corruption/truncation, atomic
 storage failures, reconnect and refresh intervals with timestamp rollover,
 shared NTP preserving station ownership, weather caching and old-generation
@@ -38,19 +42,19 @@ and `MOCHI_BOARD_AMOLED_18` for AMOLED checks, so an Arduino IDE selection in
 An explicit LCD CLI build can likewise use
 `--build-property "compiler.cpp.extra_flags=-DMOCHI_BOARD_LCD_169"`.
 The real eye renderer also runs against a native raster substitute: all four
-styles, all 123 expressions/animated moods, and both blink states (984 combinations), a proof
+styles, all 135 expressions/animated moods, and both blink states (1080 combinations), a proof
 that every expression renders differently from NEUTRAL on every style, that no
-two names draw the same pixels on any style (pairwise uniqueness, 30012
+two names draw the same pixels on any style (pairwise uniqueness, 36180
 comparisons), solid-style pupil/highlight exclusion, trapezoid symmetry, IMU
 gaze/roll bounds, radius limits, and dirty-region erasure are checked. The
 configured palette has its own suite: resting emotions and symbols must keep
 the selected ink on every style, across three selected body colors.
 The petting heart must use the selected body color and erase without trails.
 The face catalog checks compile the documented C++17 per-eye preset example and
-validate all 123 IDs/names, parameter ranges, USB selection and settings round-trips.
+validate all 135 IDs/names, parameter ranges, USB selection and settings round-trips.
 Two frozen pre-refactor raster fixtures check pixels and dirty bounds across six
 panels and four styles; the expanded fixture samples 47,232 frames across all
-123 expressions. See [Editing and adding a face](ADDING_A_FACE.md) for scope and
+123-expression legacy catalog. See [Editing and adding a face](ADDING_A_FACE.md) for scope and
 the rule against regenerating baselines from the refactored renderer.
 Related emotion families must differ in at least ten percent of their combined
 occupied-pixel masks, independent of color, on LCD, AMOLED, and a small panel.
@@ -485,15 +489,16 @@ separately in TODO.
     multimeter across the discharge curve; do not treat the native conversion
     tests as physical validation.
 
-Also test a downward swipe on Clock into Scrivania and all six tools. Verify
+Also test a downward swipe on Clock into Scrivania and all seven tools. Verify
 large clock legibility, timer continuation while viewing other pages,
-default-silent completion, and reboot reset. Confirm every hub card and timer
+default-silent completion, Tris turns/win/draw/new-game behavior, and reboot reset.
+Confirm every hub card and timer
 button is an easy parked-use target, a downward swipe on Route toggles the
 layout, a downward swipe on Weather requests a sync, and upward swipes walk
 back from tools to Scrivania to Clock; other pages keep the downward-swipe
 home to Eyes.
 Switch Route layout temporarily, SAVE a different setting, and reboot: the saved
-route default must win. Test `route default`, a Route hold, and LOOK → Route default.
+route default must win. Test `route default`, a Route hold, and SYSTEM → Route default.
 A short eye tap must react for three seconds, glance toward the touch point,
 and restore the selected mood; a quick double tap must show a playful face for
 3.5 seconds; holds and swipes must trigger neither. Petting must keep the same
