@@ -81,6 +81,12 @@ and preserve the selected eye ink, saved settings and existing silhouettes.
 
 ## New performance moods
 
+`tic_tac_toe` (ID 134) adds an original twelve-second miniature match, like Pong.
+The two eyes move and morph directly into the first cyan X and amber O,
+then three more pieces appear, a winning diagonal is marked, and both pieces
+morph back into the configured eyes. This elapsed-time-only demo has
+no shared state with the playable [Tris desk tool](DESK.md).
+
 Select Settings > LOOK > Mood, or type `mood dancing` in the USB/emulator console.
 The same renderer supports LCD and AMOLED and all four eye styles.
 

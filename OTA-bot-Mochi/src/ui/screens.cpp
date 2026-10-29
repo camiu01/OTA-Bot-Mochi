@@ -149,8 +149,9 @@ void weather_screen(Arduino_GFX *gfx, uint32_t now) {
 	ui_label(gfx, cached.city.length() ? cached.city : tr(Text::Weather), ui_s(28), ui_s(76), ui_s(184), 1, UI_ACCENT);
 	ui_label(gfx, String(w.temp) + "C", ui_s(28), ui_s(105), ui_s(132), 4, UI_TEXT);
 	ui_weather_icon(gfx, w.icon, ui_s(184), ui_s(124));
-	ui_label(gfx, weather_stale(now, cached.weather_received) ? tr(Text::Stale) :
-		tr(Text::Updated) + cached.weather_time, ui_s(28), ui_s(151), ui_s(184), 1, UI_MUTED);
+	ui_label(gfx, weather_stale(now, cached.weather_received) ? tr(cached.weather_internet ? Text::WeatherStaleWifi : Text::Stale) :
+		(cached.weather_internet ? String("Open-Meteo ") : String(tr(Text::Updated))) + cached.weather_time,
+		ui_s(28), ui_s(151), ui_s(184), 1, UI_MUTED);
 	ui_card(gfx, 176, 50);
 	if (!cached.has_forecast) {
 		ui_label(gfx, tr(Text::ForecastPending), ui_s(28), ui_s(190), ui_s(184), 1, UI_MUTED);
@@ -229,11 +230,12 @@ bool screens_draw(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, uint32_t n
 		invalidated = false;
 		return frame;
 	}
-	bool timer = (uint32_t)(now - last_refresh) >= (page == UiPage::Pong && !overlay_active ? 33U : 1000U);
+	bool timer = (uint32_t)(now - last_refresh) >=
+		((page == UiPage::Pong || page == UiPage::Tris) && !overlay_active ? 33U : 1000U);
 	if (!invalidated && !changed && !timer && page != UiPage::Clock) { return false; }
 	if (invalidated || changed || transition) {
 		static const Text titles[] = {Text::Eyes, Text::Clock, Text::Route, Text::Alerts, Text::Weather, Text::Settings,
-			Text::Desk, Text::BigClock, Text::Overview, Text::Timer, Text::Device, Text::Pong, Text::AnalogClock};
+			Text::Desk, Text::BigClock, Text::Overview, Text::Timer, Text::Device, Text::Pong, Text::AnalogClock, Text::Tris};
 		ui_chrome(gfx, tr(overlay_active ? Text::CallTitle : titles[uint8_t(page)]),
 			cached.connected, uint8_t(screens_parent(page)));
 		clock_invalidate();

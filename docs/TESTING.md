@@ -25,6 +25,13 @@ isolation, night-safe idle dimming, timestamp rollover, IMU setup/scaling,
 mount-relative gaze, bump rejection, shake opt-in/cooldown/restoration, preference
 validation/save failures, USB command limits, automatic notification/route pages,
 preservation of manual page choices on route refresh, and touch-delayed switching.
+Saved-network tests cover independent record corruption/truncation, atomic
+storage failures, reconnect and refresh intervals with timestamp rollover,
+shared NTP preserving station ownership, weather caching and old-generation
+replies, LAN Host/interface/token isolation and network form validation.
+Provider field tests use a typed cJSON-tree fixture, not a native JSON parser;
+JSON syntax parsing and verified HTTPS use the bundled ESP32 components.
+Neither fixture proves real DHCP, TLS, QR scanning or Wi-Fi/BLE coexistence.
 The native runners explicitly select `MOCHI_BOARD_LCD_169` for baseline fixtures
 and `MOCHI_BOARD_AMOLED_18` for AMOLED checks, so an Arduino IDE selection in
 `pin_config.h` cannot silently change the test board. Defining both is rejected.
@@ -75,7 +82,7 @@ migration.
 Additional checks cover contextual tools without extra carousel pages, temporary
 route layout versus saved defaults, version-two migration, local timer rollover/
 pause/Pomodoro completion, and eye-tap/double-tap/glance/greeting reactions with
-automation disabled. Expanded tests cover version-six thirteen-byte profiles with
+automation disabled. Expanded tests cover version-seven thirteen-byte profiles with
 version-five, version-four and older migration, Face flow, the reboot verb, EN/IT
 label completeness and layout, out-of-order weather packets/sync throttling,
 animated dirty regions, sound notes/priorities/mute/rollover/failures, and actual

@@ -20,7 +20,7 @@ This percentage is **brightness, not battery charge**.
   Scrivania (desk tools), swipe **up** on Scrivania to return to Clock, and
   swipe **up** on any desk tool to return to Scrivania. Swipe **down** on Route
   toggles the large/details layout and swipe **down** on Weather requests a
-  phone sync. A downward swipe anywhere else still returns straight to Eyes.
+  phone sync and a configured Internet weather refresh. A downward swipe anywhere else still returns straight to Eyes.
   Vertical strokes still pet Mochi on Eyes and still scroll rows inside
   Settings.
 - Tap the top status strip, above the page title, on Clock, Route, Alerts,
@@ -68,13 +68,17 @@ This percentage is **brightness, not battery charge**.
   shutdown, a visible call overlay or a held touch are discarded. Holding BOOT
   during reset still selects the chip's firmware download mode.
 - New notifications automatically open Alerts, including while a route is active.
+  After 60 seconds from the latest notification, the previous page returns.
+  Leaving Alerts manually cancels this return; opening Alerts manually does not
+  start a timeout. The return also waits for a held finger to be released.
   Starting actual phone navigation automatically opens Route. Regular route/icon
   updates do not pull you back after a manual swipe. If both events arrive in the
   same loop, starting navigation takes priority. Switching waits for a held finger
   to be released, avoiding a page change underneath a settings tap.
 - Hold still for 1.2 seconds on the eyes screen to open Settings. A swipe or
   moving finger is not also treated as a tap or hold.
-- The desk hub presents six 108x58-pixel cards in a 2x3 grid (design coordinates), and the
+- The desk hub presents seven 108x44-pixel cards in a two-column, four-row grid
+  (design coordinates), including playable Tris against Mochi. The
   local timer uses a full-width 50-pixel START/PAUSE accent button with
   48-pixel RESET and MODE buttons, so every desk control is a comfortable
   parked-use target.
@@ -82,6 +86,17 @@ This percentage is **brightness, not battery charge**.
   vehicle is stationary and does not lock controls based on vehicle speed.
 - Use the section arrows for LOOK, DISPLAY, FACES, SENSORS, SOUND and SYSTEM.
   Tap SAVE to persist them, then EYES to return. Changes apply immediately in RAM.
+- FACES → Face library lets you enable/exclude faces for every selection and
+  reaction. Keep at least one enabled. Its Wi-Fi button opens an offline browser
+  editor for five minutes; see [Face library](FACE_LIBRARY.md). Excluded entries
+  in LOOK → Mood are crossed out and cannot be selected.
+- SYSTEM → Wi-Fi settings opens a temporary browser session. With saved Wi-Fi,
+  its QR opens the router-assigned local address and authorizes access; otherwise
+  join the displayed configuration network. The browser can save a home network,
+  NTP hostname/time zone and a city for automatic Internet weather.
+  Network configuration also opens once after boot if no network is configured,
+  or association fails. BACK returns to normal operation; saved Wi-Fi stays on.
+  See [Web settings](WEB_SETTINGS.md) and [Network](NETWORK.md).
 - Settings show three larger rows at a time. Swipe vertically to reach remaining
   rows; the scroll indicator shows the position. Tabs and SAVE/EYES stay fixed.
   Vertical scrolling neither changes a value nor advances the page carousel.
@@ -134,7 +149,11 @@ See [Settings](SETTINGS.md) for all touch controls, USB commands, and persistenc
 - **Weather:** City, current temperature, vector condition icon, update time,
   and up to three daily high/low forecasts. Missing forecasts are separate from
   missing weather. Weather becomes stale three hours after receipt. The update
-  time is a receipt time, not the weather provider's observation timestamp.
+  time is the phone receipt time for Chronos, or the provider's local observation
+  time for Internet weather. `Open-Meteo` identifies Internet results; stale
+  Internet results prompt a Wi-Fi check instead of opening Chronos. Failed
+  refreshes retain cached data. Phone weather remains a fallback until the
+  first Internet result, or after Internet weather is disabled.
 - **Route:** Complete received turn icon, next instruction, remaining distance,
   speed when supplied, and ETA/duration. Long fields are clipped with ellipsis.
   Incomplete or mismatched icon packets show a neutral placeholder, never a
@@ -234,3 +253,7 @@ best-effort, plausibility-gated estimate from `BAT_ADC`; without plausible
 hardware the Device status page shows NOT MEASURED. The LCD SYS_EN/SYS_OUT pins
 in `pin_config.h` have board-specific PWR handling described in [Boards](BOARDS.md);
 they do not establish battery calibration or measured standby behavior.
+
+### iPhone notifications (ANCS)
+
+Select iPhone/ANCS under Phone mode, tap SAVE, and restart Mochi manually. Pair `OTA bot` from iPhone Bluetooth settings and approve notification access when iOS asks. Incoming iPhone alerts appear in the existing Alerts history; the on-screen Dismiss control removes only Mochi's local copy. If iOS does not offer notification access, remove the pairing and pair again. ANCS availability is controlled by iOS, so verify delivery and reconnection on the physical board. Chronos is used only in Android mode; iPhone mode has no phone-provided navigation or call overlay.

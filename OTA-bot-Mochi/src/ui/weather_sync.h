@@ -27,6 +27,8 @@ public:
 };
 /** @brief Main-task refresh requested by touch/USB. */
 void weather_request();
+/** @brief Bind an optional main-task Internet refresh alongside the retained phone mailbox. */
+void weather_bind_network(void (*request)());
 /** @brief Consume pending app synchronization when allowed. @param now Time. @param connected BLE. @param subscribed Ready. @return Request now. */
 bool weather_sync_due(uint32_t now, bool connected, bool subscribed);
 /** @brief Last observed link state for USB diagnostics. @param connected Output BLE. @param subscribed Output subscription. */

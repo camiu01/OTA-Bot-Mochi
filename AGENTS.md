@@ -116,9 +116,13 @@ on native tests and provides downloadable binaries, not automatic OTA deployment
 - Backlight and optional audio use distinct LEDC channel/timer allocations in
   `pwm_channels.h`. Sound defaults off and night mute defaults on. Do not use
   blocking tone loops or share the backlight timer.
-- Weather is pushed by the phone app, not fetched directly by firmware.
-  `weather_sync.*` rate-limits main-task app synchronization. Packet diagnostics
-  are counters only; host tests are not proof the reported device issue is fixed.
+- Weather retains phone-pushed data and optionally uses saved Wi-Fi/Open-Meteo.
+  `src/network` owns station reconnection, shared main-task NTP and a bounded
+  low-priority HTTPS worker; never do HTTP or draw from BLE/worker callbacks.
+  Network credentials use an independent NVS record, never logs/API responses.
+  `weather_sync.*` rate-limits app synchronization and invokes the bound Internet
+  refresh. Packet diagnostics count phone packets only. Native fixtures do not
+  prove real radio, TLS, QR scanning or Wi-Fi/BLE coexistence; see `docs/NETWORK.md`.
 
 ## Project conventions
 

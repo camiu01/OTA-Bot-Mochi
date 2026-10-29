@@ -40,7 +40,7 @@ form.onsubmit=e=>{
  button.disabled=true;file.disabled=true;status.textContent='Uploading. Do not disconnect power.';
  const body=new FormData();body.append('firmware',f);
  const request=new XMLHttpRequest();request.open('POST','/update');
- request.timeout=180000;request.setRequestHeader('X-Mochi-Token','%TOKEN%');
+ request.timeout=180000;request.setRequestHeader('X-Mochi-Token','%TOKEN%'||location.hash.slice(1));
  request.setRequestHeader('X-Mochi-Size',String(f.size));
  request.upload.onprogress=e=>{if(e.lengthComputable)progress.value=e.loaded/e.total*100;};
  request.onload=()=>{status.textContent=request.responseText;if(request.status!==200){button.disabled=false;file.disabled=false;}};

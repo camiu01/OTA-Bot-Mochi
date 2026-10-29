@@ -129,8 +129,8 @@ static void random_tests() {
 	policy.reset(NEUTRAL, 0);
 	assert(policy.update(11999, true, false, 0) == NEUTRAL);
 	assert(policy.update(12000, true, false, 0) == HAPPY);
-	assert(policy.update(14999, true, false, 0) == HAPPY);
-	assert(policy.update(15000, true, false, 0) == NEUTRAL);
+	assert(policy.update(17999, true, false, 0) == HAPPY);
+	assert(policy.update(18000, true, false, 0) == NEUTRAL);
 	assert(policy.update(24000, true, false, 0) != HAPPY);
 	assert(policy.update(24001, false, false, 0) == NEUTRAL);
 	policy.reset(HAPPY, UINT32_MAX - 6000);
@@ -318,8 +318,7 @@ static void integration_tests() {
 	Expression automatic = eyes_config().expression;
 	test_now = 15000;
 	eyes_update(test_now);
-	assert(eyes_config().expression ==
-		(FacePolicy::cycle_duration(automatic) == 3000 ? NEUTRAL : automatic));
+	assert(eyes_config().expression == automatic);
 	p.random_faces = false;
 	settings_update(p);
 	assert(eyes_config().expression == NEUTRAL);

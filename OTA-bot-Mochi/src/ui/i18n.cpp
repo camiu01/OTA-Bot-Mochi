@@ -57,10 +57,10 @@ static const Text expressions[EXPRESSION_COUNT] = {
 	Text::ExprMistake, Text::ExprEncouragement, Text::ExprAdore, Text::ExprLaughing,
 	Text::ExprEnraged, Text::ExprTraffic, Text::ExprNeon, Text::ExprWheels,
 	Text::ExprSakura, Text::ExprSamurai, Text::ExprMecha, Text::ExprBamboo,
-	Text::ExprTitan, Text::ExprUpsideDown, Text::ExprUwu, Text::ExprYokai
+	Text::ExprTitan, Text::ExprUpsideDown, Text::ExprUwu, Text::ExprYokai, Text::ExprTicTacToe
 };
 
-static_assert(uint16_t(Text::ExprNeutral) + EXPRESSION_COUNT - 1 == uint16_t(Text::ExprYokai),
+static_assert(uint16_t(Text::ExprNeutral) + EXPRESSION_COUNT - 1 == uint16_t(Text::ExprTicTacToe),
 	"Expression labels must stay contiguous to match Expression values");
 static_assert(uint16_t(Text::Count) < 65535, "Text keys must stay below the reserved invalid key");
 

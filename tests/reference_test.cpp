@@ -61,7 +61,7 @@ static void preference_tests() {
 		uint8_t bytes[SETTINGS_BYTES];
 		settings_encode(p, bytes);
 		CompanionSettings decoded;
-		assert(bytes[0] == 6 && SETTINGS_BYTES == 13);
+		assert(bytes[0] == 7 && SETTINGS_BYTES == 13);
 		assert(settings_decode(bytes, sizeof(bytes), decoded) && decoded.mood == value);
 		String command = String("mood ") + settings_mood_name(value);
 		auto parsed = settings_parse(command.c_str(), p);
@@ -239,15 +239,14 @@ static void automatic_cycle_guard() {
 	Expression reaction = random.update(12500, true, false, 0, true);
 	assert(reaction != GAUGE);
 	assert(random.update(12501, true, false, 0, false) == reaction);
-	assert(random.update(15500, true, false, 0, false) == GAUGE);
+	assert(random.update(18500, true, false, 0, false) == GAUGE);
 	assert(settings_update(saved));
 }
 
 /** @brief Long random scenes finish before restoration or an IMU face, including across rollover. */
 static void automatic_scene_duration() {
 	for (Expression face : {GAUGE, PONG, GLOW, HEADLIGHTS, DANCING, STARGAZING}) {
-		const uint32_t length = face == GAUGE || face == PONG ? 12000 :
-			(face == GLOW ? 9600 : (face == HEADLIGHTS ? 3600 : 6000));
+		const uint32_t length = FacePolicy::automatic_duration(face);
 		const uint32_t choice = uint32_t(face) - 2;
 		for (uint32_t start : {12000u, UINT32_MAX - 1000}) {
 			FacePolicy policy;
@@ -331,7 +330,7 @@ static void face_flow_tests() {
 		Expression face = policy.update(now, true, false, 0, true, mode);
 		assert(face == HAPPY);
 		for (uint8_t i = 1; i <= 5; ++i) {
-			uint32_t length = FacePolicy::cycle_duration(face);
+			uint32_t length = FacePolicy::automatic_duration(face);
 			assert(policy.update(now + length - 1, true, false, 0, false, mode) == face);
 			now += length;
 			Expression next = policy.update(now, true, false, 0, false, mode);
@@ -357,7 +356,7 @@ static void face_flow_tests() {
 		Expression face = ordered.update(now, true, false, 0, true, FACE_SEQUENCE);
 		assert(face != LOVE && face != NEUTRAL && face != DIZZY);
 		visited[face] = true;
-		now += FacePolicy::cycle_duration(face);
+		now += FacePolicy::automatic_duration(face);
 	}
 	for (uint8_t i = 1; i < EXPRESSION_COUNT; ++i) {
 		if (i != LOVE && i != DIZZY) { assert(visited[i]); }
@@ -381,5 +380,5 @@ int main() {
 	animated_faces(240, 280);
 	animated_faces(368, 448);
 	animated_faces(128, 160);
-	std::cout << "Reference faces, animated scenes, v6 profiles, playback modes, and Pong physics passed\n";
+	std::cout << "Reference faces, animated scenes, v7 profiles, playback modes, and Pong physics passed\n";
 }

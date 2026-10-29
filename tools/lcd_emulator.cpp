@@ -137,7 +137,7 @@ void seed_demo_data() {
 
 /** @brief Follow alert/route events without switching pages while a finger is down. @param now Millisecond timestamp. */
 void handle_auto_page(uint32_t now) {
-	UiPage target = auto_policy.update(page, ui_page_events(), finger);
+	UiPage target = auto_policy.update(page, ui_page_events(), finger, now);
 	if (target != page) { backlight_activity(now); switch_screen(target, now); }
 }
 

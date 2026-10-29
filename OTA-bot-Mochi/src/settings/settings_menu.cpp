@@ -18,6 +18,7 @@ bool save_failed = false;
 bool sound_options = false;
 uint8_t first_row = 0;
 bool grid_open = false;
+bool filter_open = false, keep_one = false;
 uint8_t grid_first_row = 0;
 
 /** Expression grid geometry: three columns of large touch targets, five rows of full-pitch cells. */
@@ -35,12 +36,12 @@ enum MenuTab : uint8_t { TAB_LOOK, TAB_LIGHT, TAB_FACES, TAB_MOTION, TAB_AUDIO, 
 
 /** @brief Number of rows in the current panel. */
 uint8_t row_count() {
-	static const uint8_t counts[] = {3, 4, 3, 5, 5, 4};
+	static const uint8_t counts[] = {3, 4, 4, 5, 5, 6};
 	return tab == TAB_AUDIO && sound_options ? 4 : counts[tab];
 }
 
 /** @brief Close the grid and restore the tab rows. */
-void grid_close() { grid_open = false; grid_first_row = 0; first_row = 0; }
+void grid_close() { grid_open = filter_open = keep_one = false; grid_first_row = 0; first_row = 0; }
 
 /** @brief Draw one editable row. @param gfx Canvas. @param index Row. @param label Field. @param value Choice. */
 void row(Arduino_GFX *gfx, uint8_t index, const char *label, const String &value) {
@@ -71,6 +72,7 @@ void change_row(uint8_t index) {
 		if (index == 2) {
 			uint8_t focus = uint8_t(p.mood / GRID_COLS);
 			grid_open = true;
+			filter_open = false;
 			grid_first_row = focus > GRID_MAX_FIRST ? GRID_MAX_FIRST : focus;
 			return;
 		}
@@ -83,6 +85,7 @@ void change_row(uint8_t index) {
 		if (index == 0) { p.animation = (p.animation + 1) % 3; }
 		if (index == 1) { p.random_faces = !p.random_faces; }
 		if (index == 2) { p.face_flow = (p.face_flow + 1) % FACE_FLOW_COUNT; }
+		if (index == 3) { grid_open = filter_open = true; keep_one = false; grid_first_row = 0; return; }
 	} else if (tab == 3) {
 		if (index == 0) { p.imu_faces = !p.imu_faces; }
 		if (index == 1) { p.shake = !p.shake; }
@@ -93,6 +96,7 @@ void change_row(uint8_t index) {
 		if (index == 0) { p.language = (p.language + 1) % 2; }
 		if (index == 1) { p.dashboard = !p.dashboard; }
 		if (index == 2) { p.route_large = !p.route_large; }
+		if (index == 3) { p.phone_ios = !p.phone_ios; }
 	} else if (sound_options) {
 		if (index == 0) { p.sound_faces = !p.sound_faces; }
 		if (index == 1) { p.sound_timer = !p.sound_timer; }
@@ -125,6 +129,7 @@ void basic_rows(Arduino_GFX *gfx, const CompanionSettings &p) {
 		row(gfx, 0, tr(Text::Animation), tr_choice(3, p.animation));
 		row(gfx, 1, tr(Text::RandomMood), on_off(p.random_faces));
 		row(gfx, 2, tr(Text::FaceFlow), tr_choice(4, p.face_flow));
+		row(gfx, 3, tr(Text::FaceLibrary), tr(Text::Open));
 	}
 }
 /** @brief Draw motion/language or audio options. @param gfx Canvas. @param p Profile. */
@@ -143,7 +148,9 @@ void extra_rows(Arduino_GFX *gfx, const CompanionSettings &p) {
 		row(gfx, 0, tr(Text::Language), p.language ? "Italiano" : "English");
 		row(gfx, 1, tr(Text::Dashboard), on_off(p.dashboard));
 		row(gfx, 2, tr(Text::RouteDefault), tr(p.route_large ? Text::Large : Text::Details));
-		row(gfx, 3, tr(Text::FirmwareUpdate), tr(Text::Open));
+			row(gfx, 3, tr(Text::PhoneMode), tr(p.phone_ios ? Text::IphoneMode : Text::AndroidMode));
+			row(gfx, 4, tr(Text::FirmwareUpdate), tr(Text::Open));
+			row(gfx, 5, tr(Text::WebSettings), tr(Text::Open));
 	} else if (sound_options) {
 		row(gfx, 0, tr(Text::Faces), on_off(p.sound_faces));
 		row(gfx, 1, tr(Text::TimerLabel), on_off(p.sound_timer));
@@ -161,25 +168,49 @@ void extra_rows(Arduino_GFX *gfx, const CompanionSettings &p) {
 	}
 }
 
-/** @brief Draw the expression grid overlay, replacing the tab rows. @param gfx Canvas. */
-void grid_draw(Arduino_GFX *gfx) {
-	const CompanionSettings &p = settings_get();
+/** @brief Draw the selection/library header and the optional Wi-Fi action. */
+void grid_header(Arduino_GFX *gfx) {
 	uint8_t first = uint8_t(grid_first_row * GRID_COLS + 1);
 	uint8_t last = uint8_t(first + GRID_ROWS * GRID_COLS - 1);
 	if (last > EXPRESSION_COUNT) { last = EXPRESSION_COUNT; }
 	gfx->fillRoundRect(ui_s(2), ui_s(52), ui_s(236), ui_s(36), ui_s(8), UI_CARD);
+	if (filter_open) {
+		ui_label(gfx, tr(keep_one ? Text::KeepOneFace : Text::FaceLibrary), ui_s(14), ui_s(58), ui_s(146), 1, UI_ACCENT);
+		ui_label(gfx, String(face_filter().count()) + "/" + String(EXPRESSION_COUNT) + " " + tr(Text::Enabled),
+			ui_s(14), ui_s(74), ui_s(146), 1, UI_MUTED);
+		gfx->fillRoundRect(ui_s(170), ui_s(52), ui_s(68), ui_s(36), ui_s(8), UI_ACCENT);
+		ui_label(gfx, "Wi-Fi", ui_s(182), ui_s(66), ui_s(50), 1, UI_BG);
+		return;
+	}
 	ui_label(gfx, tr(Text::MoodLabel), ui_s(14), ui_s(66), ui_s(110), 1, UI_ACCENT);
 	ui_label(gfx, String(first) + "-" + String(last) + "/" +
 		String(EXPRESSION_COUNT), ui_s(150), ui_s(66), ui_s(76), 1, UI_MUTED);
+}
+/** @brief Draw an enabled checkbox or a muted excluded entry without relying on color alone. */
+void grid_entry(Arduino_GFX *gfx, uint8_t index, int16_t x, int16_t y) {
+	bool allowed = face_filter().allows(Expression(index));
+	bool selected = !filter_open && allowed && index == settings_get().mood;
+	gfx->fillRoundRect(x, y, ui_s(GRID_W), ui_s(GRID_H), ui_s(6), selected ? UI_ACCENT : UI_CARD);
+	if (filter_open) {
+		gfx->drawRect(x + ui_s(3), y + ui_s(8), ui_s(8), ui_s(8), UI_TEXT);
+		if (allowed) { gfx->fillRect(x + ui_s(5), y + ui_s(10), ui_s(4), ui_s(4), UI_ACCENT); }
+	}
+	int16_t pad = filter_open ? 14 : 3;
+	ui_label(gfx, tr_expression(index), x + ui_s(pad), y + ui_s(8), ui_s(GRID_W - pad - 3), 1,
+		selected ? UI_BG : (allowed ? UI_TEXT : UI_MUTED));
+	if (!filter_open && !allowed) {
+		gfx->drawLine(x + ui_s(3), y + ui_s(4), x + ui_s(10), y + ui_s(20), UI_MUTED);
+	}
+}
+/** @brief Draw the expression grid overlay, replacing the tab rows. @param gfx Canvas. */
+void grid_draw(Arduino_GFX *gfx) {
+	grid_header(gfx);
 	for (uint8_t cell = 0; cell < GRID_ROWS * GRID_COLS; ++cell) {
 		uint16_t index = uint16_t(grid_first_row) * GRID_COLS + cell;
 		if (index >= EXPRESSION_COUNT) { break; }
 		int16_t x = ui_s(int16_t(GRID_X0 + (cell % GRID_COLS) * (GRID_W + 4)));
 		int16_t y = ui_s(int16_t(GRID_Y0 + (cell / GRID_COLS) * GRID_ROW_PX));
-		bool selected = index == p.mood;
-		gfx->fillRoundRect(x, y, ui_s(GRID_W), ui_s(GRID_H), ui_s(6), selected ? UI_ACCENT : UI_CARD);
-		ui_label(gfx, tr_expression(uint8_t(index)), x + ui_s(3), y + ui_s(8), ui_s(GRID_W - 6), 1,
-			selected ? UI_BG : UI_TEXT);
+		grid_entry(gfx, uint8_t(index), x, y);
 	}
 	if (GRID_MAX_FIRST) {
 		int16_t track = int16_t(GRID_ROWS * GRID_ROW_PX) - 2;
@@ -208,6 +239,14 @@ bool grid_cell(int16_t x, int16_t y) {
 			if (x < cell_x || x >= cell_x + ui_s(GRID_W)) { continue; }
 			uint16_t index = uint16_t(grid_first_row + row) * GRID_COLS + col;
 			if (index >= EXPRESSION_COUNT) { return false; }
+			if (filter_open) {
+				FaceFilter next = face_filter();
+				keep_one = !next.set(Expression(index), !next.allows(Expression(index)));
+				if (!keep_one) { settings_faces_update(next); }
+				save_failed = false;
+				return true;
+			}
+			if (!face_filter().allows(Expression(index))) { return false; }
 			CompanionSettings p = settings_get();
 			p.mood = uint8_t(index);
 			save_failed = false;
@@ -247,6 +286,7 @@ void settings_menu_draw(Arduino_GFX *gfx) {
 MenuAction settings_menu_tap(int16_t x, int16_t y) {
 	if (x < 0 || x >= LCD_WIDTH || y < 0 || y >= LCD_HEIGHT) { return MenuAction::None; }
 	if (grid_open) {
+		if (filter_open && x >= ui_s(170) && y >= ui_s(52) && y < ui_s(88)) { return MenuAction::FacesWeb; }
 		if (y >= ui_s(224) && x < ui_s(120)) { save_failed = !settings_save(); return MenuAction::Changed; }
 		if (y >= ui_s(224)) { grid_close(); return MenuAction::Changed; }
 		return grid_cell(x, y) ? MenuAction::Changed : MenuAction::None;
@@ -269,7 +309,8 @@ MenuAction settings_menu_tap(int16_t x, int16_t y) {
 	if (y >= ui_s(94) && y < ui_s(222)) {
 		uint8_t index = uint8_t(first_row + (y - ui_s(94)) / ui_s(44));
 		uint8_t count = row_count();
-		if (tab == TAB_SYSTEM && index == 3) { return MenuAction::Update; }
+			if (tab == TAB_SYSTEM && index == 4) { return MenuAction::Update; }
+			if (tab == TAB_SYSTEM && index == 5) { return MenuAction::FacesWeb; }
 		if (index < count) { change_row(index); return MenuAction::Changed; }
 	}
 	return MenuAction::None;

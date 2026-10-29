@@ -6,7 +6,7 @@
 #pragma once
 #include <Arduino_GFX_Library.h>
 
-enum class MenuAction { None, Changed, Exit, Update };
+enum class MenuAction { None, Changed, Exit, Update, FacesWeb };
 /** @brief Draw the selected settings tab. @param gfx Canvas. */
 void settings_menu_draw(Arduino_GFX *gfx);
 /** @brief Process a released tap. @param x X. @param y Y. @return Menu action. */

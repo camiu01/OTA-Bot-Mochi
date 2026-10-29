@@ -9,7 +9,7 @@
 #include "../eyes/eyes_types.h"
 #include "../eyes/face_flow.h"
 constexpr uint8_t SETTINGS_V4_BYTES = 12;	/**< Stored size of the retired version-four profile. */
-constexpr uint8_t SETTINGS_BYTES = 13;		/**< Stored size of the current version-six profile. */
+constexpr uint8_t SETTINGS_BYTES = 13;		/**< Stored size of the current version-seven profile. */
 
 struct CompanionSettings {
 	uint8_t style = 1;
@@ -32,6 +32,7 @@ struct CompanionSettings {
 	uint8_t animation = 1;
 	uint8_t language = 0;
 	bool flipped = false;
+	bool phone_ios = false;
 };
 
 /** @brief Name an eye shape. @param index Choice index. @return Stable USB/menu name. */
@@ -76,15 +77,15 @@ inline bool settings_valid(const CompanionSettings &value) {
 /**
  * @brief Encode a versioned profile without relying on struct padding.
  * @param value Valid settings.
- * @param bytes Output thirteen-byte profile.
+	 * @param bytes Output thirteen-byte profile.
  */
 inline void settings_encode(const CompanionSettings &value, uint8_t bytes[SETTINGS_BYTES]) {
-	bytes[0] = 6;
+	bytes[0] = 7;
 	bytes[1] = value.style; bytes[2] = value.color; bytes[3] = value.mood;
 	bytes[4] = value.brightness; bytes[5] = value.night_brightness;
 	bytes[6] = value.night | (value.dashboard << 1) | (value.shake << 2) | (value.dim << 3);
 	bytes[6] |= (value.random_faces << 4) | (value.imu_faces << 5);
-	bytes[6] |= value.route_large << 6;
+	bytes[6] |= (value.route_large << 6) | (value.phone_ios << 7);
 	bytes[7] = value.sound | (value.sound_faces << 1) | (value.sound_timer << 2) |
 		(value.sound_alerts << 3) | (value.sound_ambient << 4) | (value.sound_night_mute << 5);
 	bytes[8] = value.sound_level; bytes[9] = value.animation; bytes[10] = value.language;
@@ -96,7 +97,7 @@ inline void settings_encode(const CompanionSettings &value, uint8_t bytes[SETTIN
 /**
  * @brief Validate and decode a stored profile, leaving output untouched on failure.
  * @param bytes Input profile.
- * @param length Actual buffer length: eight for v1-v3, twelve for v4, thirteen for v5-v6.
+	 * @param length Actual buffer length: eight for v1-v3, twelve for v4, thirteen for v5-v7.
  * @param value Output settings.
  * @return Valid version, checksum, flags, and fields.
  */
@@ -104,11 +105,11 @@ inline bool settings_decode(const uint8_t *bytes, size_t length, CompanionSettin
 	if (!bytes || (length != 8 && length != SETTINGS_V4_BYTES && length != SETTINGS_BYTES)) { return false; }
 	if ((length == 8 && (bytes[0] < 1 || bytes[0] > 3)) ||
 		(length == SETTINGS_V4_BYTES && bytes[0] != 4) ||
-		(length == SETTINGS_BYTES && bytes[0] != 5 && bytes[0] != 6)) { return false; }
+		(length == SETTINGS_BYTES && bytes[0] != 5 && bytes[0] != 6 && bytes[0] != 7)) { return false; }
 	uint8_t checksum = 0xA5;
 	for (size_t i = 0; i + 1 < length; ++i) { checksum ^= bytes[i]; }
 	if (bytes[length - 1] != checksum) { return false; }
-	if (bytes[6] & (bytes[0] == 1 ? 0xF0 : (bytes[0] == 2 ? 0xC0 : 0x80))) { return false; }
+	if (bytes[6] & (bytes[0] == 1 ? 0xF0 : (bytes[0] == 2 ? 0xC0 : (bytes[0] == 7 ? 0 : 0x80)))) { return false; }
 	CompanionSettings next;
 	next.style = bytes[1]; next.color = bytes[2]; next.mood = bytes[3];
 	next.brightness = bytes[4]; next.night_brightness = bytes[5];
@@ -116,6 +117,7 @@ inline bool settings_decode(const uint8_t *bytes, size_t length, CompanionSettin
 	next.shake = bytes[6] & 4; next.dim = bytes[6] & 8;
 	if (bytes[0] >= 2) { next.random_faces = bytes[6] & 16; next.imu_faces = bytes[6] & 32; }
 	if (bytes[0] >= 3) { next.route_large = bytes[6] & 64; }
+	if (bytes[0] >= 7) { next.phone_ios = bytes[6] & 128; }
 	if (bytes[0] >= 4) {
 		if (bytes[7] & 0xC0) { return false; }
 		next.sound = bytes[7] & 1; next.sound_faces = bytes[7] & 2;

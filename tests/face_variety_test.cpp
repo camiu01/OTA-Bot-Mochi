@@ -24,7 +24,8 @@ static void continuous(uint32_t choice) {
 				assert(next != prior);
 				if (j < 2) { assert(face_family(next) != face_family(prior)); }
 			}
-			uint32_t length = FacePolicy::cycle_duration(next);
+			uint32_t length = FacePolicy::automatic_duration(next);
+			assert(length >= 6000 && length % FacePolicy::cycle_duration(next) == 0);
 			assert(p.update(now + length - 1, true, false, choice, false, FACE_CONTINUOUS) == next);
 			seen.push_back(next); now += length;
 		}
@@ -37,7 +38,7 @@ static void sequence() {
 	for (uint8_t id = 1; id < EXPRESSION_COUNT; ++id) {
 		if (id == DIZZY) { continue; }
 		assert(p.update(now, true, false, 0, true, FACE_SEQUENCE) == Expression(id));
-		now += FacePolicy::cycle_duration(Expression(id));
+		now += FacePolicy::automatic_duration(Expression(id));
 	}
 }
 /** @brief Repeated sensor reactions must not indefinitely starve continuous automatic playback. */
@@ -53,7 +54,7 @@ static void sensor_handoff(uint32_t start) {
 		if (face != previous && face != SKEPTIC && p.automatic()) { ++automatic_changes; }
 		previous = face;
 	}
-	assert(automatic_changes > 10);
+	assert(automatic_changes > 5);
 	// Turning random playback off must still stop chaining, even after a sensor event.
 	assert(p.update(start + 130000, false, false, 0, true, FACE_CONTINUOUS) == NEUTRAL);
 }

@@ -57,5 +57,13 @@ int main() {
 	assert(!ota_qr_prepare("Mochi", "ABCD2345") && !ota_qr_draw(&gfx, 0, 0, 124));
 	test_qr_result = ESP_OK; test_qr_size = 37;
 	assert(!ota_qr_prepare("Mochi", "ABCD2345") && !ota_qr_draw(&gfx, 0, 0, 124));
-	std::cout << "OTA Wi-Fi payload, QR cache, module scale and quiet zone passed\n";
+	test_qr_size = 33;
+	assert(ota_qr_prepare_url("http://192.168.1.42/#0123456789abcdef0123456789abcdef"));
+	assert(test_qr_payload == "http://192.168.1.42/#0123456789abcdef0123456789abcdef");
+	raster_check(124);
+	for (const char *url : {"https://example.com", "http://192.168.1.999/#0123456789abcdef0123456789abcdef",
+		"http://192.168.1.1/#short", "http://evil.local/#0123456789abcdef0123456789abcdef"}) {
+		assert(!ota_qr_prepare_url(url));
+	}
+	std::cout << "OTA Wi-Fi and authorized LAN URL payloads, QR cache, scale and quiet zone passed\n";
 }

@@ -21,9 +21,10 @@ bool tapped = false;
 int16_t tap_x = 0, tap_y = 0;
 }
 
-void ota_begin(uint32_t, void (*)()) {
+void ota_begin(uint32_t, void (*)(), bool faces) {
 	session = OtaStatus{};
 	session.active = true;
+	session.faces = faces;
 	strcpy(session.ssid, "Mochi-Update-abcdef");
 	strcpy(session.password, "ABCD2345");
 }
@@ -80,12 +81,29 @@ int main() {
 		refresh(gfx, 180);
 		assert(contains(gfx, tr(Text::Failed)) && !contains(gfx, tr(Text::OtaScan)));
 		refresh(gfx, 20); assert(!session.active);
+		gfx.text.clear(); ota_screen_begin(&gfx, test_now, true);
+		session.lan = true; strcpy(session.address, "192.168.1.42");
+		strcpy(session.url, "http://192.168.1.42/#0123456789abcdef0123456789abcdef");
+		refresh(gfx);
+		assert(contains(gfx, tr(Text::WebScan)) && contains(gfx, "http://192.168.1.42"));
+		assert(test_qr_payload == session.url);
+		refresh(gfx, 180);
+		assert(contains(gfx, tr(Text::WebAuthorize)) && contains(gfx, tr(Text::WebQr)));
+		strcpy(session.address, "192.168.1.43"); strcpy(session.url, "http://192.168.1.43/#abcdef0123456789abcdef0123456789");
+		refresh(gfx);
+		assert(contains(gfx, tr(Text::WebScan)) && contains(gfx, "http://192.168.1.43") && test_qr_payload == session.url);
+		refresh(gfx, 20); assert(!session.active);
 		test_qr_result = 1; gfx.text.clear();
 		ota_screen_begin(&gfx, test_now);
 		assert(contains(gfx, tr(Text::OtaBrowser)));
 		assert(contains(gfx, "ABCD2345") && !contains(gfx, tr(Text::OtaScan)));
 		test_qr_result = ESP_OK;
 		ota_stop();
+		gfx.text.clear(); ota_screen_begin(&gfx, test_now, true);
+		assert(session.faces && contains(gfx, tr(Text::FacesWifi)));
+		refresh(gfx, 180);
+		assert(contains(gfx, tr(Text::FacesReady)) && !contains(gfx, "0%"));
+		refresh(gfx, 20); assert(!session.active);
 	}
 	std::cout << "OTA QR/details, password fallback, progress and EN/IT panel bounds passed\n";
 }

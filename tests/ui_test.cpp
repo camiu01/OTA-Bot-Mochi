@@ -237,6 +237,33 @@ static void auto_page_tests(ChronosESP32 &watch) {
 	assert(policy.update(UiPage::Eyes, events, false) == UiPage::Notification);
 }
 
+/** @brief Alert returns preserve the interrupted page, manual choices, and rollover safety. */
+static void notification_return_tests() {
+	for (uint32_t start : {100u, UINT32_MAX - 1000}) {
+		AutoPagePolicy p;
+		UiPageEvents events{};
+		events.notifications = 1;
+		assert(p.update(UiPage::Timer, events, true, start) == UiPage::Timer);
+		assert(p.update(UiPage::Timer, events, false, start) == UiPage::Notification);
+		assert(p.update(UiPage::Notification, events, false, start + 59999) == UiPage::Notification);
+		++events.notifications;
+		assert(p.update(UiPage::Notification, events, false, start + 60000) == UiPage::Notification);
+		assert(p.update(UiPage::Notification, events, false, start + 119999) == UiPage::Notification);
+		assert(p.update(UiPage::Notification, events, true, start + 120000) == UiPage::Notification);
+		assert(p.update(UiPage::Notification, events, false, start + 120001) == UiPage::Timer);
+		assert(p.update(UiPage::Notification, events, false, start + 180001) == UiPage::Notification);
+		++events.notifications;
+		assert(p.update(UiPage::Clock, events, false, start) == UiPage::Notification);
+		assert(p.update(UiPage::Weather, events, false, start + 1) == UiPage::Weather);
+		assert(p.update(UiPage::Notification, events, false, start + 60000) == UiPage::Notification);
+		++events.notifications;
+		assert(p.update(UiPage::Eyes, events, false, start) == UiPage::Notification);
+		events.route_active = true; ++events.route_starts;
+		assert(p.update(UiPage::Notification, events, false, start + 1) == UiPage::Navigation);
+		assert(p.update(UiPage::Notification, events, false, start + 60000) == UiPage::Notification);
+	}
+}
+
 /** @brief Session presentation never leaks into saved route defaults; tools stay contextual. */
 static void context_tests(Arduino_GFX &gfx, ChronosESP32 &watch) {
 	view_reset();
@@ -255,7 +282,7 @@ static void context_tests(Arduino_GFX &gfx, ChronosESP32 &watch) {
 	assert(screens_scroll(UiPage::Desk, 1) == UiPage::Clock);
 	for (uint8_t i = 0; i < 6; ++i) {
 		UiPage page = static_cast<UiPage>(uint8_t(UiPage::BigClock) + i);
-		assert(screens_tap(UiPage::Desk, i % 2 ? 200 : 20, 60 + (i / 2) * 64, 0) == page);
+		assert(screens_tap(UiPage::Desk, i % 2 ? 200 : 20, 60 + (i / 2) * 50, 0) == page);
 		assert(screens_parent(page) == UiPage::Clock);
 		assert(screens_swipe(page, 1) == UiPage::Navigation);
 		assert(screens_swipe(page, -1) == UiPage::Eyes);
@@ -401,6 +428,7 @@ int main() {
 	screens_draw(&gfx, watch, UiPage::Settings, test_now + 6198);
 	assert(screens_draw(&gfx, watch, UiPage::Count, test_now + 6231));
 	auto_page_tests(watch);
+	notification_return_tests();
 	context_tests(gfx, watch);
 	timer_tests();
 	route_scale_tests();

@@ -16,6 +16,7 @@
 #include "../OTA-bot-Mochi/src/ui/view_state.h"
 #include "../OTA-bot-Mochi/src/ui/context_views.h"
 #include "../OTA-bot-Mochi/src/ui/context_play.h"
+#include "../OTA-bot-Mochi/src/ui/context_tris.h"
 #include "../OTA-bot-Mochi/src/settings/settings.h"
 #include "../OTA-bot-Mochi/src/settings/settings_menu.h"
 #include "../OTA-bot-Mochi/src/settings/usb_commands.h"
@@ -23,6 +24,7 @@
 #include "../OTA-bot-Mochi/src/sound/sound.h"
 #include "../OTA-bot-Mochi/pin_config.h"
 #include <assert.h>
+#include <Preferences.h>
 #include <iostream>
 #include <string>
 
@@ -128,7 +130,7 @@ static void flow_menu_checks(Arduino_GFX &gfx) {
 		assert(settings_update(p));
 		assert(settings_menu_tap(ui_s(200), ui_s(70)) == MenuAction::Changed);
 		assert(settings_menu_tap(ui_s(200), ui_s(70)) == MenuAction::Changed);
-		assert(!settings_menu_scroll(1));
+		assert(!settings_menu_scroll(-1));
 		for (uint8_t mode = 0; mode < FACE_FLOW_COUNT; ++mode) {
 			assert(settings_get().face_flow == mode);
 			assert(strcmp(tr_choice(4, mode), "?") != 0);
@@ -142,16 +144,53 @@ static void flow_menu_checks(Arduino_GFX &gfx) {
 	assert(settings_update(saved));
 }
 
+/** @brief Library toggles, last-face guard, Wi-Fi action and excluded manual choices scale. */
+static void library_checks(Arduino_GFX &gfx) {
+	auto original = settings_get();
+	for (uint8_t language = 0; language < 2; ++language) {
+		settings_defaults(); assert(settings_save());
+		auto p = settings_get(); p.language = language; assert(settings_update(p));
+		assert(settings_menu_tap(ui_s(200), ui_s(70)) == MenuAction::Changed);
+		assert(settings_menu_tap(ui_s(200), ui_s(70)) == MenuAction::Changed);
+		assert(settings_menu_scroll(1) && !settings_menu_scroll(1));
+		assert(settings_menu_tap(ui_s(120), ui_s(200)) == MenuAction::Changed);
+		assert(settings_menu_grid_open());
+		settings_menu_draw(&gfx);
+		assert(settings_menu_tap(ui_s(20), ui_s(106)) == MenuAction::Changed);
+		assert(!face_filter().allows(NEUTRAL) && settings_get().mood == HAPPY);
+		FaceFilter one;
+		for (uint8_t id = 0; id < EXPRESSION_COUNT; ++id) { if (id != HAPPY) { one.set(Expression(id), false); } }
+		assert(settings_faces_update(one));
+		assert(settings_menu_tap(ui_s(120), ui_s(106)) == MenuAction::Changed);
+		assert(face_filter().count() == 1 && face_filter().allows(HAPPY));
+		gfx.text.clear(); settings_menu_draw(&gfx);
+		assert(std::find(gfx.text.begin(), gfx.text.end(), tr(Text::KeepOneFace)) != gfx.text.end());
+		assert(settings_menu_tap(ui_s(200), ui_s(70)) == MenuAction::FacesWeb);
+		test_save_fails = true;
+		assert(settings_menu_tap(ui_s(40), ui_s(250)) == MenuAction::Changed && settings_faces_dirty());
+		test_save_fails = false;
+		assert(settings_menu_tap(ui_s(40), ui_s(250)) == MenuAction::Changed && !settings_faces_dirty());
+		assert(settings_menu_tap(ui_s(180), ui_s(250)) == MenuAction::Changed);
+		settings_menu_tap(ui_s(30), ui_s(70)); settings_menu_tap(ui_s(30), ui_s(70));
+		assert(settings_menu_tap(ui_s(120), ui_s(200)) == MenuAction::Changed);
+		assert(settings_menu_tap(ui_s(20), ui_s(106)) == MenuAction::None);
+		assert(settings_get().mood == HAPPY);
+		settings_menu_tap(ui_s(180), ui_s(250));
+	}
+	settings_defaults(); assert(settings_update(original) && settings_save());
+}
+
 /** @brief Desk cards, timer buttons, and the strip below the scaled field. */
 static void desk_checks() {
 	assert(screens_tap(UiPage::Desk, ui_s(20), ui_s(70), 0) == UiPage::BigClock);
 	assert(screens_tap(UiPage::Desk, ui_s(200), ui_s(70), 0) == UiPage::Overview);
 	assert(screens_tap(UiPage::Desk, ui_s(20), ui_s(140), 0) == UiPage::Timer);
 	assert(screens_tap(UiPage::Desk, ui_s(200), ui_s(140), 0) == UiPage::Device);
-	assert(screens_tap(UiPage::Desk, ui_s(20), ui_s(210), 0) == UiPage::Pong);
-	assert(screens_tap(UiPage::Desk, ui_s(200), ui_s(210), 0) == UiPage::AnalogClock);
+	assert(screens_tap(UiPage::Desk, ui_s(20), ui_s(180), 0) == UiPage::Pong);
+	assert(screens_tap(UiPage::Desk, ui_s(200), ui_s(180), 0) == UiPage::AnalogClock);
+	assert(screens_tap(UiPage::Desk, ui_s(20), ui_s(230), 0) == UiPage::Tris);
 	assert(screens_tap(UiPage::Desk, ui_s(120), ui_s(210), 0) == UiPage::Desk);
-	assert(screens_tap(UiPage::Desk, ui_s(20), ui_s(119), 0) == UiPage::Desk);
+	assert(screens_tap(UiPage::Desk, ui_s(20), ui_s(104), 0) == UiPage::Desk);
 	uint8_t mode = view_timer().mode;
 	screens_tap(UiPage::Timer, ui_s(120), ui_s(180), 1000);
 	assert(view_timer().running);
@@ -217,6 +256,36 @@ static void play_checks(Arduino_GFX &gfx, ChronosESP32 &watch) {
 	assert(gfx.pixels != before);
 }
 
+/** @brief Tris touch cells, turn delay, reset and contextual navigation scale with the panel. */
+static void tris_checks(Arduino_GFX &gfx, ChronosESP32 &watch) {
+	bool dirty = settings_dirty();
+	desk_tris().reset();
+	screens_tap(UiPage::Tris, ui_s(20), ui_s(90), 1000);
+	assert(!desk_tris().thinking);
+	for (uint8_t i = 0; i < 9; ++i) {
+		desk_tris().reset();
+		screens_tap(UiPage::Tris, ui_s(72 + i % 3 * 48), ui_s(102 + i / 3 * 48), 1000);
+		assert(desk_tris().cells[i] == 1 && desk_tris().thinking);
+		assert(screens_draw(&gfx, watch, UiPage::Tris, 1000));
+		assert(desk_tris().thinking);
+		screens_invalidate();
+		assert(screens_draw(&gfx, watch, UiPage::Tris, 1450));
+		assert(!desk_tris().thinking);
+	}
+	screens_tap(UiPage::Tris, ui_s(120), ui_s(244), 1500);
+	for (uint8_t cell : desk_tris().cells) { assert(cell == 0); }
+	assert(screens_scroll(UiPage::Tris, 1) == UiPage::Desk);
+	assert(screens_swipe(UiPage::Tris, 1) == UiPage::Navigation);
+	assert(settings_dirty() == dirty);
+	for (uint8_t language = 0; language < 2; ++language) {
+		auto p = settings_get(); p.language = language; settings_update(p);
+		for (const TicTacToe game : {TicTacToe{}, TicTacToe{{1,1,1}}, TicTacToe{{2,2,2}},
+				TicTacToe{{1,2,1,1,2,2,2,1,1}}}) {
+			desk_tris() = game; desk_tris_draw(&gfx, 2000);
+		}
+	}
+}
+
 /** @brief Run the layout proof for the panel the binary was compiled for. @return Success. */
 int main() {
 	assert(ui_state_init());
@@ -230,8 +299,10 @@ int main() {
 	menu_checks();
 	grid_checks();
 	flow_menu_checks(gfx);
+	library_checks(gfx);
 	desk_checks();
 	play_checks(gfx, watch);
+	tris_checks(gfx, watch);
 	std::cout << "Pages and menu layout passed on " << LCD_WIDTH << "x" << LCD_HEIGHT << "\n";
 	return 0;
 }

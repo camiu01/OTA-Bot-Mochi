@@ -35,8 +35,13 @@ build_test() {
 	local name="$1"
 	shift
 	local board=()
+	local network=()
+	if [[ " $* " == *"/src/update/ota_update.cpp"* ]]; then
+		network=("$root/OTA-bot-Mochi/src/network/network_config.cpp"
+			"$root/OTA-bot-Mochi/src/network/network_service.cpp" "$root/tests/stubs/network_weather.cpp")
+	fi
 	if [[ " $* " != *" -DMOCHI_BOARD_AMOLED_18 "* ]]; then board=(-DMOCHI_BOARD_LCD_169); fi
-	g++ -std=c++17 -Wall -Wextra -Werror -I "$root/tests/stubs" "${board[@]}" "$@" -o "$output/$name"
+	g++ -std=c++17 -Wall -Wextra -Werror -I "$root/tests/stubs" "${board[@]}" "$@" "${network[@]}" -o "$output/$name"
 	"$output/$name"
 }
 g++ -std=c++17 -Wall -Wextra -Werror -I "$root/tests/stubs" -DMOCHI_BOARD_LCD_169 -fsyntax-only "$root/OTA-bot-Mochi/src/touch/touch.cpp"
@@ -46,7 +51,9 @@ g++ -std=c++17 -Wall -Wextra -Werror -I "$root/tests/stubs" -DMOCHI_BOARD_AMOLED
 	"$root/OTA-bot-Mochi/src/touch/touch.cpp" "$root/OTA-bot-Mochi/src/power/backlight.cpp" \
 	"$root/OTA-bot-Mochi/src/sound/buzzer_output.cpp" "$root/OTA-bot-Mochi/src/power/battery.cpp"
 build_test swipe "$root/tests/swipe_test.cpp"
-ota=("$root/tests/ota_test.cpp" "$root/OTA-bot-Mochi/src/update/ota_update.cpp")
+build_test ancs "$root/tests/ancs_test.cpp" "$root/OTA-bot-Mochi/src/ancs/ancs_parser.cpp"
+build_test tic-tac-toe "$root/tests/tic_tac_toe_test.cpp"
+ota=("${runtime[@]}" "$root/tests/ota_test.cpp" "$root/OTA-bot-Mochi/src/update/ota_update.cpp" "$root/OTA-bot-Mochi/src/update/ntp_sync.cpp" "$root/tests/stubs/imu_noop.cpp")
 build_test ota-lcd -I "$root/tests/stubs/ota" "${ota[@]}"
 build_test ota-amoled -I "$root/tests/stubs/ota" -DMOCHI_BOARD_AMOLED_18 "${ota[@]}"
 ota_qr=("$root/tests/ota_qr_test.cpp" "$root/OTA-bot-Mochi/src/update/ota_qr.cpp")
@@ -84,6 +91,16 @@ for source in "${runtime[@]}"; do
 done
 render_eyes=("$root/OTA-bot-Mochi/src/eyes/eyes_draw.cpp" "$root/tests/stubs/imu_noop.cpp")
 build_test eyes "${render_runtime[@]}" "$root/tests/eyes_test.cpp" "${render_eyes[@]}"
+build_test face-filter "${render_runtime[@]}" "$root/tests/face_filter_test.cpp" \
+	"$root/OTA-bot-Mochi/src/eyes/eyes_draw.cpp" "$root/OTA-bot-Mochi/src/eyes/eyes_imu.cpp"
+build_test face-web -I "$root/tests/stubs/ota" "${runtime[@]}" "$root/tests/face_web_test.cpp" \
+	"$root/OTA-bot-Mochi/src/update/ota_update.cpp" "$root/OTA-bot-Mochi/src/update/ntp_sync.cpp" "$root/tests/stubs/imu_noop.cpp"
+build_test settings-web -I "$root/tests/stubs/ota" "${runtime[@]}" "$root/tests/settings_web_test.cpp" \
+	"$root/OTA-bot-Mochi/src/update/ota_update.cpp" "$root/OTA-bot-Mochi/src/update/ntp_sync.cpp" "$root/tests/stubs/imu_noop.cpp"
+build_test ntp-sync -I "$root/tests/stubs/ota" "$root/tests/ntp_sync_test.cpp" "$root/OTA-bot-Mochi/src/update/ntp_sync.cpp"
+build_test network -I "$root/tests/stubs/ota" "${runtime[@]}" "$root/tests/network_test.cpp" \
+	"$root/OTA-bot-Mochi/src/update/ota_update.cpp" "$root/OTA-bot-Mochi/src/update/ntp_sync.cpp" "$root/tests/stubs/imu_noop.cpp"
+build_test network-weather -I "$root/tests/stubs/ota" "$root/tests/network_weather_test.cpp" "$root/OTA-bot-Mochi/src/network/network_weather_parse.cpp"
 build_test face-preset-raster "${render_runtime[@]}" "$root/tests/face_preset_raster_test.cpp" "${render_eyes[@]}"
 build_test all-faces-raster -O2 -DALL_FACES_RASTER "${render_runtime[@]}" "$root/tests/face_preset_raster_test.cpp" "${render_eyes[@]}"
 build_test faces "${render_runtime[@]}" "$root/tests/face_unique_test.cpp" "${render_eyes[@]}"

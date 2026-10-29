@@ -15,6 +15,7 @@
 #include "eye_reactions.h"
 #include "eye_effects.h"
 #include "eye_scenes.h"
+#include "face_filter.h"
 #include "eye_performance_draw.h"
 #include "../../pin_config.h"
 
@@ -114,6 +115,7 @@ void eyes_draw() {
 		drawing.saccadeX = drawing.saccadeY = drawing.floatY = 0;
 		drawing.tiltX = pose.x; drawing.tiltY = pose.y;
 	}
+	cfg.expression = face_filter().resolve(cfg.expression);
 	const FacePreset *preset = face_preset(cfg.expression);
 	bool scene = preset && preset->fullScene;
 	uint32_t elapsed = eye_effect_elapsed(st, cfg.expression);

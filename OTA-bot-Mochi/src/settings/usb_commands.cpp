@@ -51,7 +51,7 @@ bool assign_choice(const char *field, const char *value, CompanionSettings &prof
 		if (index >= 0) { profile.color = index; return true; }
 	} else if (strcmp(field, "mood") == 0) {
 		index = choice(value, EXPRESSION_COUNT, settings_mood_name);
-		if (index >= 0) { profile.mood = index; return true; }
+		if (index >= 0 && face_filter().allows(Expression(index))) { profile.mood = index; return true; }
 	} else if (strcmp(field, "animation") == 0) {
 		index = choice(value, 3, settings_animation_name);
 		if (index >= 0) { profile.animation = index; return true; }
@@ -64,6 +64,9 @@ bool assign_choice(const char *field, const char *value, CompanionSettings &prof
 	} else if (strcmp(field, "route") == 0) {
 		if (strcmp(value, "large") == 0) { profile.route_large = true; return true; }
 		if (strcmp(value, "details") == 0) { profile.route_large = false; return true; }
+	} else if (strcmp(field, "phone") == 0) {
+		if (strcmp(value, "android") == 0) { profile.phone_ios = false; return true; }
+		if (strcmp(value, "iphone") == 0) { profile.phone_ios = true; return true; }
 	}
 	return false;
 }
@@ -107,6 +110,7 @@ void show() {
 	Serial.printf("random=%s imu-face=%s flip=%s\n", p.random_faces ? "on" : "off",
 		p.imu_faces ? "on" : "off", p.flipped ? "on" : "off");
 	Serial.printf("face-flow=%s\n", settings_face_flow_name(p.face_flow));
+	Serial.printf("phone=%s (restart after save)\n", p.phone_ios ? "iphone" : "android");
 	Serial.printf("route-default=%s route-current=%s\n", p.route_large ? "large" : "details",
 		view_route_large(p.route_large) ? "large" : "details");
 	Serial.printf("animation=%s language=%s sound=%s sound-level=%u night-mute=%s\n",
@@ -136,6 +140,7 @@ void help() {
 	Serial.println("dashboard/night/shake/dim/random/imu-face/flip on/off. Use controls only while parked.");
 	Serial.println("face-flow return/group5/sequence/continuous; requires random on");
 	Serial.println("set route large/details + save: default; route large/details/default: session only");
+	Serial.println("set phone android/iphone + save; restart Mochi to switch BLE mode");
 	Serial.println("animation calm/dasai/playful; language en/it; sound-level 1..30");
 	Serial.println("sound/sound-faces/sound-timer/sound-alerts/sound-ambient/sound-night-mute on/off");
 	Serial.println("weather: packet counters only; weather sync: request app synchronization");

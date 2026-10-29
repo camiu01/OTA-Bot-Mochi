@@ -21,6 +21,7 @@ struct UiSnapshot {
 	uint8_t notification_count = 0, notification_index = 0;
 	bool has_weather = false;
 	bool has_forecast = false;
+	bool weather_internet = false;
 	bool has_icon = false;
 	String caller;
 	Notification notification;
@@ -63,3 +64,7 @@ void ui_ringer(const String &caller, bool active);
  * @param b Event parameter.
  */
 void ui_config(ChronosESP32 &watch, Config config, uint32_t a, uint32_t b);
+/** @brief Publish validated Internet weather from the main task; preserve the separate phone cache. */
+void ui_network_weather(const Weather (&days)[3], const char *city, const char *time, uint32_t received);
+/** @brief Return to the retained phone weather after disabling/changing Internet weather. */
+void ui_network_weather_clear();

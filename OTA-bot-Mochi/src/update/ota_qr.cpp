@@ -52,6 +52,22 @@ bool ota_qr_prepare(const char *ssid, const char *password) {
 	return width != 0;
 }
 
+bool ota_qr_prepare_url(const char *url) {
+	width = 0; memset(modules, 0, sizeof(modules));
+	if (!url || strlen(url) > 63 || strncmp(url, "http://", 7)) { return false; }
+	const char *at = url + 7;
+	for (int part = 0; part < 4; ++part) {
+		int value = 0, digits = 0;
+		while (*at >= '0' && *at <= '9') { value = value * 10 + *at++ - '0'; if (++digits > 3) { return false; } }
+		if (!digits || value > 255 || (part < 3 && *at++ != '.')) { return false; }
+	}
+	if (strncmp(at, "/#", 2) || strlen(at + 2) != 32) { return false; }
+	for (at += 2; *at; ++at) { if (!(*at >= '0' && *at <= '9') && !(*at >= 'a' && *at <= 'f')) { return false; } }
+	esp_qrcode_config_t config = {capture, 4, ESP_QRCODE_ECC_MED};
+	if (esp_qrcode_generate(&config, url) != ESP_OK) { width = 0; }
+	return width != 0;
+}
+
 bool ota_qr_draw(Arduino_GFX *gfx, int16_t x, int16_t y, int16_t side) {
 	if (!gfx || !width || side < width + 8 || x < 0 || y < 0 ||
 		x + side > gfx->width() || y + side > gfx->height()) { return false; }

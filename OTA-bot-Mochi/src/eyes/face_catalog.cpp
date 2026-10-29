@@ -133,6 +133,7 @@
 #include "faces/upside_down.h"
 #include "faces/uwu.h"
 #include "faces/yokai.h"
+#include "faces/tic_tac_toe.h"
 
 /** @brief Complete ID-ordered catalog; names remain checked against the public table. */
 constexpr FacePresetEntry FACE_PRESETS[EXPRESSION_COUNT] = {
@@ -270,6 +271,7 @@ constexpr FacePresetEntry FACE_PRESETS[EXPRESSION_COUNT] = {
 	{UPSIDE_DOWN, face_defs::upside_down_face::preset},
 	{UWU, face_defs::uwu_face::preset},
 	{YOKAI, face_defs::yokai_face::preset},
+	{TIC_TAC_TOE, face_defs::tic_tac_toe_face::preset},
 };
 static_assert(face_entries_valid(FACE_PRESETS), "Every expression requires one valid ID-ordered face");
 

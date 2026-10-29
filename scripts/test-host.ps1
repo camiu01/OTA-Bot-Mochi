@@ -5,6 +5,7 @@ $output = Join-Path ([System.IO.Path]::GetTempPath()) ("mochi-tests-" + [guid]::
 New-Item -ItemType Directory -Path $output | Out-Null
 # Build one native executable and stop on the first failure.
 function Invoke-HostTest([string] $Name, [string[]] $Sources, [string[]] $Flags = @()) {
+	if ($Sources -contains "$root\OTA-bot-Mochi\src\update\ota_update.cpp") { $Sources += $network }
 	# An IDE-local AMOLED selection must not change the LCD baseline fixtures.
 	if ($Flags -notcontains '-DMOCHI_BOARD_AMOLED_18') { $Flags += '-DMOCHI_BOARD_LCD_169' }
 	& g++ -std=c++17 -Wall -Wextra -Werror @Flags -I "$root\tests\stubs" @Sources -o "$output\$Name.exe"
@@ -12,6 +13,8 @@ function Invoke-HostTest([string] $Name, [string[]] $Sources, [string[]] $Flags 
 	& "$output\$Name.exe"
 	if ($LASTEXITCODE -ne 0) { throw "$Name tests failed" }
 }
+$network = @("$root\OTA-bot-Mochi\src\network\network_config.cpp",
+	"$root\OTA-bot-Mochi\src\network\network_service.cpp", "$root\tests\stubs\network_weather.cpp")
 try {
 	& g++ -std=c++17 -Wall -Wextra -Werror -I "$root\tests\stubs" -DMOCHI_BOARD_LCD_169 -fsyntax-only "$root\OTA-bot-Mochi\src\touch\touch.cpp"
 	if ($LASTEXITCODE -ne 0) { throw 'Touch driver syntax check failed' }
@@ -56,7 +59,9 @@ try {
 		"$root\tests\stubs\imu_noop.cpp"
 	)
 	Invoke-HostTest 'swipe' @("$root\tests\swipe_test.cpp")
-	$ota = @("$root\tests\ota_test.cpp", "$root\OTA-bot-Mochi\src\update\ota_update.cpp")
+	Invoke-HostTest 'ancs' @("$root\tests\ancs_test.cpp", "$root\OTA-bot-Mochi\src\ancs\ancs_parser.cpp")
+	Invoke-HostTest 'tic-tac-toe' @("$root\tests\tic_tac_toe_test.cpp")
+	$ota = $runtime + @("$root\tests\ota_test.cpp", "$root\OTA-bot-Mochi\src\update\ota_update.cpp", "$root\OTA-bot-Mochi\src\update\ntp_sync.cpp", "$root\tests\stubs\imu_noop.cpp")
 	Invoke-HostTest 'ota-lcd' $ota @('-I', "$root\tests\stubs\ota")
 	Invoke-HostTest 'ota-amoled' $ota @('-I', "$root\tests\stubs\ota", '-DMOCHI_BOARD_AMOLED_18')
 	$otaQr = @("$root\tests\ota_qr_test.cpp", "$root\OTA-bot-Mochi\src\update\ota_qr.cpp")
@@ -85,6 +90,12 @@ try {
 	$renderRuntime = @($runtime | Where-Object { $_ -ne "$root\tests\stubs\eyes_draw.cpp" })
 	$renderEyes = @("$root\OTA-bot-Mochi\src\eyes\eyes_draw.cpp", "$root\tests\stubs\imu_noop.cpp")
 	Invoke-HostTest 'eyes' ($renderRuntime + @("$root\tests\eyes_test.cpp") + $renderEyes)
+	Invoke-HostTest 'face-filter' ($renderRuntime + @("$root\tests\face_filter_test.cpp", "$root\OTA-bot-Mochi\src\eyes\eyes_draw.cpp", "$root\OTA-bot-Mochi\src\eyes\eyes_imu.cpp"))
+	Invoke-HostTest 'face-web' ($runtime + @("$root\tests\face_web_test.cpp", "$root\OTA-bot-Mochi\src\update\ota_update.cpp", "$root\OTA-bot-Mochi\src\update\ntp_sync.cpp", "$root\tests\stubs\imu_noop.cpp")) @('-I', "$root\tests\stubs\ota")
+	Invoke-HostTest 'settings-web' ($runtime + @("$root\tests\settings_web_test.cpp", "$root\OTA-bot-Mochi\src\update\ota_update.cpp", "$root\OTA-bot-Mochi\src\update\ntp_sync.cpp", "$root\tests\stubs\imu_noop.cpp")) @('-I', "$root\tests\stubs\ota")
+	Invoke-HostTest 'network' ($runtime + @("$root\tests\network_test.cpp", "$root\OTA-bot-Mochi\src\update\ota_update.cpp", "$root\OTA-bot-Mochi\src\update\ntp_sync.cpp", "$root\tests\stubs\imu_noop.cpp")) @('-I', "$root\tests\stubs\ota")
+	Invoke-HostTest 'network-weather' @("$root\tests\network_weather_test.cpp", "$root\OTA-bot-Mochi\src\network\network_weather_parse.cpp") @('-I', "$root\tests\stubs\ota")
+	Invoke-HostTest 'ntp-sync' @("$root\tests\ntp_sync_test.cpp", "$root\OTA-bot-Mochi\src\update\ntp_sync.cpp") @('-I', "$root\tests\stubs\ota")
 	Invoke-HostTest 'face-preset-raster' ($renderRuntime + @("$root\tests\face_preset_raster_test.cpp") + $renderEyes)
 	Invoke-HostTest 'all-faces-raster' ($renderRuntime + @("$root\tests\face_preset_raster_test.cpp") + $renderEyes) @('-O2', '-DALL_FACES_RASTER')
 	Invoke-HostTest 'faces' ($renderRuntime + @("$root\tests\face_unique_test.cpp") + $renderEyes)

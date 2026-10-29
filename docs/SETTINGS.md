@@ -15,7 +15,7 @@ rows. Changes are live in RAM and do not write flash while browsing.
 | --- | --- | --- |
 | LOOK | Eyes | normal, mochi, bloub, trapez |
 | LOOK | Color | white, mint, cyan, amber, pink, blue |
-| LOOK | Mood | opens a 3-column grid of all 134 expressions/animated moods in five full-height rows; tap a cell, swipe to scroll |
+| LOOK | Mood | opens a 3-column grid of all 135 expressions/animated moods in five full-height rows; tap a cell, swipe to scroll |
 | DISPLAY | Day level | 5, 10, 20, 30, 50, 70, 90% |
 | DISPLAY | Night | off / on |
 | DISPLAY | Night level | 1, 3, 5, 8, 12, 20% |
@@ -23,6 +23,7 @@ rows. Changes are live in RAM and do not write flash while browsing.
 | FACES | Animation | Calm / Normal / Playful (USB values `calm` / `dasai` / `playful`) |
 | FACES | Random mood | off / on |
 | FACES | Face flow | return / group of 5 / sequence / continuous |
+| FACES | Face library | enable/exclude faces globally on display or in a temporary local Wi-Fi browser session; see [Face library](FACE_LIBRARY.md) |
 | SENSORS | IMU mood | off / on |
 | SENSORS | Shake dizzy | off / on |
 | SENSORS | IMU zero | calibrate / keep still / SAVED / FAILED |
@@ -37,12 +38,13 @@ rows. Changes are live in RAM and do not write flash while browsing.
 | SYSTEM | Dashboard | on / off |
 | SYSTEM | Route default | large / details |
 | SYSTEM | Firmware update | temporary Wi-Fi and browser upload of a matching release `*-app.bin`; see [OTA](OTA.md) |
+| SYSTEM | Wi-Fi settings | temporary browser access to display settings, saved Wi-Fi, automatic NTP and city-based weather; see [Web settings](WEB_SETTINGS.md) and [Network](NETWORK.md) |
 
 Use previous/next arrows to cycle the six sections. Three 44-pixel row targets are visible at a time. Swipe up/down to reach the
 remaining rows; SOUND's test is the final row. Section arrows and bottom actions stay fixed.
 Each row places its label above its value, giving both the full text width.
 The six sections have localized titles; FACES keeps playback controls visible
-together without scrolling.
+together; scroll down one row for the Face library.
 Scrolling does not edit or save preferences. Horizontal swipes still change the
 main page. Each row card is one unambiguous 44-pixel target aligned to its
 visible bounds, so the bottom of a card never activates the next row; grid rows
@@ -108,6 +110,10 @@ During reactions, hearts fade to pink, tears to blue, and angry eyes to orange/r
 Each loop restores the selected body color without changing the profile or theme.
 Tap EYES to preview the actual animated eyes. This is not a separate preview page.
 
+Automatic faces stay visible for at least six seconds, repeating complete short
+animation loops before switching. Longer scenes keep their full duration.
+Tap, double-tap and pet reactions keep their existing durations.
+
 The `gauge`, `glow`, and `headlights` moods are decorative animations.
 Gauge accelerates its needle into the red zone, repeatedly drops back and climbs
 again like a rev limiter, then returns to idle. It does not read real speed
@@ -125,6 +131,8 @@ Their semantic colors do not change the saved palette.
 
 Tap SAVE to persist the whole profile. SAVED means the write succeeded; FAILED
 means it did not. EYES and swiping away do not save automatically.
+Phone mode selects Android/Chronos or iPhone/ANCS. After changing it, tap SAVE
+and restart Mochi manually; the active BLE mode changes only at boot.
 
 ## USB serial commands
 
@@ -150,6 +158,7 @@ set face-flow group5
 set imu-face on
 set flip on
 set route large
+set phone iphone
 set animation dasai
 set language it
 set sound on
@@ -171,8 +180,9 @@ without plausible hardware), never notification or caller data. `defaults`
 restores defaults in RAM; use `save`
 only if you also want to replace the saved profile.
 USB commands and replies remain English in both display languages.
-`weather` prints non-sensitive packet counters; `weather sync` queues an app
-synchronization, not a direct weather-provider fetch. See [Audio and motion](SOUND.md).
+`weather` prints non-sensitive phone packet counters; `weather sync` queues an app
+synchronization and requests a rate-limited Internet refresh when configured.
+See [Network](NETWORK.md) and [Audio and motion](SOUND.md).
 
 ## Temporary route layout versus saved default
 
@@ -293,9 +303,10 @@ tone band (see [Audio and motion](SOUND.md)).
 A hold still opens Settings and a swipe does not also trigger a random face.
 These reactions remain available in dashboard mode, which only calms idle motion.
 
-The full profile is stored as a validated thirteen-byte version-six NVS blob
-with a checksum; version six adds Face flow alongside the Screen flip flag.
-Thirteen-byte version-five profiles retain Screen flip and default to Return. Twelve-byte
+The full profile is stored as a validated thirteen-byte version-seven NVS blob
+with a checksum; version seven adds Phone mode while preserving the prior layout.
+Thirteen-byte version-six profiles retain Face flow and default to Android mode;
+version-five profiles retain Screen flip and default to Return. Twelve-byte
 version-four and eight-byte versions one/two/three profiles retain their
 existing choices, with Screen flip defaulting off, sound options disabled by
 the master switch, English UI, and Dasai motion. Versions one/two default the new

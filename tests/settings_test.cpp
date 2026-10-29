@@ -77,7 +77,7 @@ static void migration_tests() {
 	test_profile.assign(bytes, bytes + 8);
 	assert(settings_init() && settings_get().color == 3);
 	assert(decoded.route_large);
-	assert(settings_dirty() && settings_save() && test_profile[0] == 6 && test_profile.size() == SETTINGS_BYTES);
+	assert(settings_dirty() && settings_save() && test_profile[0] == 7 && test_profile.size() == SETTINGS_BYTES);
 	bytes[0] = 2; bytes[6] = 0x32; bytes[7] = 0xA5;
 	for (uint8_t i = 0; i < 7; ++i) { bytes[7] ^= bytes[i]; }
 	assert(settings_decode(bytes, sizeof(bytes), decoded) && decoded.random_faces && decoded.imu_faces && decoded.route_large);
@@ -92,13 +92,21 @@ static void migration_tests() {
 	assert(from_v4.style == 2 && from_v4.color == 3 && from_v4.mood == LOVE && !from_v4.flipped);
 	test_profile.assign(v4, v4 + SETTINGS_V4_BYTES);
 	assert(settings_init() && settings_get().style == 2 && !settings_get().flipped);
-	assert(settings_dirty() && settings_save() && test_profile[0] == 6 && test_profile.size() == SETTINGS_BYTES);
+	assert(settings_dirty() && settings_save() && test_profile[0] == 7 && test_profile.size() == SETTINGS_BYTES);
 	uint8_t v5[SETTINGS_BYTES];
 	CompanionSettings old; old.flipped = true;
 	settings_encode(old, v5);
 	v5[0] = 5; v5[12] = 0xA5;
 	for (uint8_t i = 0; i < 12; ++i) { v5[12] ^= v5[i]; }
 	assert(settings_decode(v5, sizeof(v5), decoded) && decoded.flipped && decoded.face_flow == FACE_RETURN);
+	uint8_t v6[SETTINGS_BYTES];
+	settings_encode(old, v6);
+	v6[0] = 6; v6[12] = 0xA5;
+	for (uint8_t i = 0; i < 12; ++i) { v6[12] ^= v6[i]; }
+	assert(settings_decode(v6, sizeof(v6), decoded) && !decoded.phone_ios);
+	CompanionSettings ios; ios.phone_ios = true;
+	uint8_t v7[SETTINGS_BYTES]; settings_encode(ios, v7);
+	assert(settings_decode(v7, sizeof(v7), decoded) && decoded.phone_ios);
 	settings_defaults();
 }
 
@@ -108,7 +116,7 @@ static void mood_range_tests() {
 	CompanionSettings legacy; legacy.mood = LOVE;
 	uint8_t legacy_bytes[SETTINGS_BYTES];
 	settings_encode(legacy, legacy_bytes);
-	assert(legacy_bytes[0] == 6);
+	assert(legacy_bytes[0] == 7);
 	CompanionSettings decoded;
 	assert(settings_decode(legacy_bytes, sizeof(legacy_bytes), decoded) && decoded.mood == LOVE);
 	// The wider expression range reuses the same byte, so no new profile version is needed.
@@ -132,6 +140,8 @@ static void mood_range_tests() {
 static void usb_tests() {
 	CompanionSettings current;
 	assert(settings_parse("SET STYLE MOCHI", current).action == UsbAction::Set);
+	assert(settings_parse("set phone iphone", current).profile.phone_ios);
+	assert(!settings_parse("set phone blackberry", current).profile.phone_ios);
 	assert(settings_parse("set color amber", current).profile.color == 3);
 	assert(settings_parse("set brightness 91", current).action == UsbAction::Invalid);
 	assert(settings_parse("set brightness 2", current).action == UsbAction::Invalid);
@@ -229,7 +239,7 @@ static void menu_tests() {
 	assert(settings_get().color == 1);
 	assert(UI_ACCENT == 0x6FBA && UI_TEXT == UI_ACCENT && UI_WARM == UI_ACCENT);
 	assert(UI_CARD != UI_BG && UI_MUTED != UI_TEXT);
-	assert(!settings_menu_scroll(1));
+	assert(!settings_menu_scroll(-1));
 	assert(settings_menu_tap(210, 65) == MenuAction::Changed);
 	settings_menu_draw(&gfx);
 	settings_menu_tap(20, 155);
@@ -245,7 +255,7 @@ static void menu_tests() {
 	settings_menu_tap(20, 140);
 	assert(settings_get().random_faces);
 	assert(settings_menu_tap(-1, 100) == MenuAction::None);
-	assert(!settings_menu_scroll(1));
+	assert(!settings_menu_scroll(-1));
 	for (uint8_t mode = 1; mode <= FACE_FLOW_COUNT; ++mode) {
 		assert(settings_menu_tap(20, 202) == MenuAction::Changed);
 		assert(settings_get().face_flow == mode % FACE_FLOW_COUNT);
@@ -277,8 +287,13 @@ static void menu_tests() {
 	assert(!settings_get().route_large);
 	assert(settings_menu_scroll(1));
 	unsigned int ota_writes = test_flash_writes;
+	assert(settings_menu_tap(20, 202) == MenuAction::Changed && settings_get().phone_ios);
+	assert(settings_dirty());
+	assert(settings_menu_scroll(1));
 	assert(settings_menu_tap(20, 202) == MenuAction::Update);
 	assert(test_flash_writes == ota_writes);
+	assert(settings_menu_scroll(1) && !settings_menu_scroll(1));
+	assert(settings_menu_tap(20, 202) == MenuAction::FacesWeb);
 	settings_menu_draw(&gfx);
 	settings_menu_tap(30, 65);
 	settings_menu_tap(20, 100);
@@ -378,7 +393,7 @@ static void format_tests() {
 	bytes[10] = 2; bytes[11] ^= 2;
 	assert(!settings_decode(bytes, sizeof(bytes), decoded));
 	assert(decoded.color == 3);
-	// Version-six playback/flip bytes reject reserved bits; versions cannot mix lengths.
+	// Version-seven playback/flip bytes reject reserved bits; versions cannot mix lengths.
 	settings_encode(p, bytes);
 	bytes[11] |= 8;
 	bytes[12] = 0xA5;

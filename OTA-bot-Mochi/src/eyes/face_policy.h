@@ -7,6 +7,7 @@
 #include "eyes_types.h"
 #include "face_flow.h"
 #include "face_variety.h"
+#include "face_filter.h"
 #include <math.h>
 
 class FacePolicy {
@@ -31,9 +32,13 @@ class FacePolicy {
 	 */
 	void react(uint32_t now, uint32_t choice, const Expression *pool, uint8_t pool_size, uint32_t dur) {
 		uint8_t index = uint8_t(choice % pool_size);
-		while (pool[index] == base || pool[index] == previous || pool[index] == face) {
-			index = uint8_t((index + 1) % pool_size);
+		bool found = false;
+		for (uint16_t i = 0; i < uint16_t(pool_size) * 2; ++i) {
+			index = uint8_t((choice % pool_size + i) % pool_size);
+			if (face_filter().allows(pool[index]) && pool[index] != base &&
+				(i >= pool_size || (pool[index] != previous && pool[index] != face))) { found = true; break; }
 		}
+		if (!found) { return; }
 		face = previous = pool[index]; started = last_random = now;
 		duration = dur; random_delay = 12000 + choice % 18001;
 		active = true; motion = false; manual = true; qualifying = false;
@@ -60,16 +65,21 @@ class FacePolicy {
 		static constexpr uint8_t pool_size = uint8_t(EXPRESSION_COUNT - 2);
 		uint8_t index = mode == FACE_SEQUENCE ? sequence_index : uint8_t(choice % pool_size);
 		Expression value = automatic_at(index);
-		while (value == base || value == previous || value == face ||
-			(mode == FACE_CONTINUOUS && variety.excludes(value, face, base))) {
-			index = uint8_t((index + 1) % pool_size);
-			value = automatic_at(index);
+		bool found = false;
+		for (uint16_t i = 0; i < uint16_t(pool_size) * 2; ++i) {
+			uint8_t at = uint8_t((index + i) % pool_size);
+			value = automatic_at(at);
+			if (!face_filter().allows(value) || value == base) { continue; }
+			if (i < pool_size && (value == previous || value == face ||
+				(mode == FACE_CONTINUOUS && variety.excludes(value, face, base)))) { continue; }
+			index = at; found = true; break;
 		}
+		if (!found) { active = false; face = base; last_random = now; chain_count = 0; return; }
 		face = previous = value; started = last_random = now;
 		if (mode == FACE_CONTINUOUS) { variety.remember(value); }
 		sequence_index = uint8_t((index + 1) % pool_size);
 		if (chain_count < 5) { ++chain_count; }
-		duration = cycle_duration(value); random_delay = 12000 + choice % 18001;
+		duration = automatic_duration(value); random_delay = 12000 + choice % 18001;
 		active = true; motion = false; manual = false; qualifying = false;
 		affection = false;
 	}
@@ -86,8 +96,14 @@ class FacePolicy {
 	}
 
 public:
+	/** @brief Hold automatic faces for at least six seconds, using whole animation loops. */
+	static uint32_t automatic_duration(Expression value) {
+		uint32_t cycle = cycle_duration(value);
+		return cycle < 6000 ? cycle * 2 : cycle;
+	}
 	/** @brief Complete visible loop length. @param value Mood. @return Milliseconds. */
 	static uint32_t cycle_duration(Expression value) {
+		if (value == TIC_TAC_TOE) { return 12000; }
 		if (value >= DANCING && uint8_t(value) < EXPRESSION_COUNT) { return 6000; }
 		if (value == GAUGE || value == PONG) { return 12000; }
 		if (value == GLOW) { return 9600; }
@@ -129,7 +145,7 @@ public:
 	/** @brief Select a base mood and restart automatic timers. @param value Mood. @param now Timestamp. */
 	void reset(Expression value, uint32_t now) {
 		*this = FacePolicy{};
-		base = face = previous = value;
+		base = face = previous = face_filter().resolve(value);
 		last_random = now;
 	}
 
@@ -150,6 +166,7 @@ public:
 		if (cooling && uint32_t(now - last_motion) < 5000) { qualifying = false; return; }
 		Expression next = fabsf(z) >= 0.8f ? SURPRISED :
 			(fabsf(y) >= 0.25f ? FOCUSED : (fabsf(x) >= 0.25f ? SKEPTIC : NEUTRAL));
+		if (!face_filter().allows(next)) { qualifying = false; return; }
 		if (next == NEUTRAL) { qualifying = false; return; }
 		float axis = next == SURPRISED ? z : (next == FOCUSED ? y : x);
 		int8_t sign = axis >= 0 ? 1 : -1;
@@ -176,6 +193,8 @@ public:
 	 */
 	Expression update(uint32_t now, bool random_enabled, bool imu_enabled, uint32_t choice,
 			bool ready = true, uint8_t mode = FACE_RETURN) {
+		base = face_filter().resolve(base);
+		if (active && !face_filter().allows(face)) { active = false; chain_count = 0; }
 		bool expired = active && uint32_t(now - started) >= duration;
 		// Continuous playback resumes after an IMU reaction instead of restarting its idle wait.
 		if (expired && !manual && (!motion || mode == FACE_CONTINUOUS) && random_enabled && mode != FACE_RETURN &&

@@ -177,12 +177,13 @@ enum Expression : uint8_t {
 	TITAN = 130,	/**< Expanding amber eyes with red energy ribs. */
 	UPSIDE_DOWN = 131,	/**< Reversible orbital half-turn. */
 	UWU = 132,	/**< Tall U-shaped eyes and tilted cheeks, without a mouth. */
-	YOKAI = 133	/**< Ember eyes with horns and drifting wisps. */
+	YOKAI = 133,	/**< Ember eyes with horns and drifting wisps. */
+	TIC_TAC_TOE = 134	/**< Decorative miniature tic-tac-toe match. */
 };
 
 /** @brief Number of defined expressions, bounding menus, parsers, and lookups. */
-constexpr uint8_t EXPRESSION_COUNT = uint8_t(YOKAI) + 1;
-static_assert(EXPRESSION_COUNT == 134,
+constexpr uint8_t EXPRESSION_COUNT = uint8_t(TIC_TAC_TOE) + 1;
+static_assert(EXPRESSION_COUNT == 135,
 	"Expression enum, names, i18n labels and documentation must be extended together");
 
 /**
@@ -214,7 +215,7 @@ inline const char *eyes_expression_name(Expression expr) {
 		"look_left", "look_right", "look_down", "stargazing",
 		"mistake", "encouragement", "adore", "laughing", "enraged",
 		"traffic", "neon", "wheels", "sakura", "samurai", "mecha",
-		"bamboo", "titan", "upside_down", "uwu", "yokai"
+		"bamboo", "titan", "upside_down", "uwu", "yokai", "tic_tac_toe"
 	};
 	static_assert(sizeof(names) / sizeof(names[0]) == EXPRESSION_COUNT,
 		"eyes_expression_name() entries must match Expression values one for one");

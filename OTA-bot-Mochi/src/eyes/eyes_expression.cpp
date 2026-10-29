@@ -5,10 +5,12 @@
  */
 #include "eyes_api.h"
 #include "eyes_faces.h"
+#include "face_filter.h"
 #include <ctype.h>
 
 /** @brief Update the base expression without losing an active temporary reaction. @param expr Mood. */
 void eyes_set_expression(Expression expr) {
+	expr = face_filter().resolve(expr);
 	eyes_faces_base(expr);
 	EyeState &state = eyes_state();
 	if (state.effectExpression == expr) { state.effectClockInit = false; }
@@ -40,7 +42,7 @@ static bool lookup_expression(const char *name, Expression &out) {
 /** @brief Select a named expression without changing state on invalid input. @param name Name. @return Found. */
 bool eyes_set_expression_by_name(const char *name) {
 	Expression expression;
-	if (!lookup_expression(name, expression)) { return false; }
+	if (!lookup_expression(name, expression) || !face_filter().allows(expression)) { return false; }
 	eyes_set_expression(expression);
 	return true;
 }

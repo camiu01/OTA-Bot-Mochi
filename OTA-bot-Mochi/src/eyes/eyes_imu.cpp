@@ -27,6 +27,7 @@
 #include "imu_orientation.h"
 #include "imu_calibration_store.h"
 #include "eyes_faces.h"
+#include "face_filter.h"
 #include "../settings/settings.h"
 #include "../bus/i2c_bus.h"
 #include "../../pin_config.h"
@@ -144,6 +145,7 @@ void eyes_imu_set_tilt(int16_t tx, int16_t ty) {
  * @param nowMs Value of millis() at call time.
  */
 void eyes_imu_trigger_shake(uint32_t nowMs) {
+	if (!face_filter().allows(DIZZY)) { return; }
 	EyeState &st = eyes_state();
 	EyeConfig &cfg = eyes_config();
 	if (st.dizzyUntilMs != 0) {

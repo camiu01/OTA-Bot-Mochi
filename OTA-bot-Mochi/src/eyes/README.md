@@ -24,11 +24,11 @@ rounded even though the TRAPEZ preset sets `radius` to 0. The left eye is always
 canonical evaluation and the right eye is its exact horizontal mirror, which keeps
 the reflected halves pixel-identical.
 
-## Expressions and animated moods (134)
+## Expressions and animated moods (135)
 
 Each expression has its own `faces/<canonical_name>.h`, containing its per-eye
 `FacePreset` and expression-specific effects. `face_catalog.cpp` registers all
-134 definitions; reusable primitives and the render pipeline remain shared.
+135 definitions; reusable primitives and the render pipeline remain shared.
 For parameters, a compiled example and registration, see
 [Adding a face](../../../docs/ADDING_A_FACE.md).
 
@@ -132,13 +132,18 @@ For parameters, a compiled example and registration, see
 | 95 | GLOW | Selected-color-to-hues-to-selected-color cycle with soft halos around the current style |
 | 96 | HEADLIGHTS | Slow-pulsing outward light cones behind the current style |
 
-The original 123 expressions keep their numeric values. IDs 97–133 provide thirty-seven
+The original 123 expressions keep their numeric values. IDs 97–134 provide thirty-eight
 [original colored performances](../../../docs/ANIMATIONS.md), including their
 names, timing and reference correspondence. The additions
 omit mouths and eyebrows; UwU adds the requested cheek strokes around taller
 U-shaped eyes, without a mouth. Existing LOVE, CRYING and angry faces remain
 available. The appended `adore`, `laughing`, and `enraged` performances add
 distinct scenery rather than replacing those ordinary moods.
+
+`mood tic_tac_toe` selects the miniature Tris match at ID 134. Its twelve-second
+cycle morphs the eyes into the first X/O pieces, plays out a match, and morphs back,
+using the same entry/return timing as Pong.
+The interactive Tris game is under Clock → Desk tools, separate from this demo.
 
 Select these moods in Settings → LOOK → Mood, or use USB commands such as
 `mood arc_happy`, `mood squeezed`, `mood pong`, and `mood clock_eyes`.

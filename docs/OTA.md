@@ -35,18 +35,25 @@ Firmware compilation, uploading and physical validation remain user-operated.
 3. Save any changed settings explicitly. Keep Mochi on stable USB power.
 4. Open **Settings → SYSTEM → Firmware update**. Swipe the SYSTEM rows upward
    to reach its fourth row. The Italian label is **Aggiorna firmware**.
-5. Scan the **Wi-Fi QR** with the phone camera to join `Mochi-Update-…`.
+5. If Mochi is connected to saved Wi-Fi, keep the phone on that same private
+   network and scan the displayed browser QR. It includes the current DHCP
+   address and temporary authorization; do not share it.
+   Otherwise scan the **Wi-Fi QR** to join `Mochi-Update-…`.
    Alternatively, enter the displayed eight-character password manually.
    **DETAILS / DETTAGLI** switches to the full text instructions; **WI-FI QR**
    switches back. Stay connected even if the OS reports “no Internet”.
-6. Open **`http://192.168.4.1`** directly, choose the application, and upload.
+6. On the setup AP, open **`http://192.168.4.1`** directly. On saved Wi-Fi,
+   use the authorized QR link. Choose the application and upload.
    Both the browser and the device show progress. Do not disconnect power.
 7. After integrity validation, Mochi selects the inactive slot and restarts.
    Verify the version, display, touch, Chronos and saved settings.
 
 The session has a **five-minute total deadline**, including upload time.
 BACK closes it when not uploading; after an error, close and reopen the mode
-before retrying. Startup, timeout and exit leave Wi-Fi off. Credentials are
+before retrying. Closing the session stops its HTTP server and setup AP,
+but retains a configured station connection. Without saved Wi-Fi the radio
+is switched off. See [Network](NETWORK.md) for manual setup and automatic reconnection.
+Setup AP credentials are
 generated per session, remain in RAM, and are not printed over USB.
 Passwords contain eight random uppercase letters/digits from
 `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`, excluding ambiguous `0`, `1`, `I`, `O` and

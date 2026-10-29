@@ -7,6 +7,9 @@
 - [ ] USB-install the 16 MB OTA layout v1 on each board; record settings/calibration migration effects.
 - [ ] Update both directions between two trusted OTA-capable releases via the browser, retaining saved settings and calibration.
 - [ ] Test phone/desktop browsers, temporary WPA2 credentials, five-minute expiry, BACK and Wi-Fi shutdown.
+- [ ] Physically verify web settings, IMU/audio actions and one-shot NTP on both boards: home Wi-Fi association/channel changes, invalid credentials, unreachable server, BACK/expiry, station shutdown, retained Chronos time and later phone resync. Native SNTP tests do not exercise real radio or UDP.
+- [x] User confirmed the previously uploaded Wi-Fi settings access works on AMOLED V2 (2026-10-29); this is not validation of the new saved-network/weather implementation.
+- [ ] Physically verify saved 2.4 GHz Wi-Fi across reboot, wrong-password/offline fallback, DHCP changes and authorized LAN QR, automatic NTP, city search, HTTPS/Open-Meteo forecasts, stale/offline cache, Forget, five-minute web expiry with station retained, and Wi-Fi/BLE/frame-rate/heap/power behavior on both boards.
 - [ ] Scan the Wi-Fi QR on LCD OLD and AMOLED V2 with Android/iOS cameras; verify eight-character password entry, QR/details switching, fresh sessions, rotation and manual fallback.
 - [ ] Check upload progress, Wi-Fi/BLE coexistence and post-OTA Chronos reconnection on LCD OLD and AMOLED V2.
 - [ ] Reject renamed wrong-board, old pre-marker, full, corrupt, oversized and truncated images on real hardware.
@@ -31,6 +34,8 @@ combine implemented behavior and historical user reports; use
 [Hardware validation](docs/HARDWARE_VALIDATION.md) for repeatable acceptance records.
 
 ### Chronos, clock, and connectivity
+
+- [ ] On both LCD OLD and AMOLED V2, save iPhone mode and restart, pair in Bluetooth settings, grant notification access, and verify ANCS delivery/reconnect. Then save Android mode, restart, and confirm Chronos still synchronizes and receives its existing data. Native ANCS tests do not prove iOS authorization or BLE radio behavior.
 
 - [x] Verify Chronos pairing, disconnection, reconnection, and synchronization.
 - [x] Display connection state, synchronized time/date, and 12/24-hour mode.

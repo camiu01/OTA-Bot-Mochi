@@ -38,10 +38,14 @@
 #include "src/settings/usb_commands.h"
 #include "src/update/ota_screen.h"
 #include "src/update/ota_update.h"
+#include "src/update/ntp_sync.h"
+#include "src/network/network_service.h"
 #include "src/bus/i2c_bus.h"
+#include "src/ancs/ancs_service.h"
 #include "runtime_diagnostics.h"
 
 ChronosESP32 watch("OTA bot");
+bool ios_mode_boot = false;
 #if MOCHI_BOARD_LCD_169
 Arduino_DataBus *bus = new Arduino_ESP32SPI(LCD_DC, LCD_CS, LCD_SCK, LCD_MOSI);
 Arduino_GFX *display = new Arduino_ST7789(bus, LCD_RST, 0, true,
@@ -273,6 +277,7 @@ void handle_touch(uint32_t now) {
 	if (tap && current_screen == UiPage::Settings && !screens_calling()) {
 		MenuAction action = settings_menu_tap(x, y);
 		if (action == MenuAction::Update) { ota_screen_begin(gfx, now); return; }
+		else if (action == MenuAction::FacesWeb) { ota_screen_begin(gfx, now, true); return; }
 		else if (action == MenuAction::Exit) { switch_screen(UiPage::Eyes, now); }
 		else if (action == MenuAction::Changed) { screens_invalidate(); }
 	} else if (tap && !screens_calling()) {
@@ -291,7 +296,7 @@ void handle_touch(uint32_t now) {
 /** @brief Follow new Chronos events without changing screens from BLE callbacks. @param now Timestamp. */
 void handle_auto_page(uint32_t now) {
 	if (starting || shutting_down) { return; }
-	UiPage target = auto_page.update(current_screen, ui_page_events(), touch_pressed());
+	UiPage target = auto_page.update(current_screen, ui_page_events(), touch_pressed(), now);
 	if (target != current_screen) {
 		backlight_activity(now);
 		switch_screen(target, now);
@@ -311,7 +316,13 @@ void setup() {
 		screen_ready = false;
 		return;
 	}
-	init_chronos();
+	ios_mode_boot = settings_get().phone_ios;
+	if (ios_mode_boot) { ancs_begin(); }
+	else { init_chronos(); }
+	ntp_sync_bind([](const tm &t) {
+		watch.setTime(t.tm_sec, t.tm_min, t.tm_hour, t.tm_mday, t.tm_mon + 1, t.tm_year + 1900);
+		clock_time_synced(); screens_invalidate();
+	});
 	if (!screen_ready) { return; }
 	eyes_init(gfx);
 	settings_apply();
@@ -319,6 +330,8 @@ void setup() {
 	Serial.println(eyes_imu_ready() ? "IMU ready" : "IMU unavailable; using idle eyes");
 	touch_init();
 	sound_init(millis());
+	network_begin(millis());
+	weather_bind_network([] { network_weather_now(millis()); });
 	startup.begin(millis());
 	last_frame_ms = millis() - FRAME_INTERVAL_MS;
 	Serial.printf("UI ready, free heap: %lu bytes\n", static_cast<unsigned long>(ESP.getFreeHeap()));
@@ -340,7 +353,10 @@ void update_backlight(uint32_t now) {
 
 /** @brief Service BLE and touch continuously, rendering only complete changed frames. */
 void loop() {
+	network_poll(millis(), !ota_status().active || ota_status().faces);
 	if (ota_status().active) {
+		// Automatic setup must not hide the existing trusted USB recovery terminal.
+		if (ota_status().faces) { settings_usb_poll(); }
 		ota_screen_poll(millis());
 		if (!ota_status().active) {
 			sound_init(millis());
@@ -351,7 +367,7 @@ void loop() {
 	}
 	handle_power_button(watch, display, screen_ready, millis());
 	settings_usb_poll();
-	watch.loop();
+	if (!ios_mode_boot) { watch.loop(); }
 	delay(1);
 	if (!screen_ready) { return; }
 	uint32_t now = millis();
@@ -373,7 +389,7 @@ void loop() {
 		apply_display_flip(flip, now);
 	}
 	handle_auto_page(now);
-	if (weather_sync_due(now, watch.isConnected(), watch.isSubscribed())) { watch.syncRequest(); }
+	if (!ios_mode_boot && weather_sync_due(now, watch.isConnected(), watch.isSubscribed())) { watch.syncRequest(); }
 	battery_sample(now);
 	view_timer().tick(now);
 	sound_poll(now, ui_page_events(), current_screen == UiPage::Eyes && !screens_calling(),

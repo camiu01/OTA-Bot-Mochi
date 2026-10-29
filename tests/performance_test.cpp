@@ -8,6 +8,7 @@
 #include "../OTA-bot-Mochi/src/eyes/eye_performance_draw.h"
 #include "../OTA-bot-Mochi/src/eyes/eye_life.h"
 #include "../OTA-bot-Mochi/src/eyes/eyes_faces.h"
+#include "../OTA-bot-Mochi/src/eyes/face_policy.h"
 #include "../OTA-bot-Mochi/src/settings/settings.h"
 #include "../OTA-bot-Mochi/src/settings/usb_commands.h"
 #include "../OTA-bot-Mochi/src/ui/i18n.h"
@@ -25,7 +26,7 @@ static void preferences() {
 		uint8_t bytes[SETTINGS_BYTES];
 		settings_encode(p, bytes);
 		CompanionSettings decoded;
-		assert(bytes[0] == 6 && SETTINGS_BYTES == 13);
+		assert(bytes[0] == 7 && SETTINGS_BYTES == 13);
 		assert(settings_decode(bytes, sizeof(bytes), decoded) && decoded.mood == mood);
 		String command = String("mood ") + settings_mood_name(mood);
 		auto parsed = settings_parse(command.c_str(), p);
@@ -222,8 +223,9 @@ static void automatic_guard() {
 		eyes_state().lastMs = test_now;
 		eyes_draw();
 		assert(!eyes_faces_automatic_ready(test_now));
-		assert(!eyes_faces_automatic_ready(test_now + 5999));
-		assert(eyes_faces_automatic_ready(test_now + 6000));
+		uint32_t length = FacePolicy::cycle_duration(Expression(mood));
+		assert(!eyes_faces_automatic_ready(test_now + length - 1));
+		assert(eyes_faces_automatic_ready(test_now + length));
 		eyes_set_expression(static_cast<Expression>(mood));
 		assert(!eyes_faces_automatic_ready(test_now + 6000));
 	}
@@ -242,10 +244,11 @@ static void raster(int16_t width, int16_t height) {
 			EyeState &st = eyes_state();
 			st.lastMs = 10000;
 			eyes_draw();
-			st.lastMs = 16000; eyes_draw();
+			uint32_t length = FacePolicy::cycle_duration(mood);
+			st.lastMs = 10000 + length; eyes_draw();
 			auto first = gfx.pixels;
 			bool changed = false, colored = false;
-			for (uint32_t t = 0; t <= 6000; t += 125) {
+			for (uint32_t t = 0; t <= length; t += 125) {
 				st.lastMs = 10000 + t;
 				eyes_draw();
 				auto frame = gfx.pixels;
@@ -257,7 +260,7 @@ static void raster(int16_t width, int16_t height) {
 				assert(gfx.pixels == frame);
 				assert(st.prevX >= 0 && st.prevY >= 0);
 				assert(st.prevX + st.prevW <= width && st.prevY + st.prevH <= height);
-				if (t >= 5500) { assert(frame == first); }
+				if (t >= length - 500) { assert(frame == first); }
 				if (style == MOCHI || style == TRAPEZ) {
 					assert(std::count(frame.begin(), frame.end(), 0xF800) == 0);
 					assert(std::count(frame.begin(), frame.end(), 0x07E0) == 0);
@@ -313,7 +316,7 @@ static void banner_regressions() {
 /** @brief Appended GIF themes survive rollover and non-black dirty redraws on every panel/style. */
 static void appended_cycles() {
 	const int16_t panels[][2] = {{240,280}, {240,320}, {320,480}, {368,448}, {128,160}, {160,128}};
-	assert(TRAFFIC == 123 && YOKAI == 133 && EXPRESSION_COUNT == 134);
+	assert(TRAFFIC == 123 && YOKAI == 133 && TIC_TAC_TOE == 134 && EXPRESSION_COUNT == 135);
 	for (const auto &panel : panels) {
 		Arduino_GFX gfx(panel[0], panel[1]);
 		eyes_init(&gfx);
@@ -325,14 +328,15 @@ static void appended_cycles() {
 				eyes_set_expression(Expression(id));
 				uint32_t entry = UINT32_MAX - 1000;
 				eyes_state().lastMs = entry; eyes_draw();
-				eyes_state().lastMs = entry + 6000; eyes_draw();
+				uint32_t length = FacePolicy::cycle_duration(Expression(id));
+				eyes_state().lastMs = entry + length; eyes_draw();
 				auto first = gfx.pixels;
-				for (uint32_t t = 125; t <= 6000; t += 125) {
+				for (uint32_t t = 125; t <= length; t += 125) {
 					eyes_state().lastMs = entry + t; eyes_draw();
 					auto frame = gfx.pixels;
 					eyes_state().dirtyInit = false; eyes_draw();
 					assert(gfx.pixels == frame);
-					if (t >= 5500) { assert(frame == first); }
+					if (t >= length - 500) { assert(frame == first); }
 				}
 				assert(eyes_config().fgColor == 0xFFFF && eyes_config().bgColor == 0x0841);
 			}
@@ -351,5 +355,5 @@ int main() {
 	upward_pupils();
 	appended_cycles();
 	assert(settings_update(saved));
-	std::cout << "37 colored performances, original scene regressions and appended GIF-theme cycles passed\n";
+	std::cout << "38 colored performances, original scene regressions and appended scene cycles passed\n";
 }

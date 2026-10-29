@@ -11,6 +11,10 @@ namespace {
 StaticSemaphore_t lock_storage;
 SemaphoreHandle_t lock = nullptr;
 UiSnapshot state;
+bool internet_weather = false;
+Weather internet_days[3] = {};
+String internet_city, internet_time;
+uint32_t internet_received = 0;
 UiPageEvents page_events;
 uint8_t icon_parts = 0;
 uint32_t assembling_crc = 0;
@@ -49,8 +53,28 @@ UiSnapshot ui_snapshot() {
 	if (!lock) { return UiSnapshot{}; }
 	xSemaphoreTake(lock, portMAX_DELAY);
 	UiSnapshot copy = state;
+	if (internet_weather) {
+		copy.has_weather = copy.has_forecast = copy.weather_internet = true;
+		copy.weather_count = 3; memcpy(copy.weather, internet_days, sizeof(internet_days));
+		copy.city = internet_city; copy.weather_time = internet_time; copy.weather_received = internet_received;
+	}
 	xSemaphoreGive(lock);
 	return copy;
+}
+
+void ui_network_weather(const Weather (&days)[3], const char *city, const char *time, uint32_t received) {
+	if (!lock) { return; }
+	xSemaphoreTake(lock, portMAX_DELAY);
+	memcpy(internet_days, days, sizeof(days));
+	internet_city = bounded(String(city), 64); internet_time = bounded(String(time), 5);
+	internet_received = received; internet_weather = true; ++state.revision;
+	xSemaphoreGive(lock);
+}
+void ui_network_weather_clear() {
+	if (!lock) { return; }
+	xSemaphoreTake(lock, portMAX_DELAY);
+	if (internet_weather) { internet_weather = false; internet_city = internet_time = ""; ++state.revision; }
+	xSemaphoreGive(lock);
 }
 
 /** @brief Read the state revision. @return Current revision, or zero before init. */

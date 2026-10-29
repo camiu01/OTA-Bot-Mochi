@@ -29,6 +29,13 @@
 	X(Device, "DEVICE STATUS", "STATO DISPOSITIVO") \
 	X(Pong, "PONG", "PONG") \
 	X(AnalogClock, "ANALOG CLOCK", "OROLOGIO ANALOGICO") \
+	X(Tris, "TIC TAC TOE", "TRIS") \
+	X(TrisTurn, "YOUR TURN / X", "TOCCA A TE / X") \
+	X(TrisThinking, "MOCHI THINKS / O", "MOCHI PENSA / O") \
+	X(TrisWin, "YOU WIN!", "HAI VINTO!") \
+	X(TrisLose, "MOCHI WINS!", "VINCE MOCHI!") \
+	X(TrisDraw, "DRAW", "PAREGGIO") \
+	X(TrisNew, "NEW GAME", "NUOVA PARTITA") \
 	X(PongHint, "TAP TO MOVE LEFT PADDLE", "TOCCA: MUOVI RACCHETTA") \
 	X(CallTitle, "PHONE CALL", "CHIAMATA") \
 	X(CallTag, "CALL", "TEL") \
@@ -116,6 +123,17 @@
 	X(Test, "test", "prova") \
 	X(Open, "open", "apri") \
 	X(Faces, "Faces", "Facce") \
+	X(FaceLibrary, "Face library", "Libreria facce") \
+	X(KeepOneFace, "Keep one face", "Tieni una faccia") \
+	X(Enabled, "enabled", "attive") \
+	X(FacesWifi, "Face library Wi-Fi", "Facce via Wi-Fi") \
+	X(FacesReady, "Edit faces in browser", "Modifica dal browser") \
+	X(WebSettings, "Wi-Fi settings", "Impostazioni Wi-Fi") \
+	X(WebScan, "Scan to open settings", "Scansiona per impostazioni") \
+	X(WebSameWifi, "Use the same Wi-Fi", "Usa lo stesso Wi-Fi") \
+	X(WebAuthorize, "Scan QR to authorize", "Scansiona QR per accedere") \
+	X(WebQr, "WEB QR", "QR WEB") \
+	X(WeatherStaleWifi, "STALE / CHECK WI-FI", "DATI VECCHI / WI-FI") \
 	X(TimerLabel, "Timer", "Timer") \
 	X(CallsAlerts, "Alerts / calls", "Avvisi / tel.") \
 	X(Ambient, "Ambient", "Spontanei") \
@@ -271,6 +289,7 @@
 	X(ExprUpsideDown, "upside down", "capovolto") \
 	X(ExprUwu, "uwu", "uwu") \
 	X(ExprYokai, "yokai", "yokai") \
+	X(ExprTicTacToe, "tic tac toe", "tris") \
 	X(Calm, "calm", "calmo") \
 	X(Dasai, "normal", "normale") \
 	X(Playful, "playful", "vivace") \
@@ -286,7 +305,10 @@
 	X(SoundArmed, "SOUND: ARMED", "SUONI: ABILITATI") \
 	X(SoundReady, "SOUND: PWM READY", "SUONI: PWM PRONTO") \
 		X(SoundError, "SOUND: PWM FAILED", "SUONI: ERRORE PWM") \
-		X(FaceFlow, "Face flow", "Ciclo facce")
+	X(FaceFlow, "Face flow", "Ciclo facce") \
+	X(PhoneMode, "Phone mode (restart)", "Telefono (riavvio)") \
+	X(AndroidMode, "Android / Chronos", "Android / Chronos") \
+	X(IphoneMode, "iPhone / ANCS", "iPhone / ANCS")
 
 enum class Text : uint16_t {
 #define UI_ENUM(key, en, it) key,

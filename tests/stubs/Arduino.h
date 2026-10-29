@@ -80,6 +80,7 @@ public:
 		}
 	}
 	String &operator+=(char c) { value += c; return *this; }
+	String &operator+=(const String &text) { value += text.value; return *this; }
 	friend String operator+(const String &a, const String &b) { return a.value + b.value; }
 	friend bool operator==(const String &a, const String &b) { return a.value == b.value; }
 };

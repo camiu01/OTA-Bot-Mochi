@@ -31,13 +31,22 @@ Swipe down on Clock to open Scrivania, then select:
 | DEVICE STATUS | BLE connection, backlight percentage, IMU initialization, clock sync, preference save state, sound state, and battery estimate |
 | PONG | Play against an automatic right paddle; tap the court at the desired height to move the left paddle, RESET starts a new game |
 | ANALOG CLOCK | Hour, minute and second hands with synchronized digital time below |
+| TIC TAC TOE / TRIS | You play X against Mochi O; tap an empty cell, NEW GAME clears the board |
 
-The hub shows six 108x58-pixel cards in a 2x3 grid. Gaps between cards are
+The hub shows seven 108x44-pixel cards in a two-column, four-row grid. Gaps between cards are
 not tap targets. Coordinates scale for both the 240x280 LCD and 368x448 AMOLED.
 Pong runs at the display frame cadence, pauses off-page or behind a call overlay,
 and caps physics catch-up at 100 ms. Scores wrap after 99. Game state stays in
 RAM and never writes preferences. Taps move the paddle; holds and swipes keep
 their normal navigation behavior.
+
+Tris shows whose turn it is, a winning stroke, and win/loss/draw messages in
+English or Italian. Mochi replies after a non-blocking 450 ms thinking pause:
+it takes an immediate win, blocks your immediate win, then prefers the center
+and corners. It is a simple tactical opponent, not an unbeatable solver.
+Occupied cells and taps during Mochi's turn are ignored. A finished board stays
+visible until NEW GAME. Leaving the tool preserves the RAM-only match; reboot
+clears it. The `tic_tac_toe` Mood is a separate decorative demo.
 
 Swipe up from a tool to return to the hub; swipe up from the hub to return to
 Clock. A horizontal swipe from a tool goes to the previous/next primary page
