@@ -26,12 +26,13 @@ footer{position:fixed;bottom:0;left:0;right:0;background:#101615;border-top:1px 
 </style>
 <main><h1 id="title"></h1><p id="intro" class="note"></p>
 <nav><a id="facesLink" href="/"></a><a id="ntpLink" href="#network"></a></nav>
+%NETWORK_HTML%
 <div class="tools"><button id="reload"></button></div>
 <form id="preferences"><fieldset id="fields" disabled aria-busy="true"></fieldset></form>
 <h2 id="actionsTitle"></h2><p id="actionNote" class="note"></p>
 <div class="tools"><button id="calibrate" disabled></button><button id="test" disabled></button><button id="firmware" disabled></button></div>
 <p id="actionStatus" role="status"></p>
-%NETWORK_HTML%</main>
+</main>
 <footer><button id="save" disabled></button><p id="status" tabindex="-1" role="status" aria-live="polite"></p></footer>
 <script>
 const token='%TOKEN%'||location.hash.slice(1),it=document.documentElement.lang==='it',el=id=>document.getElementById(id);
@@ -63,7 +64,7 @@ const w=it?{
 };
 for(const id of ['title','intro','facesLink','ntpLink','reload','save','actionsTitle','actionNote','calibrate','test','firmware'])el(id).textContent=w[id];
 document.title=w.title;
-el('facesLink').href='/#'+token;
+el('facesLink').href='/faces-ui#'+token;
 let schema=[],revision='',dirty=false,busy=false,loaded=false;
 function controls(value){
  busy=value;el('fields').disabled=value||!loaded;el('fields').setAttribute('aria-busy',String(value));

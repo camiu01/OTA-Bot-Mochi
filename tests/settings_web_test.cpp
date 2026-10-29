@@ -57,6 +57,25 @@ static void edits(WebServer &s) {
 	s.arguments = {{"action", "invalid"}}; call(s, "POST /settings/action"); assert(s.code == 400);
 }
 static void clock_set(const tm &) {}
+/** @brief Explicit scan authorization, nonblocking results, deduplication and timeout. */
+static void scans(WebServer &s) {
+	s.get(); assert(std::string(s.body.c_str()).find("netForm") != std::string::npos);
+	call(s, "GET /faces-ui"); assert(s.code == 200 && std::string(s.body.c_str()).find("id=\"faces\"") != std::string::npos);
+	String token = s.headers["X-Mochi-Token"];
+	s.arguments = {{"action", "scan"}}; s.headers["X-Mochi-Token"] = "bad";
+	int scans = WiFi.scan_starts; call(s, "POST /network/scan"); assert(s.code == 403 && scans == WiFi.scan_starts);
+	s.headers["X-Mochi-Token"] = token;
+	call(s, "POST /network/scan"); assert(s.code == 202);
+	call(s, "GET /network/scan"); assert(s.code == 200 && std::string(s.body.c_str()).find("scanning") != std::string::npos);
+	call(s, "POST /network/scan"); assert(s.code == 409);
+	WiFi.networks = {"Home", "Home", "", "<test>", "bad\nname"}; WiFi.scan_result = 5;
+	call(s, "GET /network/scan");
+	assert(std::string(s.body.c_str()).find("[\"Home\",\"<test>\"]") != std::string::npos);
+	call(s, "POST /network/scan"); assert(s.code == 429);
+	test_now += 15000; call(s, "POST /network/scan"); assert(s.code == 202);
+	test_now += 15000; ota_poll(test_now);
+	call(s, "GET /network/scan"); assert(std::string(s.body.c_str()).find("failed") != std::string::npos);
+}
 static void clock_and_auth(WebServer &s) {
 	assert(WiFi.station_begins == 0); ntp_sync_bind(clock_set);
 	s.arguments = {{"ssid", "fixture-net"}, {"password", "fixture-pass"}, {"server", "pool.ntp.org"}, {"zone", "1"}};
@@ -80,7 +99,7 @@ static void clock_and_auth(WebServer &s) {
 }
 int main() {
 	assert(settings_init()); eyes_init(nullptr); assert(settings_save());
-	auto &s = session(); edits(s); clock_and_auth(s);
+	auto &s = session(); edits(s); scans(s); clock_and_auth(s);
 	// Generate an offline schema fixture for browser testing, with no session credentials.
 	if (std::getenv("MOCHI_WEB_FIXTURE")) {
 		settings_web::state(s);

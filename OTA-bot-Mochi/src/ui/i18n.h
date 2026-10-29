@@ -126,8 +126,8 @@
 	X(FaceLibrary, "Face library", "Libreria facce") \
 	X(KeepOneFace, "Keep one face", "Tieni una faccia") \
 	X(Enabled, "enabled", "attive") \
-	X(FacesWifi, "Face library Wi-Fi", "Facce via Wi-Fi") \
-	X(FacesReady, "Edit faces in browser", "Modifica dal browser") \
+	X(FacesWifi, "Wi-Fi settings", "Impostazioni Wi-Fi") \
+	X(FacesReady, "Settings in browser", "Modifica dal browser") \
 	X(WebSettings, "Wi-Fi settings", "Impostazioni Wi-Fi") \
 	X(WebScan, "Scan to open settings", "Scansiona per impostazioni") \
 	X(WebSameWifi, "Use the same Wi-Fi", "Usa lo stesso Wi-Fi") \

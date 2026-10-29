@@ -9,6 +9,9 @@ static const char NETWORK_FORM[] = R"FORM(
 <p id="netState" role="status" aria-live="polite"></p>
 <form id="netForm"><fieldset id="netFields" disabled>
 <label class="toggle"><input id="netEnabled" type="checkbox"><span id="netEnabledLabel"></span></label>
+<label id="netChoiceLabel" for="netChoice"></label><select id="netChoice"><option value=""></option></select>
+<div class="tools"><button id="netScan" type="button"></button></div>
+<p id="scanState" class="note" role="status" aria-live="polite"></p>
 <label id="netSsidLabel" for="netSsid"></label><input id="netSsid" maxlength="32" autocomplete="off">
 <label id="netModeLabel" for="netMode"></label><select id="netMode"></select>
 <label id="netPasswordLabel" for="netPassword"></label><input id="netPassword" type="password" maxlength="64" autocomplete="new-password">
@@ -21,9 +24,9 @@ static const char NETWORK_FORM[] = R"FORM(
 </fieldset></form>
 <p id="netResult" role="status" aria-live="polite"></p>
 <form id="citySearch"><label id="cityQueryLabel" for="cityQuery"></label>
-<input id="cityQuery" minlength="2" maxlength="64" required autocomplete="off" aria-describedby="cityNote">
+<input id="cityQuery" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="cityOptions" minlength="2" maxlength="64" required autocomplete="off" aria-describedby="cityNote">
+<div id="cityOptions" role="listbox" aria-label="City results" hidden></div>
 <p id="cityNote" class="note"></p><button id="cityFind" type="submit" disabled></button></form>
-<label id="cityChoiceLabel" for="cityChoice"></label><select id="cityChoice" disabled></select>
 <p id="cityResult" role="status" aria-live="polite"></p>
 <div class="tools"><button id="sync" disabled></button><button id="weatherRefresh" disabled></button></div>
 <p class="note"><a href="https://open-meteo.com/" target="_blank" rel="noreferrer">Open-Meteo</a> · <a href="https://www.geonames.org/" target="_blank" rel="noreferrer">GeoNames</a></p>
@@ -67,14 +70,21 @@ const nw=it?{
  scan:'Scan the QR on Mochi to authorize this page.',time:'Time',weather:'Weather',
  states:{unconfigured:'Network not configured',disabled:'Automatic Wi-Fi disabled',updating:'Applying new network…',connecting:'Connecting to Wi-Fi…',connected:'Connected',offline:'Network unavailable; retrying automatically',wifi_failed:'Wi-Fi unavailable',idle:'Waiting',querying:'Requesting NTP…',synced:'Synced',timeout:'Timed out; will retry',invalid_time:'Invalid time; will retry',cancelled:'Cancelled',ready:'Updated',loading:'Updating…',failed:'Refresh failed; previous data retained',unavailable:'Service unavailable'}
 };
-for(const id of ['netTitle','netNote','netEnabledLabel','netSsidLabel','netModeLabel','netPasswordLabel','netPrivacy','netServerLabel','netZoneLabel','netWeatherLabel','netCityLabel','netSave','netReload','netForget','cityQueryLabel','cityNote','cityFind','cityChoiceLabel','sync','weatherRefresh'])el(id).textContent=nw[id];
+for(const id of ['netTitle','netNote','netEnabledLabel','netSsidLabel','netModeLabel','netPasswordLabel','netPrivacy','netServerLabel','netZoneLabel','netWeatherLabel','netCityLabel','netSave','netReload','netForget','cityQueryLabel','cityNote','cityFind','sync','weatherRefresh'])el(id).textContent=nw[id];
+el('cityOptions').ariaLabel=it?'Risultati città':'City results';
 for(const [index,value] of ['keep','replace','open'].entries())el('netMode').add(new Option(nw.modes[index],value));
+el('netChoiceLabel').textContent=it?'Reti Wi-Fi vicine (2,4 GHz)':'Nearby Wi-Fi networks (2.4 GHz)';
+el('netScan').textContent=it?'Cerca reti':'Find networks';
+el('netChoice').options[0].textContent=it?'Scegli una rete…':'Choose a network…';
+el('netSsidLabel').textContent=it?'Nome rete, anche nascosta':'Network name, including hidden networks';
+let scanBusy=false;
 let netRevision=0,netDirty=false,netBusy=false,netLoaded=false,netOnline=false,netAlive=true,cityBusy=false,choices=[],chosen=null;
 function netControls(){
  el('netFields').disabled=netBusy||!netLoaded;el('netPassword').disabled=el('netMode').value!=='replace';
+ el('netScan').disabled=scanBusy;el('netChoice').disabled=scanBusy;
  el('netWeather').disabled=!el('netEnabled').checked;
  el('cityFind').disabled=netBusy||cityBusy||!netOnline;el('cityQuery').disabled=cityBusy;
- el('cityChoice').disabled=netBusy||cityBusy||!choices.length;
+ for(const option of el('cityOptions').children)option.disabled=netBusy||cityBusy;
  el('sync').disabled=netBusy||netDirty||!netOnline;
  el('weatherRefresh').disabled=netBusy||netDirty||!netOnline||!el('netWeather').checked;
 }
@@ -119,25 +129,75 @@ el('netForm').onsubmit=async event=>{
   const response=await request('/network',{method:'POST',headers:{'X-Mochi-Network-Revision':String(netRevision)},body:form.toString()});
   if(response.status===409){el('netResult').textContent=nw.conflict;return;}
   if(!response.ok){el('netResult').textContent=response.status===507?nw.storage:nw.invalid;return;}
-  netState(await response.json(),true);el('netResult').textContent=nw.saved;
+  netState(await response.json(),true);el('netResult').textContent=nw.saved;el('cityResult').textContent='';
  }catch{el('netResult').textContent=nw.failed;}finally{netBusy=false;netControls();}
 };
 el('netReload').onclick=()=>netLoad(true);
+el('netChoice').onchange=()=>{
+ if(!el('netChoice').value)return;
+ el('netSsid').value=el('netChoice').value;el('netSsid').dispatchEvent(new Event('input'));
+};
+async function scanPoll(attempt=0){
+ try{
+  const response=await request('/network/scan');if(!response.ok)throw Error();
+  const state=await response.json();
+  if(state.status==='scanning'&&attempt<16){setTimeout(()=>scanPoll(attempt+1),1000);return;}
+  if(state.status!=='ready')throw Error();
+  el('netChoice').replaceChildren(new Option(it?'Scegli una rete…':'Choose a network…',''));
+  for(const name of state.networks)el('netChoice').add(new Option(name,name));
+  el('scanState').textContent=state.networks.length?(it?'Scegli la rete e inserisci la password, poi salva.':'Choose a network and enter its password, then save.'):(it?'Nessuna rete trovata. Riprova o inserisci il nome manualmente.':'No networks found. Retry or enter the name manually.');
+ }catch{el('scanState').textContent=it?'Ricerca non riuscita. Attendi la connessione o riprova tra 15 secondi.':'Scan failed. Wait for connection or retry in 15 seconds.';}
+ scanBusy=false;netControls();
+}
+el('netScan').onclick=async()=>{
+ if(scanBusy||netBusy)return;scanBusy=true;netControls();
+ el('scanState').textContent=it?'Ricerca reti…':'Finding networks…';
+ try{
+  const response=await request('/network/scan',{method:'POST',body:'action=scan'});
+  if(response.status!==202)throw Error();scanPoll();
+ }catch{scanBusy=false;netControls();el('scanState').textContent=it?'Wi-Fi occupato. Attendi e riprova.':'Wi-Fi busy. Wait and retry.';}
+};
 el('netForget').onclick=async()=>{
  if(netBusy||!confirm(nw.forget))return;netBusy=true;netControls();
  try{
   const response=await request('/network/forget',{method:'POST',body:new URLSearchParams({revision:String(netRevision)}).toString()});
   if(!response.ok){el('netResult').textContent=response.status===409?nw.conflict:nw.storage;return;}
-  netState(await response.json(),true);choices=[];el('cityChoice').replaceChildren();el('netResult').textContent=nw.forgotten;
+  netState(await response.json(),true);choices=[];cityDropdown(false);el('netResult').textContent=nw.forgotten;
  }catch{el('netResult').textContent=nw.failed;}finally{netBusy=false;netControls();}
 };
 function cityFinish(){cityBusy=false;netControls();}
+function cityDropdown(open=true){
+ const list=el('cityOptions');list.replaceChildren();
+ const query=el('cityQuery').value.trim().toLocaleLowerCase();
+ for(const city of choices){
+  const label=[city.name,city.region,city.country].filter(Boolean).join(' · ');
+  if(!label.toLocaleLowerCase().includes(query)&&query!==citySearchTerm)continue;
+  const option=document.createElement('button');option.type='button';option.role='option';option.textContent=label;option.tabIndex=-1;
+  option.onclick=()=>{
+   chosen=city;el('cityQuery').value=label;el('netCity').textContent=city.name;
+   el('netWeather').checked=true;netDirty=true;el('cityResult').textContent=nw.selected;netControls();el('cityQuery').focus();cityDropdown(false);
+  };list.append(option);
+ }
+ list.hidden=!open||!list.children.length;el('cityQuery').setAttribute('aria-expanded',String(!list.hidden));
+}
+let citySearchTerm='';
+el('cityQuery').oninput=()=>cityDropdown();
+el('cityQuery').onfocus=()=>cityDropdown();
+el('cityQuery').onkeydown=event=>{
+ if(event.key==='Escape'){cityDropdown(false);return;}
+ if(event.key==='ArrowDown'&&!el('cityOptions').hidden){event.preventDefault();el('cityOptions').firstElementChild?.focus();}
+};
+el('cityOptions').onkeydown=event=>{
+ const options=[...el('cityOptions').children],index=options.indexOf(document.activeElement);
+ if(event.key==='ArrowDown'||event.key==='ArrowUp'){event.preventDefault();options[(index+(event.key==='ArrowDown'?1:options.length-1))%options.length]?.focus();}
+ if(event.key==='Escape'){el('cityQuery').focus();cityDropdown(false);}
+};
+document.addEventListener('click',event=>{if(!el('citySearch').contains(event.target))cityDropdown(false);});
 async function cityPoll(attempt=0){
  try{
   const response=await request('/locations');if(!response.ok)throw Error();const state=await response.json();
   if(state.status==='loading'&&attempt<30){setTimeout(()=>cityPoll(attempt+1),1000);return;}
-  choices=state.locations;el('cityChoice').replaceChildren(new Option(nw.choose,''));
-  choices.forEach((v,index)=>el('cityChoice').add(new Option([v.name,v.region,v.country].filter(Boolean).join(' · '),String(index))));
+  choices=state.locations;cityDropdown();
   el('cityResult').textContent=state.status==='ready'?'':state.status==='empty'?nw.empty:nw.busy;
  }catch{el('cityResult').textContent=nw.failed;}finally{if(attempt>=30||choices.length)cityFinish();}
  cityFinish();
@@ -146,14 +206,11 @@ el('citySearch').onsubmit=async event=>{
  event.preventDefault();if(cityBusy||!netOnline)return;
  if(new TextEncoder().encode(el('cityQuery').value).length>64){el('cityResult').textContent=nw.invalid;return;}
  cityBusy=true;choices=[];netControls();el('cityResult').textContent=nw.searching;
+ citySearchTerm=el('cityQuery').value.trim().toLocaleLowerCase();cityDropdown(false);
  try{
   const response=await request('/locations',{method:'POST',body:new URLSearchParams({query:el('cityQuery').value}).toString()});
   if(response.status!==202){el('cityResult').textContent=nw.busy;cityFinish();return;}cityPoll();
  }catch{el('cityResult').textContent=nw.failed;cityFinish();}
-};
-el('cityChoice').onchange=()=>{
- if(el('cityChoice').value==='')return;chosen=choices[Number(el('cityChoice').value)];
- el('netCity').textContent=chosen.name;el('netWeather').checked=true;netDirty=true;el('cityResult').textContent=nw.selected;netControls();
 };
 for(const [id,path,action] of [['sync','/ntp','sync'],['weatherRefresh','/weather/refresh','refresh']])el(id).onclick=async()=>{
  if(netBusy||netDirty)return;netBusy=true;netControls();

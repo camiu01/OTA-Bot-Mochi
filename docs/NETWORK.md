@@ -13,6 +13,10 @@ API calls still require the session token and exact local Host/interface.
 Do not share the QR URL. There is no permanent HTTP administration server.
 Local administration is HTTP, not HTTPS: use only a trusted private network.
 The configuration AP retains its Wi-Fi joining QR and its password protection.
+Its `Mochi-…` name and password are generated once per device, in an independent
+`mochi-ap/identity` NVS record, shared by settings and firmware mode. Only the
+web authorization token changes with each session. Forgetting the saved router
+does not reset this identity.
 
 Network preferences are independent of the existing display and face records:
 one versioned, checksummed `mochi-net/config` NVS blob. Save is atomic before
@@ -59,6 +63,12 @@ Authenticated form endpoints (no CORS/caching):
   200 saved, 400 invalid, 409 stale revision, 507 storage failure (old config
   and connection retained). Saving schedules reconnection after the response.
 - POST `/network/forget`: `revision`; overwrite with disabled defaults.
+- POST `/network/scan`: `action=scan`; explicit asynchronous scan, 202 accepted,
+  409 while busy/associating, 429 within 15 seconds, 503 if the radio rejects it.
+  GET `/network/scan`: `status` and at most 24 distinct validated SSIDs.
+  Scans have a 15-second deadline and stop on session close or firmware entry.
+  Hidden networks still require manual SSID entry. Native tests do not establish
+  radio coexistence or scan range.
 - POST `/locations`: `query`; 202 starts a bounded search, 409 busy/offline.
   GET `/locations`: status and up to five validated choices, no credentials.
 - POST `/ntp` with `action=sync`: one refresh using the saved connected network.

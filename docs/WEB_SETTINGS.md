@@ -3,8 +3,9 @@
 Open **Settings → SYSTEM → Wi-Fi settings** (sixth row, after Phone mode and Firmware update), or the face library's
 **Wi-Fi** button. When connected to a saved network, scan the display's web QR
 while your phone is on the same network. Otherwise join Mochi's displayed
-configuration network, open `http://192.168.4.1` and follow
-**Settings, Wi-Fi and weather** to `/settings-ui`.
+configuration network and open `http://192.168.4.1`.
+Settings is the initial page; `/settings-ui` remains an alias. The face library
+opens at `/faces-ui`, while `/faces` remains the JSON API.
 Both modes use a five-minute session. Saved Wi-Fi stays connected afterwards.
 It exposes every display preference, auto-rotation, IMU calibration, sound test
 and an explicit switch to the existing firmware uploader. No account or external
@@ -36,8 +37,11 @@ Phone mode is saved with display preferences and takes effect only after a
 manual restart. ANCS supplies iPhone notifications; Chronos runs in Android mode.
 
 Network settings have a separate **Save network, time and weather** button,
-independent revision, and atomic NVS record. City search is explicit and the
-selected result is saved before automatic weather starts.
+independent revision, and atomic NVS record. **Find networks** fills a nearby
+SSID dropdown; manual entry remains available for hidden networks. **Forget
+network** asks for confirmation and leaves the device AP identity unchanged.
+City search is explicit and opens a searchable results dropdown. Use the arrow
+keys and Enter, or tap a result. The selected result is saved before automatic weather starts.
 See [Saved Wi-Fi, automatic time and Internet weather](NETWORK.md) for the
 network API, password handling, provider privacy, intervals and manual AP access.
 

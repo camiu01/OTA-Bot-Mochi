@@ -7,6 +7,7 @@
 #include "../OTA-bot-Mochi/src/update/ota_image.h"
 #include <WebServer.h>
 #include <esp_ota_ops.h>
+#include <Preferences.h>
 #include <cassert>
 #include <iostream>
 #include <limits>
@@ -119,15 +120,16 @@ static void failure_checks() {
 /** @brief Timeout, cleanup, streaming header splits, and successful delayed reboot. */
 int main() {
 	size_checks();
-	// Deterministic entropy covers every alphabet symbol without ambiguous characters.
-	std::string symbols;
-	for (int i = 0; i < 8; ++i) { session(); symbols += ota_status().password; }
-	for (const char *p = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; *p; ++p) { assert(symbols.find(*p) != std::string::npos); }
+	test_save_fails = true; ota_begin(100);
+	assert(ota_status().error && WiFi.mode_value == WIFI_OFF); ota_stop(); test_save_fails = false;
 	failure_checks();
 	auto &s = session();
 	std::string password = ota_status().password;
+	std::string ssid = ota_status().ssid, url = ota_status().url;
+	unsigned writes = test_flash_writes;
 	ota_stop(); session();
-	assert(password != ota_status().password && !WiFi.persistent_value);
+	assert(password == ota_status().password && ssid == ota_status().ssid && !WiFi.persistent_value);
+	assert(url != ota_status().url && writes == test_flash_writes);
 	test_now += 300000; ota_poll(test_now);
 	assert(!ota_status().active && WiFi.mode_value == WIFI_OFF);
 	assert(!ota_status().password[0] && !ota_status().ssid[0]);

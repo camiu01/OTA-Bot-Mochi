@@ -7,7 +7,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-/** @brief OTA state with credentials kept in RAM for the current session only. */
+/** @brief Session state; AP credentials are loaded from an independent persistent record. */
 struct OtaStatus {
 	bool active = false;
 	bool faces = false;

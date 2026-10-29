@@ -5,6 +5,7 @@
  */
 #pragma once
 #include "face_page.h"
+#include "web_style.h"
 #include "../settings/settings.h"
 #include "../ui/i18n.h"
 #include <WebServer.h>
@@ -46,6 +47,7 @@ inline void page(WebServer &server, const char *token) {
 	String html(FACE_PAGE);
 	html.replace("%TOKEN%", token);
 	html.replace("%LANG%", settings_get().language == 1 ? "it" : "en");
+	html.replace("</style>", (String(WEB_STYLE) + "</style>").c_str());
 	headers(server);
 	server.sendHeader("Content-Security-Policy", "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'");
 	server.send(200, "text/html", html);

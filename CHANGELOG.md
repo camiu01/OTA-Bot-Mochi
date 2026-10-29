@@ -19,6 +19,10 @@ downloadable release binaries.
 
 ### Changed
 
+- Stable per-device configuration AP name/password, shared across maintenance
+  modes; web tokens remain session-specific.
+- Settings-first dark web UI, nearby Wi-Fi selection and searchable city dropdown.
+
 - Wi-Fi configuration opens only when requested from Settings or the face
   library. Startup and connection failures never interrupt the normal screen.
 - Automatically opened Alerts returns to Eyes after 60 seconds without a new

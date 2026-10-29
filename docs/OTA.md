@@ -38,7 +38,7 @@ Firmware compilation, uploading and physical validation remain user-operated.
 5. If Mochi is connected to saved Wi-Fi, keep the phone on that same private
    network and scan the displayed browser QR. It includes the current DHCP
    address and temporary authorization; do not share it.
-   Otherwise scan the **Wi-Fi QR** to join `Mochi-Update-…`.
+   Otherwise scan the **Wi-Fi QR** to join `Mochi-…`.
    Alternatively, enter the displayed eight-character password manually.
    **DETAILS / DETTAGLI** switches to the full text instructions; **WI-FI QR**
    switches back. Stay connected even if the OS reports “no Internet”.
@@ -53,13 +53,16 @@ BACK closes it when not uploading; after an error, close and reopen the mode
 before retrying. Closing the session stops its HTTP server and setup AP,
 but retains a configured station connection. Without saved Wi-Fi the radio
 is switched off. See [Network](NETWORK.md) for manual setup and automatic reconnection.
-Setup AP credentials are
-generated per session, remain in RAM, and are not printed over USB.
+Setup AP credentials are generated once per device and stored separately in
+`mochi-ap/identity` (unencrypted NVS). The same `Mochi-…` name and password
+serve both settings and firmware sessions. Forgetting the home network does
+not change them; erasing device NVS does. Storage failure prevents AP startup
+rather than silently generating temporary credentials. They are not printed over USB.
 Passwords contain eight random uppercase letters/digits from
 `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`, excluding ambiguous `0`, `1`, `I`, `O` and
 lowercase letters. Each character uses five unbiased hardware-random bits.
 The upload authorization token remains an independent 128-bit random value.
-The Wi-Fi QR changes with the session; it connects to Wi-Fi, not to the update
+The Wi-Fi QR remains stable; it connects to Wi-Fi, not to the update
 page. Open the displayed browser address after connecting.
 
 QR generation reuses the ESP32 framework's bundled encoder, caches at most a

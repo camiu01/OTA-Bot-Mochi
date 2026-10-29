@@ -11,6 +11,8 @@
 #include "settings_page.h"
 #include "ntp_sync.h"
 #include "network_web.h"
+#include "ap_identity.h"
+#include "wifi_scan.h"
 #include <WiFi.h>
 #include <WebServer.h>
 #include <esp_ota_ops.h>
@@ -89,7 +91,7 @@ void settings_action() {
 		  (target->address == 0x650000 && running->address == 0x10000))) {
 		server.send(503, "application/json", "{\"error\":\"Install OTA layout using USB first\"}"); return;
 	}
-	ntp_sync_stop(); sound_init(millis()); state.faces = false; state.error = nullptr;
+	wifi_scan::stop(); ntp_sync_stop(); sound_init(millis()); state.faces = false; state.error = nullptr;
 	server.send(200, "application/json", "{\"firmware\":true}");
 }
 /** @brief Install settings routes alongside the unchanged face and firmware contracts. */
@@ -99,16 +101,24 @@ bool settings_authorized_page() {
 	server.send(403, "text/plain", "Use the active Mochi settings session."); return false;
 }
 /** @brief Install settings routes alongside the unchanged face and firmware contracts. */
+void settings_page() {
+	if (!settings_authorized_page()) { return; }
+	String html(SETTINGS_PAGE); html.replace("%TOKEN%", state.lan ? "" : token);
+	html.replace("%NETWORK_HTML%", NETWORK_FORM); html.replace("%NETWORK_SCRIPT%", NETWORK_SCRIPT);
+	html.replace("%LANG%", settings_get().language ? "it" : "en");
+	html.replace("</style>", (String(WEB_STYLE) + "</style>").c_str());
+	face_web::headers(server);
+	server.sendHeader("Content-Security-Policy", "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'");
+	server.send(200, "text/html", html);
+}
+/** @brief Register settings HTML and authorized APIs. */
 void settings_routes() {
-	server.on("/settings-ui", HTTP_GET, [] {
-		if (!settings_authorized_page()) { return; }
-		String html(SETTINGS_PAGE); html.replace("%TOKEN%", state.lan ? "" : token);
-		html.replace("%NETWORK_HTML%", NETWORK_FORM); html.replace("%NETWORK_SCRIPT%", NETWORK_SCRIPT);
-		html.replace("%LANG%", settings_get().language ? "it" : "en");
-		face_web::headers(server);
-		server.sendHeader("Content-Security-Policy", "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'");
-		server.send(200, "text/html", html);
+	server.on("/settings-ui", HTTP_GET, settings_page);
+	server.on("/faces-ui", HTTP_GET, [] {
+		if (settings_authorized_page()) { face_web::page(server, state.lan ? "" : token); }
 	});
+	server.on("/network/scan", HTTP_POST, [] { if (settings_authorized()) { wifi_scan::start(server); } });
+	server.on("/network/scan", HTTP_GET, [] { if (settings_authorized()) { wifi_scan::results(server); } });
 	server.on("/settings", HTTP_GET, [] { if (settings_authorized()) { settings_web::state(server); } });
 	server.on("/settings", HTTP_POST, [] { if (settings_authorized()) { settings_web::save(server); } });
 	server.on("/settings/action", HTTP_POST, [] { if (settings_authorized()) { settings_action(); } });
@@ -143,10 +153,11 @@ void page() {
 	if (!state.active || !wifi_started || uint32_t(millis() - started) >= SESSION_MS) {
 		server.send(403, "text/plain", "Session expired."); return;
 	}
-	if (state.faces) { face_web::page(server, state.lan ? "" : token); return; }
+	if (state.faces) { settings_page(); return; }
 	String html(OTA_PAGE);
 	html.replace("%FILE%", filename());
 	html.replace("%TOKEN%", state.lan ? "" : token);
+	html.replace("</style>", (String(WEB_STYLE) + "</style>").c_str());
 	server.sendHeader("Cache-Control", "no-store");
 	server.sendHeader("X-Frame-Options", "DENY");
 	server.sendHeader("X-Content-Type-Options", "nosniff");
@@ -227,15 +238,6 @@ void random_hex(char *out, size_t bytes) {
 	for (size_t i = 0; i < bytes; ++i) { snprintf(out + i * 2, 3, "%02x", unsigned(random[i])); }
 }
 
-/** @brief Generate eight uniform readable characters; no 0, 1, I, O or lowercase letters. */
-void random_password() {
-	static constexpr char alphabet[] = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-	static_assert(sizeof(alphabet) == 33, "Five random bits require 32 symbols");
-	uint8_t random[8];
-	esp_fill_random(random, sizeof(random));
-	for (size_t i = 0; i < sizeof(random); ++i) { state.password[i] = alphabet[random[i] & 31]; }
-	state.password[8] = '\0';
-}
 /** @brief Register shared handlers once, retaining their existing authorization boundaries. */
 void install_routes() {
 	if (routes_ready) { return; }
@@ -274,9 +276,11 @@ void ota_begin(uint32_t now, void (*progress)(), bool faces) {
 		  (target->address == 0x650000 && running->address == 0x10000)))) {
 		fail("Install the OTA layout using USB first."); return;
 	}
-	random_password();
 	random_hex(token, 16);
 	state.lan = network_connected();
+	if (!state.lan && !ap_identity::load(state.ssid, state.password)) {
+		fail("Cannot load saved Wi-Fi identity. Close and retry."); return;
+	}
 	network_portal(true, !state.lan);
 	if (state.lan) {
 		strncpy(state.address, network_address().c_str(), sizeof(state.address) - 1);
@@ -284,8 +288,6 @@ void ota_begin(uint32_t now, void (*progress)(), bool faces) {
 		state.password[0] = 0;
 	}
 	snprintf(state.url, sizeof(state.url), "http://%s/#%s", state.address, token);
-	snprintf(state.ssid, sizeof(state.ssid), faces ? "Mochi-Faces-%.6s" : "Mochi-Update-%.6s", token);
-	if (state.lan) { strncpy(state.ssid, network_config().ssid, sizeof(state.ssid) - 1); }
 	WiFi.persistent(false);
 	wifi_started = true;
 	if (!state.lan && (!WiFi.mode(network_config().enabled ? WIFI_AP_STA : WIFI_AP) || !WiFi.softAPConfig(IPAddress(192,168,4,1),
@@ -308,6 +310,7 @@ void ota_poll(uint32_t now) {
 		snprintf(state.url, sizeof(state.url), "http://%s/#%s", state.address, token);
 	}
 	if (wifi_started) { server.handleClient(); }
+	wifi_scan::poll(now);
 	if (state.faces) {
 		ntp_sync_poll(now);
 		if (imu_orientation().status == ImuCalibration::Sampling) { eyes_imu_poll(now); }
@@ -319,6 +322,7 @@ void ota_poll(uint32_t now) {
 
 void ota_stop() {
 	if (state.success) { return; }
+	wifi_scan::stop();
 	if (!network_config().enabled) { ntp_sync_stop(); }
 	if (state.faces) { sound_init(millis()); }
 	if (handle_open) { esp_ota_abort(handle); handle_open = false; }

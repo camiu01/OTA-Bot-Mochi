@@ -17,7 +17,8 @@ The usual LOOK → Mood grid only selects enabled faces.
 
 Tap **Wi-Fi** in the library. With saved Wi-Fi connected, scan the web QR from
 the same home network. Otherwise join the password-protected network shown
-on Mochi, then open `http://192.168.4.1`. The browser list supports search and restoring all
+on Mochi, then open `http://192.168.4.1` and choose **Face library** from the
+initial settings page. The browser list supports search and restoring all
 faces. SAVE FACES applies and saves the list, without saving unrelated RAM settings.
 No account, internet access or external resources are needed.
 The **Settings, Wi-Fi and weather** link opens display preferences, saved Wi-Fi,
@@ -28,8 +29,9 @@ server. Normal eyes, BLE servicing and utilities pause until BACK or timeout.
 The existing USB settings terminal remains available in face/settings mode,
 including manual network setup; it stays paused during firmware uploads.
 Firmware uploads are rejected in face-library mode unless explicitly switching
-to firmware mode from the settings page. Configuration-AP passwords and request
-tokens are random per session and never saved. The separately saved home-network
+to firmware mode from the settings page. Configuration-AP names and passwords
+are generated once and persisted per device; request tokens stay random per
+session and are never saved. The separately saved home-network
 credentials and station connection survive session close. Use only while parked.
 
 The separate version-one `mochi/faces` NVS record contains a catalog length,
