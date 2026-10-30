@@ -6,6 +6,17 @@
 #pragma once
 #include <ChronosESP32.h>
 
+/** @brief Media actions use the Apple Media Service command identifiers. */
+enum class MusicAction : uint8_t { Toggle = 2, Next = 3, Previous = 4, VolumeUp = 5, VolumeDown = 6, None = 255 };
+
+/** @brief Bounded media metadata and advertised remote-control capabilities. */
+struct UiMusic {
+	String title, artist;
+	bool available = false, playing = false;
+	uint8_t commands = 0;
+	uint8_t volume = 255;	/**< Phone-reported percentage; 255 means unavailable. */
+};
+
 struct UiPageEvents {
 	uint32_t notifications = 0;
 	uint32_t route_starts = 0;
@@ -15,6 +26,7 @@ struct UiPageEvents {
 };
 
 struct UiSnapshot {
+	UiMusic music;
 	bool connected = false;
 	bool calling = false;
 	bool has_notification = false;
@@ -40,6 +52,12 @@ struct UiSnapshot {
 
 /** @brief Initialize the snapshot lock before starting BLE. @return Initialization success. */
 bool ui_state_init();
+/** @brief Publish bounded media data while connected. @param music Owned media state. */
+void ui_music(const UiMusic &music);
+/** @brief Queue a supported action without blocking on BLE. @param action Media command. @return Accepted. */
+bool ui_music_request(MusicAction action);
+/** @brief Consume one action on the owning transport task. @return Action or None. */
+MusicAction ui_music_take();
 /** @brief Copy the owned snapshot. @return A thread-safe UI snapshot. */
 UiSnapshot ui_snapshot();
 /** @brief Read the current revision without copying text. @return Snapshot revision. */
@@ -57,7 +75,7 @@ void ui_notification_dismiss(uint32_t expected_revision = UINT32_MAX);
 /** @brief Store or clear an incoming call. @param caller Caller label. @param active Ringer state. */
 void ui_ringer(const String &caller, bool active);
 /**
- * @brief Cache finalized Chronos configuration data without drawing from BLE.
+ * @brief Cache finalized Chronos data, including music, without drawing from BLE.
  * @param watch Chronos source.
  * @param config Configuration event.
  * @param a Event parameter.

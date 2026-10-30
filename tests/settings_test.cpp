@@ -35,6 +35,7 @@ static void persistence_tests() {
 	value.style = 3; value.color = 2; value.brightness = 40; value.night = true;
 	value.random_faces = true; value.imu_faces = true;
 	value.route_large = false;
+	value.sound_sd = true;
 	value.sound = true; value.sound_faces = false; value.sound_alerts = false;
 	value.sound_ambient = false; value.sound_night_mute = false;
 	value.sound_level = 18; value.animation = 2; value.language = 1;
@@ -47,6 +48,7 @@ static void persistence_tests() {
 	assert(settings_init() && settings_get().style == 3 && settings_get().night);
 	assert(settings_get().random_faces && settings_get().imu_faces);
 	assert(!settings_get().route_large);
+	assert(settings_get().sound_sd);
 	assert(settings_get().sound && !settings_get().sound_faces && !settings_get().sound_alerts);
 	assert(!settings_get().sound_ambient && !settings_get().sound_night_mute);
 	assert(settings_get().sound_level == 18 && settings_get().animation == 2 && settings_get().language == 1);
@@ -77,7 +79,7 @@ static void migration_tests() {
 	test_profile.assign(bytes, bytes + 8);
 	assert(settings_init() && settings_get().color == 3);
 	assert(decoded.route_large);
-	assert(settings_dirty() && settings_save() && test_profile[0] == 7 && test_profile.size() == SETTINGS_BYTES);
+	assert(settings_dirty() && settings_save() && test_profile[0] == 9 && test_profile.size() == SETTINGS_BYTES);
 	bytes[0] = 2; bytes[6] = 0x32; bytes[7] = 0xA5;
 	for (uint8_t i = 0; i < 7; ++i) { bytes[7] ^= bytes[i]; }
 	assert(settings_decode(bytes, sizeof(bytes), decoded) && decoded.random_faces && decoded.imu_faces && decoded.route_large);
@@ -92,21 +94,31 @@ static void migration_tests() {
 	assert(from_v4.style == 2 && from_v4.color == 3 && from_v4.mood == LOVE && !from_v4.flipped);
 	test_profile.assign(v4, v4 + SETTINGS_V4_BYTES);
 	assert(settings_init() && settings_get().style == 2 && !settings_get().flipped);
-	assert(settings_dirty() && settings_save() && test_profile[0] == 7 && test_profile.size() == SETTINGS_BYTES);
+	assert(settings_dirty() && settings_save() && test_profile[0] == 9 && test_profile.size() == SETTINGS_BYTES);
 	uint8_t v5[SETTINGS_BYTES];
 	CompanionSettings old; old.flipped = true;
 	settings_encode(old, v5);
 	v5[0] = 5; v5[12] = 0xA5;
 	for (uint8_t i = 0; i < 12; ++i) { v5[12] ^= v5[i]; }
-	assert(settings_decode(v5, sizeof(v5), decoded) && decoded.flipped && decoded.face_flow == FACE_RETURN);
+	assert(settings_decode(v5, SETTINGS_LEGACY_BYTES, decoded) && decoded.flipped && decoded.face_flow == FACE_RETURN);
 	uint8_t v6[SETTINGS_BYTES];
 	settings_encode(old, v6);
 	v6[0] = 6; v6[12] = 0xA5;
 	for (uint8_t i = 0; i < 12; ++i) { v6[12] ^= v6[i]; }
-	assert(settings_decode(v6, sizeof(v6), decoded) && !decoded.phone_ios);
+	assert(settings_decode(v6, SETTINGS_LEGACY_BYTES, decoded) && !decoded.phone_ios);
 	CompanionSettings ios; ios.phone_ios = true;
 	uint8_t v7[SETTINGS_BYTES]; settings_encode(ios, v7);
-	assert(settings_decode(v7, sizeof(v7), decoded) && decoded.phone_ios);
+	assert(settings_decode(v7, SETTINGS_BYTES, decoded) && decoded.phone_ios);
+	assert(!decoded.sound_sd);
+	v7[0] = 7; v7[12] = 0xA5;
+	for (uint8_t i = 0; i < 12; ++i) { v7[12] ^= v7[i]; }
+	assert(settings_decode(v7, SETTINGS_LEGACY_BYTES, decoded) && decoded.phone_ios && !decoded.sound_sd);
+	v7[7] |= 64; v7[12] = 0xA5;
+	for (uint8_t i = 0; i < 12; ++i) { v7[12] ^= v7[i]; }
+	assert(!settings_decode(v7, SETTINGS_LEGACY_BYTES, decoded));
+	v7[0] = 8; v7[12] = 0xA5;
+	for (uint8_t i = 0; i < 12; ++i) { v7[12] ^= v7[i]; }
+	assert(settings_decode(v7, SETTINGS_LEGACY_BYTES, decoded) && decoded.phone_ios && decoded.sound_sd);
 	settings_defaults();
 }
 
@@ -116,7 +128,7 @@ static void mood_range_tests() {
 	CompanionSettings legacy; legacy.mood = LOVE;
 	uint8_t legacy_bytes[SETTINGS_BYTES];
 	settings_encode(legacy, legacy_bytes);
-	assert(legacy_bytes[0] == 7);
+	assert(legacy_bytes[0] == 9);
 	CompanionSettings decoded;
 	assert(settings_decode(legacy_bytes, sizeof(legacy_bytes), decoded) && decoded.mood == LOVE);
 	// The wider expression range reuses the same byte, so no new profile version is needed.
@@ -245,7 +257,7 @@ static void menu_tests() {
 	settings_menu_tap(20, 155);
 	assert(settings_get().night);
 	// DISPLAY keeps brightness controls together; orientation belongs to SENSORS.
-	assert(settings_menu_scroll(1) && !settings_menu_scroll(1));
+	assert(settings_menu_scroll(1));
 	assert(settings_menu_tap(20, 200) == MenuAction::Changed);
 	assert(settings_get().dim);
 	assert(settings_menu_tap(210, 65) == MenuAction::Changed);
@@ -396,8 +408,8 @@ static void format_tests() {
 	// Version-seven playback/flip bytes reject reserved bits; versions cannot mix lengths.
 	settings_encode(p, bytes);
 	bytes[11] |= 8;
-	bytes[12] = 0xA5;
-	for (uint8_t i = 0; i < 12; ++i) { bytes[12] ^= bytes[i]; }
+	bytes[SETTINGS_BYTES - 1] = 0xA5;
+	for (uint8_t i = 0; i < SETTINGS_BYTES - 1; ++i) { bytes[SETTINGS_BYTES - 1] ^= bytes[i]; }
 	assert(!settings_decode(bytes, sizeof(bytes), decoded));
 	assert(!settings_decode(bytes, SETTINGS_V4_BYTES, decoded));
 }

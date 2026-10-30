@@ -1,9 +1,10 @@
 /**
  * @file screens.cpp
- * @brief Event-driven cards for alerts, weather, routes, and phone calls.
+ * @brief Event-driven cards for music, alerts, weather, routes, and phone calls.
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "screens.h"
+#include "music_view.h"
 #include "ui_theme.h"
 #include "text_layout.h"
 #include "context_views.h"
@@ -172,6 +173,7 @@ void content(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, uint32_t now) {
 	else if (page == UiPage::Notification) { notification_screen(gfx, now); }
 	else if (page == UiPage::Navigation) { navigation_screen(gfx); }
 	else if (page == UiPage::Weather) { weather_screen(gfx, now); }
+	else if (page == UiPage::Music) { music_draw(gfx, cached, now); }
 	else if (page == UiPage::Settings) { settings_menu_draw(gfx); }
 	else if (uint8_t(page) >= uint8_t(UiPage::Desk)) { context_draw(gfx, watch, page, cached, now); }
 }
@@ -234,7 +236,7 @@ bool screens_draw(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, uint32_t n
 		((page == UiPage::Pong || page == UiPage::Tris) && !overlay_active ? 33U : 1000U);
 	if (!invalidated && !changed && !timer && page != UiPage::Clock) { return false; }
 	if (invalidated || changed || transition) {
-		static const Text titles[] = {Text::Eyes, Text::Clock, Text::Route, Text::Alerts, Text::Weather, Text::Settings,
+		static const Text titles[] = {Text::Eyes, Text::Clock, Text::Music, Text::Route, Text::Alerts, Text::Weather, Text::Settings,
 			Text::Desk, Text::BigClock, Text::Overview, Text::Timer, Text::Device, Text::Pong, Text::AnalogClock, Text::Tris};
 		ui_chrome(gfx, tr(overlay_active ? Text::CallTitle : titles[uint8_t(page)]),
 			cached.connected, uint8_t(screens_parent(page)));

@@ -7,6 +7,17 @@ downloadable release binaries.
 
 ### Added
 
+- Phone-volume controls on Music, including phone-reported iPhone volume.
+- Opt-in local-hour night schedule with manual override, existing mute/brightness
+  policy and version-nine preferences preserving legacy migrations.
+
+- Dedicated Music carousel page with title/artist and previous/play-pause/next,
+  using Chronos on Android and AMS on the existing iPhone BLE connection.
+- Opt-in short SD WAV effects on AMOLED V2, including startup, charging and five
+  reaction-family files with generic face and generated-tone fallback.
+- Read-only debounced AXP2101 charge-start detection for optional AMOLED audio;
+  battery percentage and physical charge behavior remain unverified.
+
 - iPhone ANCS notifications without Chronos, with a saved Phone mode selector.
   SAVE and restart to switch between Android/Chronos and iPhone/ANCS.
 - Saved 2.4 GHz Wi-Fi, background reconnection, automatic NTP and Open-Meteo

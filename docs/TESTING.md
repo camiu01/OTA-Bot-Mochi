@@ -86,7 +86,7 @@ migration.
 Additional checks cover contextual tools without extra carousel pages, temporary
 route layout versus saved defaults, version-two migration, local timer rollover/
 pause/Pomodoro completion, and eye-tap/double-tap/glance/greeting reactions with
-automation disabled. Expanded tests cover version-seven thirteen-byte profiles with
+automation disabled. Expanded tests cover version-nine sixteen-byte profiles, legacy migrations, and
 version-five, version-four and older migration, Face flow, the reboot verb, EN/IT
 label completeness and layout, out-of-order weather packets/sync throttling,
 animated dirty regions, sound notes/priorities/mute/rollover/failures, and actual
@@ -235,8 +235,8 @@ Controls:
   press is a hold (opens Settings from Eyes), a drag swipes horizontally and
   scrolls vertically, and a wiggly vertical stroke pets the eyes.
 - The mouse wheel flicks between carousel pages.
-- `1`..`6` open Eyes, Clock, Route, Alerts, Weather, and Settings; `0` opens
-  Desk tools.
+- `0`..`6` open Eyes, Clock, Music, Route, Alerts, Weather, and Settings; `7`
+  opens Desk tools.
 - `n` injects a notification (the auto page policy jumps to Alerts), `r` starts
   or stops navigation, `p` writes `mochi-lcd.ppm`, `q` or `Esc` quits.
 - In the terminal running the emulator, type a command and press `Enter`.
@@ -456,7 +456,7 @@ separately in TODO.
    accented text. The font approximates common lowercase Latin accents; other
    unsupported glyphs, including emoji, appear as `?`.
 5. With dashboard mode on, ring the phone on each page. Confirm it does not cover
-   Eyes, Clock, Route, Weather, or Settings. Select Alerts to see the call, then
+   Eyes, Clock, Music, Route, Weather, or Settings. Select Alerts to see the call, then
    dismiss it. Check optional full-screen behavior only after explicitly turning
    dashboard mode off.
 6. Sync weather and high/low forecasts. Verify stale state after three hours.
@@ -534,3 +534,45 @@ Battery percentage is a plausibility-gated best-effort estimate, deliberately
 reported as NOT MEASURED when readings are implausible. Charging state remains
 unavailable until the actual power circuit, ADC path, divider ratio, and
 calibration are verified.
+
+## Music and optional audio additions
+
+Both native runners include Music protocol/command tests, an AMS adapter with
+controlled GATT, per-panel Music rendering, read-only SD WAV parsing/playback,
+and LCD/AMOLED charge detection tests. ES8311 tests select the actual startup,
+charging and five family paths through the production audio service, verify
+fallback, and exercise master/night/SD cancellation. These checks do not compile
+the ESP32 firmware or prove real SD/BLE/PMU behavior.
+
+For the user-owned AMOLED bench check:
+
+1. Use valid short WAV files and enable Sound, Faces and SD sounds, then SAVE.
+2. Restart: expect the startup cue once after the intro. With Sound off or night
+   mode plus Night mute, expect silence and no SD playback.
+3. With a properly connected, verified battery setup, begin from a known
+   non-charging state and connect the intended charging supply: expect one cue
+   after two stable 500 ms samples. Booting already charging establishes a silent
+   baseline. No automatic charging cue is expected on LCD OLD.
+4. Exercise affectionate, calm, excited, negative and ordinary reactions. Verify
+   the matching family file, then remove a family file to test `face.wav`
+   fallback, and remove both to test the built-in chirp.
+5. Disable Faces, SD sounds, master Sound, and activate Night mute separately;
+   check category gating, immediate cancellation and continued UI/BLE operation.
+
+Record the firmware hash, board revision, card, settings and observed results in
+[Hardware validation](HARDWARE_VALIDATION.md). Native passes must not be marked
+as completed physical checks.
+
+### Phone volume and automatic night tests
+
+Native Music/AMS tests cover volume commands 5/6, actual Chronos command mapping,
+normalized iPhone volume parsing, malformed/out-of-range values, unsupported
+commands and cleared state on disconnect. Panel fixtures cover the volume row.
+The displayed percentage is phone-reported, never a locally estimated value.
+
+`night_schedule_test.cpp` covers midnight and same-day intervals, exact hourly
+edges, missing synchronized time, manual override, brightness and sound mute,
+explicit SAVE, legacy v8 migration, schedule validation, USB and the seven-row
+DISPLAY menu. Form tests exercise atomic schedule edits on LCD and AMOLED.
+No device is needed for these checks. Physical phone-volume behavior, display
+brightness and local-time transitions still require a later bench test.

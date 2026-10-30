@@ -60,6 +60,12 @@ try {
 	)
 	Invoke-HostTest 'swipe' @("$root\tests\swipe_test.cpp")
 	Invoke-HostTest 'ancs' @("$root\tests\ancs_test.cpp", "$root\OTA-bot-Mochi\src\ancs\ancs_parser.cpp")
+	Invoke-HostTest 'ams' @("$root\tests\ams_test.cpp", "$root\OTA-bot-Mochi\src\ancs\ams_service.cpp", "$root\OTA-bot-Mochi\src\ui\ui_state.cpp") @('-I', "$root\tests\stubs\media")
+	Invoke-HostTest 'sd-audio' @("$root\tests\sd_audio_test.cpp") @('-DMOCHI_BOARD_AMOLED_18')
+	Invoke-HostTest 'music' @("$root\tests\music_test.cpp", "$root\OTA-bot-Mochi\src\ui\ui_state.cpp")
+	$charging = @("$root\tests\charging_test.cpp", "$root\OTA-bot-Mochi\src\power\charging.cpp", "$root\OTA-bot-Mochi\src\bus\i2c_bus.cpp")
+	Invoke-HostTest 'charging-lcd' $charging
+	Invoke-HostTest 'charging-amoled' $charging @('-DMOCHI_BOARD_AMOLED_18')
 	Invoke-HostTest 'tic-tac-toe' @("$root\tests\tic_tac_toe_test.cpp")
 	$ota = $runtime + @("$root\tests\ota_test.cpp", "$root\OTA-bot-Mochi\src\update\ota_update.cpp", "$root\OTA-bot-Mochi\src\update\ntp_sync.cpp", "$root\tests\stubs\imu_noop.cpp")
 	Invoke-HostTest 'ota-lcd' $ota @('-I', "$root\tests\stubs\ota")
@@ -86,6 +92,7 @@ try {
 	$settings = @("$root\tests\settings_test.cpp", "$root\OTA-bot-Mochi\src\settings\settings_menu.cpp",
 		"$root\tests\stubs\imu_noop.cpp")
 	Invoke-HostTest 'settings' ($runtime + $settings)
+	Invoke-HostTest 'night-schedule' ($runtime + @("$root\tests\night_schedule_test.cpp", "$root\OTA-bot-Mochi\src\settings\settings_menu.cpp", "$root\tests\stubs\imu_noop.cpp"))
 	Invoke-HostTest 'face-preset' ($runtime + @("$root\tests\face_preset_test.cpp", "$root\tests\stubs\imu_noop.cpp"))
 	$renderRuntime = @($runtime | Where-Object { $_ -ne "$root\tests\stubs\eyes_draw.cpp" })
 	$renderEyes = @("$root\OTA-bot-Mochi\src\eyes\eyes_draw.cpp", "$root\tests\stubs\imu_noop.cpp")
@@ -93,6 +100,7 @@ try {
 	Invoke-HostTest 'face-filter' ($renderRuntime + @("$root\tests\face_filter_test.cpp", "$root\OTA-bot-Mochi\src\eyes\eyes_draw.cpp", "$root\OTA-bot-Mochi\src\eyes\eyes_imu.cpp"))
 	Invoke-HostTest 'face-web' ($runtime + @("$root\tests\face_web_test.cpp", "$root\OTA-bot-Mochi\src\update\ota_update.cpp", "$root\OTA-bot-Mochi\src\update\ntp_sync.cpp", "$root\tests\stubs\imu_noop.cpp")) @('-I', "$root\tests\stubs\ota")
 	Invoke-HostTest 'settings-web' ($runtime + @("$root\tests\settings_web_test.cpp", "$root\OTA-bot-Mochi\src\update\ota_update.cpp", "$root\OTA-bot-Mochi\src\update\ntp_sync.cpp", "$root\tests\stubs\imu_noop.cpp")) @('-I', "$root\tests\stubs\ota")
+	Invoke-HostTest 'settings-web-amoled' ($runtime + @("$root\tests\settings_web_test.cpp", "$root\OTA-bot-Mochi\src\update\ota_update.cpp", "$root\OTA-bot-Mochi\src\update\ntp_sync.cpp", "$root\tests\stubs\imu_noop.cpp")) @('-DMOCHI_BOARD_AMOLED_18', '-I', "$root\tests\stubs\ota")
 	Invoke-HostTest 'network' ($runtime + @("$root\tests\network_test.cpp", "$root\OTA-bot-Mochi\src\update\ota_update.cpp", "$root\OTA-bot-Mochi\src\update\ntp_sync.cpp", "$root\tests\stubs\imu_noop.cpp")) @('-I', "$root\tests\stubs\ota")
 	Invoke-HostTest 'network-weather' @("$root\tests\network_weather_test.cpp", "$root\OTA-bot-Mochi\src\network\network_weather_parse.cpp") @('-I', "$root\tests\stubs\ota")
 	Invoke-HostTest 'ntp-sync' @("$root\tests\ntp_sync_test.cpp", "$root\OTA-bot-Mochi\src\update\ntp_sync.cpp") @('-I', "$root\tests\stubs\ota")

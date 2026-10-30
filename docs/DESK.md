@@ -1,6 +1,6 @@
 # Contextual views
 
-The primary carousel still contains six pages: Eyes, Clock, Route, Alerts,
+The primary carousel contains seven pages: Eyes, Clock, Music, Route, Alerts,
 Weather, and Settings. Extra tools are grouped under Clock, not added as more
 swipe destinations. The device does not infer whether it is in a car or on a desk.
 Use touch controls only while parked.

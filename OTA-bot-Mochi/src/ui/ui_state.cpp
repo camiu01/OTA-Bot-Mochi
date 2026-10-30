@@ -11,6 +11,7 @@ namespace {
 StaticSemaphore_t lock_storage;
 SemaphoreHandle_t lock = nullptr;
 UiSnapshot state;
+MusicAction pending_music = MusicAction::None;
 bool internet_weather = false;
 Weather internet_days[3] = {};
 String internet_city, internet_time;
@@ -101,6 +102,8 @@ void ui_connection(bool connected) {
 	xSemaphoreTake(lock, portMAX_DELAY);
 	state.connected = connected;
 	if (!connected) {
+		state.music = UiMusic{};
+		pending_music = MusicAction::None;
 		state.calling = false;
 		page_events.call_active = false;
 		state.caller = "";
@@ -198,7 +201,7 @@ static void weather_update(ChronosESP32 &watch, uint32_t a, uint32_t b) {
 }
 
 /**
- * @brief Retain complete route data and icon packets.
+ * @brief Retain bounded media, route, time, weather, and icon packets.
  * @param watch Chronos source.
  * @param config Event type.
  * @param a Event parameter.
@@ -206,6 +209,11 @@ static void weather_update(ChronosESP32 &watch, uint32_t a, uint32_t b) {
  */
 void ui_config(ChronosESP32 &watch, Config config, uint32_t a, uint32_t b) {
 	if (!lock) { return; }
+	if (config == CF_MUSIC) {
+		const MusicInfo &info = watch.getMusicInfo();
+		ui_music(UiMusic{info.title, info.artist, true, info.state == 1, 124});
+		return;
+	}
 	if (config != CF_WEATHER && config != CF_NAV_DATA && config != CF_NAV_ICON &&
 		config != CF_TIME && config != CF_HR24) { return; }
 	xSemaphoreTake(lock, portMAX_DELAY);
@@ -238,4 +246,43 @@ void ui_config(ChronosESP32 &watch, Config config, uint32_t a, uint32_t b) {
 	}
 	++state.revision;
 	xSemaphoreGive(lock);
+}
+
+/** @brief Retain media text under the shared lock. @param music Transport state. */
+void ui_music(const UiMusic &music) {
+	if (!lock) { return; }
+	xSemaphoreTake(lock, portMAX_DELAY);
+	if (state.connected) {
+		state.music = music;
+		state.music.title = bounded(music.title, 160);
+		state.music.artist = bounded(music.artist, 96);
+		state.music.commands &= 124;
+		if (state.music.volume > 100) { state.music.volume = 255; }
+		++state.revision;
+	}
+	xSemaphoreGive(lock);
+}
+
+/** @brief Queue one supported command; repeated taps cannot accumulate. @param action Command. @return Accepted. */
+bool ui_music_request(MusicAction action) {
+	uint8_t id = uint8_t(action);
+	if (!lock || id < 2 || id > 6) { return false; }
+	xSemaphoreTake(lock, portMAX_DELAY);
+	bool accepted = state.connected && !state.calling && state.music.available &&
+		(state.music.commands & (1U << id)) && pending_music == MusicAction::None;
+	if (accepted) { pending_music = action; }
+	xSemaphoreGive(lock);
+	return accepted;
+}
+
+/** @brief Consume commands only while their capability is still current. @return Action or None. */
+MusicAction ui_music_take() {
+	if (!lock) { return MusicAction::None; }
+	xSemaphoreTake(lock, portMAX_DELAY);
+	MusicAction action = pending_music;
+	pending_music = MusicAction::None;
+	if (action != MusicAction::None && (!state.connected || state.calling || !state.music.available ||
+		!(state.music.commands & (1U << uint8_t(action))))) { action = MusicAction::None; }
+	xSemaphoreGive(lock);
+	return action;
 }

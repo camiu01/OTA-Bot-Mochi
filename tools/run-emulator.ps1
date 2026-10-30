@@ -3,8 +3,8 @@
 param(
 	[ValidatePattern('^[1-9][0-9]*x[1-9][0-9]*$')]
 	[string] $Size,
-	[ValidateSet('eyes', 'clock', 'route', 'alerts', 'weather', 'settings',
-		'desk', 'bigclock', 'overview', 'timer', 'device', 'pong', 'analogclock')]
+	[ValidateSet('eyes', 'clock', 'music', 'route', 'alerts', 'weather', 'settings',
+		'desk', 'bigclock', 'overview', 'timer', 'device', 'pong', 'analogclock', 'tris')]
 	[string] $Page,
 	[ValidateRange(1, 2147483647)]
 	[int] $Frames,

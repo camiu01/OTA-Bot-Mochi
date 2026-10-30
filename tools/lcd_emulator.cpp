@@ -50,14 +50,14 @@ std::string boot_command;
 }
 
 const char *page_name(UiPage value) {
-	static const char *const names[] = {"Eyes", "Clock", "Route", "Alerts", "Weather",
-		"Settings", "Desk", "Big clock", "Overview", "Timer", "Device", "Pong", "Analog clock"};
+	static const char *const names[] = {"Eyes", "Clock", "Music", "Route", "Alerts", "Weather",
+		"Settings", "Desk", "Big clock", "Overview", "Timer", "Device", "Pong", "Analog clock", "Tris"};
 	return uint8_t(value) < sizeof(names) / sizeof(names[0]) ? names[uint8_t(value)] : "?";
 }
 
 bool page_from_name(const std::string &name, UiPage &out) {
-	static const char *const keys[] = {"eyes", "clock", "route", "alerts", "weather",
-		"settings", "desk", "bigclock", "overview", "timer", "device", "pong", "analogclock"};
+	static const char *const keys[] = {"eyes", "clock", "music", "route", "alerts", "weather",
+		"settings", "desk", "bigclock", "overview", "timer", "device", "pong", "analogclock", "tris"};
 	for (uint8_t i = 0; i < sizeof(keys) / sizeof(keys[0]); ++i) {
 		if (name == keys[i]) { out = UiPage(i); return true; }
 	}
@@ -112,6 +112,8 @@ void update_backlight(uint32_t now) {
 /** @brief Populate the fake Chronos source so weather, route, and clock pages have content. */
 void seed_demo_data() {
 	ui_connection(true);
+	watch.music = MusicInfo{1, "Midnight City", "M83"};
+	ui_config(watch, CF_MUSIC, 0, 1);
 	clock_time_synced();
 	ui_config(watch, CF_TIME, 1, 0);
 	static const int high[] = {21, 19, 17, 20, 22, 18, 16};
@@ -158,6 +160,12 @@ void present(SDL_Renderer *renderer, SDL_Texture *texture) {
 
 /** @brief Draw one scheduled frame, mirroring the firmware loop's render stage. @param renderer Renderer. @param texture Frame texture. @param window Window for the title. */
 void render_frame(SDL_Renderer *renderer, SDL_Texture *texture, SDL_Window *window) {
+	MusicAction action = ui_music_take();
+	if (action == MusicAction::Toggle) {
+		watch.music.state = watch.music.state ? 0 : 1;
+		ui_config(watch, CF_MUSIC, 0, watch.music.state);
+	}
+	settings_clock(clock_ready(), uint8_t(watch.getHour(true)));
 	bool changed = screens_draw(&gfx, watch, page, test_now);
 	if (page == UiPage::Eyes && !screens_calling()) {
 		if (changed) { eyes_state().dirtyInit = false; }
@@ -254,12 +262,12 @@ int event_loop(SDL_Renderer *renderer, SDL_Texture *texture, SDL_Window *window)
 void usage(const char *program) {
 	std::printf("Usage: %s [--frames N] [--page name] [--command line] [--screenshot path.ppm]\n", program);
 	std::printf("  --frames N       render N frames then exit (headless smoke run)\n");
-	std::printf("  --page name      start on a page: eyes clock route alerts weather\n");
+	std::printf("  --page name      start on a page: eyes clock music route alerts weather\n");
 	std::printf("                   settings desk bigclock overview timer device pong analogclock\n");
 	std::printf("  --command line   run one USB console command at startup\n");
 	std::printf("  --screenshot P   write the final canvas to a PPM image\n");
 	std::printf("Mouse: click tap, drag swipe/scroll, hold 1.2s settings, wheel pages\n");
-	std::printf("Keys:  1..6 pages, 0 desk, n alert, r route, p snapshot, q/ESC quit\n");
+	std::printf("Keys:  0..7 pages/tools, n alert, r route, p snapshot, q/ESC quit\n");
 	std::printf("Terminal: type a USB command and press Enter (try: mood names, mood glow, help)\n");
 	std::printf("Window: press Enter to type a command there instead; replies appear in the terminal\n");
 }

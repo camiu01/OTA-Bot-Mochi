@@ -43,6 +43,7 @@ static void face_tone_tests() {
 	sound_poll(3000, events, false, false, false);
 	sound_poll(3010, events, false, false, false);
 	assert(test_pwm[2].frequency >= 1000 && test_pwm[2].frequency <= 1300);
+	sound_request_face(FaceTone::Flat, 3050);
 	sound_poll(3110, events, false, false, false);
 	assert(test_pwm[2].duty == 0);
 	sound_poll(3130, events, false, false, false);
@@ -166,9 +167,33 @@ static void context_tests() {
 	sound_poll(100, events, false, false, false);
 	assert(test_pwm[2].duty == 0);
 }
+/** @brief Device cues respect master/night mute, charging cooldown and phone alert priority. */
+static void device_cue_tests() {
+	sound_init(0); events = {}; settings_defaults();
+	assert(!sound_request(SoundCue::Startup, 0) && !sound_request(SoundCue::Charging, 0));
+	auto p = settings_get(); p.sound = true;
+	p.sound_faces = p.sound_timer = p.sound_alerts = p.sound_ambient = false; settings_update(p);
+	assert(sound_request(SoundCue::Startup, 1000));
+	sound_poll(1000, events, false, false, false); sound_poll(1010, events, false, false, false);
+	assert(test_pwm[2].frequency == 1400 && test_pwm[2].duty > 0);
+	sound_poll(1300, events, false, false, false);
+	assert(sound_request(SoundCue::Charging, 2000));
+	sound_poll(2000, events, false, false, false); sound_poll(2010, events, false, false, false);
+	assert(test_pwm[2].frequency == 1600 && test_pwm[2].duty > 0);
+	sound_poll(2300, events, false, false, false);
+	assert(!sound_request(SoundCue::Charging, 2500) && sound_request(SoundCue::Charging, 32000));
+	p.night = true; settings_update(p);
+	assert(!sound_request(SoundCue::Startup, 40000));
+	sound_poll(40000, events, false, false, false);
+	assert(test_pwm[2].duty == 0);
+	p.night = false; p.sound_alerts = true; settings_update(p);
+	assert(sound_request(SoundCue::Notification, 50000));
+	assert(!sound_request(SoundCue::Startup, 50000) && !sound_request(SoundCue::Charging, 62000));
+}
+
 /** @brief Run native sound regressions, never emit actual sound. @return Success. */
 int main() {
 	assert(settings_init());
-	note_tests(); mute_tests(); failure_tests(); context_tests(); manual_test(); face_tone_tests();
+	note_tests(); mute_tests(); failure_tests(); context_tests(); manual_test(); face_tone_tests(); device_cue_tests();
 	std::cout << "Sound notes, priority, categories, night mute, failure handling, and rollover passed\n";
 }

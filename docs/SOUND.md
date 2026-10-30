@@ -10,7 +10,7 @@ booted.
 In Settings → SOUND, enable Sound, choose a level, and optionally open Sound
 options for independent face, timer, notification/call, and ambient switches.
 BACK returns from these options. SAVE explicitly persists the profile.
-Outside the menu, tapping the top status strip on Clock, Route, Alerts, Weather,
+Outside the menu, tapping the top status strip on Clock, Music, Route, Alerts, Weather,
 or desk tools toggles the same master switch for the session and chirps once
 when unmuting; the strip is inactive on Eyes and in Settings, and SAVE persists
 that RAM value with the rest of the profile. The header speaker icon is crossed
@@ -63,7 +63,8 @@ Sound remains off by default; neither codec nor I2S is initialized until the
 first permitted cue. Merely enabling sound leaves the backend `armed`.
 
 The codec uses the existing shared I2C bus on SDA15/SCL14. Playback is
-16 kHz, signed 16-bit Philips I2S with identical left/right samples,
+16 kHz, signed 16-bit Philips I2S in stereo. Generated tones and mono WAVs are
+duplicated into both slots; stereo WAVs preserve their two channels. Clock pins are
 MCLK=256× sample rate on GPIO16, BCLK=9, WS=45, and data out=8.
 GPIO46 enables the speaker amplifier during a cue and its bounded DMA drain.
 No RX channel is allocated and microphone data on GPIO10 is not captured.
@@ -72,8 +73,9 @@ Initialization follows the
 
 A dedicated task owns note timing, sample-level 5 ms fades, PCM generation,
 and DMA writes with a 20 ms timeout; only the main task accesses I2C and
-settings. Each cue is copied once with its current level, at most five notes
-and one second total. It finishes on the sample clock even when rendering
+settings. Each generated cue is copied once with its current level, at most five
+notes and one second total. Optional SD WAVs use the same worker and are bounded
+to three seconds; file mounting/reads never run on the display task. It finishes on the sample clock even when rendering
 stalls, without the old 100 ms refresh expiry. The low-level single-tone
 diagnostic adapter still expires after 100 ms. The amplifier stays enabled
 through internal pauses and five silent 5 ms blocks after the cue, allowing
@@ -199,3 +201,95 @@ car. The buzzer pin was corrected from GPIO34 to GPIO33 on 2026-10-13 after
 checking the official Waveshare schematic and demo. Do not infer an
 active/passive buzzer model from the PWM-capability description or substitute
 GPIO HIGH without confirming the circuit.
+
+## Optional SD sound effects (AMOLED V2 only)
+
+In Settings / SOUND / Sound options, enable **SD sounds**. This option defaults
+off, including after migration from older profiles. Master Sound, category
+switches, volume limits and Night mute still apply. Tap SAVE to persist changes;
+the LCD board keeps its buzzer behavior and does not show this option.
+The AMOLED browser settings form exposes `sound_sd`.
+USB accepts `set sound-sd on` / `set sound-sd off`.
+
+Place files in `/mochi/sounds/` on a FAT-formatted microSD card:
+
+| File | Event |
+| --- | --- |
+| `ambient.wav` | Idle ambient cue |
+| `mood.wav` | Mood change |
+| `tap.wav` | Tap feedback |
+| `face.wav` | Generic fallback for every face family |
+| `face-bright.wav` | Bright / playful reactions |
+| `face-warm.wav` | Affectionate reactions: love, shy, kiss |
+| `face-soft.wav` | Calm / sleepy reactions |
+| `face-bounce.wav` | Excited / surprised reactions |
+| `face-flat.wav` | Negative / uneasy reactions: sad, angry, worried |
+| `notification.wav` | New alert |
+| `rest.wav` | Timer rest phase |
+| `done.wav` | Timer completion |
+| `call.wav` | Incoming call |
+| `test.wav` | Test sound |
+| `startup.wav` | Once after the startup animation, if sound is enabled |
+| `charging.wav` | A newly detected stable charge start on AMOLED V2 |
+
+Use RIFF/WAVE, uncompressed signed **16-bit PCM at 16,000 Hz**, mono or stereo,
+with a maximum duration of **three seconds per file**. MP3, floating-point WAV,
+24-bit audio and other sample rates are rejected. No decoder library is added.
+Example conversion with an existing FFmpeg installation:
+
+```sh
+ffmpeg -i input.mp3 -t 3 -ar 16000 -ac 1 -c:a pcm_s16le tap.wav
+```
+
+Mounting and reads run on the existing audio worker, using one-bit SDMMC
+(CLK2, CMD1, D0=3), following the
+[official Waveshare V2 pin configuration](https://github.com/waveshareteam/ESP32-S3-Touch-AMOLED-1.8/blob/main/examples/arduino-v2/libraries/Mylibrary/pin_config.h).
+The firmware opens only the fixed paths above for reading; it never formats or
+writes to the card. Missing cards, missing files and unsupported WAV files fall
+back to the built-in cue. A mid-playback read failure stops the clip. Disabling
+SD sounds or master Sound, or activating Night mute, cancels playback. SD sounds
+do not play phone music; the Music page remains a remote control.
+
+Native tests cover RIFF bounds, formats, scaling, fixed paths, missing cards,
+read failures, opt-in behavior and immediate mute. Actual SD latency, card
+removal/reinsertion, speaker loudness and display/BLE coexistence remain unverified
+on hardware. Insert/remove the card while powered off for the initial bench
+check, then verify Test sound at a low volume.
+
+### Startup, charging and reaction rules
+
+Startup and charging cues follow the master Sound switch, level and Night mute.
+They do not require enabling the face, timer, phone-alert or ambient categories.
+Reaction-family files additionally require the Faces category. There are no new
+settings fields or profile-format changes for these cues. Save Sound and SD sounds
+before restarting if the next boot should use `startup.wav`.
+
+Startup is requested once after the 2.2-second intro. Enabling sound later does
+not replay it. Higher-priority phone alerts/calls can suppress a startup or
+charging cue rather than delaying it into a backlog.
+
+Charging uses read-only AXP2101 REG01 bits 6:5, following the
+[manufacturer's datasheet, section 6.13.2.2](https://files.waveshare.com/wiki/common/X-power-AXP2101_SWcharge_V1.0.pdf).
+It checks every 500 ms and requires two consistent samples. The initial known
+state is a silent baseline: booting while already charging plays no additional
+charge cue. A later idle/discharging-to-charging transition requests one sound,
+with a 30-second audio cooldown. Missing PMUs, wrong chip IDs, read errors and
+reserved status values never create a synthetic charge-start event. LCD OLD has
+no verified charge-state input and therefore emits no automatic charging sound.
+No charger voltage, current, safety limit, IRQ or power rail is changed.
+
+When a face reaction occurs, Mochi chooses its existing Bright/Warm/Soft/Bounce/Flat
+family and tries the matching `face-*.wav`. If that file is absent or unsupported,
+it tries `face.wav`, then the built-in family-shaped chirp. This is a mapping by
+reaction family, not one recording per individual expression. Startup/charging
+also have generated fallback cues if their WAV is unavailable. Supply your own
+recordings; no WAV bundle is included.
+
+### Scheduled night and phone-media volume
+
+Automatic night follows the synchronized local-hour interval configured under
+DISPLAY. It uses the existing Night mute switch, so local startup, charging,
+reaction, SD and other cues remain silent during the interval when Night mute
+is on. Manual Night ON also forces this behavior. The Music page's volume
+buttons control the phone; they do not change Mochi's local sound level, and
+scheduled night does not mute or pause the phone. See [Settings](SETTINGS.md#automatic-night-schedule-version-nine).

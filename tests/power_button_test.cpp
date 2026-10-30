@@ -32,12 +32,12 @@ static void boot_button_tests() {
 	assert(poll(LOW, 5000) == UiPage::Eyes);
 	assert(poll(HIGH, 5010) == UiPage::Eyes && poll(HIGH, 5040) == UiPage::Clock);
 	assert(poll(HIGH, 5070, UiPage::Clock) == UiPage::Clock);
-	for (uint8_t i = 0; i < 6; ++i) {
+	for (uint8_t i = 0; i < 7; ++i) {
 		uint32_t now = 6000 + i * 200;
 		UiPage page = static_cast<UiPage>(i);
 		assert(poll(LOW, now, page) == page && poll(LOW, now + 30, page) == page);
 		assert(poll(HIGH, now + 60, page) == page);
-		assert(poll(HIGH, now + 90, page) == static_cast<UiPage>((i + 1) % 6));
+		assert(poll(HIGH, now + 90, page) == static_cast<UiPage>((i + 1) % 7));
 	}
 	assert(poll(LOW, 8000) == UiPage::Eyes && poll(LOW, 8030) == UiPage::Eyes);
 	assert(poll(LOW, 8040, UiPage::Eyes, true) == UiPage::Eyes);
@@ -48,7 +48,7 @@ static void boot_button_tests() {
 	assert(poll(LOW, UINT32_MAX - 70) == UiPage::Eyes);
 	assert(poll(LOW, UINT32_MAX - 40) == UiPage::Eyes);
 	assert(poll(HIGH, 10, UiPage::Pong) == UiPage::Pong);
-	assert(poll(HIGH, 40, UiPage::Pong) == UiPage::Navigation);
+	assert(poll(HIGH, 40, UiPage::Pong) == UiPage::Music);
 #else
 	button.begin(0);
 	assert(button.poll(5000, UiPage::Eyes, false) == UiPage::Eyes);

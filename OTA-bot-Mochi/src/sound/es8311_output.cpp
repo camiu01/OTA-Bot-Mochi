@@ -1,12 +1,13 @@
 /**
  * @file es8311_output.cpp
- * @brief Shared-I2C ES8311 control and bounded, playback-only I2S worker.
+ * @brief Shared-I2C ES8311 control and bounded, playback-only I2S worker with opt-in SD WAV cues.
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "../../pin_config.h"
 #if defined(MOCHI_BOARD_AMOLED_18)
 #include "es8311_output.h"
 #include "pcm_tone.h"
+#include "sd_audio.h"
 #include "../bus/i2c_bus.h"
 #include <Arduino.h>
 #include <atomic>
@@ -21,7 +22,7 @@ i2s_chan_handle_t channel = nullptr;
 bool initialized = false, amplifier_owned = false;
 struct AudioCommand {
 	SoundNote notes[5] = {};
-	uint8_t count = 0, level = 0;
+	uint8_t count = 0, level = 0, sd_cue = 255;
 	uint32_t revision = 0, updated = 0;
 	bool sequence = false;
 };
@@ -69,19 +70,25 @@ bool codec_init() {
 	return true;
 }
 
-/** @brief Generate one block and leave five silent blocks for the four DMA descriptors to drain. @param out Stereo block. @param next Coherent command. @return Amplifier needed. */
+/** @brief Generate bounded tone/SD PCM and leave five silent blocks for the four DMA descriptors to drain. @param out Stereo block. @param next Coherent command. @return Amplifier needed. */
 bool render_block(int16_t *out, const AudioCommand &next) {
 	static PcmSequence sequence;
 	static PcmTone oscillator;
+	static SdAudio sd;
+	static bool sd_selected = false;
 	static uint32_t revision = 0;
 	static uint8_t drain = 0;
 	if (revision != next.revision) {
 		revision = next.revision; drain = 0;
+		sd_selected = false;
+		if (next.sequence && next.sd_cue != 255) { sd_selected = sd.start(next.sd_cue); }
+		else { sd.release(); }
 		sequence.start(next.notes, next.sequence ? next.count : 0, next.level);
 	}
-	bool audible = next.sequence ? sequence.playing() :
+	bool audible = next.sequence ? (sd_selected ? sd.playing() : sequence.playing()) :
 		(next.notes[0].hz && next.level && uint32_t(millis() - next.updated) <= 100);
-	if (next.sequence) { sequence.render(out, 80); }
+	if (sd_selected) { sd.render(out, 80, next.level); }
+	else if (next.sequence) { sequence.render(out, 80); }
 	else { oscillator.render(out, 80, audible ? next.notes[0].hz : 0, next.level); }
 	bool enabled = audible || drain;
 	if (audible) { drain = 5; }
@@ -156,7 +163,7 @@ bool es8311_begin() {
 		Serial.println("ES8311 initialization failed; amplifier muted");
 		return false;
 	}
-	if (xTaskCreate(audio_task, "mochi-audio", 3072, nullptr, 2, nullptr) != pdPASS) {
+	if (xTaskCreate(audio_task, "mochi-audio", 6144, nullptr, 2, nullptr) != pdPASS) {
 		cleanup();
 		Serial.println("ES8311 PCM task allocation failed; amplifier muted");
 		return false;
@@ -177,11 +184,11 @@ bool es8311_write(uint16_t hz, uint8_t percent) {
 	return true;
 }
 
-bool es8311_play(const SoundNote *notes, uint8_t count, uint8_t percent) {
+bool es8311_play(const SoundNote *notes, uint8_t count, uint8_t percent, uint8_t sd_cue) {
 	if (!initialized || transport_failed.load() || !PcmSequence::valid(notes, count, percent)) { return false; }
 	AudioCommand next;
 	for (uint8_t i = 0; i < count; ++i) { next.notes[i] = notes[i]; }
-	next.count = count; next.level = percent; next.sequence = true;
+	next.count = count; next.level = percent; next.sequence = true; next.sd_cue = sd_cue;
 	publish(next);
 	return true;
 }

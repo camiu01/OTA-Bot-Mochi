@@ -23,6 +23,7 @@
 #include "src/touch/touch.h"
 #include "src/clock/clock_ui.h"
 #include "src/ui/screens.h"
+#include "src/ui/music_transport.h"
 #include "src/ui/auto_page.h"
 #include "src/ui/view_state.h"
 #include "src/ui/weather_sync.h"
@@ -32,6 +33,7 @@
 #include "src/ui/boot_button.h"
 #include "src/power/backlight.h"
 #include "src/power/battery.h"
+#include "src/power/charging.h"
 #include "src/power/power_button_shutdown.h"
 #include "src/settings/settings.h"
 #include "src/settings/settings_menu.h"
@@ -354,6 +356,7 @@ void update_backlight(uint32_t now) {
 /** @brief Service BLE and touch continuously, rendering only complete changed frames. */
 void loop() {
 	network_poll(millis(), !ota_status().active || ota_status().faces);
+	settings_clock(clock_ready(), uint8_t(watch.getHour(true)));
 	if (ota_status().active) {
 		// Automatic setup must not hide the existing trusted USB recovery terminal.
 		if (ota_status().faces) { settings_usb_poll(); }
@@ -367,7 +370,10 @@ void loop() {
 	}
 	handle_power_button(watch, display, screen_ready, millis());
 	settings_usb_poll();
-	if (!ios_mode_boot) { watch.loop(); }
+	if (!ios_mode_boot) {
+		watch.loop();
+		music_android_poll(watch);
+	}
 	delay(1);
 	if (!screen_ready) { return; }
 	uint32_t now = millis();
@@ -391,6 +397,7 @@ void loop() {
 	handle_auto_page(now);
 	if (!ios_mode_boot && weather_sync_due(now, watch.isConnected(), watch.isSubscribed())) { watch.syncRequest(); }
 	battery_sample(now);
+	if (charging_poll(now)) { sound_request(SoundCue::Charging, now); }
 	view_timer().tick(now);
 	sound_poll(now, ui_page_events(), current_screen == UiPage::Eyes && !screens_calling(),
 		view_timer().resting, view_timer().finished);
@@ -406,6 +413,7 @@ void loop() {
 		if (startup.draw(gfx, now, UI_TEXT)) { gfx->flush(); return; }
 		starting = false;
 		eyes_faces_greet(now);
+		sound_request(SoundCue::Startup, now);
 		switch_screen(UiPage::Eyes, now);
 	}
 #if MOCHI_RUNTIME_DIAGNOSTICS

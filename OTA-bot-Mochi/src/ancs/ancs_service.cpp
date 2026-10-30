@@ -1,10 +1,11 @@
 /**
  * @file ancs_service.cpp
- * @brief Consume iPhone ANCS on a dedicated NimBLE peripheral profile.
+ * @brief Consume iPhone ANCS and AMS on one dedicated NimBLE peripheral profile.
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "ancs_service.h"
 #include "ancs_parser.h"
+#include "ams_service.h"
 #include "../ui/ui_state.h"
 #include <NimBLEDevice.h>
 #include <freertos/FreeRTOS.h>
@@ -17,7 +18,7 @@ constexpr char SERVICE[] = "7905F431-B5CE-4E99-A40F-4B1E122D00D0";
 constexpr char SOURCE[] = "9FBF120D-6301-42D9-8C58-25E699A21DBD";
 constexpr char CONTROL[] = "69D1D8F3-45E1-49A8-9821-9BBDFDAAD9D9";
 constexpr char DATA[] = "22EAC6E9-24D6-4BB5-BE44-B36ACE7C7BFB";
-enum class Kind : uint8_t { Connected, Disconnected, Source, Data };
+enum class Kind : uint8_t { Connected, Disconnected, Source, Data, Media, Commands, Services };
 struct Event {
 	Kind kind;
 	uint16_t handle = 0;
@@ -65,6 +66,19 @@ void source_notify(NimBLERemoteCharacteristic *, uint8_t *data, size_t length, b
 /** @brief Retain raw GATT fragments without doing GATT work in callbacks. */
 void data_notify(NimBLERemoteCharacteristic *, uint8_t *data, size_t length, bool) {
 	enqueue(Kind::Data, 0, data, length);
+}
+
+/** @brief Queue media metadata without reading or writing GATT in the callback. */
+void media_notify(NimBLERemoteCharacteristic *, uint8_t *data, size_t length, bool) {
+	enqueue(Kind::Media, 0, data, length);
+}
+/** @brief Queue the active player's supported commands. */
+void commands_notify(NimBLERemoteCharacteristic *, uint8_t *data, size_t length, bool) {
+	enqueue(Kind::Commands, 0, data, length);
+}
+/** @brief Rediscover services when iOS publishes or removes AMS. */
+void services_notify(NimBLERemoteCharacteristic *, uint8_t *, size_t, bool) {
+	enqueue(Kind::Services, 0, nullptr, 0);
 }
 
 /** @brief Request the four bounded fields used by the existing alert UI. */
@@ -128,45 +142,78 @@ void publish() {
 	ui_notification(notification);
 }
 
-/** @brief Own GATT discovery, writes, and parsing away from display frames. */
+/** @brief Subscribe to iOS service changes on the paired connection. @param client iPhone. @return Subscription installed. */
+bool service_changes(NimBLEClient *client) {
+	auto *gatt = client->getService("1801");
+	auto *changed = gatt ? gatt->getCharacteristic("2A05") : nullptr;
+	return changed && changed->subscribe(false, services_notify);
+}
+
+/** @brief Retry services independently and consume media commands even under notification traffic. */
+void service_tick(NimBLEClient *client, NimBLERemoteCharacteristic *&control,
+	uint32_t &discovery_at, AmsService &ams, bool &changes) {
+	if (!client || !client->isConnected()) { return; }
+	ams.poll();
+	if (uint32_t(millis() - discovery_at) < 5000) { return; }
+	discovery_at = millis();
+	if (!control) { control = discover(client); }
+	if (!ams.ready()) { ams.discover(client, media_notify, commands_notify); }
+	if (!changes) { changes = service_changes(client); }
+}
+
+/** @brief Consume queued ANCS packets independently of media traffic. @param event Packet. @param control ANCS control point. */
+void notification_event(const Event &event, NimBLERemoteCharacteristic *control) {
+	if (!control) { return; }
+	if (event.kind == Kind::Source && control) {
+		app_pending = false; app_response.clear();
+		if (parser.event(event.bytes, event.length) && !request(control, parser.alert().uid)) {
+			parser.reset();
+		}
+	} else if (event.kind == Kind::Data && app_pending) {
+		if (app_fragment(event.bytes, event.length)) { app_pending = false; publish(); }
+	} else if (event.kind == Kind::Data && parser.append(event.bytes, event.length)) {
+		app_response.clear();
+		app_pending = request_app(control);
+		app_started = millis();
+		if (!app_pending) { publish(); }
+	}
+}
+
+/** @brief Own ANCS/AMS discovery, queued media writes, and parsing away from display frames. */
 void worker(void *) {
 	NimBLEClient *client = nullptr;
 	NimBLERemoteCharacteristic *control = nullptr;
 	uint32_t discovery_at = 0;
+	AmsService ams;
+	bool changes = false;
 	Event event{};
 	for (;;) {
+		service_tick(client, control, discovery_at, ams, changes);
 		if (xQueueReceive(events, &event, pdMS_TO_TICKS(200)) != pdTRUE) {
 			if (app_pending && uint32_t(millis() - app_started) >= 2000) {
 				app_pending = false; publish();
 			}
-			if (client && !control && client->isConnected() &&
-				uint32_t(millis() - discovery_at) >= 5000) {
-				discovery_at = millis(); control = discover(client);
-			}
+
 			continue;
 		}
 		if (event.kind == Kind::Disconnected) {
 			parser.reset(); app_response.clear(); app_pending = false;
-			client = nullptr; control = nullptr;
+			client = nullptr; control = nullptr; changes = false; ams.reset();
 		} else if (event.kind == Kind::Connected) {
 			parser.reset();
 			vTaskDelay(pdMS_TO_TICKS(30));
 			client = NimBLEDevice::getServer()->getClient(event.handle);
 			control = discover(client);
+			ams.reset(); ams.discover(client, media_notify, commands_notify);
+			changes = client && service_changes(client);
 			discovery_at = millis();
-		} else if (event.kind == Kind::Source && control) {
-			app_pending = false; app_response.clear();
-			if (parser.event(event.bytes, event.length) && !request(control, parser.alert().uid)) {
-				parser.reset();
-			}
-		} else if (event.kind == Kind::Data && app_pending) {
-			if (app_fragment(event.bytes, event.length)) { app_pending = false; publish(); }
-		} else if (event.kind == Kind::Data && parser.append(event.bytes, event.length)) {
-			app_response.clear();
-			app_pending = request_app(control);
-			app_started = millis();
-			if (!app_pending) { publish(); }
-		}
+		} else if (event.kind == Kind::Services && client) {
+			ams.reset(); control = nullptr; changes = false;
+			parser.reset(); app_response.clear(); app_pending = false;
+			client->deleteServices(); discovery_at = millis() - 5000;
+		} else if (event.kind == Kind::Media || event.kind == Kind::Commands) {
+			ams.receive(event.bytes, event.length, event.kind == Kind::Commands);
+		} else { notification_event(event, control); }
 	}
 }
 }

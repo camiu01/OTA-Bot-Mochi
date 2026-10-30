@@ -81,7 +81,7 @@ testing on both boards. See the validation limits below.
 | Phone navigation | Displays received turn instructions, icon, distance, ETA, and speed when supplied |
 | Alerts and calls | Keeps eight local alerts with browsing, dismissal and message pagination; displays incoming caller information; calls must be handled on the phone |
 | Weather display | Phone weather or optional saved Wi-Fi/Open-Meteo, with three forecasts and missing/stale states |
-| Optional sound | Short generated chirps for reactions, timers, and alerts; category switches and night mute; off by default |
+| Optional sound | Generated cues for reactions, startup, timers and alerts; AMOLED charge-start cues and optional SD WAVs; off by default |
 | iPhone notifications | ANCS alerts in local history; Phone mode requires SAVE and restart; no iPhone call overlay or navigation |
 | Personalization | Global face exclusions, local browser settings, eye colors, brightness, 180-degree screen flip, motion presets, EN/IT labels, and explicitly saved preferences |
 | Local firmware update | Temporary protected LAN session or WPA2 setup network, on-screen QR and browser upload of the matching release application |
@@ -118,11 +118,13 @@ A [240x280 gallery](docs/images/colored-performances-240.png) shows the LCD layo
   navigation, calibration restoration and reconnection remain useful release
   acceptance work, not additional known failures. LCD OLD needs separate checks.
 - LCD battery percentage is an uncalibrated, plausibility-gated estimate.
-  AMOLED battery data and charging state are not implemented.
+  AMOLED battery percentage is not implemented. Read-only PMU charge-start
+  detection is implemented for optional audio cues; physical charging validation
+  remains pending.
 
 ### Planned or deferred
 
-Battery/charging support, power/runtime measurements, and automatic OTA deployment remain open in [TODO](TODO.md).
+Full battery-gauge/charger-configuration support, power/runtime measurements, and automatic OTA deployment remain open in [TODO](TODO.md).
 No enclosure design or fabrication files are supplied.
 
 **About "OTA":** the BLE name is `OTA bot`; the repository does not explain the acronym's origin.
@@ -141,7 +143,7 @@ AMOLED V1 (SH8601), or other ESP32 display boards.
 | AMOLED board option | Waveshare ESP32-S3-Touch-AMOLED-1.8 **V2**, ESP32-S3, 16 MB flash, 8 MB octal PSRAM | Required alternative; assembled board | Second, partially validated target |
 | AMOLED display / touch | Integrated CO5300, 368x448 QSPI; CST820 in the V2 profile | Included with AMOLED board | Display and touch input |
 | Motion sensor | Board-integrated QMI8658C; firmware enables its accelerometer only | Included; motion is optional for basic operation | Relative tilt/acceleration reactions; idle eyes remain usable if initialization fails |
-| Audio path | LCD GPIO33 buzzer; AMOLED ES8311 codec/I2S and amplifier enable | Board-specific hardware; sound optional | Generated short cues, not speech, music playback, or microphone capture |
+| Audio path | LCD GPIO33 buzzer; AMOLED ES8311 codec/I2S and amplifier enable | Board-specific hardware; sound optional | Generated cues or optional short SD WAV effects on AMOLED; no phone audio streaming or microphone capture |
 | Board RTC | RTC bus pins are recorded; no external-RTC driver is used by this firmware | Not required as a time source | Current clock comes from Chronos, not the board RTC |
 | USB connection | Data-capable cable matching the board and a regulated USB source | Required separately for installation and the documented powered setup | Power, upload, diagnostics, and settings console |
 | Phone with Chronos | BLE companion app | Optional separately; required for phone features | Time sync, route data, alerts, and weather |
@@ -169,7 +171,7 @@ assignments**, not a breadboard wiring guide; [pin_config.h](OTA-bot-Mochi/pin_c
 | Brightness | PWM backlight GPIO15 | CO5300 controller command; no backlight GPIO |
 | Audio | Buzzer GPIO33 | ES8311 `0x18`; MCLK16, BCLK9, WS45, DOUT8, amplifier enable46 |
 | Panel reset | GPIO8 | TCA9554 `0x20`, expander bits 0..2 |
-| Battery candidate | `BAT_ADC=1`, divider unverified | `BAT_ADC=-1`; AXP2101 battery driver absent |
+| Battery candidate | `BAT_ADC=1`, divider unverified | `BAT_ADC=-1`; no battery gauge; read-only AXP2101 charge-start events |
 
 Touch and IMU use one shared I2C controller. Do not start a second controller on the same pads. On AMOLED, the
 sketch releases the expander-controlled panel reset before display initialization.
@@ -289,7 +291,7 @@ arduino-cli monitor --port COM3 --config baudrate=115200
 ```
 
 Look for `UI ready`, the detected touch address, and `IMU ready` or `IMU unavailable; using idle eyes`. The
-startup shows an animated OTA BOT / MOCHI title for 2.2 seconds, then a silent eye greeting. Defaults
+startup shows an animated OTA BOT / MOCHI title for 2.2 seconds, then an eye greeting. A startup cue follows only when saved Sound settings allow it. Defaults
 are white MOCHI eyes, neutral mood, 30% day brightness, and sound off.
 
 The new OTA firmware does not yet have a completed local Arduino CLI build:
@@ -352,7 +354,7 @@ different PSRAM configurations (see [Wiring and board configuration](#wiring-and
 
 ## Controls and everyday use
 
-The primary carousel is: `Eyes → Clock → Route → Alerts → Weather → Settings → Eyes`. Desk tools are children
+The primary carousel is: `Eyes → Clock → Music → Route → Alerts → Weather → Settings → Eyes`. Desk tools are children
 of Clock, not additional carousel pages.
 
 | Action | Result |
@@ -393,10 +395,12 @@ Timer/Pong state, automatic-rotation switch and temporary route layouts are sess
 
 | Option | Available configuration |
 | --- | --- |
+| Music | Dedicated carousel page with track/artist, previous/play-pause/next and phone volume; Android Chronos and iPhone AMS |
+| SD sound effects | AMOLED V2 only: startup, charging, five reaction families and event cues; enable SD sounds in SOUND options; see [file names and format](docs/SOUND.md#optional-sd-sound-effects-amoled-v2-only) |
 | Appearance | Four eye styles, six body/UI colors, 135 moods; distinct shapes and GIF-informed reactions with temporary colors |
 | Animation | `calm`, `dasai`, `playful`; optional random moods and IMU moods |
 | Orientation | Normal or 180-degree flip, including matching touch and IMU mapping; no 90-degree mode |
-| Lighting | Day 5–90%, night 1–20%, manual night selection, optional idle dimming |
+| Lighting | Day 5–90%, night 1–20%, manual night override, optional synchronized 22:00–07:00 schedule with editable hours, idle dimming |
 | Motion | Shake and IMU-expression switches, saved IMU zero and session-only automatic 180° rotation; ordinary gaze remains active when the sensor is ready |
 | Route / calls | Large/details default and dashboard call-overlay policy |
 | Sound | Master switch, level 1–30, face/timer/alert/ambient categories, night mute |
@@ -450,7 +454,7 @@ Paths below are relative to `OTA-bot-Mochi/`.
 | `src/play/` | Bounded Pong/Tris gameplay and clock/game drawing |
 | `src/settings/` | Validated preferences, legacy-profile migration, explicit NVS save, touch menu, and USB parser |
 | `src/sound/` | Cue scheduling and board-specific PWM or ES8311/I2S output |
-| `src/power/` | Brightness/dimming policy and best-effort battery estimate |
+| `src/power/` | Brightness/dimming, best-effort battery estimate and read-only AMOLED charge-start detection |
 | `src/update/` | Temporary LAN/AP maintenance, web settings/face editor, NTP, browser upload, image validation and QR screen |
 
 The sketch services BLE, touch, timers, sound, and brightness between display frames scheduled 33 ms apart. An
@@ -473,7 +477,7 @@ gyroscope fusion, attitude measurement, or autonomous movement.
 | Weather missing | For Internet weather, save Wi-Fi and a city, then check link/NTP/refresh status in web settings. In Android mode, also check Chronos weather permissions and USB `weather` counters. Failed Internet refreshes retain cached data. |
 | Route inactive or missing turn icon | Start navigation on the phone and check BLE. The firmware waits for complete matching icon packets; it does not invent a turn. Live interoperability remains a device check. |
 | Sound silent | Sound defaults off. Inspect `sound`, master/night mute, and category settings; `sound test` requests bench tones but respects mute. Ready status does not prove audibility. |
-| Battery says NOT MEASURED | This is intentional without plausible LCD ADC readings. The divider/calibration is unverified; AMOLED AXP2101 battery/charging support is absent. Do not add a guessed divider or battery connection. |
+| Battery says NOT MEASURED | This is intentional without plausible LCD ADC readings. The divider/calibration is unverified; AMOLED battery percentage remains unavailable; read-only charge-start detection is separate. Do not add a guessed divider or battery connection. |
 | Changes disappear after reboot | Use explicit SAVE and check success. A storage failure leaves changes in RAM only; timer and game sessions are not persisted. |
 | Upload port unavailable | Close other serial monitors; select the discovered port. Follow the documented Linux serial-permission guidance in [Testing](docs/TESTING.md#linux-serial-permissions), not a flash erase/reset workaround. |
 | Text shows `?` or approximate characters | The bounded bitmap font approximates common Latin accents; unsupported Unicode and emoji are not fully rendered. |

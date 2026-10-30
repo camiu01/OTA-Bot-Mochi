@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "context_views.h"
+#include "music_view.h"
 #include "view_state.h"
 #include "ui_theme.h"
 #include "text_layout.h"
@@ -158,6 +159,7 @@ UiPage screens_tap(UiPage page, int16_t x, int16_t y, uint32_t now) {
 			screens_alert_action(int8_t(i) - 1);
 		}
 	}
+	if (page == UiPage::Music && !screens_calling()) { music_tap(x, y); }
 	if (page == UiPage::Desk) {
 		for (uint8_t i = 0; i < 7; ++i) {
 			int16_t left = ui_s(i % 2 ? 126 : 6), top = ui_s(58 + (i / 2) * 50);

@@ -23,8 +23,11 @@ static const Field fields[] = {
 	{"color", Text::ColorLabel, 0, 0, 5, 1, &CompanionSettings::color, nullptr},
 	{"mood", Text::MoodLabel, 0, 0, EXPRESSION_COUNT - 1, 2, &CompanionSettings::mood, nullptr},
 	{"brightness", Text::DayLevel, 1, 5, 90, -1, &CompanionSettings::brightness, nullptr},
-	{"night", Text::Night, 1, 0, 1, -1, nullptr, &CompanionSettings::night},
+	{"night", Text::NightManual, 1, 0, 1, -1, nullptr, &CompanionSettings::night},
 	{"night_brightness", Text::NightLevel, 1, 1, 20, -1, &CompanionSettings::night_brightness, nullptr},
+	{"night_auto", Text::NightAuto, 1, 0, 1, -1, nullptr, &CompanionSettings::night_auto},
+	{"night_start", Text::NightStart, 1, 0, 23, -1, &CompanionSettings::night_start, nullptr},
+	{"night_end", Text::NightEnd, 1, 0, 23, -1, &CompanionSettings::night_end, nullptr},
 	{"dim", Text::IdleDim, 1, 0, 1, -1, nullptr, &CompanionSettings::dim},
 	{"animation", Text::Animation, 2, 0, 2, 3, &CompanionSettings::animation, nullptr},
 	{"random_faces", Text::RandomMood, 2, 0, 1, -1, nullptr, &CompanionSettings::random_faces},
@@ -34,6 +37,9 @@ static const Field fields[] = {
 	{"auto_rotate", Text::AutoRotate, 3, 0, 1, -1, nullptr, nullptr},
 	{"flipped", Text::ScreenFlip, 3, 0, 1, -1, nullptr, &CompanionSettings::flipped},
 	{"sound", Text::Sound, 4, 0, 1, -1, nullptr, &CompanionSettings::sound},
+#if defined(MOCHI_BOARD_AMOLED_18)
+	{"sound_sd", Text::SoundSd, 4, 0, 1, -1, nullptr, &CompanionSettings::sound_sd},
+#endif
 	{"sound_level", Text::Level, 4, 1, 30, -1, &CompanionSettings::sound_level, nullptr},
 	{"sound_night_mute", Text::NightMute, 4, 0, 1, -1, nullptr, &CompanionSettings::sound_night_mute},
 	{"sound_faces", Text::Faces, 4, 0, 1, -1, nullptr, &CompanionSettings::sound_faces},

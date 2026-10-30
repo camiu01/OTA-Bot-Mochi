@@ -74,6 +74,14 @@ bool assign_choice(const char *field, const char *value, CompanionSettings &prof
 /** @brief Assign a toggle or numeric level. @param field Field. @param value Value. @param profile Candidate. @return Valid. */
 bool assign(const char *field, const char *value, CompanionSettings &profile) {
 	if (assign_choice(field, value, profile)) { return true; }
+	if (strcmp(field, "night-auto") == 0) { return toggle(value, profile.night_auto); }
+	if (strcmp(field, "night-start") == 0 || strcmp(field, "night-end") == 0) {
+		char *end = nullptr; long hour = strtol(value, &end, 10);
+		if (!*value || *end || hour < 0 || hour > 23) { return false; }
+		if (strcmp(field, "night-start") == 0) { profile.night_start = uint8_t(hour); }
+		else { profile.night_end = uint8_t(hour); }
+		return settings_valid(profile);
+	}
 	if (strcmp(field, "brightness") == 0 || strcmp(field, "night-brightness") == 0 || strcmp(field, "sound-level") == 0) {
 		char *end;
 		long number = strtol(value, &end, 10);
@@ -94,6 +102,7 @@ bool assign(const char *field, const char *value, CompanionSettings &profile) {
 	else if (strcmp(field, "sound-timer") == 0) { return toggle(value, profile.sound_timer); }
 	else if (strcmp(field, "sound-alerts") == 0) { return toggle(value, profile.sound_alerts); }
 	else if (strcmp(field, "sound-ambient") == 0) { return toggle(value, profile.sound_ambient); }
+	else if (strcmp(field, "sound-sd") == 0) { return toggle(value, profile.sound_sd); }
 	else if (strcmp(field, "sound-night-mute") == 0) { return toggle(value, profile.sound_night_mute); }
 	return false;
 }

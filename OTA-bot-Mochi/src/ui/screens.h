@@ -8,18 +8,18 @@
 #include <Arduino_GFX_Library.h>
 
 enum class UiPage : uint8_t {
-	Eyes, Clock, Navigation, Notification, Weather, Settings,
+	Eyes, Clock, Music, Navigation, Notification, Weather, Settings,
 	Desk, BigClock, Overview, Timer, Device, Pong, AnalogClock, Tris, Count
 };
 
-/** @brief Find the primary carousel parent. @param page Page. @return One of six main pages. */
+/** @brief Find the primary carousel parent. @param page Page. @return One of seven main pages. */
 inline UiPage screens_parent(UiPage page) {
 	return uint8_t(page) >= uint8_t(UiPage::Desk) ? UiPage::Clock : page;
 }
-/** @brief Swipe the six-page carousel, not all contextual tools. @param page Page. @param step Direction. @return Page. */
+/** @brief Swipe the seven-page carousel, not all contextual tools. @param page Page. @param step Direction. @return Page. */
 inline UiPage screens_swipe(UiPage page, int8_t step) {
 	if (!step) { return page; }
-	return static_cast<UiPage>((int(screens_parent(page)) + (step > 0 ? 1 : -1) + 6) % 6);
+	return static_cast<UiPage>((int(screens_parent(page)) + (step > 0 ? 1 : -1) + 7) % 7);
 }
 /** @brief Dispatch short parked-use utility taps. @param page Page. @param x X. @param y Y. @param now Time. @return Target. */
 UiPage screens_tap(UiPage page, int16_t x, int16_t y, uint32_t now);

@@ -3,7 +3,7 @@
 The living eyes remain the default screen. Utility screens use a black background,
 rounded tinted cards, eye-colored text and icons, and dimmer secondary labels.
 The eye color is the shared primary color, including controls, calls, and weather.
-Six position dots indicate the selected
+Seven position dots indicate the selected
 screen; the header shows a speaker icon (crossed out while sound is off or
 night-muted), Bluetooth state, and the configured backlight percentage.
 This percentage is **brightness, not battery charge**.
@@ -11,11 +11,11 @@ This percentage is **brightness, not battery charge**.
 ## Controls
 
 - Settings → SYSTEM → **Firmware update** opens a temporary Wi-Fi maintenance
-  screen, outside the six-page carousel. Its password and browser address are
+  screen, outside the seven-page carousel. Its password and browser address are
   shown on the display; normal controls pause until exit, timeout or restart.
   See [OTA](OTA.md) for first-install requirements and safety limits.
 
-- Swipe left/right through Eyes, Clock, Route, Alerts, Weather, and Settings.
+- Swipe left/right through Eyes, Clock, Music, Route, Alerts, Weather, and Settings.
 - Vertical swipes follow the contextual layers: swipe **down** on Clock to open
   Scrivania (desk tools), swipe **up** on Scrivania to return to Clock, and
   swipe **up** on any desk tool to return to Scrivania. Swipe **down** on Route
@@ -23,7 +23,7 @@ This percentage is **brightness, not battery charge**.
   phone sync and a configured Internet weather refresh. A downward swipe anywhere else still returns straight to Eyes.
   Vertical strokes still pet Mochi on Eyes and still scroll rows inside
   Settings.
-- Tap the top status strip, above the page title, on Clock, Route, Alerts,
+- Tap the top status strip, above the page title, on Clock, Music, Route, Alerts,
   Weather, or any desk tool to mute or unmute every sound for the session;
   unmuting chirps once. The strip is inactive on Eyes (where taps are face
   reactions) and inside Settings. This edits the RAM profile like the SOUND
@@ -57,14 +57,16 @@ This percentage is **brightness, not battery charge**.
   eyes and a progress line. BLE, USB and touch polling continue; touch actions
   and automatic page changes wait until the intro ends. Mochi then greets with a
   brief three-second temporary face played
-  silently; the selected mood returns automatically.
+  without a face-reaction chirp; the selected mood returns automatically. A
+  separate startup cue is requested once when the intro finishes, respecting
+  master Sound and Night mute. See [Sound](SOUND.md).
 - On AMOLED V2, holding PWR starts the title after one second, then closes the
   eyes and fades over the remaining three seconds to the autonomous power-off.
   The farewell no longer finishes well before the four-second hold. Keep holding to shut
   down; releasing early restores the previous page.
-- On AMOLED V2, click and release BOOT to advance through Eyes, Clock, Route,
+- On AMOLED V2, click and release BOOT to advance through Eyes, Clock, Music, Route,
   Alerts, Weather and Settings, then wrap to Eyes. Desk tools advance from
-  their Clock parent to Route. Holding does not repeat. Clicks during startup,
+  their Clock parent to Music. Holding does not repeat. Clicks during startup,
   shutdown, a visible call overlay or a held touch are discarded. Holding BOOT
   during reset still selects the chip's firmware download mode.
 - New notifications automatically open Alerts, including while a route is active.
@@ -260,3 +262,28 @@ they do not establish battery calibration or measured standby behavior.
 Select iPhone/ANCS under Phone mode, tap SAVE, and restart Mochi manually. Pair `OTA bot` from iPhone Bluetooth settings and approve notification access when iOS asks. Incoming iPhone alerts appear in the existing Alerts history; the on-screen Dismiss control removes only Mochi's local copy. If iOS does not offer notification access, remove the pairing and pair again. The user confirmed ANCS notification delivery on AMOLED V2 on 2026-10-29.
 Reconnect, permission-revocation and long-session checks remain separate; LCD
 hardware coverage is not implied. ANCS availability is controlled by iOS. Chronos is used only in Android mode; iPhone mode has no phone-provided navigation or call overlay.
+
+## Music
+
+Music is a primary carousel page between Clock and Route. It shows the current
+track title, artist and playback state, with Previous, Play/Pause and Next touch
+buttons, plus phone-volume minus/plus controls. iPhone shows a percentage only
+when AMS reports it; Android does not invent a volume estimate. Unsupported
+commands remain disabled. Long metadata advances in bounded windows every two seconds. The page
+uses the selected Mochi palette; it does not change the configured eye expression
+or draw an audio spectrum. Track updates never select the page automatically.
+
+Android uses Chronos music packets and remote commands. Enable media access in
+the phone companion app as required. iPhone mode uses Apple Media Service (AMS)
+on the existing bonded ANCS connection; no second BLE stack is started. Open a
+media player on the iPhone if Music reports unavailable. AMS commands remain
+disabled until the active player advertises them. Phone volume is separate from Mochi's own Sound level
+and the speaker/mute badge in the header. Supported apps and commands
+vary; successful transport delivery does not prove that a player acted on a
+command. Disconnecting clears metadata and queued commands. Incoming calls
+block media actions.
+
+Native tests cover parsing, bounded text, both panels, command mapping, and
+controlled AMS discovery/writes. Real phone reconnection, notification/media
+coexistence, service changes, and player behavior still require bench validation.
+See [Apple's AMS specification](https://developer.apple.com/library/archive/documentation/CoreBluetooth/Reference/AppleMediaService_Reference/Specification/Specification.html).

@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "settings.h"
+#include "night_policy.h"
 #include "../eyes/eyes_api.h"
 #include "../eyes/eye_life.h"
 #include "../power/backlight.h"
@@ -17,6 +18,8 @@ uint8_t saved[SETTINGS_BYTES] = {};
 bool storage_ready = false;
 bool has_saved = false;
 uint32_t revision = 0;
+bool night_clock_valid = false;
+uint8_t night_hour = 0;
 FaceFilter saved_faces;
 uint32_t faces_revision = 0;
 }
@@ -24,6 +27,7 @@ uint32_t faces_revision = 0;
 /** @brief Read a validated NVS blob; malformed profiles fall back to defaults. @return Storage open. */
 bool settings_init() {
 	profile = CompanionSettings{};
+	night_clock_valid = false; night_hour = 0;
 	has_saved = false;
 	storage_ready = storage.begin("mochi", false);
 	face_filter() = FaceFilter{};
@@ -36,7 +40,7 @@ bool settings_init() {
 	++faces_revision;
 	uint8_t bytes[SETTINGS_BYTES] = {};
 	size_t length = storage_ready ? storage.getBytesLength("profile") : 0;
-	if ((length == 8 || length == SETTINGS_V4_BYTES || length == sizeof(bytes)) &&
+	if ((length == 8 || length == SETTINGS_V4_BYTES || length == SETTINGS_LEGACY_BYTES || length == sizeof(bytes)) &&
 		storage.getBytes("profile", bytes, length) == length &&
 		settings_decode(bytes, length, profile)) {
 		memcpy(saved, bytes, sizeof(saved));
@@ -59,7 +63,7 @@ void settings_apply() {
 	eyes_set_expression(static_cast<Expression>(profile.mood));
 	eyes_set_eye_colors(0x0000, colors[profile.color], 0x0000, 0xFFFF);
 	eyes_state().dirtyInit = false;
-	backlight_configure(profile.night ? profile.night_brightness : profile.brightness, profile.dim);
+	backlight_configure(settings_night() ? profile.night_brightness : profile.brightness, profile.dim);
 }
 
 /** @brief Update a validated profile in RAM. @param value Settings. @return Accepted values. */
@@ -124,3 +128,18 @@ bool settings_faces_save() {
 	return true;
 }
 uint32_t settings_faces_revision() { return faces_revision; }
+
+/** @brief Resolve night mode without mutating or saving the user's manual preference. @return Effective mode. */
+bool settings_night() {
+	return night_active(profile.night, profile.night_auto, profile.night_start,
+		profile.night_end, night_hour, night_clock_valid);
+}
+
+/** @brief Apply schedule edges using the main task's synchronized local clock. @param valid Trusted time. @param hour Local 24-hour value. */
+void settings_clock(bool valid, uint8_t hour) {
+	bool before = settings_night();
+	night_clock_valid = valid && hour < 24; night_hour = hour;
+	if (before == settings_night()) { return; }
+	backlight_configure(settings_night() ? profile.night_brightness : profile.brightness, profile.dim);
+	++revision;
+}

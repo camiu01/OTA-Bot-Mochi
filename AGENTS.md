@@ -89,7 +89,7 @@ on native tests and provides downloadable binaries, not automatic OTA deployment
 - Chronos callbacks feed bounded, mutex-protected snapshots/event counters in
   `src/ui/ui_state.*`. Do not draw, play sound, write preferences, or issue app
   sync from a BLE callback. Main-task policies consume those events.
-- `screens.*` dispatches six swipe destinations: Eyes, Clock, Route, Alerts,
+- `screens.*` dispatches seven swipe destinations: Eyes, Clock, Music, Route, Alerts,
   Weather, Settings. Desk tools are contextual children of Clock, not additional
   carousel entries. New alerts/navigation starts may auto-select a page; ordinary
   updates preserve manual selection, and switching defers while touch is held.
@@ -104,7 +104,7 @@ on native tests and provides downloadable binaries, not automatic OTA deployment
   legacy geometry.
 - Settings update RAM immediately, apply colors/brightness/eye preferences,
   and increment a renderer revision. Only explicit SAVE writes the NVS profile.
-  Version seven is thirteen bytes (Phone mode); preserve thirteen-byte v5/v6,
+  Version nine is sixteen bytes (night schedule); preserve thirteen-byte v5-v8,
   twelve-byte v4 and eight-byte v1–v3 migration.
   Session route overrides and local timer state are deliberately not persisted.
 - `ui_theme.*` owns the shared palette/primitives; `i18n.*` owns built-in EN/IT
@@ -115,7 +115,10 @@ on native tests and provides downloadable binaries, not automatic OTA deployment
   scrolling; a gesture must not also edit a setting.
 - Backlight and optional audio use distinct LEDC channel/timer allocations in
   `pwm_channels.h`. Sound defaults off and night mute defaults on. Do not use
-  blocking tone loops or share the backlight timer.
+  blocking tone loops or share the backlight timer. Startup audio is requested once
+  after the intro, respecting master/night mute. AMOLED charge-start audio reads
+  PMU state on the existing bus; it does not configure charging. SD reaction
+  family WAVs fall back to face.wav and then the generated chirp.
 - Weather retains phone-pushed data and optionally uses saved Wi-Fi/Open-Meteo.
   `src/network` owns station reconnection, shared main-task NTP and a bounded
   low-priority HTTPS worker; never do HTTP or draw from BLE/worker callbacks.

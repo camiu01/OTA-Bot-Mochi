@@ -8,6 +8,13 @@
 #define UI_TRANSLATIONS(X) \
 	X(Eyes, "MOCHI", "MOCHI") \
 	X(Clock, "CLOCK", "OROLOGIO") \
+	X(MusicVolume, "VOLUME", "VOLUME") \
+	X(Music, "MUSIC", "MUSICA") \
+	X(MusicConnect, "Connect your phone", "Connetti il telefono") \
+	X(MusicWaiting, "Music unavailable", "Musica non disponibile") \
+	X(MusicOpen, "Open a player on phone", "Apri un lettore sul telefono") \
+	X(MusicEmpty, "No track", "Nessun brano") \
+	X(MusicPlaying, "PLAYING", "IN RIPRODUZIONE") \
 	X(Route, "ROUTE", "NAVIGAZIONE") \
 	X(Alerts, "ALERTS", "NOTIFICHE") \
 	X(Weather, "WEATHER", "METEO") \
@@ -104,6 +111,10 @@
 	X(Large, "large", "grande") \
 	X(Details, "details", "dettagli") \
 	X(DayLevel, "Day level", "Luce giorno") \
+	X(NightAuto, "Auto night", "Notte automatica") \
+	X(NightStart, "Night starts", "Inizio notte") \
+	X(NightEnd, "Night ends", "Fine notte") \
+	X(NightManual, "Manual night", "Notte manuale") \
 	X(Night, "Night", "Notte") \
 	X(NightLevel, "Night level", "Luce notte") \
 	X(IdleDim, "Idle dim", "Luce inattiva") \
@@ -115,6 +126,7 @@
 	X(Animation, "Animation", "Animazione") \
 	X(Language, "Language", "Lingua") \
 	X(MotionHint, "Dashboard/night: calmer", "Auto/notte: movimenti ridotti") \
+	X(SoundSd, "SD sounds", "Suoni da SD") \
 	X(Sound, "Sound", "Suoni") \
 	X(Level, "Level", "Livello") \
 	X(NightMute, "Night mute", "Muto notte") \

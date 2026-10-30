@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "settings_menu.h"
+#include <cstdio>
 #include "settings.h"
 #include "../ui/ui_theme.h"
 #include "../ui/i18n.h"
@@ -36,8 +37,13 @@ enum MenuTab : uint8_t { TAB_LOOK, TAB_LIGHT, TAB_FACES, TAB_MOTION, TAB_AUDIO, 
 
 /** @brief Number of rows in the current panel. */
 uint8_t row_count() {
-	static const uint8_t counts[] = {3, 4, 4, 5, 5, 6};
-	return tab == TAB_AUDIO && sound_options ? 4 : counts[tab];
+	static const uint8_t counts[] = {3, 7, 4, 5, 5, 6};
+	if (tab != TAB_AUDIO || !sound_options) { return counts[tab]; }
+#if defined(MOCHI_BOARD_AMOLED_18)
+	return 5;
+#else
+	return 4;
+#endif
 }
 
 /** @brief Close the grid and restore the tab rows. */
@@ -63,6 +69,27 @@ uint8_t next_brightness(uint8_t value, bool night) {
 	return choices[0];
 }
 
+/** @brief Cycle a schedule endpoint without creating a zero-length interval. @param current Hour. @param other Other endpoint. @return Next hour. */
+uint8_t next_hour(uint8_t current, uint8_t other) {
+	uint8_t next = (current + 1) % 24;
+	return next == other ? (next + 1) % 24 : next;
+}
+/** @brief Edit display comfort and schedule fields in RAM. @param p Candidate. @param index Row. */
+void change_light(CompanionSettings &p, uint8_t index) {
+	if (index == 0) { p.brightness = next_brightness(p.brightness, false); }
+	if (index == 1) { p.night = !p.night; }
+	if (index == 2) { p.night_brightness = next_brightness(p.night_brightness, true); }
+	if (index == 3) { p.dim = !p.dim; }
+	if (index == 4) { p.night_auto = !p.night_auto; }
+	if (index == 5) { p.night_start = next_hour(p.night_start, p.night_end); }
+	if (index == 6) { p.night_end = next_hour(p.night_end, p.night_start); }
+}
+/** @brief Format a local schedule endpoint. @param hour 24-hour value. @return HH:00. */
+String schedule_hour(uint8_t hour) {
+	char text[6]; snprintf(text, sizeof(text), "%02u:00", unsigned(hour));
+	return String(text);
+}
+
 /** @brief Apply one row tap. @param index Row index. */
 void change_row(uint8_t index) {
 	CompanionSettings p = settings_get();
@@ -77,10 +104,7 @@ void change_row(uint8_t index) {
 			return;
 		}
 	} else if (tab == 1) {
-		if (index == 0) { p.brightness = next_brightness(p.brightness, false); }
-		if (index == 1) { p.night = !p.night; }
-		if (index == 2) { p.night_brightness = next_brightness(p.night_brightness, true); }
-		if (index == 3) { p.dim = !p.dim; }
+		change_light(p, index);
 	} else if (tab == 2) {
 		if (index == 0) { p.animation = (p.animation + 1) % 3; }
 		if (index == 1) { p.random_faces = !p.random_faces; }
@@ -102,6 +126,9 @@ void change_row(uint8_t index) {
 		if (index == 1) { p.sound_timer = !p.sound_timer; }
 		if (index == 2) { p.sound_alerts = !p.sound_alerts; }
 		if (index == 3) { p.sound_ambient = !p.sound_ambient; }
+#if defined(MOCHI_BOARD_AMOLED_18)
+		if (index == 4) { p.sound_sd = !p.sound_sd; }
+#endif
 	} else {
 		if (index == 0) { p.sound = !p.sound; }
 		if (index == 1) { p.sound_level = p.sound_level < 5 ? 5 : (p.sound_level >= 30 ? 5 : (p.sound_level >= 25 ? 30 : p.sound_level + 5)); }
@@ -122,9 +149,12 @@ void basic_rows(Arduino_GFX *gfx, const CompanionSettings &p) {
 		row(gfx, 2, tr(Text::MoodLabel), tr_choice(2, p.mood));
 	} else if (tab == 1) {
 		row(gfx, 0, tr(Text::DayLevel), String(p.brightness) + "%");
-		row(gfx, 1, tr(Text::Night), on_off(p.night));
+		row(gfx, 1, tr(Text::NightManual), on_off(p.night));
 		row(gfx, 2, tr(Text::NightLevel), String(p.night_brightness) + "%");
 		row(gfx, 3, tr(Text::IdleDim), on_off(p.dim));
+		row(gfx, 4, tr(Text::NightAuto), on_off(p.night_auto));
+		row(gfx, 5, tr(Text::NightStart), schedule_hour(p.night_start));
+		row(gfx, 6, tr(Text::NightEnd), schedule_hour(p.night_end));
 	} else {
 		row(gfx, 0, tr(Text::Animation), tr_choice(3, p.animation));
 		row(gfx, 1, tr(Text::RandomMood), on_off(p.random_faces));
@@ -156,6 +186,9 @@ void extra_rows(Arduino_GFX *gfx, const CompanionSettings &p) {
 		row(gfx, 1, tr(Text::TimerLabel), on_off(p.sound_timer));
 		row(gfx, 2, tr(Text::CallsAlerts), on_off(p.sound_alerts));
 		row(gfx, 3, tr(Text::Ambient), on_off(p.sound_ambient));
+#if defined(MOCHI_BOARD_AMOLED_18)
+		row(gfx, 4, tr(Text::SoundSd), on_off(p.sound_sd));
+#endif
 	} else {
 		row(gfx, 0, tr(Text::Sound), on_off(p.sound));
 		row(gfx, 1, tr(Text::Level), String(p.sound_level) + "%");

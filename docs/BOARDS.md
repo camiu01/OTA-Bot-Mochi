@@ -137,7 +137,7 @@ write preferences. A short press is not assigned a new firmware action.
 Native tests verify registers and error paths, not physical switching or standby
 current. Verify PWR off/on on battery and USB on the actual V2 board.
 
-At runtime **BOOT (GPIO0, active low)** advances the six-page carousel once on
+At runtime **BOOT (GPIO0, active low)** advances the seven-page carousel once on
 release, with 30 ms debounce and no repeat while held. The input uses a pull-up;
 it is never driven as an output and its reset-time download-mode role is unchanged.
 Startup/shutdown, visible call overlays and touch contact suppress the shortcut.
@@ -170,3 +170,15 @@ restarts the firmware rather than leaving it dark and unresponsive.
 Native tests cover hold/release/debounce/rollover, latch control, wake setup
 failures and backlight shutdown on core 2/3. Physical switching, USB wake and
 current consumption remain unverified on the original LCD hardware.
+
+## Read-only charge-start audio (AMOLED V2)
+
+`src/power/charging.*` reads AXP2101 identity at 0x03 and current-direction
+status at 0x01 over the existing SDA15/SCL14 controller. A stable transition
+into charging can request the optional sound cue. Booting while already
+charging establishes a silent baseline. This adds no battery gauge or charger
+configuration; the LCD profile returns no charge events. Native register mocks
+exercise debounce, missing hardware, reserved states, read failures and timer
+rollover. Physical charge transitions, voltage/current limits and battery
+runtime remain unverified; earlier board confirmations do not validate this
+new reader. See [Sound](SOUND.md#startup-charging-and-reaction-rules).

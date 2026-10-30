@@ -150,10 +150,11 @@ These are not additional reported failures of the working Chronos/IMU/UI paths.
   suppression during startup, shutdown, visible calls and touch contact.
 - [x] Add plausibility-gated battery ADC scaffolding and NOT MEASURED fallback.
 - [x] Add adjustable brightness and optional idle dimming with touch wake.
-- [ ] Implement an AXP2101 battery/charging driver for AMOLED V2 if needed;
+- [ ] Implement full AXP2101 battery percentage/configuration support if needed;
   the current firmware still reports NOT MEASURED without a supported ADC path.
-- [ ] Verify battery circuitry/divider calibration on applicable hardware and
-  add charging status when a supported driver exists.
+  Read-only charge-start audio detection is implemented, with hardware checks pending.
+- [ ] Verify battery circuitry/divider calibration and AMOLED PMU charge-start
+  transitions on hardware; the new event reader does not validate charger setup.
 - [ ] Measure power consumption and battery runtime.
 
 ### Other boards and measured robustness
@@ -184,3 +185,18 @@ These are not additional reported failures of the working Chronos/IMU/UI paths.
 
 See `docs/UI.md`, `docs/SETTINGS.md`, `docs/BOARDS.md`, and `docs/TESTING.md`
 for behavior, board details, and reproducible checks.
+
+## Music and SD audio bench verification
+
+- [ ] Verify Android Chronos title/artist and previous/toggle/next with real players.
+- [ ] Verify iPhone AMS alongside ANCS, bonding, service publication changes and reconnects.
+- [ ] Verify both panels' Music touch targets and long metadata on physical displays.
+- [ ] Verify AMOLED V2 SD WAV playback, fallback, master/SD/night/category mute and SAVE.
+- [ ] Measure SD read latency, speaker level, card removal/reinsertion and radio/display coexistence.
+- [ ] Compile both firmware profiles through the user-owned build workflow.
+
+- [ ] Verify startup.wav once per restart, charging.wav on a real stable charge
+  start, five face-family WAVs and generic/built-in fallback; check mute/priority.
+
+- [ ] Verify phone volume controls on real Android/iPhone players and AMS percentage updates.
+- [ ] Verify automatic night at configured local-hour edges, missing time, NTP/phone corrections and manual override on both physical panels.

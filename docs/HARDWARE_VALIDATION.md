@@ -26,6 +26,10 @@ tests; the earlier complete native suite also passed before ANCS integration.
 No LCD physical pass, remote CI result, endurance or power measurement follows
 from these local checks. See [TODO](../TODO.md) for remaining acceptance work.
 
+Music/AMS, optional SD WAV files, startup audio and read-only charge-start audio
+were added after these historical reports. They still require physical checks;
+the earlier user confirmation does not cover these additions.
+
 ## Record for every check
 
 Copy this table into the test report, not a new empty repository file.
@@ -48,7 +52,7 @@ Do not include notification text, callers or location in logs/screenshots.
 | ID | Procedure | Expected |
 | --- | --- | --- |
 | H1 | Three cold starts, then USB `reboot`; record startup diagnostics | UI/touch/IMU ready or explicit missing-device status; greeting returns to selected eyes; no unexpected resets |
-| H2 | Swipe all six pages; tap corners and settings rows; flip manually; hold a finger during automatic turnover | Touch follows orientation, rotation waits for release; swipes do not edit rows |
+| H2 | Swipe all seven pages; tap corners and settings rows; flip manually; hold a finger during automatic turnover | Touch follows orientation, rotation waits for release; swipes do not edit rows |
 | H3 | Hold still, use SENSORS → IMU zero; reboot; tilt gently; recalibrate in a different supported mounting | SAVED reference restores at boot; second successful calibration replaces it; gaze and automatic 180° rotation follow mounting |
 | H4 | Pair Chronos, sync time, disconnect/reconnect three times, reboot and resync | Connection state follows link; clock continues offline, waits after reboot until synced |
 | H5 | Send synthetic short/long alerts; browse/dismiss eight entries; deliver a ninth | Newest opens Alerts; pagination readable, oldest bounded entry drops; no phone payload logging |

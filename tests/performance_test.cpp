@@ -26,7 +26,7 @@ static void preferences() {
 		uint8_t bytes[SETTINGS_BYTES];
 		settings_encode(p, bytes);
 		CompanionSettings decoded;
-		assert(bytes[0] == 7 && SETTINGS_BYTES == 13);
+		assert(bytes[0] == 9 && SETTINGS_BYTES == 16);
 		assert(settings_decode(bytes, sizeof(bytes), decoded) && decoded.mood == mood);
 		String command = String("mood ") + settings_mood_name(mood);
 		auto parsed = settings_parse(command.c_str(), p);

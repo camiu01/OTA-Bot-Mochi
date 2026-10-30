@@ -168,6 +168,13 @@
 #define UART_RX    44  /**< UART0 RX */
 /** @} */  // end of uart
 
+#if defined(MOCHI_BOARD_AMOLED_18)
+/** @brief V2 one-bit SDMMC pins from Waveshare's Mylibrary/pin_config.h. */
+#define SDMMC_CLK  2
+#define SDMMC_CMD  1
+#define SDMMC_DATA 3
+#endif
+
 /* ================================= [S6] Buzzer ==================================== */
 /** @defgroup buzzer Buzzer
  *  @brief Active buzzer control pin.

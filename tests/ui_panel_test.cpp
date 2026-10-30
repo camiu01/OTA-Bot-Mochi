@@ -26,6 +26,7 @@
 #include <assert.h>
 #include <Preferences.h>
 #include <iostream>
+#include "music_panel_checks.h"
 #include <string>
 
 /** @brief Speaker mouth faces right; mute cross and sound waves stay inside the badge. */
@@ -241,7 +242,7 @@ static void play_checks(Arduino_GFX &gfx, ChronosESP32 &watch) {
 	assert(desk_pong().x == previous_x); // Off-page time must not advance a game.
 	assert(settings_dirty() == dirty);
 	assert(screens_scroll(UiPage::Pong, 1) == UiPage::Desk);
-	assert(screens_swipe(UiPage::AnalogClock, 1) == UiPage::Navigation);
+	assert(screens_swipe(UiPage::AnalogClock, 1) == UiPage::Music);
 	assert(screens_parent(UiPage::Pong) == UiPage::Clock);
 	watch.analog_time = "bad";
 	clock_time_synced();
@@ -275,7 +276,7 @@ static void tris_checks(Arduino_GFX &gfx, ChronosESP32 &watch) {
 	screens_tap(UiPage::Tris, ui_s(120), ui_s(244), 1500);
 	for (uint8_t cell : desk_tris().cells) { assert(cell == 0); }
 	assert(screens_scroll(UiPage::Tris, 1) == UiPage::Desk);
-	assert(screens_swipe(UiPage::Tris, 1) == UiPage::Navigation);
+	assert(screens_swipe(UiPage::Tris, 1) == UiPage::Music);
 	assert(settings_dirty() == dirty);
 	for (uint8_t language = 0; language < 2; ++language) {
 		auto p = settings_get(); p.language = language; settings_update(p);
@@ -294,6 +295,8 @@ int main() {
 	Arduino_GFX gfx;
 	eyes_init(&gfx);
 	settings_apply();
+	sd_settings_checks();
+	music_panel_checks(gfx, watch);
 	sound_badge_checks();
 	page_render_checks(gfx, watch);
 	menu_checks();

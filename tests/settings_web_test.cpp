@@ -31,6 +31,13 @@ static void edits(WebServer &s) {
 	call(s, "GET /settings"); assert(s.code == 200);
 	assert(std::string(s.body.c_str()).find("\"auto_rotate\"") != std::string::npos);
 	assert(std::string(s.body.c_str()).find("\"phone_ios\"") != std::string::npos);
+#if defined(MOCHI_BOARD_AMOLED_18)
+	assert(std::string(s.body.c_str()).find("\"sound_sd\"") != std::string::npos);
+	form(s); s.arguments["sound_sd"] = "1";
+	call(s, "POST /settings"); assert(s.code == 200 && settings_get().sound_sd);
+#else
+	assert(std::string(s.body.c_str()).find("\"sound_sd\"") == std::string::npos);
+#endif
 	call(s, "GET /settings-ui"); assert(s.code == 200 && std::string(s.body.c_str()).find("netForm") != std::string::npos);
 	form(s); s.arguments["brightness"] = "70"; s.arguments["auto_rotate"] = "0";
 	call(s, "POST /settings"); assert(s.code == 200 && settings_get().brightness == 70 && !imu_orientation().enabled);
@@ -56,6 +63,20 @@ static void edits(WebServer &s) {
 	s.arguments = {{"action", "test"}}; call(s, "POST /settings/action"); assert(s.code == 200);
 	s.arguments = {{"action", "invalid"}}; call(s, "POST /settings/action"); assert(s.code == 400);
 }
+/** @brief The generic form persists the bounded night schedule and rejects invalid intervals atomically. @param s Authorized session. */
+static void schedule_edits(WebServer &s) {
+	call(s, "GET /settings");
+	assert(std::string(s.body.c_str()).find("\"night_auto\"") != std::string::npos);
+	form(s); s.arguments["night_auto"] = "1"; s.arguments["night_start"] = "21"; s.arguments["night_end"] = "8";
+	call(s, "POST /settings");
+	assert(s.code == 200 && settings_get().night_auto && settings_get().night_start == 21 && settings_get().night_end == 8);
+	unsigned writes = test_flash_writes;
+	form(s); s.arguments["night_end"] = "24"; call(s, "POST /settings");
+	assert(s.code == 400 && test_flash_writes == writes);
+	form(s); s.arguments["night_end"] = "21"; call(s, "POST /settings");
+	assert(s.code == 400 && settings_get().night_end == 8 && test_flash_writes == writes);
+}
+
 static void clock_set(const tm &) {}
 /** @brief Explicit scan authorization, nonblocking results, deduplication and timeout. */
 static void scans(WebServer &s) {
@@ -99,7 +120,7 @@ static void clock_and_auth(WebServer &s) {
 }
 int main() {
 	assert(settings_init()); eyes_init(nullptr); assert(settings_save());
-	auto &s = session(); edits(s); scans(s); clock_and_auth(s);
+	auto &s = session(); edits(s); schedule_edits(s); scans(s); clock_and_auth(s);
 	// Generate an offline schema fixture for browser testing, with no session credentials.
 	if (std::getenv("MOCHI_WEB_FIXTURE")) {
 		settings_web::state(s);

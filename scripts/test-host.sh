@@ -52,6 +52,12 @@ g++ -std=c++17 -Wall -Wextra -Werror -I "$root/tests/stubs" -DMOCHI_BOARD_AMOLED
 	"$root/OTA-bot-Mochi/src/sound/buzzer_output.cpp" "$root/OTA-bot-Mochi/src/power/battery.cpp"
 build_test swipe "$root/tests/swipe_test.cpp"
 build_test ancs "$root/tests/ancs_test.cpp" "$root/OTA-bot-Mochi/src/ancs/ancs_parser.cpp"
+build_test ams -I "$root/tests/stubs/media" "$root/tests/ams_test.cpp" "$root/OTA-bot-Mochi/src/ancs/ams_service.cpp" "$root/OTA-bot-Mochi/src/ui/ui_state.cpp"
+build_test sd-audio -DMOCHI_BOARD_AMOLED_18 "$root/tests/sd_audio_test.cpp"
+build_test music "$root/tests/music_test.cpp" "$root/OTA-bot-Mochi/src/ui/ui_state.cpp"
+charging=("$root/tests/charging_test.cpp" "$root/OTA-bot-Mochi/src/power/charging.cpp" "$root/OTA-bot-Mochi/src/bus/i2c_bus.cpp")
+build_test charging-lcd "${charging[@]}"
+build_test charging-amoled -DMOCHI_BOARD_AMOLED_18 "${charging[@]}"
 build_test tic-tac-toe "$root/tests/tic_tac_toe_test.cpp"
 ota=("${runtime[@]}" "$root/tests/ota_test.cpp" "$root/OTA-bot-Mochi/src/update/ota_update.cpp" "$root/OTA-bot-Mochi/src/update/ntp_sync.cpp" "$root/tests/stubs/imu_noop.cpp")
 build_test ota-lcd -I "$root/tests/stubs/ota" "${ota[@]}"
@@ -85,6 +91,8 @@ build_test settings "${runtime[@]}" \
 	"$root/OTA-bot-Mochi/src/settings/settings_menu.cpp" \
 	"$root/tests/stubs/imu_noop.cpp"
 render_runtime=()
+build_test night-schedule "${runtime[@]}" "$root/tests/night_schedule_test.cpp" \
+	"$root/OTA-bot-Mochi/src/settings/settings_menu.cpp" "$root/tests/stubs/imu_noop.cpp"
 build_test face-preset "${runtime[@]}" "$root/tests/face_preset_test.cpp" "$root/tests/stubs/imu_noop.cpp"
 for source in "${runtime[@]}"; do
 	if [[ "$source" != "$root/tests/stubs/eyes_draw.cpp" ]]; then render_runtime+=("$source"); fi
@@ -96,6 +104,8 @@ build_test face-filter "${render_runtime[@]}" "$root/tests/face_filter_test.cpp"
 build_test face-web -I "$root/tests/stubs/ota" "${runtime[@]}" "$root/tests/face_web_test.cpp" \
 	"$root/OTA-bot-Mochi/src/update/ota_update.cpp" "$root/OTA-bot-Mochi/src/update/ntp_sync.cpp" "$root/tests/stubs/imu_noop.cpp"
 build_test settings-web -I "$root/tests/stubs/ota" "${runtime[@]}" "$root/tests/settings_web_test.cpp" \
+	"$root/OTA-bot-Mochi/src/update/ota_update.cpp" "$root/OTA-bot-Mochi/src/update/ntp_sync.cpp" "$root/tests/stubs/imu_noop.cpp"
+build_test settings-web-amoled -DMOCHI_BOARD_AMOLED_18 -I "$root/tests/stubs/ota" "${runtime[@]}" "$root/tests/settings_web_test.cpp" \
 	"$root/OTA-bot-Mochi/src/update/ota_update.cpp" "$root/OTA-bot-Mochi/src/update/ntp_sync.cpp" "$root/tests/stubs/imu_noop.cpp"
 build_test ntp-sync -I "$root/tests/stubs/ota" "$root/tests/ntp_sync_test.cpp" "$root/OTA-bot-Mochi/src/update/ntp_sync.cpp"
 build_test network -I "$root/tests/stubs/ota" "${runtime[@]}" "$root/tests/network_test.cpp" \

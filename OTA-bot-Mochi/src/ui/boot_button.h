@@ -1,6 +1,6 @@
 /**
  * @file boot_button.h
- * @brief Debounced AMOLED BOOT release advances the existing six-page carousel.
+ * @brief Debounced AMOLED BOOT release advances the existing seven-page carousel.
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #pragma once

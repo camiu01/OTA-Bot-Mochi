@@ -15,10 +15,14 @@
 #include <assert.h>
 #include <algorithm>
 #include <iostream>
+#include <SD_MMC.h>
+#include "wav_fixture.h"
 
 static CompanionSettings profile;
 /** @brief Supply main-task settings without linking unrelated renderers. @return Test settings. */
 const CompanionSettings &settings_get() { return profile; }
+/** @brief Supply manual-night state to the isolated codec fixture. @return Night mode. */
+bool settings_night() { return profile.night; }
 
 /** @brief Run a bounded portion of the real PCM worker with fake DMA. */
 static void pump(int blocks = 1) {
@@ -224,9 +228,55 @@ static void sequence_mute_tests() {
 	assert(std::all_of(test_i2s_samples.begin(), test_i2s_samples.end(), [](int16_t v) { return v == 0; }));
 }
 
+/** @brief SD access is opt-in, respects master/night mute, and cancels when disabled. */
+static void sd_service_tests() {
+	assert(SD_MMC.mounts == 0 && SD_MMC.opens == 0);
+	UiPageEvents events;
+	profile = CompanionSettings{}; profile.sound_sd = true;
+	test_now = 30000; sound_init(test_now);
+	sound_request(SoundCue::Test, test_now); sound_poll(test_now, events, false, false, false);
+	pump(); assert(SD_MMC.mounts == 0);
+	profile.sound = profile.night = true;
+	sound_request(SoundCue::Test, test_now); sound_poll(test_now, events, false, false, false);
+	pump(); assert(SD_MMC.mounts == 0);
+	profile.night = false;
+	SD_MMC.present = true; SD_MMC.files["/mochi/sounds/test.wav"] = wav_fixture(1, 16000);
+	sound_request(SoundCue::Test, test_now); sound_poll(test_now, events, false, false, false);
+	pump(3); assert(SD_MMC.mounts == 1 && SD_MMC.opens == 1 && es8311_playing());
+	assert(test_i2s_samples[80] == 2000 && test_i2s_samples[81] == 2000);
+	profile.sound_sd = false; sound_poll(test_now, events, false, false, false);
+	assert(test_gpio_levels[AUDIO_PA] == LOW && !es8311_playing());
+	pump(); assert(SD_MMC.unmounts == 1);
+	sound_request(SoundCue::Test, test_now + 2000); sound_poll(test_now + 2000, events, false, false, false);
+	pump(3); assert(SD_MMC.opens == 1);
+	profile.sound = false; sound_poll(test_now, events, false, false, false); pump();
+}
+
+/** @brief The real service selects startup, charging and five reaction-family files. */
+static void sd_family_tests() {
+	profile = CompanionSettings{}; profile.sound = profile.sound_sd = true;
+	UiPageEvents events;
+	const char *names[] = {"face-bright", "face-warm", "face-soft", "face-bounce", "face-flat"};
+	for (uint8_t i = 0; i < uint8_t(FaceTone::Count); ++i) {
+		std::string path = std::string("/mochi/sounds/") + names[i] + ".wav";
+		SD_MMC.files[path] = wav_fixture();
+		test_now += 2000; sound_init(test_now);
+		sound_request_face(FaceTone(i), test_now); sound_poll(test_now, events, false, false, false);
+		pump(3); assert(SD_MMC.last_path == path && es8311_playing());
+	}
+	for (SoundCue cue : {SoundCue::Startup, SoundCue::Charging}) {
+		std::string path = std::string("/mochi/sounds/") + (cue == SoundCue::Startup ? "startup.wav" : "charging.wav");
+		SD_MMC.files[path] = wav_fixture();
+		test_now += 2000; sound_init(test_now);
+		assert(sound_request(cue, test_now)); sound_poll(test_now, events, false, false, false);
+		pump(3); assert(SD_MMC.last_path == path && es8311_playing());
+	}
+	sound_init(test_now); pump();
+}
+
 /** @brief Run without physical audio output. @return Success. */
 int main() {
 	pcm_tests(); sequence_tests(); failure_tests(); playback_tests(); service_tests();
-	delayed_service_tests(); sequence_mute_tests();
+	delayed_service_tests(); sequence_mute_tests(); sd_service_tests(); sd_family_tests();
 	std::cout << "ES8311 codec, PCM sequences, delayed rendering, DMA drain, mute, and failures passed\n";
 }

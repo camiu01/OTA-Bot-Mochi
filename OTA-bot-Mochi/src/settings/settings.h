@@ -31,3 +31,8 @@ bool settings_faces_save();
 bool settings_faces_dirty();
 /** @brief Read the allow-list revision for optimistic browser updates. */
 uint32_t settings_faces_revision();
+
+/** @brief Resolve manual night and the synchronized schedule. @return Effective night mode. */
+bool settings_night();
+/** @brief Feed trusted local time on the main task without writing preferences. @param valid Clock synchronized. @param hour Local 24-hour value. */
+void settings_clock(bool valid, uint8_t hour);

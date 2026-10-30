@@ -17,9 +17,12 @@ rows. Changes are live in RAM and do not write flash while browsing.
 | LOOK | Color | white, mint, cyan, amber, pink, blue |
 | LOOK | Mood | opens a 3-column grid of all 135 expressions/animated moods in five full-height rows; tap a cell, swipe to scroll |
 | DISPLAY | Day level | 5, 10, 20, 30, 50, 70, 90% |
-| DISPLAY | Night | off / on |
+| DISPLAY | Manual night | off / on; ON overrides the automatic schedule |
 | DISPLAY | Night level | 1, 3, 5, 8, 12, 20% |
 | DISPLAY | Idle dim | off / on |
+| DISPLAY | Auto night | off / on; requires synchronized local time |
+| DISPLAY | Night starts | 00:00-23:00, one-hour steps; default 22:00 |
+| DISPLAY | Night ends | 00:00-23:00, one-hour steps; default 07:00 |
 | FACES | Animation | Calm / Normal / Playful (USB values `calm` / `dasai` / `playful`) |
 | FACES | Random mood | off / on |
 | FACES | Face flow | return / group of 5 / sequence / continuous |
@@ -216,7 +219,7 @@ Default firmware preferences:
 - Dashboard mode on: calls alone do not take over the current page.
 - New notifications open Alerts; starting phone navigation opens Route, in both
   dashboard and non-dashboard modes. Regular route updates do not repeat the switch.
-- Day brightness 30%; manual night mode off, night brightness 5%.
+- Day brightness 30%; manual and automatic night off, night brightness 5%; schedule defaults 22:00-07:00.
 - Idle dimming off, keeping the eyes visible when used as a powered companion.
 - Shake reaction off; ordinary IMU gaze remains active.
 - Random and IMU expression changes off until explicitly enabled.
@@ -304,7 +307,7 @@ tone band (see [Audio and motion](SOUND.md)).
 A hold still opens Settings and a swipe does not also trigger a random face.
 These reactions remain available in dashboard mode, which only calms idle motion.
 
-The full profile is stored as a validated thirteen-byte version-seven NVS blob
+The full profile is stored as a validated sixteen-byte version-nine NVS blob
 with a checksum; version seven adds Phone mode while preserving the prior layout.
 Thirteen-byte version-six profiles retain Face flow and default to Android mode;
 version-five profiles retain Screen flip and default to Return. Twelve-byte
@@ -327,3 +330,46 @@ using night mode in a car.
 
 Firmware compilation/upload and physical display, touch, IMU, and NVS validation
 remain with the user. Native tests cover the logic with hardware substitutes.
+
+### Version eight: optional SD audio
+
+Version 8 retained the thirteen-byte layout and used bit 6 of byte 7 for
+`sound_sd`; bit 7 remains reserved. Versions 1-7 migrate with SD sounds off.
+Version 7 phone-mode flags and all older layouts remain readable. SD audio is
+available on the AMOLED V2 SOUND options panel and requires master Sound.
+Persistence still requires explicit SAVE. See [Sound](SOUND.md).
+
+### Startup, charging and SD reaction families
+
+Startup and AMOLED charge-start cues use the existing master Sound, level and
+Night mute settings. Face-family WAVs additionally use the Faces category.
+Enable SD sounds on AMOLED to use the optional recordings; otherwise the cues
+are synthesized. SAVE must persist Sound before a startup cue can play at the
+next reboot. No extra profile fields are needed. Names, fallback order, the
+silent charge baseline and cooldown are documented in [Sound](SOUND.md).
+
+### Automatic night schedule (version nine)
+
+In Settings / DISPLAY, enable **Auto night**, then set **Night starts** and
+**Night ends**. Endpoints are local hours, edited in one-hour steps; defaults
+are 22:00 and 07:00. The start is inclusive and the end exclusive. Intervals
+can cross midnight. Equal endpoints and hours outside 0-23 are rejected.
+
+The schedule defaults off and waits for a trusted clock synchronized by the
+phone or the existing Wi-Fi/NTP path. Without synchronized time it applies only
+the manual Night setting. On iPhone/ANCS, configure Wi-Fi/NTP if phone time is
+not otherwise available. Manual night ON always forces night; switch it OFF to
+let the automatic interval determine day/night. Disabling Auto night returns to
+the manual setting immediately.
+
+Automatic night uses the existing night brightness, calmer motion and Night mute
+switch. It does not change phone-media volume or pause music. Schedule edges
+change runtime behavior without overwriting the manual Night flag or writing
+NVS. Only SAVE persists the schedule. USB uses `set night-auto on`,
+`set night-start 22`, and `set night-end 7`; web settings expose the same fields.
+
+Version 9 is sixteen bytes: the original fields remain in bytes 1-11; byte 12
+holds the automatic-night flag, bytes 13/14 hold start/end hours, and byte 15 is
+the checksum. Thirteen-byte v5-v8, twelve-byte v4 and eight-byte v1-v3 records
+remain readable and migrate with automatic night off. The next explicit SAVE
+upgrades an old record. No automatic time transition saves a profile.

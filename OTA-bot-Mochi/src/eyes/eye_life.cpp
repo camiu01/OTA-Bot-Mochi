@@ -14,7 +14,7 @@ void eyes_life_reset() { life.reset(); }
 void eyes_life_step(uint32_t now, uint32_t dt) {
 	const auto &p = settings_get();
 	float amount = p.dashboard ? 0.55f : (p.animation == 2 ? 1.2f : 1.0f);
-	if (p.night) { amount *= 0.7f; }
+	if (settings_night()) { amount *= 0.7f; }
 	life.step(eyes_config(), eyes_state(), now, dt, p.animation, amount, uint32_t(random(1000000L)));
 }
 /** @brief Get the immutable renderer pose. @return Pose. */

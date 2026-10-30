@@ -284,7 +284,7 @@ static void context_tests(Arduino_GFX &gfx, ChronosESP32 &watch) {
 		UiPage page = static_cast<UiPage>(uint8_t(UiPage::BigClock) + i);
 		assert(screens_tap(UiPage::Desk, i % 2 ? 200 : 20, 60 + (i / 2) * 50, 0) == page);
 		assert(screens_parent(page) == UiPage::Clock);
-		assert(screens_swipe(page, 1) == UiPage::Navigation);
+		assert(screens_swipe(page, 1) == UiPage::Music);
 		assert(screens_swipe(page, -1) == UiPage::Eyes);
 		assert(screens_scroll(page, 1) == UiPage::Desk);
 		assert(screens_draw(&gfx, watch, page, 20000000 + i * 1000));

@@ -61,7 +61,7 @@ static void preference_tests() {
 		uint8_t bytes[SETTINGS_BYTES];
 		settings_encode(p, bytes);
 		CompanionSettings decoded;
-		assert(bytes[0] == 7 && SETTINGS_BYTES == 13);
+		assert(bytes[0] == 9 && SETTINGS_BYTES == 16);
 		assert(settings_decode(bytes, sizeof(bytes), decoded) && decoded.mood == value);
 		String command = String("mood ") + settings_mood_name(value);
 		auto parsed = settings_parse(command.c_str(), p);
@@ -380,5 +380,5 @@ int main() {
 	animated_faces(240, 280);
 	animated_faces(368, 448);
 	animated_faces(128, 160);
-	std::cout << "Reference faces, animated scenes, v7 profiles, playback modes, and Pong physics passed\n";
+	std::cout << "Reference faces, animated scenes, v9 profiles, playback modes, and Pong physics passed\n";
 }
