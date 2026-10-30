@@ -37,6 +37,7 @@ rows. Changes are live in RAM and do not write flash while browsing.
 | SOUND | Night mute | on / off |
 | SOUND | Sound options | open separate face/timer/alert/ambient switches |
 | SOUND | Test sound | two short bench tones; reports off/night mute/PWM failure |
+| SYSTEM | Diagnostics | read-only live device status; swipe vertically to browse, BACK returns to SYSTEM |
 | SYSTEM | Language | English / Italiano |
 | SYSTEM | Dashboard | on / off |
 | SYSTEM | Route default | large / details |
@@ -373,3 +374,26 @@ holds the automatic-night flag, bytes 13/14 hold start/end hours, and byte 15 is
 the checksum. Thirteen-byte v5-v8, twelve-byte v4 and eight-byte v1-v3 records
 remain readable and migrate with automatic night off. The next explicit SAVE
 upgrades an old record. No automatic time transition saves a profile.
+
+## Device diagnostics
+
+Open Settings > SYSTEM, scroll to Diagnostics and tap Open. Swipe vertically
+through the eleven read-only rows; BACK returns to the same SYSTEM position.
+The existing one-second screen refresh updates values while the page is visible.
+There is no SAVE action inside diagnostics and it never changes settings or NVS.
+
+The page shows compiled board profile, phone BLE connection,
+Wi-Fi station association (not Internet reachability), IMU initialization, SD's
+last audio attempt, sound policy/backend status, free internal RAM, its minimum
+since boot, free PSRAM, uptime and the ESP32 reset reason. Sound status does not
+measure physical audibility. Reset reason names are technical platform labels.
+Host previews show `--` for unavailable platform measurements; zero free PSRAM
+on the LCD profile is expected with PSRAM disabled.
+
+SD is unsupported on LCD OLD. On AMOLED it shows Off when SD audio is disabled,
+Not checked until the first attempt, Ready after opening a valid clip, Unavailable
+after a mount failure, or Failed after a missing/invalid WAV or read error.
+This is an atomic observation from the audio worker, not a live card-presence
+probe: removing an idle card is detected only by a later audio operation.
+Opening diagnostics never mounts SD or touches the I2C bus. No SSIDs, credentials,
+phone messages, media titles or device addresses are exposed.

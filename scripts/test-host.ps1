@@ -82,6 +82,7 @@ try {
 	Invoke-HostTest 'startup' @("$root\tests\startup_test.cpp")
 	Invoke-HostTest 'face-variety' @("$root\tests\face_variety_test.cpp")
 	Invoke-HostTest 'render-metrics' @("$root\tests\render_metrics_test.cpp")
+	Invoke-HostTest 'device-status' @("$root\tests\device_status_test.cpp") @('-DARDUINO_ARCH_ESP32', '-I', "$root\tests\stubs\diagnostics", '-I', "$root\tests\stubs\ota")
 	$powerButton = @("$root\tests\power_button_test.cpp", "$root\OTA-bot-Mochi\src\power\power_button.cpp",
 		"$root\OTA-bot-Mochi\src\power\power_button_lcd.cpp", "$root\OTA-bot-Mochi\src\bus\i2c_bus.cpp")
 	Invoke-HostTest 'power-button-lcd' $powerButton

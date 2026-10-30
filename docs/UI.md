@@ -287,3 +287,10 @@ Native tests cover parsing, bounded text, both panels, command mapping, and
 controlled AMS discovery/writes. Real phone reconnection, notification/media
 coexistence, service changes, and player behavior still require bench validation.
 See [Apple's AMS specification](https://developer.apple.com/library/archive/documentation/CoreBluetooth/Reference/AppleMediaService_Reference/Specification/Specification.html).
+
+## Diagnostics
+
+Settings > SYSTEM > Diagnostics opens a read-only, vertically scrollable page
+with board identity and live device status on both panels. BACK returns
+to SYSTEM without saving or changing preferences. See [Settings](SETTINGS.md#device-diagnostics)
+for field meanings and the limits of SD and connectivity observations.

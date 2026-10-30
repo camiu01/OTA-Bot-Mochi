@@ -320,7 +320,23 @@
 	X(FaceFlow, "Face flow", "Ciclo facce") \
 	X(PhoneMode, "Phone mode (restart)", "Telefono (riavvio)") \
 	X(AndroidMode, "Android / Chronos", "Android / Chronos") \
-	X(IphoneMode, "iPhone / ANCS", "iPhone / ANCS")
+	X(IphoneMode, "iPhone / ANCS", "iPhone / ANCS") \
+	X(Diagnostics, "Diagnostics", "Diagnostica") \
+	X(DiagBoard, "Board", "Scheda") \
+	X(DiagPhone, "Phone / BLE", "Telefono / BLE") \
+	X(DiagWifi, "Wi-Fi station", "Connessione Wi-Fi") \
+	X(DiagImu, "Motion sensor", "Sensore movimento") \
+	X(DiagSd, "SD: last audio attempt", "SD: ultimo uso audio") \
+	X(DiagHeap, "Free internal RAM", "RAM interna libera") \
+	X(DiagMinimum, "Minimum free RAM", "Minimo RAM libera") \
+	X(DiagPsram, "Free PSRAM", "PSRAM libera") \
+	X(DiagUptime, "Uptime", "Tempo acceso") \
+	X(DiagReset, "Last reset reason", "Ultimo riavvio") \
+	X(DiagUnsupported, "Not supported", "Non supportata") \
+	X(DiagReady, "Ready", "Pronta") \
+	X(DiagArmed, "Enabled", "Abilitato") \
+	X(DiagMissing, "Unavailable", "Non disponibile") \
+	X(DiagUnchecked, "Not checked", "Non verificata")
 
 enum class Text : uint16_t {
 #define UI_ENUM(key, en, it) key,

@@ -1,12 +1,13 @@
 /**
  * @file sd_audio.h
- * @brief Worker-only, read-only SDMMC WAV playback on the AMOLED V2 board.
+ * @brief Worker-only, read-only SDMMC WAV playback with atomic last-attempt diagnostics.
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #pragma once
 #include "../../pin_config.h"
 #include "wav_reader.h"
 #include "sound.h"
+#include "../diagnostics/device_status.h"
 #include <SD_MMC.h>
 #include <cstdio>
 #include <esp_log.h>
@@ -26,13 +27,15 @@ public:
 		if (!_mounted) {
 			if (!SD_MMC.setPins(SDMMC_CLK, SDMMC_CMD, SDMMC_DATA) || !SD_MMC.begin("/sdcard", true, false)) {
 				ESP_LOGW("sd-audio", "Card unavailable; using built-in cue");
+				device_status::sd = device_status::SdState::Missing;
 				SD_MMC.end(); return false;
 			}
 			_mounted = true;
 		}
-		if (family && open_file(families[cue - SOUND_SD_FACE_BASE])) { return true; }
-		if (open_file(paths[family ? uint8_t(SoundCue::Face) : cue])) { return true; }
+		if (family && open_file(families[cue - SOUND_SD_FACE_BASE])) { device_status::sd = device_status::SdState::Ready; return true; }
+		if (open_file(paths[family ? uint8_t(SoundCue::Face) : cue])) { device_status::sd = device_status::SdState::Ready; return true; }
 		ESP_LOGW("sd-audio", "Missing or unsupported WAV; using built-in cue");
+		device_status::sd = device_status::SdState::Error;
 		release(); return false;
 	}
 
@@ -54,6 +57,7 @@ public:
 		if (count > frames) { count = frames; }
 		if (_file.read(input, count * frame_bytes) != count * frame_bytes) {
 			ESP_LOGW("sd-audio", "WAV read failed; stopping clip");
+			device_status::sd = device_status::SdState::Error;
 			release(); return false;
 		}
 		uint32_t position = (_info.bytes - _remaining) / frame_bytes;

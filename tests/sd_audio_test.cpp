@@ -36,17 +36,21 @@ void sd_checks() {
 	SdAudio sd;
 	assert(!sd.start(255) && SD_MMC.mounts == 0);
 	assert(!sd.start(2) && !sd.playing());
+	assert(device_status::sd == device_status::SdState::Missing);
 	SD_MMC.present = true;
 	SD_MMC.files["/mochi/sounds/tap.wav"] = wav_fixture(2, 160);
 	assert(sd.start(2) && sd.playing());
+	assert(device_status::sd == device_status::SdState::Ready);
 	assert(SD_MMC.clk == 2 && SD_MMC.cmd == 1 && SD_MMC.data == 3);
 	int16_t samples[160];
 	assert(sd.render(samples, 80, 30));
 	assert(samples[0] == 0 && samples[158] > 0 && samples[159] < 0);
 	assert(sd.render(samples, 80, 30) && !sd.playing() && samples[158] == 0);
 	assert(!sd.start(4));
+	assert(device_status::sd == device_status::SdState::Error);
 	assert(sd.start(2)); File::short_read = true;
 	assert(!sd.render(samples, 80, 10) && !sd.playing()); File::short_read = false;
+	assert(device_status::sd == device_status::SdState::Error);
 	assert(sd.start(2)); sd.release(); assert(!sd.playing());
 }
 

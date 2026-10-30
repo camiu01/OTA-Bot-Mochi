@@ -11,13 +11,6 @@ The firmware targets the Waveshare **ESP32-S3-Touch-LCD-1.69 OLD** and, through 
 
 [Hardware](#hardware) · [Build and flash](#build-and-flash) · [Controls](#controls-and-everyday-use) · [Configuration](#configuration) · [Known limits](#limitations-and-troubleshooting)
 
-## Version 1.3.0 preparation
-
-The current source adds ANCS, saved Wi-Fi, automatic NTP/Open-Meteo weather,
-local web settings, global face exclusions and Tris since v1.2.1.
-Version 1.3.0 is the planned next minor release, not a published tag or release.
-See [Changelog](CHANGELOG.md) for changes, compatibility and validation limits.
-
 ## Start here
 
 - **Without a phone:** animated eyes, touch/motion reactions, Pong, Tris and local timers.
@@ -277,7 +270,7 @@ arduino-cli upload --port COM3 --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=o
 The first OTA-capable installation must install the new partition layout over USB.
 Follow [migration instructions](docs/INSTALLING.md) before writing an older installation.
 For later updates, keep the layout unchanged; erasing flash or writing full images can remove settings.
-Precompiled v1.2.0 binaries are available. Use [installation instructions](docs/INSTALLING.md)
+Precompiled binaries are available. Use [installation instructions](docs/INSTALLING.md)
 for release images and [CI evidence](docs/CI.md) for their source revision and build results.
 
 #### 6. First boot
@@ -297,7 +290,7 @@ are white MOCHI eyes, neutral mood, 30% day brightness, and sound off.
 The new OTA firmware does not yet have a completed local Arduino CLI build:
 the initial build reached the old board-size limit, and the corrected retry was
 cancelled. See [OTA validation limits](docs/OTA.md#validation-and-limits).
-The inspected v1.2.0 CI run built both profiles at core **3.3.11**; earlier
+The inspected CI run built both profiles at core **3.3.11**; earlier
 AMOLED device bring-up used **3.3.12**. Neither build result identifies which
 binary is currently installed or proves hardware operation.
 
@@ -392,6 +385,10 @@ See [UI](docs/UI.md) and [Desk tools](docs/DESK.md).
 Preferences apply immediately in RAM. Only explicit SAVE / `save` writes the validated settings profile;
 leaving a page is not a save. Successful IMU zero separately saves calibration automatically.
 Timer/Pong state, automatic-rotation switch and temporary route layouts are session-only.
+
+Settings > SYSTEM > Diagnostics shows board identity, connection/sensor/audio
+status, memory usage, uptime and reset reason without changing preferences.
+Swipe vertically to browse and tap BACK to return; see [Diagnostics](docs/SETTINGS.md#device-diagnostics).
 
 | Option | Available configuration |
 | --- | --- |

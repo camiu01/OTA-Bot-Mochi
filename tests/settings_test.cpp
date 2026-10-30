@@ -304,8 +304,11 @@ static void menu_tests() {
 	assert(settings_menu_scroll(1));
 	assert(settings_menu_tap(20, 202) == MenuAction::Update);
 	assert(test_flash_writes == ota_writes);
-	assert(settings_menu_scroll(1) && !settings_menu_scroll(1));
+	assert(settings_menu_scroll(1));
 	assert(settings_menu_tap(20, 202) == MenuAction::FacesWeb);
+	assert(settings_menu_scroll(1) && !settings_menu_scroll(1));
+	assert(settings_menu_tap(20, 202) == MenuAction::Changed);
+	assert(settings_menu_tap(160, 240) == MenuAction::Changed);
 	settings_menu_draw(&gfx);
 	settings_menu_tap(30, 65);
 	settings_menu_tap(20, 100);

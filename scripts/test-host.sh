@@ -73,6 +73,7 @@ g++ -std=c++17 -Wall -Wextra -Werror -I "$root/tests/stubs" -DMOCHI_BOARD_LCD_16
 build_test startup "$root/tests/startup_test.cpp"
 build_test face-variety "$root/tests/face_variety_test.cpp"
 build_test render-metrics "$root/tests/render_metrics_test.cpp"
+build_test device-status -DARDUINO_ARCH_ESP32 -I "$root/tests/stubs/diagnostics" -I "$root/tests/stubs/ota" "$root/tests/device_status_test.cpp"
 power_button=("$root/tests/power_button_test.cpp" "$root/OTA-bot-Mochi/src/power/power_button.cpp" "$root/OTA-bot-Mochi/src/power/power_button_lcd.cpp" "$root/OTA-bot-Mochi/src/bus/i2c_bus.cpp")
 build_test power-button-lcd "${power_button[@]}"
 build_test power-button-amoled -DMOCHI_BOARD_AMOLED_18 "${power_button[@]}"

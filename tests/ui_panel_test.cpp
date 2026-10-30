@@ -27,6 +27,7 @@
 #include <Preferences.h>
 #include <iostream>
 #include "music_panel_checks.h"
+#include "diagnostics_panel_checks.h"
 #include <string>
 
 /** @brief Speaker mouth faces right; mute cross and sound waves stay inside the badge. */
@@ -303,6 +304,7 @@ int main() {
 	grid_checks();
 	flow_menu_checks(gfx);
 	library_checks(gfx);
+	diagnostics_panel_checks(gfx);
 	desk_checks();
 	play_checks(gfx, watch);
 	tris_checks(gfx, watch);

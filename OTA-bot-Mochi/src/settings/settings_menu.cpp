@@ -1,9 +1,10 @@
 /**
  * @file settings_menu.cpp
- * @brief Large row targets with explicit saving, no flash writes during browsing.
+ * @brief Large row targets, read-only diagnostics and explicit saving without browsing writes.
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "settings_menu.h"
+#include "../diagnostics/diagnostics_view.h"
 #include <cstdio>
 #include "settings.h"
 #include "../ui/ui_theme.h"
@@ -17,6 +18,8 @@ namespace {
 uint8_t tab = 0;
 bool save_failed = false;
 bool sound_options = false;
+bool diagnostics_open = false;
+uint8_t diagnostics_first = 0;
 uint8_t first_row = 0;
 bool grid_open = false;
 bool filter_open = false, keep_one = false;
@@ -37,7 +40,7 @@ enum MenuTab : uint8_t { TAB_LOOK, TAB_LIGHT, TAB_FACES, TAB_MOTION, TAB_AUDIO, 
 
 /** @brief Number of rows in the current panel. */
 uint8_t row_count() {
-	static const uint8_t counts[] = {3, 7, 4, 5, 5, 6};
+	static const uint8_t counts[] = {3, 7, 4, 5, 5, 7};
 	if (tab != TAB_AUDIO || !sound_options) { return counts[tab]; }
 #if defined(MOCHI_BOARD_AMOLED_18)
 	return 5;
@@ -181,6 +184,7 @@ void extra_rows(Arduino_GFX *gfx, const CompanionSettings &p) {
 			row(gfx, 3, tr(Text::PhoneMode), tr(p.phone_ios ? Text::IphoneMode : Text::AndroidMode));
 			row(gfx, 4, tr(Text::FirmwareUpdate), tr(Text::Open));
 			row(gfx, 5, tr(Text::WebSettings), tr(Text::Open));
+		row(gfx, 6, tr(Text::Diagnostics), tr(Text::Open));
 	} else if (sound_options) {
 		row(gfx, 0, tr(Text::Faces), on_off(p.sound_faces));
 		row(gfx, 1, tr(Text::TimerLabel), on_off(p.sound_timer));
@@ -292,8 +296,9 @@ bool grid_cell(int16_t x, int16_t y) {
 }
 }
 
-/** @brief Draw compact appearance, lighting, and car-mode tabs. @param gfx Canvas. */
+/** @brief Draw the diagnostic overlay or compact settings tabs. @param gfx Canvas. */
 void settings_menu_draw(Arduino_GFX *gfx) {
+	if (diagnostics_open) { diagnostics_view::draw(gfx, diagnostics_first); return; }
 	if (grid_open) { grid_draw(gfx); return; }
 	const CompanionSettings &p = settings_get();
 	gfx->fillRoundRect(ui_s(2), ui_s(52), ui_s(68), ui_s(36), ui_s(8), UI_CARD);
@@ -318,6 +323,10 @@ void settings_menu_draw(Arduino_GFX *gfx) {
 /** @brief Interpret tap coordinates without conflating swipes/holds. @param x X. @param y Y. @return Action. */
 MenuAction settings_menu_tap(int16_t x, int16_t y) {
 	if (x < 0 || x >= LCD_WIDTH || y < 0 || y >= LCD_HEIGHT) { return MenuAction::None; }
+	if (diagnostics_open) {
+		if (y < ui_s(224) || y >= ui_s(280)) { return MenuAction::None; }
+		diagnostics_open = false; return MenuAction::Changed;
+	}
 	if (grid_open) {
 		if (filter_open && x >= ui_s(170) && y >= ui_s(52) && y < ui_s(88)) { return MenuAction::FacesWeb; }
 		if (y >= ui_s(224) && x < ui_s(120)) { save_failed = !settings_save(); return MenuAction::Changed; }
@@ -344,12 +353,22 @@ MenuAction settings_menu_tap(int16_t x, int16_t y) {
 		uint8_t count = row_count();
 			if (tab == TAB_SYSTEM && index == 4) { return MenuAction::Update; }
 			if (tab == TAB_SYSTEM && index == 5) { return MenuAction::FacesWeb; }
+		if (tab == TAB_SYSTEM && index == 6) {
+			diagnostics_open = true; diagnostics_first = 0; return MenuAction::Changed;
+		}
 		if (index < count) { change_row(index); return MenuAction::Changed; }
 	}
 	return MenuAction::None;
 }
 
 bool settings_menu_scroll(int8_t direction) {
+	if (diagnostics_open) {
+		uint8_t next = diagnostics_first;
+		if (direction > 0 && next < diagnostics_view::ROWS - 3) { ++next; }
+		if (direction < 0 && next > 0) { --next; }
+		if (next == diagnostics_first) { return false; }
+		diagnostics_first = next; return true;
+	}
 	if (grid_open) {
 		uint8_t next = grid_first_row;
 		if (direction > 0 && next < GRID_MAX_FIRST) { ++next; }
