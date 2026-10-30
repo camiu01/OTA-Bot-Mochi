@@ -24,25 +24,18 @@ public:
 		static_assert(sizeof(families) / sizeof(families[0]) == uint8_t(FaceTone::Count), "Keep SD reaction families aligned");
 		bool family = cue >= SOUND_SD_FACE_BASE && cue < SOUND_SD_FACE_BASE + uint8_t(FaceTone::Count);
 		if (!family && cue >= sizeof(paths) / sizeof(paths[0])) { return false; }
-		if (!_mounted) {
-			if (!SD_MMC.setPins(SDMMC_CLK, SDMMC_CMD, SDMMC_DATA) || !SD_MMC.begin("/sdcard", true, false)) {
-				ESP_LOGW("sd-audio", "Card unavailable; using built-in cue");
-				device_status::sd = device_status::SdState::Missing;
-				SD_MMC.end(); return false;
-			}
-			_mounted = true;
-		}
+		if (!ensure_mounted()) { device_status::sd = device_status::SdState::Missing; return false; }
 		if (family && open_file(families[cue - SOUND_SD_FACE_BASE])) { device_status::sd = device_status::SdState::Ready; return true; }
 		if (open_file(paths[family ? uint8_t(SoundCue::Face) : cue])) { device_status::sd = device_status::SdState::Ready; return true; }
-		ESP_LOGW("sd-audio", "Missing or unsupported WAV; using built-in cue");
+		// Keep the card mounted: a later cue retries only the file open, not a full remount.
 		device_status::sd = device_status::SdState::Error;
-		release(); return false;
+		return false;
 	}
 
 	/** @brief Close the current clip on cancellation or completion. */
 	void stop() { if (_file) { _file.close(); } _remaining = 0; }
 	/** @brief Unmount after disabling SD sounds; called only by the audio worker. */
-	void release() { stop(); if (_mounted) { SD_MMC.end(); _mounted = false; } }
+	void release() { stop(); if (_mounted) { SD_MMC.end(); _mounted = false; } _mount_failed = false; _mount_failed_at = 0; }
 	/** @brief Read playback state without touching the filesystem. @return Data remains. */
 	bool playing() const { return _remaining != 0; }
 
@@ -77,6 +70,19 @@ public:
 		return true;
 	}
 private:
+	/** @brief Mount the card once, backing off after a failure so a missing card cannot stall every cue. @return Card mounted and usable. */
+	bool ensure_mounted() {
+		if (_mounted) { return true; }
+		if (_mount_failed && uint32_t(millis() - _mount_failed_at) < MOUNT_RETRY_MS) { return false; }
+		if (!SD_MMC.setPins(SDMMC_CLK, SDMMC_CMD, SDMMC_DATA) || !SD_MMC.begin("/sdcard", true, false)) {
+			ESP_LOGW("sd-audio", "Card unavailable; using built-in cue");
+			_mount_failed = true; _mount_failed_at = millis();
+			SD_MMC.end(); return false;
+		}
+		_mount_failed = false;
+		_mounted = true;
+		return true;
+	}
 	/** @brief Validate a fixed basename without exposing arbitrary file paths. @param name Known cue name. @return Supported WAV ready. */
 	bool open_file(const char *name) {
 		stop();
@@ -87,8 +93,10 @@ private:
 		_remaining = _info.bytes;
 		return true;
 	}
+	static constexpr uint32_t MOUNT_RETRY_MS = 10000;
 	File _file;
 	WavInfo _info;
 	uint32_t _remaining = 0;
-	bool _mounted = false;
+	uint32_t _mount_failed_at = 0;
+	bool _mounted = false, _mount_failed = false;
 };

@@ -204,7 +204,8 @@ GPIO HIGH without confirming the circuit.
 
 ## Optional SD sound effects (AMOLED V2 only)
 
-In Settings / SOUND / Sound options, enable **SD sounds**. This option defaults
+In Settings / SOUND, enable **SD sounds**, listed above **Sound options** and
+**Test sound**. This option defaults
 off, including after migration from older profiles. Master Sound, category
 switches, volume limits and Night mute still apply. Tap SAVE to persist changes;
 the LCD board keeps its buzzer behavior and does not show this option.
@@ -244,11 +245,16 @@ ffmpeg -i input.mp3 -t 3 -ar 16000 -ac 1 -c:a pcm_s16le tap.wav
 Mounting and reads run on the existing audio worker, using one-bit SDMMC
 (CLK2, CMD1, D0=3), following the
 [official Waveshare V2 pin configuration](https://github.com/waveshareteam/ESP32-S3-Touch-AMOLED-1.8/blob/main/examples/arduino-v2/libraries/Mylibrary/pin_config.h).
-The firmware opens only the fixed paths above for reading; it never formats or
+The card is mounted once and stays mounted while SD sounds are enabled; a missing
+file or unsupported WAV closes only that clip and falls back to the built-in cue
+instead of forcing a remount. A failed mount backs off for ten seconds before
+retrying, so an absent card cannot stall every cue. The firmware opens only the
+fixed paths above for reading; it never formats or
 writes to the card. Missing cards, missing files and unsupported WAV files fall
 back to the built-in cue. A mid-playback read failure stops the clip. Disabling
-SD sounds or master Sound, or activating Night mute, cancels playback. SD sounds
-do not play phone music; the Music page remains a remote control.
+SD sounds or master Sound, or activating Night mute, cancels playback and
+unmounts the card. SD sounds do not play phone music; the Music page remains a
+remote control.
 
 Native tests cover RIFF bounds, formats, scaling, fixed paths, missing cards,
 read failures, opt-in behavior and immediate mute. Actual SD latency, card
@@ -259,9 +265,11 @@ check, then verify Test sound at a low volume.
 ### Startup, charging and reaction rules
 
 Startup and charging cues follow the master Sound switch, level and Night mute.
-They do not require enabling the face, timer, phone-alert or ambient categories.
-Reaction-family files additionally require the Faces category. There are no new
-settings fields or profile-format changes for these cues. Save Sound and SD sounds
+The charge cue additionally requires the **Charging** category, found with the
+other switches under SOUND → Sound options and on by default. Startup needs no
+category switch. Reaction-family files additionally require the Faces category.
+Version ten adds the charging-sound field; earlier profiles migrate with it on.
+Save Sound and SD sounds
 before restarting if the next boot should use `startup.wav`.
 
 Startup is requested once after the 2.2-second intro. Enabling sound later does

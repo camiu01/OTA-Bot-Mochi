@@ -6,6 +6,7 @@
 #include "ui_theme.h"
 #include "../../pin_config.h"
 #include "../power/backlight.h"
+#include "../power/battery.h"
 #include "../sound/sound.h"
 
 uint16_t UI_CARD = 0x18C3;
@@ -136,7 +137,9 @@ void ui_sound_badge(Arduino_GFX *gfx, int16_t x, int16_t y) {
 void ui_chrome(Arduino_GFX *gfx, const char *title, bool connected, uint8_t page) {
 	gfx->fillRect(0, 0, LCD_WIDTH, ui_s(52), UI_BG);
 	ui_label(gfx, "MOCHI / COMPANION", ui_s(16), ui_s(12), ui_s(180), 1, UI_MUTED);
-	ui_label(gfx, String(backlight_brightness()) + "%", ui_s(182), ui_s(12), ui_s(34), 1, UI_MUTED);
+	uint8_t charge = battery_percent();
+	ui_label(gfx, charge == BATTERY_UNAVAILABLE ? String("--%") : String(charge) + "%",
+		ui_s(182), ui_s(12), ui_s(34), 1, UI_MUTED);
 	gfx->fillCircle(ui_s(220), ui_s(16), 3, connected ? UI_ACCENT : UI_MUTED);
 	// Doubled header text ends later on scaled panels, so the badge steps aside instead of colliding.
 	int16_t badge_x = ui_s(150);

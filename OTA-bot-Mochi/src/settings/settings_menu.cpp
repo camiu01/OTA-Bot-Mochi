@@ -38,15 +38,36 @@ constexpr uint8_t GRID_MAX_FIRST = GRID_ROWS_TOTAL > GRID_ROWS ? GRID_ROWS_TOTAL
 
 enum MenuTab : uint8_t { TAB_LOOK, TAB_LIGHT, TAB_FACES, TAB_MOTION, TAB_AUDIO, TAB_SYSTEM, TAB_COUNT };
 
+/** SD sounds only appears on the board with an SD slot and codec. */
+#if defined(MOCHI_BOARD_AMOLED_18)
+constexpr bool HAS_SD_ROW = true;
+#else
+constexpr bool HAS_SD_ROW = false;
+#endif
+/** Row indices in the main SOUND list, shifted on boards without SD sounds. */
+constexpr uint8_t SOUND_OPTIONS_ROW = HAS_SD_ROW ? 4 : 3;
+constexpr uint8_t SOUND_TEST_ROW = HAS_SD_ROW ? 5 : 4;
+
+/**
+ * @brief Bottom edge of the SAVE/Back band.
+ *
+ * The band normally ends at the 240x280 design field, but taller panels scale
+ * that field short of the physical edge and leave a dead strip. Reaching to the
+ * real panel edge (keeping a 4-pixel inert margin) makes the bottom buttons tall
+ * enough to hit without turning the whole strip into a target.
+ * @return Panel pixel row just past the band.
+ */
+int16_t bottom_band_bottom() {
+	const int16_t design = ui_s(280);
+	const int16_t panel = int16_t(LCD_HEIGHT - 4);
+	return panel > design ? panel : design;
+}
+
 /** @brief Number of rows in the current panel. */
 uint8_t row_count() {
 	static const uint8_t counts[] = {3, 7, 4, 5, 5, 7};
-	if (tab != TAB_AUDIO || !sound_options) { return counts[tab]; }
-#if defined(MOCHI_BOARD_AMOLED_18)
-	return 5;
-#else
-	return 4;
-#endif
+	if (tab != TAB_AUDIO) { return counts[tab]; }
+	return sound_options ? 5 : (HAS_SD_ROW ? 6 : 5);
 }
 
 /** @brief Close the grid and restore the tab rows. */
@@ -129,15 +150,16 @@ void change_row(uint8_t index) {
 		if (index == 1) { p.sound_timer = !p.sound_timer; }
 		if (index == 2) { p.sound_alerts = !p.sound_alerts; }
 		if (index == 3) { p.sound_ambient = !p.sound_ambient; }
-#if defined(MOCHI_BOARD_AMOLED_18)
-		if (index == 4) { p.sound_sd = !p.sound_sd; }
-#endif
+		if (index == 4) { p.sound_charging = !p.sound_charging; }
 	} else {
 		if (index == 0) { p.sound = !p.sound; }
 		if (index == 1) { p.sound_level = p.sound_level < 5 ? 5 : (p.sound_level >= 30 ? 5 : (p.sound_level >= 25 ? 30 : p.sound_level + 5)); }
 		if (index == 2) { p.sound_night_mute = !p.sound_night_mute; }
-		if (index == 3) { sound_options = true; first_row = 0; return; }
-		if (index == 4) { sound_request(SoundCue::Test, millis()); return; }
+#if defined(MOCHI_BOARD_AMOLED_18)
+		if (index == 3) { p.sound_sd = !p.sound_sd; }
+#endif
+		if (index == SOUND_OPTIONS_ROW) { sound_options = true; first_row = 0; return; }
+		if (index == SOUND_TEST_ROW) { sound_request(SoundCue::Test, millis()); return; }
 	}
 	settings_update(p);
 	save_failed = false;
@@ -190,18 +212,19 @@ void extra_rows(Arduino_GFX *gfx, const CompanionSettings &p) {
 		row(gfx, 1, tr(Text::TimerLabel), on_off(p.sound_timer));
 		row(gfx, 2, tr(Text::CallsAlerts), on_off(p.sound_alerts));
 		row(gfx, 3, tr(Text::Ambient), on_off(p.sound_ambient));
-#if defined(MOCHI_BOARD_AMOLED_18)
-		row(gfx, 4, tr(Text::SoundSd), on_off(p.sound_sd));
-#endif
+		row(gfx, 4, tr(Text::Charging), on_off(p.sound_charging));
 	} else {
 		row(gfx, 0, tr(Text::Sound), on_off(p.sound));
 		row(gfx, 1, tr(Text::Level), String(p.sound_level) + "%");
 		row(gfx, 2, tr(Text::NightMute), on_off(p.sound_night_mute));
-		row(gfx, 3, tr(Text::SoundOptions), tr(Text::Open));
+#if defined(MOCHI_BOARD_AMOLED_18)
+		row(gfx, 3, tr(Text::SoundSd), on_off(p.sound_sd));
+#endif
+		row(gfx, SOUND_OPTIONS_ROW, tr(Text::SoundOptions), tr(Text::Open));
 		SoundStatus status = sound_status();
 		Text value = status == SoundStatus::Off ? Text::Off :
 			(status == SoundStatus::Night ? Text::NightMute : (status == SoundStatus::Error ? Text::Failed : Text::Test));
-		row(gfx, 4, tr(Text::TestSound), tr(value));
+		row(gfx, SOUND_TEST_ROW, tr(Text::TestSound), tr(value));
 	}
 }
 
@@ -255,11 +278,12 @@ void grid_draw(Arduino_GFX *gfx) {
 		gfx->fillRect(ui_s(234), ui_s(int16_t(GRID_Y0 + grid_first_row * (track - 40) / GRID_MAX_FIRST)),
 			ui_s(3), ui_s(40), UI_ACCENT);
 	}
-	gfx->fillRoundRect(ui_s(2), ui_s(224), ui_s(116), ui_s(54), ui_s(8), UI_ACCENT);
-	gfx->fillRoundRect(ui_s(122), ui_s(224), ui_s(116), ui_s(54), ui_s(8), UI_CARD);
+	gfx->fillRoundRect(ui_s(2), ui_s(224), ui_s(116), int16_t(bottom_band_bottom() - ui_s(224)), ui_s(8), UI_ACCENT);
+	gfx->fillRoundRect(ui_s(122), ui_s(224), ui_s(116), int16_t(bottom_band_bottom() - ui_s(224)), ui_s(8), UI_CARD);
+	const int16_t grid_band_label_y = ui_s(224) + int16_t(bottom_band_bottom() - ui_s(224)) / 2 - ui_s(4);
 	ui_label(gfx, tr(save_failed ? Text::Failed : (settings_dirty() ? Text::Save : Text::Saved)),
-		ui_s(36), ui_s(247), ui_s(72), 1, UI_BG);
-	ui_label(gfx, tr(Text::Back), ui_s(147), ui_s(247), ui_s(72), 1, UI_TEXT);
+		ui_s(36), grid_band_label_y, ui_s(72), 1, UI_BG);
+	ui_label(gfx, tr(Text::Back), ui_s(147), grid_band_label_y, ui_s(72), 1, UI_TEXT);
 }
 
 /**
@@ -313,18 +337,19 @@ void settings_menu_draw(Arduino_GFX *gfx) {
 		gfx->fillRect(ui_s(232), ui_s(92), ui_s(3), ui_s(128), UI_CARD);
 		gfx->fillRect(ui_s(232), ui_s(int16_t(92 + first_row * (128 - 60) / max_scroll)), ui_s(3), ui_s(60), UI_ACCENT);
 	}
-	gfx->fillRoundRect(ui_s(2), ui_s(224), ui_s(116), ui_s(54), ui_s(8), UI_ACCENT);
-	gfx->fillRoundRect(ui_s(122), ui_s(224), ui_s(116), ui_s(54), ui_s(8), UI_CARD);
+	gfx->fillRoundRect(ui_s(2), ui_s(224), ui_s(116), int16_t(bottom_band_bottom() - ui_s(224)), ui_s(8), UI_ACCENT);
+	gfx->fillRoundRect(ui_s(122), ui_s(224), ui_s(116), int16_t(bottom_band_bottom() - ui_s(224)), ui_s(8), UI_CARD);
+	const int16_t tab_band_label_y = ui_s(224) + int16_t(bottom_band_bottom() - ui_s(224)) / 2 - ui_s(4);
 	ui_label(gfx, tr(save_failed ? Text::Failed : (settings_dirty() ? Text::Save : Text::Saved)),
-		ui_s(36), ui_s(247), ui_s(72), 1, UI_BG);
-	ui_label(gfx, tr(tab == 4 && sound_options ? Text::Back : Text::EyesButton), ui_s(147), ui_s(247), ui_s(72), 1, UI_TEXT);
+		ui_s(36), tab_band_label_y, ui_s(72), 1, UI_BG);
+	ui_label(gfx, tr(tab == 4 && sound_options ? Text::Back : Text::EyesButton), ui_s(147), tab_band_label_y, ui_s(72), 1, UI_TEXT);
 }
 
 /** @brief Interpret tap coordinates without conflating swipes/holds. @param x X. @param y Y. @return Action. */
 MenuAction settings_menu_tap(int16_t x, int16_t y) {
 	if (x < 0 || x >= LCD_WIDTH || y < 0 || y >= LCD_HEIGHT) { return MenuAction::None; }
 	if (diagnostics_open) {
-		if (y < ui_s(224) || y >= ui_s(280)) { return MenuAction::None; }
+		if (y < ui_s(224) || y >= bottom_band_bottom()) { return MenuAction::None; }
 		diagnostics_open = false; return MenuAction::Changed;
 	}
 	if (grid_open) {
@@ -339,7 +364,7 @@ MenuAction settings_menu_tap(int16_t x, int16_t y) {
 		sound_options = false; first_row = 0;
 		return MenuAction::Changed;
 	}
-	if (y >= ui_s(222) && y < ui_s(280)) {
+	if (y >= ui_s(222) && y < bottom_band_bottom()) {
 		if (x >= ui_s(120)) {
 			if (tab == 4 && sound_options) { sound_options = false; first_row = 0; return MenuAction::Changed; }
 			grid_close();

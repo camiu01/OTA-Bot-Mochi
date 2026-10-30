@@ -86,7 +86,8 @@ migration.
 Additional checks cover contextual tools without extra carousel pages, temporary
 route layout versus saved defaults, version-two migration, local timer rollover/
 pause/Pomodoro completion, and eye-tap/double-tap/glance/greeting reactions with
-automation disabled. Expanded tests cover version-nine sixteen-byte profiles, legacy migrations, and
+automation disabled. Expanded tests cover version-ten seventeen-byte and
+version-nine sixteen-byte profiles, legacy migrations, and
 version-five, version-four and older migration, Face flow, the reboot verb, EN/IT
 label completeness and layout, out-of-order weather packets/sync throttling,
 animated dirty regions, sound notes/priorities/mute/rollover/failures, and actual
@@ -484,10 +485,12 @@ separately in TODO.
 10. Run an extended BLE session and measure heap, power, and battery runtime.
 11. Battery reading is best-effort on unverified hardware. Open Clock → DESK
     TOOLS → DEVICE STATUS with no battery fitted: the row must read NOT MEASURED
-    and USB `show` must report `battery=unavailable`. With a known charged LiPo
-    and the expected divider on `BAT_ADC`, compare the shown percentage against a
-    multimeter across the discharge curve; do not treat the native conversion
-    tests as physical validation.
+    and USB `show` must report `battery=unavailable`. On LCD, with a known
+    charged LiPo and the expected divider on `BAT_ADC`, compare the shown
+    percentage against a multimeter across the discharge curve. On AMOLED V2,
+    the percentage comes from the AXP2101 battery-voltage ADC, so compare it the
+    same way with a battery connected. Do not treat the native conversion tests
+    as physical validation.
 
 Also test a downward swipe on Clock into Scrivania and all seven tools. Verify
 large clock legibility, timer continuation while viewing other pages,
@@ -531,8 +534,9 @@ The earlier weather failure was superseded by user confirmation on 2026-10-20,
 not by native tests.
 
 Battery percentage is a plausibility-gated best-effort estimate, deliberately
-reported as NOT MEASURED when readings are implausible. Charging state remains
-unavailable until the actual power circuit, ADC path, divider ratio, and
+reported as NOT MEASURED when readings are implausible. The AMOLED V2 reads the
+AXP2101 battery voltage; the LCD board reads `BAT_ADC`. Charging state remains
+unavailable until the actual power circuit, ADC/PMU path, divider ratio, and
 calibration are verified.
 
 ## Music and optional audio additions

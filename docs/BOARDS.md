@@ -17,7 +17,7 @@ different touch wiring; it is not covered.
   power pins plus the panel geometry. Absent hardware becomes a capability
   switch, not a guess: `TP_RST=-1` (no touch reset pad), `LCD_BL=-1` (no
   backlight pad), `BUZZER=-1` (no PWM buzzer, ES8311 codec instead), and
-  `BAT_ADC=-1` (battery would come from the AXP2101 PMU).
+  `BAT_ADC=-1` (battery voltage comes from the AXP2101 PMU).
 - **The sketch** picks the bus and driver (`Arduino_ESP32SPI`+`ST7789` vs
   `Arduino_ESP32QSPI`+`Arduino_CO5300` with the visible area at RAM column 16).
   On the AMOLED board it first releases the panel reset held by the TCA9554 IO
@@ -27,7 +27,8 @@ different touch wiring; it is not covered.
 - **Module guards** keep behavior identical on the default board: the touch
   reset pulse, backlight PWM, buzzer LEDC, and battery ADC compile out when
   their pin is `-1`. The AMOLED board instead uses the ES8311/I2S audio
-  backend. Battery settles on NOT MEASURED without an ADC divider.
+  backend. The AMOLED board reads battery millivolts from the AXP2101; without a
+  connected battery both boards settle on NOT MEASURED.
 - **Memory profile.** The AMOLED frame canvas is about 329 KB, so that profile
   compiles with `PSRAM=opi` (the board stacks 8 MB octal PSRAM). The 1.69 OLD
   board keeps `PSRAM=disabled`: OPI PSRAM claims GPIO33/35/36 there and caused
@@ -93,8 +94,9 @@ bring-up/recheck details, not a list of newly reported failures:
    TX-only 16 kHz I2S, with amplifier enable on GPIO46. Confirm audibility,
    level, mute, and no touch/display interference using `sound test`;
    native tests cannot establish physical sound. See `SOUND.md`.
-8. Battery/charging measurements and charging configuration through the AXP2101
-   remain unimplemented. The PWR-key registers are configured separately below.
+8. Battery percentage is read from the AXP2101 battery-voltage ADC; charging
+   configuration through the AXP2101 remains unimplemented. The PWR-key
+   registers are configured separately below.
 
 ## AMOLED V2 PWR button
 
@@ -171,14 +173,18 @@ Native tests cover hold/release/debounce/rollover, latch control, wake setup
 failures and backlight shutdown on core 2/3. Physical switching, USB wake and
 current consumption remain unverified on the original LCD hardware.
 
-## Read-only charge-start audio (AMOLED V2)
+## Read-only PMU reads (AMOLED V2)
 
 `src/power/charging.*` reads AXP2101 identity at 0x03 and current-direction
 status at 0x01 over the existing SDA15/SCL14 controller. A stable transition
 into charging can request the optional sound cue. Booting while already
-charging establishes a silent baseline. This adds no battery gauge or charger
-configuration; the LCD profile returns no charge events. Native register mocks
-exercise debounce, missing hardware, reserved states, read failures and timer
-rollover. Physical charge transitions, voltage/current limits and battery
-runtime remain unverified; earlier board confirmations do not validate this
-new reader. See [Sound](SOUND.md#startup-charging-and-reaction-rules).
+charging establishes a silent baseline. The same module exposes the battery
+voltage from the 13-bit REG34/REG35 ADC, gated on the REG00 battery-present bit;
+`src/power/battery.*` maps those millivolts through the shared LiPo curve. This
+adds no charger configuration and never writes PMU registers; the LCD profile
+returns no charge events and no PMU voltage. Native register mocks exercise
+debounce, missing hardware, reserved states, read failures, battery presence and
+timer rollover. Physical charge transitions, voltage/current limits, the
+reported percentage and battery runtime remain unverified; earlier board
+confirmations do not validate these readers.
+See [Sound](SOUND.md#startup-charging-and-reaction-rules).

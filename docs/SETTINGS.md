@@ -35,7 +35,8 @@ rows. Changes are live in RAM and do not write flash while browsing.
 | SOUND | Sound | off / on |
 | SOUND | Level | 1–30% by USB: LCD PWM duty / AMOLED PCM amplitude, not measured loudness |
 | SOUND | Night mute | on / off |
-| SOUND | Sound options | open separate face/timer/alert/ambient switches |
+| SOUND | SD sounds | on / off (AMOLED V2 only); optional recordings from the SD card |
+| SOUND | Sound options | open separate face/timer/alert/ambient/charging switches |
 | SOUND | Test sound | two short bench tones; reports off/night mute/PWM failure |
 | SYSTEM | Diagnostics | read-only live device status; swipe vertically to browse, BACK returns to SYSTEM |
 | SYSTEM | Language | English / Italiano |
@@ -308,8 +309,10 @@ tone band (see [Audio and motion](SOUND.md)).
 A hold still opens Settings and a swipe does not also trigger a random face.
 These reactions remain available in dashboard mode, which only calms idle motion.
 
-The full profile is stored as a validated sixteen-byte version-nine NVS blob
-with a checksum; version seven adds Phone mode while preserving the prior layout.
+The full profile is stored as a validated seventeen-byte version-ten NVS blob
+with a checksum. Version ten appends the charging-sound category and reads the
+prior sixteen-byte version-nine night schedule unchanged. Version seven adds
+Phone mode while preserving the prior layout.
 Thirteen-byte version-six profiles retain Face flow and default to Android mode;
 version-five profiles retain Screen flip and default to Return. Twelve-byte
 version-four and eight-byte versions one/two/three profiles retain their
@@ -337,16 +340,27 @@ remain with the user. Native tests cover the logic with hardware substitutes.
 Version 8 retained the thirteen-byte layout and used bit 6 of byte 7 for
 `sound_sd`; bit 7 remains reserved. Versions 1-7 migrate with SD sounds off.
 Version 7 phone-mode flags and all older layouts remain readable. SD audio is
-available on the AMOLED V2 SOUND options panel and requires master Sound.
+available on the AMOLED V2 SOUND list, above **Sound options** and **Test sound**,
+and requires master Sound.
 Persistence still requires explicit SAVE. See [Sound](SOUND.md).
+
+### Version ten: charging-sound category
+
+Version 10 appends one byte for the charging-sound switch and reads sixteen-byte
+version-nine night schedules unchanged; earlier lengths migrate as before.
+The **Charging** switch lives with the other categories under SOUND → Sound
+options and defaults on. It gates only the automatic AMOLED charge-start cue;
+Startup keeps no category switch. Enabling it does not change charger
+configuration. See [Sound](SOUND.md#startup-charging-and-reaction-rules).
 
 ### Startup, charging and SD reaction families
 
 Startup and AMOLED charge-start cues use the existing master Sound, level and
-Night mute settings. Face-family WAVs additionally use the Faces category.
+Night mute settings. The charge cue additionally requires the Charging category
+and Face-family WAVs the Faces category.
 Enable SD sounds on AMOLED to use the optional recordings; otherwise the cues
 are synthesized. SAVE must persist Sound before a startup cue can play at the
-next reboot. No extra profile fields are needed. Names, fallback order, the
+next reboot. Names, fallback order, the
 silent charge baseline and cooldown are documented in [Sound](SOUND.md).
 
 ### Automatic night schedule (version nine)
@@ -371,7 +385,9 @@ NVS. Only SAVE persists the schedule. USB uses `set night-auto on`,
 
 Version 9 is sixteen bytes: the original fields remain in bytes 1-11; byte 12
 holds the automatic-night flag, bytes 13/14 hold start/end hours, and byte 15 is
-the checksum. Thirteen-byte v5-v8, twelve-byte v4 and eight-byte v1-v3 records
+the checksum. Version 10 keeps that layout and adds byte 16 for the
+charging-sound switch, moving the checksum to byte 17. Thirteen-byte v5-v8,
+twelve-byte v4 and eight-byte v1-v3 records
 remain readable and migrate with automatic night off. The next explicit SAVE
 upgrades an old record. No automatic time transition saves a profile.
 

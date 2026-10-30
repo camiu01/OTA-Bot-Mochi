@@ -30,6 +30,7 @@ try {
 		"$root\OTA-bot-Mochi\src\settings\settings.cpp",
 		"$root\OTA-bot-Mochi\src\settings\usb_commands.cpp",
 		"$root\OTA-bot-Mochi\src\power\battery.cpp",
+		"$root\OTA-bot-Mochi\src\power\charging.cpp",
 		"$root\OTA-bot-Mochi\src\eyes\face_catalog.cpp",
 		"$root\OTA-bot-Mochi\src\eyes\face_dispatch.cpp",
 		"$root\OTA-bot-Mochi\src\eyes\face_primitives.cpp",

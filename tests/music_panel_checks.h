@@ -15,12 +15,10 @@ inline void sd_settings_checks() {
 	CompanionSettings original = settings_get();
 	unsigned writes = test_flash_writes;
 	for (uint8_t i = 0; i < 4; ++i) { settings_menu_tap(ui_s(210), ui_s(65)); }
+	// SD sounds now sits in the main audio list, above the options and test rows.
 	assert(settings_menu_scroll(1));
-	settings_menu_tap(ui_s(20), ui_s(202));
-	assert(settings_menu_scroll(1) && settings_menu_scroll(1));
-	settings_menu_tap(ui_s(20), ui_s(202));
+	assert(settings_menu_tap(ui_s(20), ui_s(200)) == MenuAction::Changed);
 	assert(settings_get().sound_sd != original.sound_sd && test_flash_writes == writes);
-	settings_menu_tap(ui_s(160), ui_s(240));
 	for (uint8_t i = 0; i < 4; ++i) { settings_menu_tap(ui_s(30), ui_s(65)); }
 	assert(settings_update(original));
 #endif

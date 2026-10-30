@@ -149,6 +149,7 @@
 	X(TimerLabel, "Timer", "Timer") \
 	X(CallsAlerts, "Alerts / calls", "Avvisi / tel.") \
 	X(Ambient, "Ambient", "Spontanei") \
+	X(Charging, "Charging", "Ricarica") \
 	X(On, "on", "si") \
 	X(Off, "off", "no") \
 	X(Save, "SAVE", "SALVA") \

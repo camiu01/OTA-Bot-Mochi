@@ -29,3 +29,6 @@ private:
 
 /** @brief Sample the AMOLED PMU at 500 ms intervals on the existing shared I2C bus. @param now Milliseconds. @return New stable charge start; always false on LCD. */
 bool charging_poll(uint32_t now);
+
+/** @brief Read the AXP2101 battery voltage from its 13-bit ADC, without changing any charger setting. @param mv Output millivolts. @return True only for a complete, battery-present read; always false on LCD. */
+bool axp2101_battery_mv(uint16_t &mv);

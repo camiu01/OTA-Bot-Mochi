@@ -20,8 +20,10 @@ struct BatteryTracker {
 	uint8_t plausible = 0;		/**< Consecutive plausible samples. */
 	uint8_t implausible = 0;	/**< Consecutive implausible samples. */
 	uint8_t percent = BATTERY_UNAVAILABLE;	/**< Latest trusted estimate. */
-	/** @brief Fold one raw sample: three plausible adopt it, five implausible drop it. @param raw ADC reading. */
+	/** @brief Fold one raw ADC sample: three plausible adopt it, five implausible drop it. @param raw ADC reading. */
 	void update(uint16_t raw);
+	/** @brief Fold one already-converted battery voltage, applying the same plausibility gate. @param mv Battery millivolts, or zero when absent. */
+	void update_mv(uint16_t mv);
 };
 
 /** @brief Read the battery pin on a slow cadence; safe when no divider is fitted. @param now Millisecond timestamp. */

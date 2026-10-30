@@ -1,6 +1,6 @@
 /**
  * @file charging.cpp
- * @brief Read AXP2101 identity/current direction without changing charger configuration.
+ * @brief Read AXP2101 identity, current direction and battery voltage without changing charger configuration.
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "charging.h"
@@ -36,6 +36,21 @@ bool charging_poll(uint32_t now) {
 	return tracker.update(direction == 3 ? ChargeState::Unknown : state);
 #else
 	(void)now;
+	return false;
+#endif
+}
+
+bool axp2101_battery_mv(uint16_t &mv) {
+#if defined(MOCHI_BOARD_AMOLED_18)
+	uint8_t identity = 0, status = 0, high = 0, low = 0;
+	if (!i2c_bus_begin(IIC_SDA, IIC_SCL, 400000) || !read_status(0x03, identity) ||
+		identity != 0x4A || !read_status(0x00, status) || !(status & 0x08) ||
+		!read_status(0x34, high) || !read_status(0x35, low)) { return false; }
+	// AXP2101 REG34[4:0]/REG35 hold the battery ADC as a 13-bit millivolt value (datasheet 6.13.2.7).
+	mv = uint16_t(((high & 0x1F) << 8) | low);
+	return true;
+#else
+	(void)mv;
 	return false;
 #endif
 }

@@ -39,6 +39,9 @@ void sd_checks() {
 	assert(device_status::sd == device_status::SdState::Missing);
 	SD_MMC.present = true;
 	SD_MMC.files["/mochi/sounds/tap.wav"] = wav_fixture(2, 160);
+	// A failed mount backs off, so a missing card cannot stall every cue.
+	assert(!sd.start(2) && SD_MMC.mounts == 1);
+	test_now += 11000;
 	assert(sd.start(2) && sd.playing());
 	assert(device_status::sd == device_status::SdState::Ready);
 	assert(SD_MMC.clk == 2 && SD_MMC.cmd == 1 && SD_MMC.data == 3);
@@ -46,7 +49,9 @@ void sd_checks() {
 	assert(sd.render(samples, 80, 30));
 	assert(samples[0] == 0 && samples[158] > 0 && samples[159] < 0);
 	assert(sd.render(samples, 80, 30) && !sd.playing() && samples[158] == 0);
-	assert(!sd.start(4));
+	// A missing file keeps the card mounted instead of forcing a remount.
+	unsigned mounts = SD_MMC.mounts;
+	assert(!sd.start(4) && SD_MMC.mounts == mounts);
 	assert(device_status::sd == device_status::SdState::Error);
 	assert(sd.start(2)); File::short_read = true;
 	assert(!sd.render(samples, 80, 10) && !sd.playing()); File::short_read = false;

@@ -71,7 +71,8 @@ inline void draw(Arduino_GFX *gfx, uint8_t first) {
 	}
 	gfx->fillRect(ui_s(232), ui_s(92), ui_s(3), ui_s(128), UI_CARD);
 	gfx->fillRect(ui_s(232), ui_s(92 + first * 88 / (ROWS - 3)), ui_s(3), ui_s(40), UI_ACCENT);
-	gfx->fillRoundRect(ui_s(2), ui_s(224), ui_s(236), ui_s(54), ui_s(8), UI_CARD);
-	ui_label(gfx, tr(Text::Back), ui_s(24), ui_s(247), ui_s(192), 1, UI_TEXT);
+	const int16_t band_bottom = (int16_t(LCD_HEIGHT - 4) > ui_s(280)) ? int16_t(LCD_HEIGHT - 4) : ui_s(280);
+	gfx->fillRoundRect(ui_s(2), ui_s(224), ui_s(236), int16_t(band_bottom - ui_s(224)), ui_s(8), UI_CARD);
+	ui_label(gfx, tr(Text::Back), ui_s(24), ui_s(224) + int16_t(band_bottom - ui_s(224)) / 2 - ui_s(4), ui_s(192), 1, UI_TEXT);
 }
 }

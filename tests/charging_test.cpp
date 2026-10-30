@@ -47,8 +47,25 @@ void hardware_checks() {
 	registers[0x03] = 0x4A;
 	assert(!charging_poll(UINT32_MAX - 200) && charging_poll(300));
 	assert(registers[0x01] == 0x20 && registers[0x03] == 0x4A);
+	// Battery voltage uses REG00[3] presence plus the 13-bit REG34/REG35 millivolt ADC.
+	uint16_t mv = 0;
+	registers[0x00] = 0x08; registers[0x34] = 0x10; registers[0x35] = 0x30;
+	assert(axp2101_battery_mv(mv) && mv == 4144);
+	registers[0x34] = 0x3F; registers[0x35] = 0xFF;
+	assert(axp2101_battery_mv(mv) && mv == 0x1FFF);
+	registers[0x00] = 0;
+	assert(!axp2101_battery_mv(mv));
+	registers[0x00] = 0x08;
+	bus.read_ok = false;
+	assert(!axp2101_battery_mv(mv));
+	bus.read_ok = true;
+	registers[0x03] = 0;
+	assert(!axp2101_battery_mv(mv));
+	registers[0x03] = 0x4A;
 #else
 	assert(!charging_poll(0) && !charging_poll(1000) && !charging_poll(UINT32_MAX));
+	uint16_t mv = 0;
+	assert(!axp2101_battery_mv(mv));
 #endif
 }
 

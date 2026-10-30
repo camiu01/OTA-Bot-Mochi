@@ -35,7 +35,7 @@ static void persistence_tests() {
 	value.style = 3; value.color = 2; value.brightness = 40; value.night = true;
 	value.random_faces = true; value.imu_faces = true;
 	value.route_large = false;
-	value.sound_sd = true;
+	value.sound_sd = true; value.sound_charging = false;
 	value.sound = true; value.sound_faces = false; value.sound_alerts = false;
 	value.sound_ambient = false; value.sound_night_mute = false;
 	value.sound_level = 18; value.animation = 2; value.language = 1;
@@ -48,7 +48,7 @@ static void persistence_tests() {
 	assert(settings_init() && settings_get().style == 3 && settings_get().night);
 	assert(settings_get().random_faces && settings_get().imu_faces);
 	assert(!settings_get().route_large);
-	assert(settings_get().sound_sd);
+	assert(settings_get().sound_sd && !settings_get().sound_charging);
 	assert(settings_get().sound && !settings_get().sound_faces && !settings_get().sound_alerts);
 	assert(!settings_get().sound_ambient && !settings_get().sound_night_mute);
 	assert(settings_get().sound_level == 18 && settings_get().animation == 2 && settings_get().language == 1);
@@ -79,7 +79,7 @@ static void migration_tests() {
 	test_profile.assign(bytes, bytes + 8);
 	assert(settings_init() && settings_get().color == 3);
 	assert(decoded.route_large);
-	assert(settings_dirty() && settings_save() && test_profile[0] == 9 && test_profile.size() == SETTINGS_BYTES);
+	assert(settings_dirty() && settings_save() && test_profile[0] == 10 && test_profile.size() == SETTINGS_BYTES);
 	bytes[0] = 2; bytes[6] = 0x32; bytes[7] = 0xA5;
 	for (uint8_t i = 0; i < 7; ++i) { bytes[7] ^= bytes[i]; }
 	assert(settings_decode(bytes, sizeof(bytes), decoded) && decoded.random_faces && decoded.imu_faces && decoded.route_large);
@@ -94,7 +94,7 @@ static void migration_tests() {
 	assert(from_v4.style == 2 && from_v4.color == 3 && from_v4.mood == LOVE && !from_v4.flipped);
 	test_profile.assign(v4, v4 + SETTINGS_V4_BYTES);
 	assert(settings_init() && settings_get().style == 2 && !settings_get().flipped);
-	assert(settings_dirty() && settings_save() && test_profile[0] == 9 && test_profile.size() == SETTINGS_BYTES);
+	assert(settings_dirty() && settings_save() && test_profile[0] == 10 && test_profile.size() == SETTINGS_BYTES);
 	uint8_t v5[SETTINGS_BYTES];
 	CompanionSettings old; old.flipped = true;
 	settings_encode(old, v5);
@@ -128,7 +128,7 @@ static void mood_range_tests() {
 	CompanionSettings legacy; legacy.mood = LOVE;
 	uint8_t legacy_bytes[SETTINGS_BYTES];
 	settings_encode(legacy, legacy_bytes);
-	assert(legacy_bytes[0] == 9);
+	assert(legacy_bytes[0] == 10);
 	CompanionSettings decoded;
 	assert(settings_decode(legacy_bytes, sizeof(legacy_bytes), decoded) && decoded.mood == LOVE);
 	// The wider expression range reuses the same byte, so no new profile version is needed.
@@ -179,6 +179,7 @@ static void usb_tests() {
 	assert(settings_parse("set route round", current).action == UsbAction::Invalid);
 	assert(settings_parse("set sound on", current).profile.sound);
 	assert(!settings_parse("set sound-ambient off", current).profile.sound_ambient);
+	assert(!settings_parse("set sound-charging off", current).profile.sound_charging);
 	assert(settings_parse("set sound-level 0", current).action == UsbAction::Invalid);
 	assert(settings_parse("set sound-level 31", current).action == UsbAction::Invalid);
 	assert(settings_parse("set animation playful", current).profile.animation == 2);
@@ -317,6 +318,10 @@ static void menu_tests() {
 	settings_menu_tap(20, 202);
 	settings_menu_tap(20, 100);
 	assert(!settings_get().sound_faces);
+	// The charging cue has its own category at the bottom of the options list.
+	assert(settings_menu_scroll(1) && settings_menu_scroll(1));
+	settings_menu_tap(20, 202);
+	assert(!settings_get().sound_charging);
 	settings_menu_draw(&gfx);
 	assert(settings_menu_tap(160, 240) == MenuAction::Changed);
 	settings_menu_draw(&gfx);

@@ -1,14 +1,17 @@
 /**
  * @file battery.cpp
- * @brief Conservative ADC sampling around a guessed divider; never blocks or persists.
+ * @brief Conservative ADC/PMU sampling behind a plausibility gate; never blocks or persists.
  * @details
  * The battery divider on the Waveshare ESP32-S3-Touch-LCD-1.69 OLD revision is not
  * verified. Readings outside a plausible LiPo window are treated as absent hardware,
  * so the UI can say "not measured" instead of showing a wrong percentage. The ADC
  * scale is the approximate uncalibrated 12-bit full scale at ~11 dB attenuation.
+ * The AMOLED V2 has no divider: its AXP2101 PMU reports the cell voltage in
+ * millivolts, and the same tracker curve turns that into a percentage.
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "battery.h"
+#include "charging.h"
 #include "../../pin_config.h"
 #include <Arduino.h>
 
@@ -55,9 +58,8 @@ uint16_t battery_mv_raw(uint16_t raw) {
 	return uint16_t(battery_mv);
 }
 
-void BatteryTracker::update(uint16_t raw) {
-	uint16_t mv = battery_mv_raw(raw);
-	if (mv != 0) {
+void BatteryTracker::update_mv(uint16_t mv) {
+	if (mv >= PLAUSIBLE_LOW_MV && mv <= PLAUSIBLE_HIGH_MV) {
 		implausible = 0;
 		if (plausible < 255) { ++plausible; }
 		if (plausible >= ADOPT_SAMPLES) { percent = battery_percent_mv(mv); }
@@ -68,6 +70,8 @@ void BatteryTracker::update(uint16_t raw) {
 	if (implausible >= DOUBT_SAMPLES) { percent = BATTERY_UNAVAILABLE; }
 }
 
+void BatteryTracker::update(uint16_t raw) { update_mv(battery_mv_raw(raw)); }
+
 void battery_sample(uint32_t now) {
 	uint32_t interval = samples < PRIME_SAMPLES ? PRIME_INTERVAL_MS : SAMPLE_INTERVAL_MS;
 	if (samples && uint32_t(now - last_sample) < interval) { return; }
@@ -75,8 +79,12 @@ void battery_sample(uint32_t now) {
 	if (samples < 255) { ++samples; }
 #if BAT_ADC >= 0
 	tracker.update(uint16_t(analogRead(BAT_ADC)));
+#elif defined(MOCHI_BOARD_AMOLED_18)
+	// The AMOLED V2 has no divider; the AXP2101 reports millivolts directly.
+	uint16_t mv = 0;
+	tracker.update_mv(axp2101_battery_mv(mv) ? mv : 0);
 #else
-	// No ADC divider on this board; the tracker settles on "not measured".
+	// No ADC divider and no PMU on this board; the tracker settles on "not measured".
 	tracker.update(0);
 #endif
 }

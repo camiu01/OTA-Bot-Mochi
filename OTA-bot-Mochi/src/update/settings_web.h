@@ -46,6 +46,7 @@ static const Field fields[] = {
 	{"sound_timer", Text::TimerLabel, 4, 0, 1, -1, nullptr, &CompanionSettings::sound_timer},
 	{"sound_alerts", Text::CallsAlerts, 4, 0, 1, -1, nullptr, &CompanionSettings::sound_alerts},
 	{"sound_ambient", Text::Ambient, 4, 0, 1, -1, nullptr, &CompanionSettings::sound_ambient},
+	{"sound_charging", Text::Charging, 4, 0, 1, -1, nullptr, &CompanionSettings::sound_charging},
 	{"language", Text::Language, 5, 0, 1, 5, &CompanionSettings::language, nullptr},
 	{"dashboard", Text::Dashboard, 5, 0, 1, -1, nullptr, &CompanionSettings::dashboard},
 	{"route_large", Text::RouteDefault, 5, 0, 1, -1, nullptr, &CompanionSettings::route_large},

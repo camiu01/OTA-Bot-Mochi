@@ -31,7 +31,7 @@ The firmware targets the Waveshare **ESP32-S3-Touch-LCD-1.69 OLD** and, through 
 - **Wireless updates:** after the first OTA-capable USB installation, upload
   your board's release `*-app.bin` through the [local OTA screen](docs/OTA.md).
   Hardware validation of this new updater is still pending.
-- **Limits:** no verified battery runtime or AMOLED charging/battery driver.
+- **Limits:** no verified battery runtime; charging configuration is unimplemented.
 
 ## See it in action
 
@@ -111,9 +111,9 @@ A [240x280 gallery](docs/images/colored-performances-240.png) shows the LCD layo
   navigation, calibration restoration and reconnection remain useful release
   acceptance work, not additional known failures. LCD OLD needs separate checks.
 - LCD battery percentage is an uncalibrated, plausibility-gated estimate.
-  AMOLED battery percentage is not implemented. Read-only PMU charge-start
-  detection is implemented for optional audio cues; physical charging validation
-  remains pending.
+  AMOLED battery percentage comes from the AXP2101 PMU's battery-voltage ADC
+  behind the same plausibility gate. Read-only PMU charge-start detection is
+  implemented for optional audio cues; physical charging validation remains pending.
 
 ### Planned or deferred
 
@@ -164,7 +164,7 @@ assignments**, not a breadboard wiring guide; [pin_config.h](OTA-bot-Mochi/pin_c
 | Brightness | PWM backlight GPIO15 | CO5300 controller command; no backlight GPIO |
 | Audio | Buzzer GPIO33 | ES8311 `0x18`; MCLK16, BCLK9, WS45, DOUT8, amplifier enable46 |
 | Panel reset | GPIO8 | TCA9554 `0x20`, expander bits 0..2 |
-| Battery candidate | `BAT_ADC=1`, divider unverified | `BAT_ADC=-1`; no battery gauge; read-only AXP2101 charge-start events |
+| Battery candidate | `BAT_ADC=1`, divider unverified | `BAT_ADC=-1`; AXP2101 battery-voltage ADC; read-only AXP2101 charge-start events |
 
 Touch and IMU use one shared I2C controller. Do not start a second controller on the same pads. On AMOLED, the
 sketch releases the expander-controlled panel reset before display initialization.
@@ -451,7 +451,7 @@ Paths below are relative to `OTA-bot-Mochi/`.
 | `src/play/` | Bounded Pong/Tris gameplay and clock/game drawing |
 | `src/settings/` | Validated preferences, legacy-profile migration, explicit NVS save, touch menu, and USB parser |
 | `src/sound/` | Cue scheduling and board-specific PWM or ES8311/I2S output |
-| `src/power/` | Brightness/dimming, best-effort battery estimate and read-only AMOLED charge-start detection |
+| `src/power/` | Brightness/dimming, best-effort ADC/PMU battery estimate and read-only AMOLED charge-start detection |
 | `src/update/` | Temporary LAN/AP maintenance, web settings/face editor, NTP, browser upload, image validation and QR screen |
 
 The sketch services BLE, touch, timers, sound, and brightness between display frames scheduled 33 ms apart. An
@@ -474,7 +474,7 @@ gyroscope fusion, attitude measurement, or autonomous movement.
 | Weather missing | For Internet weather, save Wi-Fi and a city, then check link/NTP/refresh status in web settings. In Android mode, also check Chronos weather permissions and USB `weather` counters. Failed Internet refreshes retain cached data. |
 | Route inactive or missing turn icon | Start navigation on the phone and check BLE. The firmware waits for complete matching icon packets; it does not invent a turn. Live interoperability remains a device check. |
 | Sound silent | Sound defaults off. Inspect `sound`, master/night mute, and category settings; `sound test` requests bench tones but respects mute. Ready status does not prove audibility. |
-| Battery says NOT MEASURED | This is intentional without plausible LCD ADC readings. The divider/calibration is unverified; AMOLED battery percentage remains unavailable; read-only charge-start detection is separate. Do not add a guessed divider or battery connection. |
+| Battery says NOT MEASURED | This is intentional without a plausible reading. The LCD divider/calibration is unverified, and the AMOLED estimate needs the AXP2101 to report a connected battery; read-only charge-start detection is separate. Do not add a guessed divider or battery connection. |
 | Changes disappear after reboot | Use explicit SAVE and check success. A storage failure leaves changes in RAM only; timer and game sessions are not persisted. |
 | Upload port unavailable | Close other serial monitors; select the discovered port. Follow the documented Linux serial-permission guidance in [Testing](docs/TESTING.md#linux-serial-permissions), not a flash erase/reset workaround. |
 | Text shows `?` or approximate characters | The bounded bitmap font approximates common Latin accents; unsupported Unicode and emoji are not fully rendered. |

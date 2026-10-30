@@ -102,6 +102,7 @@ bool assign(const char *field, const char *value, CompanionSettings &profile) {
 	else if (strcmp(field, "sound-timer") == 0) { return toggle(value, profile.sound_timer); }
 	else if (strcmp(field, "sound-alerts") == 0) { return toggle(value, profile.sound_alerts); }
 	else if (strcmp(field, "sound-ambient") == 0) { return toggle(value, profile.sound_ambient); }
+	else if (strcmp(field, "sound-charging") == 0) { return toggle(value, profile.sound_charging); }
 	else if (strcmp(field, "sound-sd") == 0) { return toggle(value, profile.sound_sd); }
 	else if (strcmp(field, "sound-night-mute") == 0) { return toggle(value, profile.sound_night_mute); }
 	return false;
@@ -125,9 +126,10 @@ void show() {
 	Serial.printf("animation=%s language=%s sound=%s sound-level=%u night-mute=%s\n",
 		settings_animation_name(p.animation), settings_language_name(p.language),
 		p.sound ? "on" : "off", p.sound_level, p.sound_night_mute ? "on" : "off");
-	Serial.printf("sound-faces=%s sound-timer=%s sound-alerts=%s sound-ambient=%s\n",
+	Serial.printf("sound-faces=%s sound-timer=%s sound-alerts=%s sound-ambient=%s sound-charging=%s\n",
 		p.sound_faces ? "on" : "off", p.sound_timer ? "on" : "off",
-		p.sound_alerts ? "on" : "off", p.sound_ambient ? "on" : "off");
+		p.sound_alerts ? "on" : "off", p.sound_ambient ? "on" : "off",
+		p.sound_charging ? "on" : "off");
 	Serial.printf("sound-status=%s gpio=%d\n", sound_status_name(), int(BUZZER));
 	uint8_t charge = battery_percent();
 	if (charge == BATTERY_UNAVAILABLE) { Serial.println("battery=unavailable"); }
@@ -151,7 +153,7 @@ void help() {
 	Serial.println("set route large/details + save: default; route large/details/default: session only");
 	Serial.println("set phone android/iphone + save; restart Mochi to switch BLE mode");
 	Serial.println("animation calm/dasai/playful; language en/it; sound-level 1..30");
-	Serial.println("sound/sound-faces/sound-timer/sound-alerts/sound-ambient/sound-night-mute on/off");
+	Serial.println("sound/sound-faces/sound-timer/sound-alerts/sound-ambient/sound-charging/sound-night-mute on/off");
 	Serial.println("weather: packet counters only; weather sync: request app synchronization");
 	Serial.println("sound: mute/PWM status; sound test: two bench tones (master/night mute respected)");
 }

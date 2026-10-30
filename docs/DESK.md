@@ -60,7 +60,8 @@ than invented hands. The main Clock and BIG CLOCK keep their existing layouts.
 Weather uses received phone data and has missing/stale states; it is not measured
 by the board. Device status shows initialization, not vehicle telemetry. The
 battery row is a best-effort LiPo estimate from an unverified ADC divider on
-`BAT_ADC`; implausible readings (no battery fitted) are reported as NOT MEASURED,
+`BAT_ADC` (LCD) or the AXP2101 battery-voltage ADC (AMOLED V2); implausible
+readings (no battery fitted) are reported as NOT MEASURED,
 and the conversion is native-tested but physically unvalidated.
 
 ## Local timer

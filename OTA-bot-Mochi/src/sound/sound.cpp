@@ -63,7 +63,8 @@ Sequence sequence(SoundCue cue) {
 bool allowed(SoundCue cue) {
 	const auto &p = settings_get();
 	if (!p.sound || (settings_night() && p.sound_night_mute)) { return false; }
-	if (cue == SoundCue::Test || cue == SoundCue::Startup || cue == SoundCue::Charging) { return true; }
+	if (cue == SoundCue::Test || cue == SoundCue::Startup) { return true; }
+	if (cue == SoundCue::Charging) { return p.sound_charging; }
 	if (cue == SoundCue::Ambient) { return p.sound_ambient; }
 	if (cue == SoundCue::Tap || cue == SoundCue::Mood || cue == SoundCue::Face) { return p.sound_faces; }
 	if (cue == SoundCue::Notification || cue == SoundCue::Call) { return p.sound_alerts; }

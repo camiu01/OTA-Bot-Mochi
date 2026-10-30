@@ -149,11 +149,14 @@ These are not additional reported failures of the working Chronos/IMU/UI paths.
   suppression during startup, shutdown, visible calls and touch contact.
 - [x] Add plausibility-gated battery ADC scaffolding and NOT MEASURED fallback.
 - [x] Add adjustable brightness and optional idle dimming with touch wake.
-- [ ] Implement full AXP2101 battery percentage/configuration support if needed;
-  the current firmware still reports NOT MEASURED without a supported ADC path.
-  Read-only charge-start audio detection is implemented, with hardware checks pending.
-- [ ] Verify battery circuitry/divider calibration and AMOLED PMU charge-start
-  transitions on hardware; the new event reader does not validate charger setup.
+- [x] Add AMOLED battery percentage from the AXP2101 battery-voltage ADC behind
+  the same plausibility gate; charging configuration remains unimplemented.
+- [ ] Implement full AXP2101 charging configuration if needed; voltage/current
+  limits and safety settings are untouched. Read-only charge-start audio
+  detection is implemented, with hardware checks pending.
+- [ ] Verify battery circuitry/divider calibration, the AXP2101 percentage reading
+  and AMOLED PMU charge-start transitions on hardware; the new readers do not
+  validate charger setup.
 - [ ] Measure power consumption and battery runtime.
 
 ### Other boards and measured robustness

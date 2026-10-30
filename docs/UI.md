@@ -5,8 +5,9 @@ rounded tinted cards, eye-colored text and icons, and dimmer secondary labels.
 The eye color is the shared primary color, including controls, calls, and weather.
 Seven position dots indicate the selected
 screen; the header shows a speaker icon (crossed out while sound is off or
-night-muted), Bluetooth state, and the configured backlight percentage.
-This percentage is **brightness, not battery charge**.
+night-muted), Bluetooth state, and the battery percentage (`--%` until a
+plausible reading exists). The configured backlight percentage is shown on the
+DEVICE STATUS page, not in the header.
 
 ## Controls
 
@@ -108,8 +109,10 @@ This percentage is **brightness, not battery charge**.
   the thin column gutters stay inert. Settings categories use previous/next
   arrows with 72x38-pixel targets below the title, a central category name and
   a 1/6 position indicator. They wrap around and reset panel scrolling; tapping
-  the name does nothing. SAVE/Back each owns a 120x58-pixel
-  target extending to the bottom edge. Their visible buttons are enlarged too,
+  the name does nothing. SAVE/Back each owns a 120-pixel-wide target that
+  starts at the 224 design row and reaches the physical panel bottom (keeping a
+  four-pixel inert margin), so it stays tall enough to hit on panels whose design
+  field scales short of the edge. Their visible buttons are enlarged to match,
   with no overlapping actions. Short taps tolerate up to 18 pixels of movement
   and 800ms contact time; longer stationary holds still use 1.2 seconds.
 - The default is MOCHI, white on black, neutral mood, dashboard mode, 30% day
@@ -252,8 +255,9 @@ restores the selected mood. Disabling shake cancels a pending reaction.
 
 AXP2101 PWR-key setup probes and checks the PMU, but no charging driver or
 charger status is implemented. Battery percentage is a
-best-effort, plausibility-gated estimate from `BAT_ADC`; without plausible
-hardware the Device status page shows NOT MEASURED. The LCD SYS_EN/SYS_OUT pins
+best-effort, plausibility-gated estimate from `BAT_ADC` on LCD or the AXP2101
+battery-voltage ADC on AMOLED V2; without a plausible reading the Device status
+page shows NOT MEASURED. The LCD SYS_EN/SYS_OUT pins
 in `pin_config.h` have board-specific PWR handling described in [Boards](BOARDS.md);
 they do not establish battery calibration or measured standby behavior.
 

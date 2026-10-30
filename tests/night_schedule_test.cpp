@@ -59,7 +59,7 @@ void migration_checks() {
 	assert(settings_init());
 	assert(settings_get().sound_sd && settings_get().phone_ios && !settings_get().night_auto);
 	assert(settings_get().night_start == 22 && settings_get().night_end == 7);
-	assert(settings_dirty() && settings_save() && test_profile.size() == 16 && test_profile[0] == 9);
+	assert(settings_dirty() && settings_save() && test_profile.size() == 17 && test_profile[0] == 10);
 	p = settings_get(); p.night_auto = true; p.night_start = 21; p.night_end = 8;
 	assert(settings_update(p) && settings_save() && settings_init());
 	assert(settings_get().night_auto && settings_get().night_start == 21 && settings_get().night_end == 8);
