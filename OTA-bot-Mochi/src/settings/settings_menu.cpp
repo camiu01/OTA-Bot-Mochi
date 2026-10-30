@@ -84,9 +84,9 @@ void change_light(CompanionSettings &p, uint8_t index) {
 	if (index == 5) { p.night_start = next_hour(p.night_start, p.night_end); }
 	if (index == 6) { p.night_end = next_hour(p.night_end, p.night_start); }
 }
-/** @brief Format a local schedule endpoint. @param hour 24-hour value. @return HH:00. */
+/** @brief Format a schedule endpoint with room for the full parameter range. @param hour 24-hour value. @return HH:00. */
 String schedule_hour(uint8_t hour) {
-	char text[6]; snprintf(text, sizeof(text), "%02u:00", unsigned(hour));
+	char text[7]; snprintf(text, sizeof(text), "%02u:00", unsigned(hour));
 	return String(text);
 }
 

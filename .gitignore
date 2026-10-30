@@ -27,3 +27,4 @@ __pycache__/
 
 # Generated native GIF exports
 /exports/
+.codegraph

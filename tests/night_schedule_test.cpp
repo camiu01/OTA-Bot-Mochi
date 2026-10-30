@@ -11,6 +11,7 @@
 #include "../OTA-bot-Mochi/src/sound/sound.h"
 #include "../OTA-bot-Mochi/src/eyes/eyes_api.h"
 #include <Preferences.h>
+#include <algorithm>
 #include <cassert>
 #include <iostream>
 
@@ -75,6 +76,8 @@ void controls_checks() {
 	assert(settings_menu_scroll(1)); settings_menu_tap(20, 202); assert(settings_get().night_start == 23);
 	assert(settings_menu_scroll(1)); settings_menu_tap(20, 202); assert(settings_get().night_end == 8);
 	assert(!settings_menu_scroll(1)); settings_menu_draw(&gfx);
+	assert(std::find(gfx.text.begin(), gfx.text.end(), "23:00") != gfx.text.end());
+	assert(std::find(gfx.text.begin(), gfx.text.end(), "08:00") != gfx.text.end());
 	assert(test_flash_writes == writes && settings_dirty());
 	auto parsed = settings_parse("set night-start 0", settings_get());
 	assert(parsed.action == UsbAction::Set && parsed.profile.night_start == 0);
