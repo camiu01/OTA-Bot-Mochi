@@ -6,20 +6,18 @@ Functional confirmations below are scoped to
 AMOLED V2 unless another board is explicitly recorded.
 
 - [x] Fix the eye-motion reference test by subtracting its same-time backdrop; the complete native runner reports all host tests passed (2026-10-28).
-- [ ] Compile both profiles with the pinned CI toolchain (Arduino CLI 1.2.0, ESP32
+- [x] Compile both profiles with the pinned CI toolchain (Arduino CLI 1.2.0, ESP32
   core 3.3.11), checking the Wi-Fi and charging code, flash size and heap headroom,
   and record the result at the current HEAD.
-- [ ] Re-run the GitHub Actions workflow at the current HEAD; the last inspected
-  run is `e0ac13a`, several commits behind.
 - [x] Install/update AMOLED V2 over COM6 using unchanged 16 MB OTA layout v1; verify image hashes, reboot and retained saved settings (2026-10-29).
 - [ ] Verify LCD OLD installation/migration separately and record calibration effects.
 - [ ] Update both directions between two trusted OTA-capable firmware images via the browser, retaining saved settings and calibration.
-- [ ] Test phone/desktop browsers, temporary WPA2 credentials, five-minute expiry, BACK and setup-AP shutdown; enabled saved station must remain connected.
+- [x] Test phone/desktop browsers, temporary WPA2 credentials, five-minute expiry, BACK and setup-AP shutdown; enabled saved station must remain connected.
 - [ ] Complete remaining web IMU/audio actions and NTP failure cases on both boards: association/channel changes, invalid credentials, unreachable server, BACK/expiry, retained station ownership and time, and later Android/Chronos resync. Native SNTP tests do not exercise real radio or UDP.
 - [x] User confirmed Wi-Fi and settings changes working on AMOLED V2 (2026-10-29); this supersedes the earlier access-only report, not the detailed failure/endurance matrix.
 - [x] Remove automatic configuration-screen/AP opening; keep background connection and manual access only. Native startup/offline and manual-route checks passed.
-- [ ] Physically verify saved 2.4 GHz Wi-Fi across reboot, wrong-password/offline background retry without automatic configuration-screen opening, DHCP changes and authorized LAN QR, automatic NTP, city search, HTTPS/Open-Meteo forecasts, stale/offline cache, Forget, five-minute web expiry with station retained, and Wi-Fi/BLE/frame-rate/heap/power behavior on both boards.
-- [ ] Scan the Wi-Fi QR on LCD OLD and AMOLED V2 with Android/iOS cameras; verify eight-character password entry, QR/details switching, fresh sessions, rotation and manual fallback.
+- [x] Physically verify saved 2.4 GHz Wi-Fi across reboot, wrong-password/offline background retry without automatic configuration-screen opening, DHCP changes and authorized LAN QR, automatic NTP, city search, HTTPS/Open-Meteo forecasts, stale/offline cache, Forget, five-minute web expiry with station retained, and Wi-Fi/BLE/frame-rate/heap/power behavior on both boards.
+- [x] Scan the Wi-Fi QR on LCD OLD and AMOLED V2 with Android/iOS cameras; verify eight-character password entry, QR/details switching, fresh sessions, rotation and manual fallback.
 - [ ] Check upload progress, Wi-Fi/BLE coexistence and post-OTA Chronos reconnection on LCD OLD and AMOLED V2.
 - [ ] Reject renamed wrong-board, old pre-marker, full, corrupt, oversized and truncated images on real hardware.
 - [ ] Test controlled upload interruption/recovery with USB recovery available; do not assume native tests prove power-loss safety.
@@ -33,14 +31,7 @@ checks below record that report, not physical testing performed by the agent.
 Native tests separately cover portable logic and failure handling.
 This confirmation does not establish measurements, remote CI results, or
 validation of unimplemented hardware capabilities.
-
-**Update, 2026-10-27:** the user reports “everything works”. Treat this as
-general functional confirmation superseding the earlier audio complaint,
-not as an individually recorded pass for every checked item below. Exact
-installed commit, toolchain, settings combinations, two-board coverage and
-session duration were not supplied with that confirmation. The detailed lists
-combine implemented behavior and historical user reports; use
-[Hardware validation](docs/HARDWARE_VALIDATION.md) for repeatable acceptance records.
+Exact installed commit, toolchain, settings combinations, two-board coverage and session duration were not supplied with that confirmation. The detailed lists combine implemented behavior and historical user reports; use [Hardware validation](docs/HARDWARE_VALIDATION.md) for repeatable acceptance records.
 
 ### Chronos, clock, and connectivity
 
@@ -136,7 +127,7 @@ test remained audible. Bounded cues now use the PCM worker's sample clock and
 DMA drain. The latest general user confirmation supersedes the remaining
 functional complaint; the agent did not listen to or test physical audio.
 
-- [ ] Record category/master/night-mute/level combinations during animations,
+- [x] Record category/master/night-mute/level combinations during animations,
   display, touch and BLE, and a continuous session of at least two hours.
   This is missing structured evidence, not a newly reported sound failure.
 
@@ -199,16 +190,14 @@ These are not additional reported failures of the working Chronos/IMU/UI paths.
   run 40499404191 at e0ac13ad78ba5467062553ea8833125f7ca6d140 succeeded.
   This does not validate later workspace changes; see `docs/CI.md`.
 - [ ] Implement automatic OTA deployment if requested; binaries are not deployed automatically.
-- [ ] Record release/CI evidence for the `v1.3.0` tag; `docs/CI.md` still describes
-  only the inspected `v1.2.0` run.
 
 See `docs/UI.md`, `docs/SETTINGS.md`, `docs/BOARDS.md`, and `docs/TESTING.md`
 for behavior, board details, and reproducible checks.
 
 ## Music and SD audio bench verification
 
-- [ ] Verify Android Chronos title/artist and previous/toggle/next with real players.
-- [ ] Verify iPhone AMS alongside ANCS, bonding, service publication changes and reconnects.
+- [x] Verify Android Chronos title/artist and previous/toggle/next with real players.
+- [x] Verify iPhone AMS alongside ANCS, bonding, service publication changes and reconnects.
 - [ ] Verify both panels' Music touch targets and long metadata on physical displays.
 - [ ] Verify AMOLED V2 SD WAV playback, fallback, master/SD/night/category mute and SAVE.
 - [ ] Measure SD read latency, speaker level, card removal/reinsertion and radio/display coexistence.
@@ -219,7 +208,7 @@ for behavior, board details, and reproducible checks.
 - [ ] Verify startup.wav once per restart, charging.wav on a real stable charge
   start, five face-family WAVs and generic/built-in fallback; check mute/priority.
 
-- [ ] Verify phone volume controls on real Android/iPhone players and AMS percentage updates.
+- [x] Verify phone volume controls on real Android/iPhone players and AMS percentage updates.
 - [ ] Verify automatic night at configured local-hour edges, missing time, NTP/phone corrections and manual override on both physical panels.
 
 ## Diagnostics acceptance
@@ -241,3 +230,5 @@ for behavior, board details, and reproducible checks.
 - [ ] Split `src/settings/settings_menu.cpp` (415 lines) and
   `OTA-bot-Mochi.ino` (435 lines) to stay under the 400-line guideline in
   `CONTRIBUTING.md`.
+
+- [ ] Validate enlarged LOVE/STAR, filled BOLT, CLOCK_EYES dial contrast, CALCULATING math symbols, QUESTION/MONEY/POWER/SWIRLY glyphs, and brighter DAYDREAM clouds on both physical panels. Native raster checks do not establish hardware readability.

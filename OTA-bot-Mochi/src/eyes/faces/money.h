@@ -9,10 +9,13 @@
 namespace face_defs { namespace money_face {
 using namespace face_primitives;
 
-/** @brief money glyph procedure. */
+/** @brief Large green dollar sign with bounded gaze movement on pupil styles. */
 inline bool glyph(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b, int16_t x, int16_t y, int16_t s, uint16_t color, uint16_t cut) {
-	(void)cfg; (void)b; (void)x; (void)y; (void)s; (void)cut;
-	money(gfx, x, y, s, color); return true;
+	(void)cfg; (void)cut; (void)color;
+	int16_t size = int16_t((b.w < b.h ? b.w : b.h) / 3);
+	if (size > s) { s = size; }
+	money(gfx, x, y, s, eye_rgb(48, 224, 112));
+	return true;
 }
 
 /** @brief Immutable money face; C++17 named-field initialization. */

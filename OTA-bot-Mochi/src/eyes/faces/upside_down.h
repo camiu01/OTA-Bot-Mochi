@@ -6,9 +6,14 @@
 #pragma once
 #include "../face_support.h"
 namespace face_defs { namespace upside_down_face {
-/** @brief Carry each eye around the pair center, then unwind on return. */
-inline void layout(const EyeConfig &cfg, EyeBox &b, uint32_t, float a) {
-	float angle = a * 3.14159265f;
+/** @brief Take 1.5 seconds for each half-turn so orbital movement does not jump across the eye row. */
+inline void layout(const EyeConfig &cfg, EyeBox &b, uint32_t elapsed, float a) {
+	(void)a;
+	uint32_t phase = elapsed % 6000;
+	float turn = phase < 2100 ? (float(phase) - 600) / 1500 :
+		(phase < 3900 ? 1 : (5400 - float(phase)) / 1500);
+	turn = turn < 0 ? 0 : (turn > 1 ? 1 : turn);
+	float angle = turn * turn * (3 - 2 * turn) * 3.14159265f;
 	int16_t cx = b.x + b.w / 2, cy = b.y + b.h / 2;
 	int16_t center = cfg.screenW / 2;
 	int16_t x = int16_t(center + (cx - center) * cosf(angle));

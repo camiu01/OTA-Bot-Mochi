@@ -120,7 +120,7 @@ For parameters, a compiled example and registration, see
 | 83 | SNEEZE | Both eyes scrunched before the sneeze |
 | 84 | JUDGE | Heavy half-lids over a raised lower lid |
 | 85 | QUESTION | Question-mark pupils over an open gaze |
-| 86 | CALCULATING | Furrowed asymmetric lids over an hourglass |
+| 86 | CALCULATING | Concentrated asymmetric lids over plus and equals signs |
 | 87 | CYBORG | One eye behind a visor slope, one plain |
 | 88 | ARC_HAPPY | Curved smiling slits |
 | 89 | ARC_SAD | Curved drooping slits |
@@ -181,8 +181,8 @@ Every expression must work on all four styles, which the native suite enforces:
   with a large coloured glyph. DIZZY and SWIRLY replace the whole eye on solid styles.
 - **Engraved expressions** (CRYING, the ten symbol faces 43-52, and the glyph
   faces 73-77, 81, 85-86) draw the normal body first and then cut the glyph back
-  out in the background colour at rest, so the silhouette survives and no pupil or
-  highlight pixel is ever produced.
+  out in the background colour at rest (BOLT adds a gold center and MONEY uses
+  green ink), so the silhouette survives without ordinary pupils or highlights.
 - **Lid expressions** only change eyelids and box dimensions, so they already work
   everywhere; WINK also carries an explicit lid so it stays visible when per-eye
   geometry is switched off.
@@ -195,9 +195,11 @@ whole-eye marks and pupil-sized marks both stay inside the dirty region.
 
 ### Configured colours and distinct silhouettes
 
-Resting expressions do not override the selected palette. LOVE and STAR use
-the body color as whole-eye shapes; other glyphs use the configured pupil ink
-on NORMAL/BLOUB and background-color engravings on MOCHI/TRAPEZ. The petting
+Resting expressions retain the selected body palette. LOVE and STAR use
+larger whole-eye shapes with a body-color outline and pink/gold centers. BOLT
+uses a gold-filled diagonal lightning symbol inside its contrasting engraving
+or pupil outline. MONEY uses a larger green symbol. Other glyphs use the
+configured pupil ink on NORMAL/BLOUB and background-color engravings on MOCHI/TRAPEZ. The petting
 heart marker also uses the rendered body color. `eye_palette.h` packs RGB565
 values for temporary reaction and scene colors.
 
@@ -333,3 +335,9 @@ eyes_set_slant(14);
 eyes_set_expression(AWE);
 eyes_update(millis());
 ```
+
+Symbol refinements: QUESTION uses an open hook, MONEY a larger green dollar sign, POWER an
+open switch ring, and SWIRLY a panel-scaled bold spiral. CALCULATING pairs plus
+and equals signs. CLOCK_EYES uses enlarged decorative dials starting at 10:10
+with thick hands; it remains uptime-driven rather than synchronized local time.
+DAYDREAM clouds use a brighter blue-white blend while retaining their entry fade.

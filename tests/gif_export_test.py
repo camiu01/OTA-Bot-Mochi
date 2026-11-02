@@ -35,6 +35,27 @@ class GifExportTests(unittest.TestCase):
 		args = exporter.parser().parse_args(["--all"])
 		self.assertEqual(exporter.select_moods(args, ["moon", "uwu"]), ["moon", "uwu"])
 
+	def test_all_styles_use_separate_folders_and_preserve_options(self):
+		args = exporter.parser().parse_args(["--all", "--all-styles", "--size", "368x448",
+			"--seconds", "13", "--output", "folder with spaces"])
+		with patch.object(exporter, "export") as capture:
+			exporter.export_styles(args, Path("renderer"), ["moon", "uwu"], {})
+		self.assertEqual(capture.call_count, 4)
+		for call, style in zip(capture.call_args_list, exporter.STYLES):
+			selected, binary, moods, env = call.args
+			self.assertEqual(selected.output, Path("folder with spaces") / style)
+			self.assertEqual((selected.style, selected.size, selected.seconds), (style, "368x448", 13))
+			self.assertEqual((binary, moods, env), (Path("renderer"), ["moon", "uwu"], {}))
+		self.assertEqual(args.output, Path("folder with spaces"))
+
+	def test_default_all_styles_share_one_run_directory(self):
+		args = exporter.parser().parse_args(["--all-styles"])
+		with patch.object(exporter, "export") as capture:
+			exporter.export_styles(args, Path("renderer"), ["moon"], {})
+		folders = [call.args[0].output for call in capture.call_args_list]
+		self.assertEqual(len({folder.parent for folder in folders}), 1)
+		self.assertEqual([folder.name for folder in folders], list(exporter.STYLES))
+
 	def test_invalid_cli_ranges_and_choices(self):
 		for flags in (["--fps", "0"], ["--fps", "31"], ["--seconds", "0"],
 			["--seconds", "31"], ["--size", "1x1"], ["--style", "other"],

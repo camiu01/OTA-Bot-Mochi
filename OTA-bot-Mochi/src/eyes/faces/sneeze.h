@@ -15,21 +15,38 @@ inline void lids(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b) {
 			strip(gfx, b, b.h / 3, true, cfg.bgColor);
 }
 
-/** @brief sneeze reactionMotion procedure. */
-inline void reactionMotion(bool left, uint32_t phase, float a, float &sx, float &sy, float &dx, float &dy) {
-	(void)left; (void)phase; (void)a; (void)sx; (void)sy; (void)dx; (void)dy;
-	constexpr Expression expr = SNEEZE; (void)expr;
-	float wave = sinf(phase * 0.0062831853f); (void)wave;
-	if (phase < 1100) { sx -= a * 0.1f; sy += a * 0.18f; dy = -a * 4; }
-			else if (phase < 2000) { sx += a * 0.15f; sy -= a * 0.4f; dy = a * 7; }
-			else { dy = -a * 3; }
+/** @brief Ease the scrunch in and out without changing shape in one frame. */
+inline float scrunch(uint32_t phase) {
+	float t = phase < 1200 ? (float(phase) - 900) / 300 :
+		(phase < 1800 ? 1 : (2200 - float(phase)) / 400);
+	t = t < 0 ? 0 : (t > 1 ? 1 : t);
+	return t * t * (3 - 2 * t);
 }
 
-/** @brief sneeze reactionBody procedure. */
+/** @brief Blend inhalation, compression and recovery rather than switching poses at fixed timestamps. */
+inline void reactionMotion(bool left, uint32_t phase, float a, float &sx, float &sy, float &dx, float &dy) {
+	(void)left; (void)dx;
+	float pulse = scrunch(phase);
+	sx += a * (-0.1f + 0.25f * pulse);
+	sy += a * (0.18f - 0.58f * pulse);
+	dy = a * (-4 + 11 * pulse);
+}
+
+/** @brief Close the ordinary eye before revealing its sneeze chevron, then reopen along the same path. */
 inline bool reactionBody(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeState &st, const EyeBox &b, uint32_t elapsed, uint16_t neutral) {
-	(void)st; (void)neutral;
-	if (eye_reaction_amount(elapsed) < 0.8f || elapsed % 3000 < 1100 || elapsed % 3000 >= 2000) { return false; }
-	eye_reaction_chevron(gfx, cfg, b); return true;
+	(void)neutral;
+	float pulse = scrunch(elapsed % 3000) * eye_reaction_amount(elapsed);
+	if (pulse == 0) { return false; }
+	float opening = pulse < 0.5f ? 1 - 2 * pulse : 2 * pulse - 1;
+	EyeBox visible = b;
+	visible.h = eye_limit(int16_t(6 + (b.h - 6) * opening), 1, b.h);
+	visible.y += (b.h - visible.h) / 2;
+	visible.radius = eye_limit(b.radius, 0, visible.h / 2);
+	if (pulse >= 0.5f) { eye_reaction_chevron(gfx, cfg, visible); return true; }
+	eye_body(gfx, cfg, visible);
+	eye_pupils(gfx, cfg, st, visible);
+	lids(gfx, cfg, visible);
+	return true;
 }
 
 /** @brief Immutable sneeze face; C++17 named-field initialization. */

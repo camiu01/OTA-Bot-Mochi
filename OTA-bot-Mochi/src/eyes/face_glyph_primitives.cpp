@@ -1,3 +1,7 @@
+/**
+ * @file face_glyph_primitives.cpp
+ * @brief Bounded face symbols with readable silhouettes and panel-scaled strokes.
+ */
 #include "face_support.h"
 namespace face_primitives {
 
@@ -55,17 +59,14 @@ void star(Arduino_GFX *gfx, int16_t x, int16_t y, int16_t s, uint16_t color) {
 	}
 }
 
-/** @brief Shared spiral drawing primitive. */
+/** @brief Bold spiral kept inside the glyph bounds, including its stroke. */
 void spiral(Arduino_GFX *gfx, int16_t x, int16_t y, int16_t s, uint16_t color) {
 	if (s < 2) { return; }
-	int16_t prev_x = x, prev_y = y;
-	for (int8_t i = 1; i <= 24; ++i) {
-		float t = i * 0.4f;
-		float radius = t * s / 9.6f;
-		int16_t px = int16_t(x + cosf(t) * radius);
-		int16_t py = int16_t(y + sinf(t) * radius);
-		gfx->drawLine(prev_x, prev_y, px, py, color);
-		prev_x = px; prev_y = py;
+	int16_t stroke = int16_t(s / 16 + 1);
+	for (int16_t i = 0; i <= 96; ++i) {
+		float angle = i * 0.1f;
+		float radius = i * (s - stroke) / 96.0f;
+		gfx->fillCircle(int16_t(x + cosf(angle) * radius), int16_t(y + sinf(angle) * radius), stroke, color);
 	}
 }
 
@@ -113,20 +114,28 @@ void horns(Arduino_GFX *gfx, int16_t x, int16_t y, int16_t s, uint16_t color) {
 		int16_t(2 * x - tip), apex, color);
 }
 
-/** @brief Shared flame drawing primitive. */
+/** @brief Lobed flame silhouette with a leaning tip and a smaller side tongue. */
 void flame(Arduino_GFX *gfx, int16_t x, int16_t y, int16_t s, uint16_t color) {
 	if (s < 3) { return; }
-	int16_t wing = int16_t(s * 3 / 4);
-	gfx->fillTriangle(x, int16_t(y - s), int16_t(x - wing), int16_t(y + s / 2),
-		int16_t(x + wing), int16_t(y + s / 2), color);
-	gfx->fillCircle(x, int16_t(y + s / 3), int16_t(s / 2), color);
+	gfx->fillEllipse(x, y + s / 3, int16_t(s * 2 / 3), int16_t(s * 3 / 5), color);
+	gfx->fillTriangle(x - s / 2, y + s / 3, x + s / 2, y + s / 3, x + s / 4, y - s, color);
+	gfx->fillTriangle(x - s * 2 / 3, y + s / 3, x, y + s / 2, x - s * 3 / 5, y - s / 3, color);
+	gfx->fillTriangle(x, y + s / 3, x + s * 2 / 3, y + s / 3, x + s / 2, y - s / 6, color);
 }
 
-/** @brief Shared crescent drawing primitive. */
+/** @brief Open lunar crescent; subtraction is clipped to the original disc. */
 void crescent(Arduino_GFX *gfx, int16_t x, int16_t y, int16_t s, uint16_t color, uint16_t cut) {
 	if (s < 3) { return; }
-	gfx->fillCircle(x, y, s, color);
-	gfx->fillEllipse(int16_t(x + s / 4), y, int16_t(s * 3 / 4), int16_t(s * 3 / 4), cut);
+	int16_t shift = int16_t(s / 2), inner = int16_t(s * 9 / 10);
+	for (int16_t row = -s; row <= s; ++row) {
+		int16_t outer = int16_t(sqrtf(float(int32_t(s) * s - int32_t(row) * row)));
+		gfx->fillRect(x - outer, y + row, 2 * outer + 1, 1, color);
+		if (row < -inner || row > inner) { continue; }
+		int16_t span = int16_t(sqrtf(float(int32_t(inner) * inner - int32_t(row) * row)));
+		int16_t left = eye_limit(shift - span, -outer, outer + 1);
+		int16_t right = eye_limit(shift + span, -outer - 1, outer);
+		if (right >= left) { gfx->fillRect(x + left, y + row, right - left + 1, 1, cut); }
+	}
 }
 
 /** @brief Shared sparkle drawing primitive. */
@@ -139,14 +148,14 @@ void sparkle(Arduino_GFX *gfx, int16_t x, int16_t y, int16_t s, uint16_t color) 
 	gfx->fillTriangle(int16_t(x + s), y, x, int16_t(y - thin), x, int16_t(y + thin), color);
 }
 
-/** @brief Shared bolt drawing primitive. */
+/** @brief Connected diagonal lightning silhouette with two pointed ends. */
 void bolt(Arduino_GFX *gfx, int16_t x, int16_t y, int16_t s, uint16_t color) {
 	if (s < 4) { return; }
 	int16_t wing = int16_t(s * 2 / 3);
-	gfx->fillTriangle(int16_t(x - wing / 2), int16_t(y - s), int16_t(x + wing),
-		int16_t(y - s / 5), int16_t(x - wing / 2), int16_t(y + s / 5), color);
-	gfx->fillTriangle(int16_t(x + wing / 2), int16_t(y + s), int16_t(x - wing),
-		int16_t(y + s / 5), int16_t(x + wing / 2), int16_t(y - s / 5), color);
+	gfx->fillTriangle(int16_t(x + s / 3), int16_t(y - s), int16_t(x - wing),
+		int16_t(y + s / 6), int16_t(x + s / 6), int16_t(y + s / 6), color);
+	gfx->fillTriangle(int16_t(x - s / 3), int16_t(y + s), int16_t(x + wing),
+		int16_t(y - s / 6), int16_t(x - s / 6), int16_t(y - s / 6), color);
 }
 
 /** @brief Shared rhombus drawing primitive. */
@@ -165,11 +174,20 @@ void crosshair(Arduino_GFX *gfx, int16_t x, int16_t y, int16_t s, uint16_t color
 	gfx->drawLine(x, int16_t(y - s), x, int16_t(y + s), color);
 }
 
-/** @brief Shared money drawing primitive. */
+/** @brief Angular dollar sign with a legible S stroke and vertical bar. */
 void money(Arduino_GFX *gfx, int16_t x, int16_t y, int16_t s, uint16_t color) {
-	annulus(gfx, x, y, int16_t(s * 3 / 4), color);
 	if (s < 3) { return; }
-	gfx->drawLine(x, int16_t(y - s), x, int16_t(y + s), color);
+	int16_t w = int16_t(s * 3 / 4), h = int16_t(s * 3 / 4);
+	const int px[] = {w, -w / 2, -w, -w / 2, w / 2, w, w / 2, -w};
+	const int py[] = {-h, -h, -h / 2, -h / 4, h / 4, h / 2, h, h};
+	int16_t stroke = int16_t(s / 7 + 1);
+	for (int16_t offset = 0; offset < stroke; ++offset) {
+		for (uint8_t i = 1; i < 8; ++i) {
+			gfx->drawLine(x + px[i - 1] + offset - stroke / 2, y + py[i - 1], x + px[i] + offset - stroke / 2, y + py[i], color);
+			gfx->drawLine(x + px[i - 1], y + py[i - 1] + offset - stroke / 2, x + px[i], y + py[i] + offset - stroke / 2, color);
+		}
+	}
+	gfx->fillRect(x - stroke / 2, y - s, stroke, 2 * s + 1, color);
 }
 
 /** @brief Shared glitch_glyph drawing primitive. */
@@ -189,31 +207,41 @@ void hourglass(Arduino_GFX *gfx, int16_t x, int16_t y, int16_t s, uint16_t color
 	gfx->fillTriangle(int16_t(x - w), int16_t(y + s), int16_t(x + w), int16_t(y + s), x, y, color);
 }
 
-/** @brief Shared low_batt drawing primitive. */
+/** @brief Thick horizontal battery case with a terminal and one remaining charge bar. */
 void low_batt(Arduino_GFX *gfx, int16_t x, int16_t y, int16_t s, uint16_t color) {
 	if (s < 4) { return; }
-	int16_t w = int16_t(s * 6 / 5), h = int16_t(s * 3 / 4);
-	gfx->drawRect(int16_t(x - w / 2), int16_t(y - h / 2), w, h, color);
-	gfx->fillRect(int16_t(x + w / 2), int16_t(y - h / 4), 2, int16_t(h / 2), color);
-	if (h > 4) {
-		gfx->fillRect(int16_t(x - w / 2 + 2), int16_t(y - h / 2 + 2), int16_t(w / 4), int16_t(h - 4), color);
+	int16_t w = int16_t(s * 3 / 2), h = int16_t(s * 6 / 5);
+	int16_t stroke = eye_limit(int16_t(s / 8), 1, 8);
+	int16_t left = int16_t(x - w / 2), top = int16_t(y - h / 2);
+	for (int16_t i = 0; i < stroke; ++i) { gfx->drawRect(left + i, top + i, w - 2 * i, h - 2 * i, color); }
+	gfx->fillRect(left + w, y - h / 4, stroke + 1, h / 2, color);
+	int16_t charge = int16_t(h - 2 * stroke - 2);
+	if (charge > 0 && s >= 6) { gfx->fillRect(left + stroke + 1, top + stroke + 1, stroke + 1, charge, color); }
+}
+
+/** @brief Paired eighth notes with thick stems and a slanted connecting beam. */
+void music_note(Arduino_GFX *gfx, int16_t x, int16_t y, int16_t s, uint16_t color) {
+	if (s < 3) { return; }
+	int16_t r = int16_t(s / 3), stroke = int16_t(s / 7 + 1);
+	int16_t left = int16_t(x - s / 2), right = int16_t(x + s / 2);
+	gfx->fillEllipse(left, y + s / 2, r, int16_t(r * 2 / 3 + 1), color);
+	gfx->fillEllipse(right, y + s / 3, r, int16_t(r * 2 / 3 + 1), color);
+	gfx->fillRect(left + r / 2, y - s * 2 / 3, stroke, s * 7 / 6, color);
+	gfx->fillRect(right + r / 2, y - s, stroke, s * 4 / 3, color);
+	for (int16_t i = 0; i < stroke * 2; ++i) {
+		gfx->drawLine(left + r / 2, y - s * 2 / 3 + i, right + r / 2 + stroke - 1, y - s + i, color);
 	}
 }
 
-/** @brief Shared music_note drawing primitive. */
-void music_note(Arduino_GFX *gfx, int16_t x, int16_t y, int16_t s, uint16_t color) {
-	if (s < 3) { return; }
-	int16_t r = int16_t(s / 3 ? s / 3 : 1);
-	gfx->fillCircle(int16_t(x - r / 2), int16_t(y + s / 2), r, color);
-	gfx->fillRect(int16_t(x + r / 2), int16_t(y - s * 2 / 3), 2, int16_t(s + r / 2), color);
-	gfx->fillRect(int16_t(x + r / 2), int16_t(y - s * 2 / 3), int16_t(s / 2), int16_t(r / 2 + 1), color);
-}
-
-/** @brief Shared power_sym drawing primitive. */
+/** @brief Open power ring with a separated central switch stem. */
 void power_sym(Arduino_GFX *gfx, int16_t x, int16_t y, int16_t s, uint16_t color) {
 	if (s < 3) { return; }
-	annulus(gfx, x, int16_t(y + s / 6), int16_t(s * 3 / 4), color);
-	gfx->fillRect(int16_t(x - 1), int16_t(y - s), 3, int16_t(s), color);
+	int16_t stroke = int16_t(s / 12 + 1), radius = int16_t(s * 2 / 3);
+	for (int16_t i = 0; i <= 48; ++i) {
+		float angle = 0.7f + i * (6.2831853f - 1.4f) / 48;
+		gfx->fillCircle(int16_t(x + sinf(angle) * radius), int16_t(y - cosf(angle) * radius), stroke, color);
+	}
+	gfx->fillRect(x - stroke / 2, y - s, stroke + 1, s, color);
 }
 
 /** @brief Shared exclaim drawing primitive. */
@@ -224,12 +252,15 @@ void exclaim(Arduino_GFX *gfx, int16_t x, int16_t y, int16_t s, uint16_t color) 
 	gfx->fillCircle(x, int16_t(y + s * 3 / 4), int16_t(w / 2 + 1), color);
 }
 
-/** @brief Shared question drawing primitive. */
+/** @brief Open question hook with a distinct stem and separated dot. */
 void question(Arduino_GFX *gfx, int16_t x, int16_t y, int16_t s, uint16_t color) {
 	if (s < 4) { return; }
-	int16_t r = int16_t(s / 2);
-	annulus(gfx, x, int16_t(y - s / 3), r, color);
-	gfx->fillRect(int16_t(x - 1), int16_t(y + r / 2), 2, int16_t(s / 3), color);
-	gfx->fillCircle(x, int16_t(y + s * 4 / 5), int16_t(s / 5 ? s / 5 : 1), color);
+	int16_t radius = int16_t(s / 2), stroke = int16_t(s / 12 + 1);
+	for (int16_t i = 0; i <= 32; ++i) {
+		float angle = -3.1415927f + i * 4.712389f / 32;
+		gfx->fillCircle(int16_t(x + cosf(angle) * radius), int16_t(y - s / 3 + sinf(angle) * radius), stroke, color);
+	}
+	gfx->fillRect(x - stroke, y + s / 6, 2 * stroke + 1, s / 4 + 1, color);
+	gfx->fillCircle(x, y + s * 4 / 5, stroke, color);
 }
 }

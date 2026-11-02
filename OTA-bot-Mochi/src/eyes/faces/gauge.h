@@ -57,12 +57,13 @@ inline void local_eye_gauge_draw(Arduino_GFX *gfx, const EyeConfig &cfg, uint32_
 	gfx->fillCircle(cx, cy, 3, cfg.fgColor);
 }
 
-/** @brief gauge local_eye_scene_gauge implementation. */
+/** @brief Spread dial hollowing across the morph and ease its edges to avoid a sudden large cutout. */
 inline void local_eye_scene_gauge(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeLayout &layout,
 		uint32_t elapsed, float t) {
 	EyeBox dial = local_eye_gauge_box(cfg);
 	dial.radius = dial.w / 2;
-	float reveal = t < 0.65f ? 0 : (t - 0.65f) / 0.35f;
+	float reveal = t < 0.35f ? 0 : (t - 0.35f) / 0.65f;
+	reveal = reveal * reveal * (3 - 2 * reveal);
 	EyeConfig body = cfg;
 	body.fgColor = eye_mix(cfg.fgColor, cfg.bgColor, uint8_t((1 - reveal) * 100));
 	const EyeBox eyes[] = {layout.left, layout.right};

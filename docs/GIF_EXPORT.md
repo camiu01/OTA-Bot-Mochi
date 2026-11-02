@@ -19,8 +19,9 @@ names, separated by spaces, or `all`. Then choose a style and screen size.
 Defaults are `uwu`, `mochi`, 240x280, six seconds and 30 FPS.
 
 To see every face without typing commands, double-click **`tools/export-all-gifs.bat`**.
-It exports all 135 faces into the same fresh output folder, **one named GIF file
-per face**, not one combined animation. Open the files in your image viewer.
+It exports all 135 faces in all four styles into a fresh output folder, with
+separate `mochi/`, `bloub/`, `normal/` and `trapez/` subfolders: **540 named GIF
+files**, one per face and style. Open the files in your image viewer.
 This batch can take a few minutes. The window stays open to show the output path
 or any error.
 
@@ -74,7 +75,7 @@ Run from the repository root:
 # Every face, with a smaller frame rate to reduce file size and encoding work.
 .\tools\export-gifs.bat --all --style bloub --fps 15
 
-# Dedicated all-faces launcher; accepts the same style, size and timing options.
+# Dedicated all-faces/all-styles launcher; accepts size, timing and output options.
 .\tools\export-all-gifs.bat --size 368x448 --fps 15
 
 # Twelve seconds includes a full cycle of the longer scenes.
@@ -91,6 +92,8 @@ python tests/gif_export_test.py
 ## Options and output
 
 - `--style`: `mochi`, `bloub`, `normal`, `trapez`.
+- `--all-styles`: export all four styles into separate subfolders under one run
+  directory (or `--output DIRECTORY`). Takes precedence over `--style`.
 - `--size`: `240x280` (LCD), `368x448` (AMOLED), `240x320`, `320x480`,
   `128x160`, `160x128`. These select raster dimensions, not hardware drivers.
 - `--seconds`: 1–30, default 6. `--fps`: 1–30, default 30.

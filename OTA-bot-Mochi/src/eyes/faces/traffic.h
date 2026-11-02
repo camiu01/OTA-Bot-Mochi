@@ -7,12 +7,17 @@
 #include "../face_support.h"
 #include "../face_ambient_backgrounds.h"
 namespace face_defs { namespace traffic_face {
-/** @brief Fade sequential colors through the shared reversible loop. */
+/** @brief Ease between lamp colors over 300 ms inside the shared reversible loop. */
 inline uint16_t color(const EyeConfig &, bool, uint32_t elapsed) {
 	static constexpr uint16_t inks[] = {eye_rgb(245, 90, 80),
 		eye_rgb(255, 190, 70), eye_rgb(90, 230, 150)};
-	uint32_t phase = (elapsed % 6000) / 1000;
-	return inks[phase < 2 ? 0 : (phase < 3 ? 1 : 2)];
+	uint32_t phase = elapsed % 6000;
+	if (phase < 2000) { return inks[0]; }
+	uint8_t next = phase < 3000 ? 1 : 2;
+	uint32_t blend = phase - (next == 1 ? 2000 : 3000);
+	float t = blend < 300 ? blend / 300.0f : 1;
+	t = t * t * (3 - 2 * t);
+	return eye_mix(inks[next], inks[next - 1], uint8_t(t * 100));
 }
 /** @brief Draw a rounded lamp hood and a stationary dot grid. */
 inline void scenery(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeLayout &layout, uint32_t elapsed, float a) {

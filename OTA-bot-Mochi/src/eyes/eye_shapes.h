@@ -13,3 +13,6 @@ void eye_body(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &box);
 void eye_pupils(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeState &st, const EyeBox &box);
 /** @brief Shape eyelids inside one eye's bounds. @param gfx Canvas. @param cfg Config. @param box Eye. */
 void eye_lids(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &box);
+
+/** @brief Measure a style silhouette for continuous scene morphs. @param cfg Style and slant. @param box Eye bounds. @param row Relative row. @param left First relative pixel. @param right Last relative pixel, below left for an empty row. */
+void eye_body_span(const EyeConfig &cfg, const EyeBox &box, int16_t row, int16_t &left, int16_t &right);

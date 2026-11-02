@@ -60,11 +60,22 @@ EyeBox eye_scene_box(const EyeBox &a, const EyeBox &b, float t) {
 		int16_t(a.radius + (b.radius - a.radius) * t), a.left};
 }
 
-/** @brief Shared eye_scene_body animation primitive. */
+/** @brief Interpolate silhouette row endpoints so oval and trapezoid styles never snap into scene rectangles. */
 void eye_scene_body(Arduino_GFX *gfx, EyeConfig cfg, const EyeBox &box, float t) {
 	cfg.slant = int8_t(cfg.slant * (1 - t));
-	if (cfg.style == TRAPEZ && t < 0.5f) { eye_body(gfx, cfg, box); }
-	else { gfx->fillRoundRect(box.x, box.y, box.w, box.h, box.radius, cfg.fgColor); }
+	if (t <= 0) { eye_body(gfx, cfg, box); }
+	else if (t >= 1) { gfx->fillRoundRect(box.x, box.y, box.w, box.h, box.radius, cfg.fgColor); }
+	else {
+		EyeConfig target = cfg; target.style = MOCHI;
+		for (int16_t row = 0; row < box.h; ++row) {
+			int16_t source_left, source_right, target_left, target_right;
+			eye_body_span(cfg, box, row, source_left, source_right);
+			eye_body_span(target, box, row, target_left, target_right);
+			int16_t left = int16_t(lroundf(source_left + (target_left - source_left) * t));
+			int16_t right = int16_t(lroundf(source_right + (target_right - source_right) * t));
+			if (right >= left) { gfx->fillRect(box.x + left, box.y + row, right - left + 1, 1, cfg.fgColor); }
+		}
+	}
 	if (t < 0.3f) {
 		cfg.pupilColor = eye_mix(cfg.fgColor, cfg.pupilColor, uint8_t(t * 333));
 		cfg.highlightColor = eye_mix(cfg.fgColor, cfg.highlightColor, uint8_t(t * 333));

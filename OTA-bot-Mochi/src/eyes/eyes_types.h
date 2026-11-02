@@ -130,7 +130,7 @@ enum Expression : uint8_t {
 	SNEEZE = 83,	/**< Both eyes scrunched just before the sneeze. */
 	JUDGE = 84,	/**< Heavy half-lids over a raised lower lid. */
 	QUESTION = 85,	/**< Question-mark pupils over an open gaze. */
-	CALCULATING = 86,	/**< Furrowed asymmetric lids over an hourglass. */
+	CALCULATING = 86,	/**< Concentrated asymmetric lids over plus and equals signs. */
 	CYBORG = 87,	/**< One eye behind a visor slope, one plain. */
 	ARC_HAPPY = 88,	/**< Curved smiling eye slits. */
 	ARC_SAD = 89,	/**< Curved drooping eye slits. */

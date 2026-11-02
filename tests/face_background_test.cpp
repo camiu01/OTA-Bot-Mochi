@@ -20,7 +20,7 @@
 #include <iostream>
 
 /** @brief Moods owning a persistent backdrop; GLOW and HEADLIGHTS predate the batch. */
-static const Expression BACKDROPPED[] = {MECHA, SAMURAI, TITAN, YOKAI, NEON, WHEELS, SAKURA, BAMBOO, TRAFFIC, MOON, ZEN, DAYDREAM};
+static const Expression BACKDROPPED[] = {MECHA, SAMURAI, TITAN, YOKAI, NEON, WHEELS, SAKURA, BAMBOO, TRAFFIC, ZEN, DAYDREAM};
 
 /** @brief Check one pixel against both eye boxes, including their rounding margin. */
 static bool outside_pair(const EyeLayout &pair, int16_t x, int16_t y) {
@@ -35,7 +35,7 @@ static void catalog_rule() {
 	for (uint8_t id = 0; id < EXPRESSION_COUNT; ++id) {
 		const FacePreset *p = face_preset(Expression(id));
 		assert(p != nullptr);
-		bool expected = id == GLOW || id == HEADLIGHTS;
+		bool expected = id == GLOW || id == HEADLIGHTS || id == MOON;
 		for (Expression mood : BACKDROPPED) { expected = expected || id == mood; }
 		assert((p->background != nullptr) == expected);
 		if (expected) { assert(p->bounds != nullptr); }
@@ -61,6 +61,9 @@ static void entry(Arduino_GFX &gfx) {
 	assert(draw(1200, 0) == initial);
 	auto final = draw(1200);
 	assert(final != initial);
+	if (cfg.expression == DAYDREAM) {
+		assert(std::count(final.begin(), final.end(), eye_mix(eye_rgb(220, 232, 255), cfg.bgColor, 55)) > 20);
+	}
 	auto middle = draw(600);
 	assert(middle != initial && middle != final);
 	auto previous = initial;

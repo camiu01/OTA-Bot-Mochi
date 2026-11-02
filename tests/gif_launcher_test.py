@@ -46,7 +46,7 @@ class GifLauncherTests(unittest.TestCase):
 		self.assertEqual(result.returncode, 0, result.stderr)
 		lines = result.stdout.splitlines()
 		self.assertTrue(lines[1].endswith("/" + ROOT.name + "/tools/export-gifs.py"))
-		self.assertEqual(lines[2:], ["--all", *arguments])
+		self.assertEqual(lines[2:], ["--all", "--all-styles", *arguments])
 
 	def test_failure_status_is_preserved(self):
 		for launcher in ("export-gifs.sh", "export-all-gifs.sh"):

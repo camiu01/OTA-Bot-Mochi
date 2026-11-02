@@ -56,6 +56,7 @@ $sources = @(
 	'OTA-bot-Mochi/src/settings/usb_commands.cpp',
 	'OTA-bot-Mochi/src/settings/settings_menu.cpp',
 	'OTA-bot-Mochi/src/power/battery.cpp',
+	'OTA-bot-Mochi/src/power/charging.cpp',
 	'OTA-bot-Mochi/src/power/backlight.cpp',
 	'OTA-bot-Mochi/src/eyes/face_catalog.cpp',
 	'OTA-bot-Mochi/src/eyes/face_dispatch.cpp',

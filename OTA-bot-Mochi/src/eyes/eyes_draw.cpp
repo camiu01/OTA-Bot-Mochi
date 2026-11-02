@@ -5,7 +5,7 @@
  */
 /**
  * @file eyes_draw.cpp
- * @brief Bounded solid/pupilled eye rendering with correct dirty-region unions.
+ * @brief Bounded eye rendering, reversible symbol blinks and complete dirty-region unions.
  */
 #include "eye_shapes.h"
 #include "eye_palette.h"
@@ -102,6 +102,23 @@ static bool paint_scene(Arduino_GFX *gfx, const EyeConfig &cfg, uint32_t elapsed
 	return t != 0 && p->scene(gfx, cfg, layout, elapsed, t);
 }
 
+/** @brief Close ordinary eyes, reveal the symbol, then reverse the same blink at the cycle end. */
+static void symbol_cycle(EyeConfig &cfg, EyeState &drawing, EyeLayout &layout, uint32_t elapsed) {
+	const FacePreset *preset = face_preset(cfg.expression);
+	if (!preset || !preset->normalCycle) { return; }
+	float amount = eye_performance_amount(elapsed);
+	if (amount < 0.5f) { cfg.expression = NEUTRAL; }
+	layout = eye_layout(cfg, drawing);
+	drawing.lastMs = elapsed;
+	float opening = amount < 0.5f ? 1 - 2 * amount : 2 * amount - 1;
+	for (EyeBox *box : {&layout.left, &layout.right}) {
+		int16_t height = int16_t(6 + (box->h - 6) * opening);
+		box->y += (box->h - height) / 2;
+		box->h = height;
+		box->radius = eye_limit(box->radius, 0, height / 2);
+	}
+}
+
 /** @brief Render style silhouettes, scenery and the complete face handoff. */
 void eyes_draw() {
 	Arduino_GFX *gfx = eyes_gfx();
@@ -122,13 +139,14 @@ void eyes_draw() {
 	EyeLayout layout = eye_layout(cfg, scene ? EyeState{} : drawing);
 	if (scene && pose.active) { scene_entry(layout, cfg, drawing, pose, elapsed); }
 	if (scene) { drawing = EyeState{}; }
+	symbol_cycle(cfg, drawing, layout, elapsed);
 	if (pose.active && !scene) { animate_box(layout.left, pose, cfg); animate_box(layout.right, pose, cfg); }
 	if (!drawing.blinking && !scene) { eye_reaction_layout(cfg, layout, elapsed); }
 	eye_performance_layout(cfg, layout, elapsed);
 	if (preset && preset->drawing) { preset->drawing(drawing, layout, elapsed); }
 	cfg.fgColor = eye_reaction_ink(cfg, elapsed);
 	wipe(gfx, cfg, st);
-	bool backdropLeaving = eye_backdrop_draw(gfx, cfg, st, layout, elapsed, pose.active);
+	bool backdropLeaving = eye_backdrop_draw(gfx, cfg, st, layout, elapsed, pose.active && !(preset && preset->normalCycle));
 	eye_performance_background(gfx, cfg, layout, elapsed);
 	if (!paint_scene(gfx, cfg, elapsed, layout) && !eye_performance_scene(gfx, cfg, layout, elapsed)) {
 		EyeConfig left = cfg, right = cfg;

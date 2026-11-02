@@ -25,7 +25,7 @@ static void low_battery_sizes() {
 		gfx.fillScreen(0);
 		face_primitives::low_batt(&gfx, 20, 20, s, 0xFFFF);
 		if (s == 4) { assert(gfx.pixels[20 * 40 + 20] == 0); }
-		if (s == 8) { assert(gfx.pixels[19 * 40 + 18] == 0xFFFF); }
+		if (s == 8) { assert(gfx.pixels[19 * 40 + 16] == 0xFFFF); }
 	}
 }
 

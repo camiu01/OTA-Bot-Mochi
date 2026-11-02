@@ -9,16 +9,19 @@
 namespace face_defs { namespace music_face {
 using namespace face_primitives;
 
-/** @brief music glyph procedure. */
+/** @brief Enlarged violet eighth-note pair, bounded during pupil gaze. */
 inline bool glyph(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b, int16_t x, int16_t y, int16_t s, uint16_t color, uint16_t cut) {
-	(void)cfg; (void)b; (void)x; (void)y; (void)s; (void)cut;
-	music_note(gfx, x, y, s, color); return true;
+	(void)cfg; (void)color; (void)cut;
+	s = int16_t(s > (b.w < b.h ? b.w : b.h) / 3 ? s : (b.w < b.h ? b.w : b.h) / 3);
+	music_note(gfx, x, y, s, eye_rgb(184, 96, 248));
+	return true;
 }
 
 /** @brief Immutable music face; C++17 named-field initialization. */
 inline constexpr FacePreset preset = [] {
 	FacePreset p;
 	p.name = "music";
+	p.normalCycle = true;
 	p.glyph = glyph;
 	return p;
 }();

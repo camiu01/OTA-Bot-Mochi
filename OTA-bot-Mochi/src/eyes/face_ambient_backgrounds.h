@@ -110,7 +110,7 @@ inline void clouds(Arduino_GFX *gfx, EyeConfig &cfg, const EyeState &st, const E
 	const EyeLayout pair = eye_layout(cfg, EyeState{});
 	int16_t top = pair_top(cfg, pair, cfg.screenH / 20);
 	if (top < 12) { return; }
-	uint16_t ink = entry_mix(st, eye_rgb(164, 164, 192), cfg.bgColor, 42);
+	uint16_t ink = entry_mix(st, eye_rgb(220, 232, 255), cfg.bgColor, 100);
 	uint32_t phase = st.lastMs % 6000;
 	float sway = phase > 1500 && phase < 4500 ?
 		sinf((phase - 1500) * 0.0010471976f) : 0;

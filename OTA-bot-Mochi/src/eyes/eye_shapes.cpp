@@ -1,3 +1,6 @@
+/** @file eye_shapes.cpp
+ * @brief Bounded style silhouettes, symbol bodies and continuous scene spans.
+ */
 #include "face_support.h"
 using namespace face_primitives;
 
@@ -31,6 +34,40 @@ static void trapezoid_row(int16_t span, int16_t last, int16_t inset, int16_t top
 	int16_t along = int16_t(span * (top_max == top_right ? (i - top_min) : (top_max - i)) / run);
 	if (top_max == top_right) { if (along < right) { right = along; } }
 	else if (along > left) { left = along; }
+}
+
+/** @brief Measure rounded, oval and mirrored trapezoid row endpoints without allocating a raster. */
+void eye_body_span(const EyeConfig &cfg, const EyeBox &b, int16_t row, int16_t &left, int16_t &right) {
+	left = 1; right = 0;
+	if (row < 0 || row >= b.h || b.w < 4 || b.h < 4) { return; }
+	if (cfg.style == NORMAL) {
+		int16_t ry = int16_t(b.h / 2 - 1), rx = int16_t(b.w / 2 - 1);
+		int16_t dy = int16_t(row - b.h / 2);
+		if (dy < -ry || dy > ry) { return; }
+		int16_t half = int16_t(rx * sqrtf(1 - float(dy * dy) / (ry * ry)));
+		left = int16_t(b.w / 2 - half); right = int16_t(b.w / 2 + half);
+		return;
+	}
+	if (cfg.style != TRAPEZ) {
+		int16_t pad = corner_pad(b.radius, row);
+		int16_t tail = corner_pad(b.radius, int16_t(b.h - 1 - row));
+		if (tail > pad) { pad = tail; }
+		left = pad; right = int16_t(b.w - 1 - pad);
+		return;
+	}
+	int16_t slant = eye_limit(cfg.slant * eye_scale(cfg) / 100, -b.h / 4, b.h / 4);
+	int16_t amount = int16_t(slant < 0 ? -slant : slant);
+	int16_t top_left = slant >= 0 ? amount : 0, top_right = slant >= 0 ? 0 : amount;
+	int16_t span = int16_t(b.w - 1), last = int16_t(b.h - 1);
+	trapezoid_row(span, last, b.w / 10, top_left, top_right, row, left, right);
+	if (!b.left) { int16_t old = left; left = int16_t(span - right); right = int16_t(span - old); }
+	if (right < left) { return; }
+	int16_t shortest = b.w < b.h ? b.w : b.h, base = shortest / 6;
+	int16_t soft = eye_limit(b.radius < base ? base : b.radius, 4, shortest / 2);
+	int16_t pad = corner_pad(soft, int16_t(row - (top_left < top_right ? top_left : top_right)));
+	int16_t tail = corner_pad(soft, int16_t(last - row));
+	if (tail > pad) { pad = tail; }
+	left += pad; right -= pad;
 }
 
 /**
@@ -122,10 +159,10 @@ void eye_body(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b) {
 	}
 }
 
-/** @brief Draw contained pupils and symbols for the two non-solid styles. @param gfx Canvas. @param cfg Config. @param st State. @param b Eye. */
+/** @brief Draw contained pupils for non-solid styles, leaving whole symbols and clock dials unobscured. @param gfx Canvas. @param cfg Config. @param st State. @param b Eye. */
 void eye_pupils(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeState &st, const EyeBox &b) {
 	const FacePreset *p = face_preset(cfg.expression);
-	if (cfg.style == MOCHI || cfg.style == TRAPEZ || (p && p->wholeEye)) { return; }
+	if (cfg.expression == CLOCK_EYES || cfg.style == MOCHI || cfg.style == TRAPEZ || (p && p->wholeEye)) { return; }
 	int16_t radius = eye_limit((b.w < b.h ? b.w : b.h) / 5, 2, 9);
 	int16_t dx = eye_limit((st.saccadeX + st.tiltX + (p ? int16_t(p->gazeX * 20) : 0)) / 3, -b.w / 6, b.w / 6);
 	int16_t dy = eye_limit((st.saccadeY + st.tiltY + (p ? int16_t(p->gazeY * 18) : 0)) / 3, -b.h / 6, b.h / 6);

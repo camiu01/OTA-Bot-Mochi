@@ -79,7 +79,7 @@ static bool style_uniqueness(Arduino_GFX &gfx, uint8_t style) {
 		eyes_set_expression(static_cast<Expression>(expression));
 		state.dirtyInit = false;
 		eyes_draw();
-		if (expression == PONG || expression == GAUGE || expression == GLOW || expression == HEADLIGHTS || expression >= DANCING) {
+		if (face_preset(Expression(expression))->normalCycle || expression == PONG || expression == GAUGE || expression == GLOW || expression == HEADLIGHTS || expression >= DANCING) {
 			state.lastMs += 3000;
 			eyes_draw();
 		}
@@ -122,6 +122,7 @@ static void reaction_frame(Arduino_GFX &gfx, uint8_t style) {
 		visible |= pixel == ink || (crying && pixel == neutral);
 		assert(pixel == 0 || pixel == ink ||
 			(crying && crying_shade(pixel, ink, neutral)) ||
+			(eyes_config().expression == LOVE && pixel == eye_rgb(255, 92, 150)) ||
 			((style == NORMAL || style == BLOUB) && (pixel == 0xF800 || pixel == 0x07E0)));
 	}
 	assert(visible && eyes_config().fgColor == 0x07FF);

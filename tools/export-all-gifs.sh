@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
-# Export every face as a separate native-preview GIF.
+# Export every face in all four styles, with one output subfolder per style.
 set -eu
 root="$(CDPATH= cd "$(dirname "$0")" && pwd)"
-echo "Exporting every Mochi face, one GIF per file..."
-exec sh "$root/export-gifs.sh" --all "$@"
+echo "Exporting every face in all four styles, one folder per style..."
+exec sh "$root/export-gifs.sh" --all --all-styles "$@"

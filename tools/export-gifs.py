@@ -21,6 +21,7 @@ SOURCES = (
 	"OTA-bot-Mochi/src/settings/settings.cpp",
 	"OTA-bot-Mochi/src/settings/usb_commands.cpp",
 	"OTA-bot-Mochi/src/power/battery.cpp",
+	"OTA-bot-Mochi/src/power/charging.cpp",
 	"OTA-bot-Mochi/src/eyes/face_catalog.cpp",
 	"OTA-bot-Mochi/src/eyes/face_dispatch.cpp",
 	"OTA-bot-Mochi/src/eyes/face_primitives.cpp",
@@ -66,6 +67,7 @@ def parser():
 	moods.add_argument("--all", action="store_true", help="Export every face")
 	result.add_argument("--list", action="store_true", help="List all canonical face names")
 	result.add_argument("--style", choices=STYLES, default="mochi")
+	result.add_argument("--all-styles", action="store_true", help="Export all four styles into separate subfolders")
 	result.add_argument("--size", choices=SIZES, default="240x280")
 	result.add_argument("--seconds", type=bounded(1, 30), default=6)
 	result.add_argument("--fps", type=bounded(1, 30), default=30)
@@ -195,6 +197,31 @@ def export(args, binary, moods, env=None):
 	return paths
 
 
+def export_styles(args: argparse.Namespace, binary: Path, moods: list, env: dict) -> None:
+	"""Export selected styles into one run directory.
+
+	Args:
+		args: Validated command options.
+		binary: Native capture executable.
+		moods: Validated face names.
+		env: Capture process environment.
+	Returns:
+		None.
+	Raises:
+		OSError: An output file cannot be created.
+	"""
+	if not args.all_styles:
+		export(args, binary, moods, env)
+		return
+	stamp = datetime.now().strftime("%Y%m%d-%H%M%S") + "-" + uuid.uuid4().hex[:6]
+	directory = args.output or ROOT / "exports/gifs" / stamp
+	for style in STYLES:
+		selected = argparse.Namespace(**vars(args))
+		selected.style = style
+		selected.output = directory / style
+		export(selected, binary, moods, env)
+
+
 def main(argv=None):
 	"""Return a nonzero exit status with an actionable message on failure."""
 	args = parser().parse_args(argv)
@@ -209,7 +236,7 @@ def main(argv=None):
 		if args.list:
 			print("\n".join(catalog))
 			return 0
-		export(args, binary, select_moods(args, catalog), env)
+		export_styles(args, binary, select_moods(args, catalog), env)
 		return 0
 	except ModuleNotFoundError as error:
 		print(f"Missing dependency: {error.name}. Install Pillow in this Python environment; "

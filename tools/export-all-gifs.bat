@@ -1,7 +1,7 @@
 @echo off
 setlocal
-echo Exporting every Mochi face, one GIF per file...
-call "%~dp0export-gifs.bat" --all %*
+echo Exporting every face in all four styles, one folder per style...
+call "%~dp0export-gifs.bat" --all --all-styles %*
 set "result=%errorlevel%"
 if "%~1"=="" pause
 exit /b %result%

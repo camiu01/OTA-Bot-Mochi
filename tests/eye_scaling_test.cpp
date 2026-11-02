@@ -28,7 +28,7 @@ static void render(Expression expression) {
 	eyes_set_expression(expression);
 	state.dirtyInit = false;
 	eyes_draw();
-	if (expression == PONG || expression == GAUGE || expression == GLOW || expression == HEADLIGHTS || expression >= DANCING) {
+	if (face_preset(Expression(expression))->normalCycle || expression == PONG || expression == GAUGE || expression == GLOW || expression == HEADLIGHTS || expression >= DANCING) {
 		state.lastMs = state.effectStartMs + 3000;
 		eyes_draw();
 	}
@@ -104,7 +104,7 @@ static bool panel(int16_t w, int16_t h, int16_t expect_scale) {
 			int16_t first = w, last = -1;
 			for (int y = eye.y; y < eye.y + eye.h; ++y) {
 				for (int x = eye.x; x < eye.x + eye.w; ++x) {
-					if (gfx.pixels[size_t(y) * w + x] != eyes_config().fgColor) { continue; }
+					if (gfx.pixels[size_t(y) * w + x] == eyes_config().bgColor) { continue; }
 					if (x < first) { first = int16_t(x); }
 					if (x > last) { last = int16_t(x); }
 				}
