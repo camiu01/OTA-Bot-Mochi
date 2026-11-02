@@ -19,7 +19,7 @@ struct Field {
 	bool CompanionSettings::*flag;
 };
 static const Field fields[] = {
-	{"style", Text::EyesLabel, 0, 0, 3, 0, &CompanionSettings::style, nullptr},
+	{"style", Text::EyesLabel, 0, 0, EYE_STYLE_COUNT - 1, 0, &CompanionSettings::style, nullptr},
 	{"color", Text::ColorLabel, 0, 0, 5, 1, &CompanionSettings::color, nullptr},
 	{"mood", Text::MoodLabel, 0, 0, EXPRESSION_COUNT - 1, 2, &CompanionSettings::mood, nullptr},
 	{"brightness", Text::DayLevel, 1, 5, 90, -1, &CompanionSettings::brightness, nullptr},

@@ -19,8 +19,8 @@ names, separated by spaces, or `all`. Then choose a style and screen size.
 Defaults are `uwu`, `mochi`, 240x280, six seconds and 30 FPS.
 
 To see every face without typing commands, double-click **`tools/export-all-gifs.bat`**.
-It exports all 145 faces in all four styles into a fresh output folder, with
-separate `mochi/`, `bloub/`, `normal/` and `trapez/` subfolders: **580 named GIF
+It exports all 145 faces in all seven styles into a fresh output folder, with
+separate `mochi/`, `bloub/`, `normal/`, `trapez/`, `anime/`, `kitsune/` and `drl/` subfolders: **1015 named GIF
 files**, one per face and style. Open the files in your image viewer.
 This batch can take a few minutes. The window stays open to show the output path
 or any error.
@@ -91,8 +91,8 @@ python tests/gif_export_test.py
 
 ## Options and output
 
-- `--style`: `mochi`, `bloub`, `normal`, `trapez`.
-- `--all-styles`: export all four styles into separate subfolders under one run
+- `--style`: `mochi`, `bloub`, `normal`, `trapez`, `anime`, `kitsune`, `drl`.
+- `--all-styles`: export all seven styles into separate subfolders under one run
   directory (or `--output DIRECTORY`). Takes precedence over `--style`.
 - `--size`: `240x280` (LCD), `368x448` (AMOLED), `240x320`, `320x480`,
   `128x160`, `160x128`. These select raster dimensions, not hardware drivers.

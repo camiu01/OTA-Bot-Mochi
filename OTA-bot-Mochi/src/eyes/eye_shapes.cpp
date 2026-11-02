@@ -36,11 +36,28 @@ static void trapezoid_row(int16_t span, int16_t last, int16_t inset, int16_t top
 	else if (along > left) { left = along; }
 }
 
-/** @brief Measure rounded, oval and mirrored trapezoid row endpoints without allocating a raster. */
+/** @brief Sample mirrored chamfered headlight envelopes, including narrow blink poses. */
+static void signature_span(const EyeBox &b, int16_t row, int16_t &left, int16_t &right) {
+	left = b.w; right = -1;
+	for (int16_t x = 0; x < b.w; ++x) {
+		float u = float(b.left ? x : b.w - 1 - x) / (b.w - 1);
+		float center = b.h * (0.37f + 0.24f * u);
+		float half = b.h * (u < 0.18f ? 0.28f + u : (u > 0.78f ? 0.46f - (u - 0.78f) : 0.46f));
+		if (row >= center - half && row <= center + half) {
+			if (left == b.w) { left = x; }
+			right = x;
+		}
+	}
+}
+
+/** @brief Measure rounded, oval and mirrored style envelopes without allocating a raster. */
 void eye_body_span(const EyeConfig &cfg, const EyeBox &b, int16_t row, int16_t &left, int16_t &right) {
 	left = 1; right = 0;
 	if (row < 0 || row >= b.h || b.w < 4 || b.h < 4) { return; }
-	if (cfg.style == NORMAL) {
+	if (cfg.style == DRL) {
+		signature_span(b, row, left, right); return;
+	}
+	if (cfg.style == NORMAL || cfg.style == ANIME || cfg.style == KITSUNE) {
 		int16_t ry = int16_t(b.h / 2 - 1), rx = int16_t(b.w / 2 - 1);
 		int16_t dy = int16_t(row - b.h / 2);
 		if (dy < -ry || dy > ry) { return; }
@@ -108,9 +125,31 @@ static void trapezoid(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b) {
 	}
 }
 
+/** @brief Rasterize morph envelopes; DRL keeps a white rim around the selected body ink. */
+static void signature_body(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b) {
+	int16_t thick = eye_limit((b.w < b.h ? b.w : b.h) / 6, 2, 8);
+	for (int16_t row = 0; row < b.h; ++row) {
+		int16_t left, right; eye_body_span(cfg, b, row, left, right);
+		if (right < left) { continue; }
+		gfx->fillRect(b.x + left, b.y + row, right - left + 1, 1, cfg.style == DRL ? 0xFFFF : cfg.fgColor);
+		if (cfg.style != DRL || row < thick || row >= b.h - thick) { continue; }
+		int16_t above_left, above_right, below_left, below_right;
+		eye_body_span(cfg, b, row - thick, above_left, above_right);
+		eye_body_span(cfg, b, row + thick, below_left, below_right);
+		int16_t cut_left = left + thick, cut_right = right - thick;
+		if (above_left > cut_left) { cut_left = above_left; }
+		if (below_left > cut_left) { cut_left = below_left; }
+		if (above_right < cut_right) { cut_right = above_right; }
+		if (below_right < cut_right) { cut_right = below_right; }
+		if (cut_right >= cut_left) { gfx->fillRect(b.x + cut_left, b.y + row, cut_right - cut_left + 1, 1, cfg.fgColor); }
+	}
+}
+
 /** @brief Draw the style's plain body before any expression overlay. @param gfx Canvas. @param cfg Config. @param b Eye. */
 static void base_body(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b) {
-	if (cfg.style == NORMAL) {
+	if (cfg.style >= ANIME && cfg.style < EYE_STYLE_COUNT) {
+		signature_body(gfx, cfg, b);
+	} else if (cfg.style == NORMAL) {
 		gfx->fillEllipse(int16_t(b.x + b.w / 2), int16_t(b.y + b.h / 2),
 			int16_t(b.w / 2 - 1), int16_t(b.h / 2 - 1), cfg.fgColor);
 	} else if (cfg.style == TRAPEZ) {
@@ -144,7 +183,7 @@ static bool glyph(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b, int16
 
 /** @brief Draw distinct bodies; solid styles engrave every accessory glyph. @param gfx Canvas. @param cfg Config. @param b Eye. */
 void eye_body(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b) {
-	bool solid = cfg.style == MOCHI || cfg.style == TRAPEZ;
+	bool solid = cfg.style == MOCHI || cfg.style == TRAPEZ || cfg.style == DRL;
 	int16_t cx = int16_t(b.x + b.w / 2), cy = int16_t(b.y + b.h / 2);
 	int16_t s = eye_limit((b.w < b.h ? b.w : b.h) / 2 - 2, 3, 60);
 	const FacePreset *p = face_preset(cfg.expression);
@@ -159,10 +198,34 @@ void eye_body(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b) {
 	}
 }
 
+/** @brief Draw reflective anime irises or feline slits, clipped to the current style envelope. */
+static void signature_pupil(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b, int16_t x, int16_t y) {
+	int16_t rx = eye_limit(b.w / (cfg.style == ANIME ? 3 : 16), 1, b.w / 2);
+	int16_t ry = eye_limit(b.h / (cfg.style == ANIME ? 3 : 4), 1, b.h / 2);
+	for (int16_t row = 0; row < b.h; ++row) {
+		int16_t left, right; eye_body_span(cfg, b, row, left, right);
+		float v = float(b.y + row - y) / ry;
+		if (v < -1 || v > 1) { continue; }
+		int16_t half = int16_t(rx * sqrtf(1 - v * v));
+		for (int16_t col = x - half; col <= x + half; ++col) {
+			if (col < b.x + left || col > b.x + right) { continue; }
+			uint16_t ink = cfg.pupilColor;
+			if (cfg.style == ANIME) {
+				float u = float(col - x) / rx;
+				if (v > 0.35f && u * u + v * v > 0.4f) { ink = eye_mix(cfg.fgColor, cfg.pupilColor, 45); }
+				float hx = u + 0.32f, hy = v + 0.36f;
+				float sx = u - 0.38f, sy = v - 0.4f;
+				if (hx * hx + hy * hy < 0.10f || sx * sx + sy * sy < 0.025f) { ink = cfg.highlightColor; }
+			}
+			gfx->fillRect(col, b.y + row, 1, 1, ink);
+		}
+	}
+}
+
 /** @brief Draw contained pupils for non-solid styles, leaving whole symbols and clock dials unobscured. @param gfx Canvas. @param cfg Config. @param st State. @param b Eye. */
 void eye_pupils(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeState &st, const EyeBox &b) {
 	const FacePreset *p = face_preset(cfg.expression);
-	if (cfg.expression == CLOCK_EYES || cfg.style == MOCHI || cfg.style == TRAPEZ || (p && p->wholeEye)) { return; }
+	if (cfg.expression == CLOCK_EYES || cfg.style == MOCHI || cfg.style == TRAPEZ || cfg.style == DRL || (p && p->wholeEye)) { return; }
 	int16_t radius = eye_limit((b.w < b.h ? b.w : b.h) / 5, 2, 9);
 	int16_t dx = eye_limit((st.saccadeX + st.tiltX + (p ? int16_t(p->gazeX * 20) : 0)) / 3, -b.w / 6, b.w / 6);
 	int16_t dy = eye_limit((st.saccadeY + st.tiltY + (p ? int16_t(p->gazeY * 18) : 0)) / 3, -b.h / 6, b.h / 6);
@@ -175,6 +238,8 @@ void eye_pupils(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeState &st, cons
 		cross(gfx, symbol, cfg.pupilColor);
 	} else if (glyph(gfx, cfg, b, x, y, s, cfg.pupilColor, cfg.bgColor)) {
 		return;
+	} else if (cfg.style == ANIME || cfg.style == KITSUNE) {
+		signature_pupil(gfx, cfg, b, x, y);
 	} else {
 		gfx->fillCircle(x, y, radius, cfg.pupilColor);
 		if (cfg.style == BLOUB) {

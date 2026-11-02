@@ -166,13 +166,14 @@ void eyes_init(Arduino_GFX *display) {
 
 /**
  * @brief Change rendering style.
- * @param style One of NORMAL, MOCHI, BLOUB, TRAPEZ.
+ * @param style Persistent style below EYE_STYLE_COUNT.
  */
 void eyes_set_style(EyeStyle style) {
+	if (style >= EYE_STYLE_COUNT) { return; }
 	s_cfg.style = style;
 	s_cfg.eyeGap = 28;
 	s_cfg.asym = 1;
-	if (style == NORMAL) {
+	if (style == NORMAL || style == KITSUNE) {
 		s_cfg.eyeW = 56;
 		s_cfg.eyeH = 84;
 		s_cfg.radius = 0;
@@ -190,6 +191,12 @@ void eyes_set_style(EyeStyle style) {
 		s_cfg.eyeH = 76;
 		s_cfg.radius = 0;
 		s_cfg.slant = 10;
+		s_cfg.asym = 0;
+	} else if (style == ANIME || style == DRL) {
+		s_cfg.eyeW = style == ANIME ? 64 : 84;
+		s_cfg.eyeH = style == ANIME ? 96 : 50;
+		s_cfg.radius = 0;
+		s_cfg.slant = 0;
 		s_cfg.asym = 0;
 	} else {
 		s_cfg.eyeW = 76;

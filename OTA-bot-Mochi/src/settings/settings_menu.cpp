@@ -118,7 +118,7 @@ String schedule_hour(uint8_t hour) {
 void change_row(uint8_t index) {
 	CompanionSettings p = settings_get();
 	if (tab == 0) {
-		if (index == 0) { p.style = (p.style + 1) % 4; }
+		if (index == 0) { p.style = (p.style + 1) % EYE_STYLE_COUNT; }
 		if (index == 1) { p.color = (p.color + 1) % 6; }
 		if (index == 2) {
 			uint8_t focus = uint8_t(p.mood / GRID_COLS);

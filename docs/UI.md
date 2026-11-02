@@ -63,13 +63,15 @@ bubbles have deterministic event-based variation, not per-frame randomness.
   saved preferences or require automatic random moods to be enabled.
 - Double-tap quickly on Eyes for a playful face from a separate excited/star
   pool, with the same glance toward your finger. Dizzy keeps priority.
-- Stroke vertically up and down on Eyes to pet Mochi: rubbing the screen
-  without drifting sideways requests a temporary affectionate face from the
+- Stroke vertically in either direction on Eyes to pet Mochi: a single
+  32-pixel pass, with moderate sideways drift, requests an affectionate face from the
   happy/love family, and a small pink heart appears near your finger for
   under a second as confirmation. Continued strokes keep the same face and
   keep it active until three seconds after the last recognized stroke, without
-  replaying its sound each time. Slow strokes count too; a deliberate up/down
-  reversal is enough, while small finger jitter is ignored. Petting never changes saved preferences,
+  replaying its sound each time. Slow strokes count too; no return pass is needed.
+  Repeated up/down rubbing also works with shorter passes once the finger
+  leaves the tap box. Sideways drift below 64 pixels is tolerated, while small finger jitter and
+  movement within the 18-pixel tap box do not pet. Petting never changes saved preferences,
   leaves Eyes, or opens Settings. Use vertical strokes; horizontal motion
   pages away.
 - Eyes has no header or audio-status icon, even when muted. Other pages keep
@@ -209,8 +211,12 @@ Eye styles use different silhouettes: MOCHI is a tall solid capsule; BLOUB is
 a wide, soft rounded shape with pupils; NORMAL is an oval with pupils; TRAPEZ
 is a pair of mirrored, in-bounds trapezoids with no pupils. MOCHI/TRAPEZ also
 omit pupil highlights. Their love/dizzy reactions change the whole eye silhouette.
+Anime has tall ovals with large reflective irises; Kitsune has Normal-size ovals
+and slit pupils; Headlight DRL has filled angular eyes, a selected-color center
+and a fixed white rim, without pupils.
+All seven are permanent styles, not temporary expressions.
 Resting faces keep the selected eye color, including hearts, stars, engraved
-symbols, and the petting heart marker. Emotions differ through silhouette:
+symbols. The petting marker remains pink. Emotions differ through silhouette:
 curved smiling lids, deeper angry slopes, lowered sad eyes, thin resting eyes,
 and round or narrow startled eyes. Related emotions vary in width, opening,
 and vertical position. Twenty-four moods also have

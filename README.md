@@ -65,7 +65,7 @@ testing on both boards. See the validation limits below.
 
 | Feature | Observable behavior |
 | --- | --- |
-| Animated eyes | Four styles (`mochi`, `bloub`, `normal`, `trapez`), with blinking, idle gaze, and 145 selectable moods |
+| Animated eyes | Seven styles (`mochi`, `bloub`, `normal`, `trapez`, `anime`, `kitsune`, `drl`), with blinking, idle gaze, and 145 selectable moods |
 | Touch reactions | Taps, double taps, and vertical petting strokes trigger temporary faces, then restore the selected mood |
 | Motion reactions | Accelerometer changes relative to saved calibration (or a temporary startup reference) move the gaze; optional motion moods and shake-to-dizzy reactions |
 | Digital and analog clocks | Display Chronos- or NTP-synchronized time; continue offline, resynchronize after reboot |
@@ -396,7 +396,7 @@ Swipe vertically to browse and tap BACK to return; see [Diagnostics](docs/SETTIN
 | --- | --- |
 | Music | Dedicated carousel page with track/artist, previous/play-pause/next and phone volume; Android Chronos and iPhone AMS |
 | SD sound effects | AMOLED V2 only: startup, charging, five reaction families and event cues; enable SD sounds in SOUND options; see [file names and format](docs/SOUND.md#optional-sd-sound-effects-amoled-v2-only) |
-| Appearance | Four eye styles, six body/UI colors, 145 moods; distinct shapes and GIF-informed reactions with temporary colors |
+| Appearance | Seven eye styles, six body/UI colors, 145 moods; distinct shapes and GIF-informed reactions with temporary colors |
 | Animation | `calm`, `dasai`, `playful`; optional random moods and IMU moods |
 | Orientation | Normal or 180-degree flip, including matching touch and IMU mapping; no 90-degree mode |
 | Lighting | Day 5–90%, night 1–20%, manual night override, optional synchronized 22:00–07:00 schedule with editable hours, idle dimming |

@@ -40,7 +40,7 @@ class GifExportTests(unittest.TestCase):
 			"--seconds", "13", "--output", "folder with spaces"])
 		with patch.object(exporter, "export") as capture:
 			exporter.export_styles(args, Path("renderer"), ["moon", "uwu"], {})
-		self.assertEqual(capture.call_count, 4)
+		self.assertEqual(capture.call_count, 7)
 		for call, style in zip(capture.call_args_list, exporter.STYLES):
 			selected, binary, moods, env = call.args
 			self.assertEqual(selected.output, Path("folder with spaces") / style)

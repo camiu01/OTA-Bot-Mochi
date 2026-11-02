@@ -22,20 +22,20 @@ struct TouchActions {
 	int16_t last_y = 0, anchor_y = 0;
 	int16_t last_tap_x = 0, last_tap_y = 0;
 	int8_t last_dir = 0;
-	uint8_t flips = 0;
 	uint16_t travel = 0;
 	uint32_t started = 0;
 	uint32_t last_pet = 0;
 	uint32_t last_tap_ms = 0;
 	bool tap_armed = false;
 	bool pet_once = false;
+	bool pet_displaced = false;
 
 	/** @brief Cancel input after an invalid hardware sample. */
 	void cancel() {
 		active = false; tap = false; double_tap = false; hold = false; pet = false;
 		scroll = 0; vertical = horizontal = false;
-		flips = 0; travel = 0; last_dir = 0;
-		tap_armed = false; pet_once = false;
+		travel = 0; last_dir = 0;
+		tap_armed = false; pet_once = false; pet_displaced = false;
 	}
 
 	/**
@@ -70,14 +70,15 @@ struct TouchActions {
 	}
 
 	/**
-	 * @brief Track one vertical sample for an up-down petting stroke.
+	 * @brief Track a vertical stroke in either direction, allowing moderate sideways drift.
 	 * @param now Timestamp.
 	 */
 	void pet_sample(uint32_t now) {
 		int32_t ax = int32_t(x) - start_x;
 		int32_t jump = int32_t(y) - last_y;
-		if (held || horizontal || ax <= -30 || ax >= 30 || jump < -80 || jump > 80) {
-			anchor_y = last_y = y; last_dir = 0; flips = 0; travel = 0;
+		if (held || horizontal || ax <= -64 || ax >= 64 || jump < -80 || jump > 80) {
+			anchor_y = last_y = y; last_dir = 0; travel = 0;
+			pet_displaced = false;
 			return;
 		}
 		if (last_dir == 0) {
@@ -85,22 +86,23 @@ struct TouchActions {
 			if (dy > -12 && dy < 12) { return; }
 			last_dir = dy > 0 ? 1 : -1;
 			travel = uint16_t(dy * last_dir); last_y = y;
-			moved = true;
 		} else {
 			int32_t advance = (int32_t(y) - last_y) * last_dir;
 			if (advance > 0 || advance <= -12) {
-				if (advance < 0) { last_dir = -last_dir; flips = 1; advance = -advance; }
+				if (advance < 0) { last_dir = -last_dir; advance = -advance; }
 				uint32_t total = uint32_t(travel) + uint32_t(advance);
 				travel = uint16_t(total > UINT16_MAX ? UINT16_MAX : total);
 				last_y = y;
 			}
 		}
-		if (flips == 0 || travel < 48 || uint32_t(now - started) < 180) { return; }
+		int32_t extent = int32_t(y) - start_y;
+		if (extent <= -20 || extent >= 20) { pet_displaced = true; }
+		if (!pet_displaced || travel < 32 ||
+			uint32_t(now - started) < 120) { return; }
 		if (pet_once && uint32_t(now - last_pet) < 400) { return; }
 		pet = true; moved = true; vertical = true; scroll = 0; tap_armed = false;
 		last_pet = now;
 		pet_once = true;
-		flips = 0;
 		travel = 0;
 	}
 
@@ -136,7 +138,8 @@ struct TouchActions {
 			vertical = horizontal = false;
 			start_x = x; start_y = y; started = now;
 			last_y = y; anchor_y = y; last_dir = 0;
-			flips = 0; travel = 0;
+			travel = 0;
+			pet_displaced = false;
 			return;
 		}
 		pet_sample(now);

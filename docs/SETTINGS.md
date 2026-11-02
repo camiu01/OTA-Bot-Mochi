@@ -13,7 +13,7 @@ rows. Changes are live in RAM and do not write flash while browsing.
 
 | Tab | Row | Choices |
 | --- | --- | --- |
-| LOOK | Eyes | normal, mochi, bloub, trapez |
+| LOOK | Eyes | normal, mochi, bloub, trapez, anime, kitsune, headlight DRL |
 | LOOK | Color | white, mint, cyan, amber, pink, blue |
 | LOOK | Mood | opens a 3-column grid of all 145 expressions/animated moods, five rows visible at a time (49 rows total); tap a cell, swipe to scroll |
 | DISPLAY | Day level | 5, 10, 20, 30, 50, 70, 90% |
@@ -105,6 +105,14 @@ Turning Auto rotate off returns to the manual Screen flip.
 The user reports general functional operation on AMOLED V2. Exact mounting,
 thresholds and touch-alignment acceptance records remain to be captured per board;
 no 90/270-degree layout is implemented.
+
+Anime adds large reflective irises; Kitsune uses Normal's 56x84 oval geometry with
+feline slit pupils; Headlight DRL adds filled angular eyes without pupils, with
+a selected-color center and a fixed white rim. They remain selected while moods change. Display, web settings and USB
+share all seven choices (`set style anime`, `set style kitsune`, `set style drl`).
+The v10 profile stays seventeen bytes; IDs 0–3 retain their original meaning.
+Downgrading to firmware that only knows four styles resets an unknown-style
+profile to defaults, so select an older style and SAVE before downgrading.
 
 The background stays black. MOCHI and TRAPEZ are solid eyes without pupils or
 highlights; BLOUB has black pupils and white highlights, and NORMAL has black
@@ -304,8 +312,12 @@ a different expression without changing the saved base, style, or color. The tap
 reactions take priority over ordinary IMU moods; an active dizzy reaction keeps
 priority and ignores them. Petting still requests affectionate faces, and
 further strokes keep the same face until three seconds after the last recognized stroke.
-Slow strokes accumulate even one-pixel samples; a deliberate vertical reversal
-is enough, while jitter, taps and horizontal swipes do not pet.
+Slow strokes accumulate even one-pixel samples. One vertical pass of 32 pixels
+over at least 120 ms is enough, without reversing; sideways drift below 64 pixels
+is tolerated. Repeated up/down rubbing also qualifies with shorter individual
+passes: at least 20 pixels of vertical displacement and 32 pixels of accumulated
+travel are required. Jitter, taps within their existing 18-pixel box and horizontal
+swipes do not pet.
 The pink heart follows the contact independently of the selected eye color.
 Continued petting does not replay the reaction sound on every stroke.
 Each reaction chirps with a fresh random pitch drawn from its face family's

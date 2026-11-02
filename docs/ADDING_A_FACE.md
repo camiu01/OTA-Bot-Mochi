@@ -99,6 +99,9 @@ The old effect headers are compatibility includes, not places to add face code.
 | MOCHI | 44x100 | off | Solid, no pupils or highlights |
 | BLOUB | 76x60 | on | Existing pupils and highlights |
 | TRAPEZ | 68x76 | off | Solid mirrored trapezoids, no pupils or highlights |
+| ANIME | 64x96 | off | Large oval irises with two reflections, clipped to the body |
+| KITSUNE | 56x84 | off | Normal-size ovals with contained feline slit pupils |
+| DRL | 84x50 | off | Filled angular bodies, selected-color center, fixed white rim, engraved glyphs, no pupils |
 
 `eyes_set_asym()` still overrides the style default. Existing conditional
 asymmetry is unchanged. Presets do not replace style-specific bodies or the

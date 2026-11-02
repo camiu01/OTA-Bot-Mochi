@@ -13,8 +13,18 @@ authoritative source; `eye_box()` applies expression changes and clamps on top.
 | MOCHI | 1 | Tall solid capsule, 44x100, gap 42, r22, asym off |
 | BLOUB | 2 | Wide squishy body, 76x60, r24, asym on |
 | TRAPEZ | 3 | Mirrored slanted body, 68x76, r0, slant 10, asym off |
+| ANIME | 4 | Tall oval, 64x96, large irises, two reflections and lower iris crescent |
+| KITSUNE | 5 | Normal-size oval, 56x84, narrow vertical feline pupils |
+| DRL | 6 | Filled angular headlights, 84x50, selected-color center and fixed white rim, no pupils |
 
 MOCHI and TRAPEZ are solid: they never draw a pupil or a highlight.
+Anime, Kitsune and DRL are permanent styles, independent of the selected mood.
+All three use the configured palette and the shared expression, gaze and blink pipeline.
+Anime/Kitsune pupils are clipped to their silhouette. DRL engraves expression symbols
+inside its colored center, rather than adding pupils. Its white rim is independent
+of the selected body and highlight colors; full animated scenes retain their own palettes.
+IDs 0–3 and the seventeen-byte v10 profile remain unchanged. Older firmware does
+not recognize IDs 4–6 and falls back to its defaults if such a profile is loaded.
 
 TRAPEZ is filled row by row from the slanted quadrilateral and both ends are pulled
 inward along a circular profile (`trapezoid()` in `eye_shapes.cpp`), so its corners
@@ -205,7 +215,7 @@ larger whole-eye shapes with a body-color outline and pink/gold centers. BOLT
 uses a gold-filled diagonal lightning symbol inside its contrasting engraving
 or pupil outline. MONEY uses a larger green symbol. Other glyphs use the
 configured pupil ink on NORMAL/BLOUB and background-color engravings on MOCHI/TRAPEZ. The petting
-heart marker also uses the rendered body color. `eye_palette.h` packs RGB565
+heart marker stays pink independently of the rendered body color. `eye_palette.h` packs RGB565
 values for temporary reaction and scene colors.
 
 Related emotions differ in geometry rather than tint: smiling lids have

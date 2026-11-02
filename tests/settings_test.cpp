@@ -339,7 +339,7 @@ static void menu_tests() {
 	assert(!settings_menu_scroll(-1));
 	uint8_t style = settings_get().style;
 	assert(settings_menu_tap(239, 131) == MenuAction::Changed);
-	assert(settings_get().style == (style + 1) % 4);
+	assert(settings_get().style == (style + 1) % EYE_STYLE_COUNT);
 	assert(settings_menu_tap(0, 132) == MenuAction::Changed);
 	// The LOOK tab's Mood row opens the expression grid instead of cycling five moods.
 	assert(settings_menu_tap(239, 221) == MenuAction::Changed);

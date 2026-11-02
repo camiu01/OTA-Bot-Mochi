@@ -41,15 +41,22 @@ and `MOCHI_BOARD_AMOLED_18` for AMOLED checks, so an Arduino IDE selection in
 `pin_config.h` cannot silently change the test board. Defining both is rejected.
 An explicit LCD CLI build can likewise use
 `--build-property "compiler.cpp.extra_flags=-DMOCHI_BOARD_LCD_169"`.
-The real eye renderer also runs against a native raster substitute: all four
-styles, all 145 expressions/animated moods, and both blink states (1160 combinations), a proof
-that every expression renders differently from NEUTRAL on every style, that no
-two names draw the same pixels on any style (pairwise uniqueness, 41760
+The real eye renderer also runs against a native raster substitute: all seven
+styles, all 145 expressions/animated moods, and both blink states (2030 combinations)
+check dirty-region erasure. The four original styles additionally prove
+that every expression renders differently from NEUTRAL and that no
+two names draw the same pixels (pairwise uniqueness, 41760
 comparisons), solid-style pupil/highlight exclusion, trapezoid symmetry, IMU
 gaze/roll bounds, radius limits, and dirty-region erasure are checked. The
 configured palette has its own suite: resting emotions and symbols must keep
 the selected ink on every style, across three selected body colors, except
 Fire's explicitly borderless orange/yellow flames.
+`eye_style_regressions.h` checks Anime/Kitsune/DRL on both physical panel sizes,
+including style/profile/USB round-trips, rejected out-of-range IDs, morph-envelope
+agreement, contained iris/slit pixels, Normal-sized Kitsune geometry and pupil-free,
+filled DRL with a fixed white rim across selected center colors. Web tests save all three
+new styles and reject the count sentinel. Frozen fixtures retain their four-style
+indexing and are not regenerated for the new styles.
 The petting heart must remain pink independently of the eye color and erase without trails.
 The face catalog checks compile the documented C++17 per-eye preset example and
 validate all 145 IDs/names, parameter ranges, USB selection and settings round-trips.
@@ -510,7 +517,9 @@ and restore the selected mood; a quick double tap must show a playful face for
 affectionate face while stroking continues, show the heart marker near the
 finger on each recognized stroke, and end three seconds after the
 last stroke, including a stroking session longer than six seconds. Check slow
-one-pixel movements, sparse samples and millis rollover in native tests; on both
+one-pixel movements, single upward/downward passes, short up/down rubbing,
+sideways drift up to 63 pixels,
+the existing 16-pixel drifting-tap regression, sparse samples and millis rollover in native tests; on both
 panels, confirm jitter and horizontal swipes never pet and continued strokes
 do not replay the sound. On Eyes, confirm no audio-status icon appears at startup, while
 muted, or after enabling sound elsewhere and returning. Other pages must keep

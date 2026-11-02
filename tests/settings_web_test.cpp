@@ -27,7 +27,21 @@ static void form(WebServer &s) {
 	for (const auto &f : settings_web::fields) { s.arguments[f.key] = String(settings_web::value(f, settings_get())); }
 	s.headers["X-Mochi-Settings-Revision"] = settings_web::revision();
 }
+/** @brief The schema exposes all permanent styles and saves only valid IDs. */
+static void style_edits(WebServer &s) {
+	call(s, "GET /settings"); assert(s.code == 200);
+	for (const char *label : {"anime", "kitsune", "headlight DRL"}) {
+		assert(std::string(s.body.c_str()).find(label) != std::string::npos);
+	}
+	for (uint8_t style = ANIME; style < EYE_STYLE_COUNT; ++style) {
+		form(s); s.arguments["style"] = String(style);
+		call(s, "POST /settings"); assert(s.code == 200 && settings_get().style == style);
+	}
+	form(s); s.arguments["style"] = String(uint8_t(EYE_STYLE_COUNT));
+	call(s, "POST /settings"); assert(s.code == 400 && settings_get().style == DRL);
+}
 static void edits(WebServer &s) {
+	style_edits(s);
 	call(s, "GET /settings"); assert(s.code == 200);
 	assert(std::string(s.body.c_str()).find("\"auto_rotate\"") != std::string::npos);
 	assert(std::string(s.body.c_str()).find("\"phone_ios\"") != std::string::npos);

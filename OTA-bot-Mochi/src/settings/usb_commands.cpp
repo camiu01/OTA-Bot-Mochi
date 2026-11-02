@@ -45,7 +45,7 @@ bool toggle(const char *text, bool &value) {
 bool assign_choice(const char *field, const char *value, CompanionSettings &profile) {
 	int index = -1;
 	if (strcmp(field, "style") == 0) {
-		index = choice(value, 4, settings_style_name);
+		index = choice(value, EYE_STYLE_COUNT, settings_style_name);
 		if (index >= 0) { profile.style = index; return true; }
 	} else if (strcmp(field, "color") == 0) {
 		index = choice(value, 6, settings_color_name);
@@ -147,7 +147,7 @@ void mood_names() {
 /** @brief Explain strict USB vocabulary, unchanged by display locale. */
 void help() {
 	Serial.println("show | save | defaults | reboot | mood names | set <field> <value>");
-	Serial.println("style normal/mochi/bloub/trapez; color white/mint/cyan/amber/pink/blue");
+	Serial.println("style normal/mochi/bloub/trapez/anime/kitsune/drl; color white/mint/cyan/amber/pink/blue");
 	Serial.println("mood <name>: any expression from 'mood names', same as set mood <name>; brightness 5..90; night-brightness 1..20");
 	Serial.println("dashboard/night/shake/dim/random/imu-face/flip on/off. Use controls only while parked.");
 	Serial.println("face-flow return/group5/sequence/continuous; requires random on");

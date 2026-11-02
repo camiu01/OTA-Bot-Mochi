@@ -126,7 +126,7 @@ pseudo-random orange/yellow tongues; both remain open without ordinary-eye
 handoffs. See [UI](UI.md).
 
 Select Settings > LOOK > Mood, or type `mood dancing` in the USB/emulator console.
-The same renderer supports LCD and AMOLED and all four eye styles.
+The same renderer supports LCD and AMOLED and all seven eye styles.
 
 [LCD still gallery](images/colored-performances-240.png) |
 [AMOLED still gallery](images/colored-performances-368.png).

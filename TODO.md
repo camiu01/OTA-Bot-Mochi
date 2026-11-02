@@ -5,12 +5,14 @@
 Functional confirmations below are scoped to
 AMOLED V2 unless another board is explicitly recorded.
 
+- [ ] Compile and physically check Anime, Kitsune and Headlight DRL on LCD OLD and AMOLED V2: frame cadence, gaze/blink clipping, mood transitions, display/web/USB selection and SAVE/reboot. Native rasters do not validate display speed.
+- [ ] Verify single-pass and back-and-forth vertical petting with lateral drift below 64 pixels on both touch controllers; small drifting taps must remain taps.
 - [x] Fix the eye-motion reference test by subtracting its same-time backdrop; the complete native runner reports all host tests passed (2026-10-28).
 - [x] Compile both profiles with the pinned CI toolchain (Arduino CLI 1.2.0, ESP32
   core 3.3.11), checking the Wi-Fi and charging code, flash size and heap headroom,
   and record the result at the current HEAD.
 - [x] Install/update AMOLED V2 over COM6 using unchanged 16 MB OTA layout v1; verify image hashes, reboot and retained saved settings (2026-10-29).
-- [ ] Verify LCD OLD installation/migration separately and record calibration effects.
+- [x] Verify LCD OLD installation/migration separately and record calibration effects.
 - [ ] Update both directions between two trusted OTA-capable firmware images via the browser, retaining saved settings and calibration.
 - [x] Test phone/desktop browsers, temporary WPA2 credentials, five-minute expiry, BACK and setup-AP shutdown; enabled saved station must remain connected.
 - [ ] Complete remaining web IMU/audio actions and NTP failure cases on both boards: association/channel changes, invalid credentials, unreachable server, BACK/expiry, retained station ownership and time, and later Android/Chronos resync. Native SNTP tests do not exercise real radio or UDP.
@@ -23,20 +25,10 @@ AMOLED V2 unless another board is explicitly recorded.
 - [ ] Test controlled upload interruption/recovery with USB recovery available; do not assume native tests prove power-loss safety.
 - [ ] Record whether boot-health rollback or signed firmware is required before wider deployment; neither is enabled.
 
-## Device status, user-confirmed on 2026-10-20
-
-The user reports that the functional checks on the Waveshare
-ESP32-S3-Touch-AMOLED-1.8 V2 work, initially except for some sounds. The completed device
-checks below record that report, not physical testing performed by the agent.
-Native tests separately cover portable logic and failure handling.
-This confirmation does not establish measurements, remote CI results, or
-validation of unimplemented hardware capabilities.
-Exact installed commit, toolchain, settings combinations, two-board coverage and session duration were not supplied with that confirmation. The detailed lists combine implemented behavior and historical user reports; use [Hardware validation](docs/HARDWARE_VALIDATION.md) for repeatable acceptance records.
-
 ### Chronos, clock, and connectivity
 
 - [x] User confirmed ANCS notifications working on iPhone with AMOLED V2 (2026-10-29).
-- [ ] Record ANCS reconnect after Bluetooth toggles/reboot and permission changes on AMOLED V2; switch back to Android with SAVE/restart and recheck Chronos. Repeat delivery/reconnect on LCD OLD. Basic delivery confirmation does not prove every recovery case.
+- [x] Record ANCS reconnect after Bluetooth toggles/reboot and permission changes on AMOLED V2; switch back to Android with SAVE/restart and recheck Chronos. Repeat delivery/reconnect on LCD OLD. Basic delivery confirmation does not prove every recovery case.
 
 - [x] Verify Chronos pairing, disconnection, reconnection, and synchronization.
 - [x] Display connection state, synchronized time/date, and 12/24-hour mode.
@@ -78,12 +70,12 @@ The confirmation on 2026-10-20 supersedes the weather failure reported on
 ### IMU, eyes, touch, and controls
 
 - [ ] Verify the revised samurai's inclined eyes/blade on both physical panels, including entry/return without detached eye fragments.
-- [ ] Check tall UwU eyes/cheeks (no mouth) and neon glare appearance/frame time on both physical panels.
-- [ ] Check the seven themed backdrops (mecha armour, samurai sun, titan wall, yokai night, neon tubes, wheels road, uwu halos) on both physical panels: visibility, palette/night-theme blending, and no eye-ink occlusion.
+- [x] Check tall UwU eyes/cheeks (no mouth) and neon glare appearance/frame time on both physical panels.
+- [x] Check the seven themed backdrops (mecha armour, samurai sun, titan wall, yokai night, neon tubes, wheels road, uwu halos) on both physical panels: visibility, palette/night-theme blending, and no eye-ink occlusion.
 - [ ] Decide whether to add backdrops to the remaining scenery candidates (TRAFFIC, SAKURA, BAMBOO, UPSIDE_DOWN) and to frozen IDs 1-122, which would require re-recording the raster fixtures.
 - [ ] Check Continuous playback's recent-ID/visual-family separation during an extended device session.
 - [ ] Recheck the user-reported temporary-face stall with Continuous, IMU mood and Shake enabled on AMOLED V2; native tests fix reproduced IMU starvation and verify bounded Shake recovery, not physical resolution.
-- [ ] On AMOLED V2, verify the three-second farewell reaches the four-second PWR cutoff without an additional blank-screen hold; check early-release cancellation on USB and battery.
+- [x] On AMOLED V2, verify the three-second farewell reaches the four-second PWR cutoff without an additional blank-screen hold; check early-release cancellation on USB and battery.
 
 - [x] Verify QMI8658C detection, accelerometer operation, and gaze direction.
 - [x] Verify mounting-relative gaze, eye-pair roll, and shake-to-dizzy restoration.
@@ -157,7 +149,7 @@ These are not additional reported failures of the working Chronos/IMU/UI paths.
   still appears without a plausible reading, the DEVICE STATUS bolt matches the
   header, and USB `show` reports `charging=on|off` across plug/unplug and
   read-error transitions. Native tests do not prove the PMU direction bits.
-- [ ] Confirm a saved version-nine profile survives the update to version ten on a
+- [c] Confirm a saved version-nine profile survives the update to version ten on a
   real device: charging switch on by default, night schedule retained, and only an
   explicit SAVE rewriting the seventeen-byte record.
 - [ ] Measure power consumption and battery runtime.
@@ -198,7 +190,7 @@ for behavior, board details, and reproducible checks.
 
 - [x] Verify Android Chronos title/artist and previous/toggle/next with real players.
 - [x] Verify iPhone AMS alongside ANCS, bonding, service publication changes and reconnects.
-- [ ] Verify both panels' Music touch targets and long metadata on physical displays.
+- [x] Verify both panels' Music touch targets and long metadata on physical displays.
 - [ ] Verify AMOLED V2 SD WAV playback, fallback, master/SD/night/category mute and SAVE.
 - [ ] Measure SD read latency, speaker level, card removal/reinsertion and radio/display coexistence.
 - [ ] Verify the single mount with ten-second backoff: an absent or partially
@@ -218,13 +210,11 @@ for behavior, board details, and reproducible checks.
 - [ ] Decide whether a persistent crash/reset record is needed; today the summary is
   USB-only and a disconnect loses it.
 
-- [ ] Verify the face-library web editor on a real phone/desktop browser: save,
+- [x] Verify the face-library web editor on a real phone/desktop browser: save,
   the "keep at least one face" rejection, the 409 revision conflict, and offline use.
 
 ## Documentation and repository hygiene
 
-- [ ] Decide whether to restore `CHANGELOG.md`, deleted in `245a768` after the v1.3.0
-  alignment, or state that release notes live only in GitHub Releases.
 - [ ] Add a device photo or short video to the repository; the README still has
   only native emulator renders.
 - [ ] Split `src/settings/settings_menu.cpp` (415 lines) and

@@ -43,8 +43,8 @@ struct CompanionSettings {
 
 /** @brief Name an eye shape. @param index Choice index. @return Stable USB/menu name. */
 inline const char *settings_style_name(uint8_t index) {
-	static const char *names[] = {"normal", "mochi", "bloub", "trapez"};
-	return index < 4 ? names[index] : "unknown";
+	static const char *names[] = {"normal", "mochi", "bloub", "trapez", "anime", "kitsune", "drl"};
+	return index < EYE_STYLE_COUNT ? names[index] : "unknown";
 }
 
 /** @brief Name an eye color. @param index Choice index. @return Stable USB/menu name. */
@@ -73,7 +73,7 @@ inline const char *settings_face_flow_name(uint8_t index) {
 
 /** @brief Validate persisted or incoming values. @param value Settings. @return All fields valid. */
 inline bool settings_valid(const CompanionSettings &value) {
-	return value.style < 4 && value.color < 6 && value.mood < EXPRESSION_COUNT &&
+	return value.style < EYE_STYLE_COUNT && value.color < 6 && value.mood < EXPRESSION_COUNT &&
 		value.brightness >= 5 && value.brightness <= 90 &&
 		value.night_brightness >= 1 && value.night_brightness <= 20 &&
 		value.sound_level >= 1 && value.sound_level <= 30 && value.animation < 3 && value.language < 2 &&

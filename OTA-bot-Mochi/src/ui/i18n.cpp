@@ -72,10 +72,10 @@ const char *tr_expression(uint8_t index) {
 
 /** @brief Preset display text. @param group Preset group. @param index Choice. @return Label. */
 const char *tr_choice(uint8_t group, uint8_t index) {
-	static const Text styles[] = {Text::Normal, Text::Mochi, Text::Bloub, Text::Trapez};
+	static const Text styles[] = {Text::Normal, Text::Mochi, Text::Bloub, Text::Trapez, Text::Anime, Text::Kitsune, Text::Drl};
 	static const Text colors[] = {Text::White, Text::Mint, Text::Cyan, Text::Amber, Text::Pink, Text::Blue};
 	static const Text animations[] = {Text::Calm, Text::Dasai, Text::Playful};
-	if (group == 0 && index < 4) { return tr(styles[index]); }
+	if (group == 0 && index < EYE_STYLE_COUNT) { return tr(styles[index]); }
 	if (group == 1 && index < 6) { return tr(colors[index]); }
 	if (group == 2) { return tr_expression(index); }
 	if (group == 3 && index < 3) { return tr(animations[index]); }

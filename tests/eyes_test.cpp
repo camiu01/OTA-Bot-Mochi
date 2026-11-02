@@ -13,19 +13,20 @@
 #include <algorithm>
 #include <iostream>
 #include "petting_policy_regressions.h"
+#include "eye_style_regressions.h"
 
 /** @brief Check solid versus pupilled style rendering, not just preset dimensions. */
 static void style_tests() {
 	Arduino_GFX gfx(240, 280);
 	eyes_init(&gfx);
 	std::vector<uint16_t> mochi;
-	for (uint8_t style = 0; style < 4; ++style) {
+	for (uint8_t style = 0; style < EYE_STYLE_COUNT; ++style) {
 		eyes_set_style(static_cast<EyeStyle>(style));
 		eyes_set_eye_colors(0, 0xFFFF, 0xF800, 0x07E0);
 		eyes_set_expression(NEUTRAL);
 		eyes_state().dirtyInit = false;
 		eyes_draw();
-		bool solid = style == MOCHI || style == TRAPEZ;
+		bool solid = style == MOCHI || style == TRAPEZ || style == DRL;
 		assert((std::count(gfx.pixels.begin(), gfx.pixels.end(), 0xF800) == 0) == solid);
 		if (solid) { assert(std::count(gfx.pixels.begin(), gfx.pixels.end(), 0x07E0) == 0); }
 		if (style == MOCHI) { mochi = gfx.pixels; assert(eyes_config().eyeH > eyes_config().eyeW * 2); }
@@ -43,7 +44,7 @@ static void dirty_region_tests() {
 	Arduino_GFX gfx(240, 280);
 	eyes_init(&gfx);
 	eyes_set_eye_colors(0, 0xFFFF, 0xF800, 0x07E0);
-	for (uint8_t style = 0; style < 4; ++style) {
+	for (uint8_t style = 0; style < EYE_STYLE_COUNT; ++style) {
 		eyes_set_style(static_cast<EyeStyle>(style));
 		for (uint8_t expression = 0; expression < EXPRESSION_COUNT; ++expression) {
 			for (bool blinking : {false, true}) {
@@ -364,6 +365,7 @@ static void animated_raster_tests() {
 int main() {
 	assert(settings_init());
 	style_tests();
+	signature_style_tests();
 	dirty_region_tests();
 	distinct_expression_tests();
 	bank_tests();

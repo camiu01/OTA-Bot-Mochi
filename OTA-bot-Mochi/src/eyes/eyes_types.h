@@ -37,7 +37,11 @@ enum EyeStyle : uint8_t {
 	NORMAL = 0,	/**< Flat cartoon style with small pupils. */
 	MOCHI = 1,	/**< Tall solid Dasai-like capsules, without pupils or highlights. */
 	BLOUB = 2,	/**< Wide soft blobs with pupils and highlights. */
-	TRAPEZ = 3	/**< Solid mirrored trapezoids, without pupils or highlights. */
+	TRAPEZ = 3,	/**< Solid mirrored trapezoids, without pupils or highlights. */
+	ANIME = 4,	/**< Tall ovals with large reflective irises. */
+	KITSUNE = 5,	/**< Normal-size ovals with feline slit pupils. */
+	DRL = 6,	/**< Filled angular headlights with a white rim, without pupils. */
+	EYE_STYLE_COUNT = 7	/**< Number of persistent styles; existing IDs never change. */
 };
 
 /**

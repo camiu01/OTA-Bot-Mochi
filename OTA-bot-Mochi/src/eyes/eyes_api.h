@@ -40,7 +40,7 @@ void eyes_init(Arduino_GFX *display);
 
 /**
  * @brief Change rendering style.
- * @param style One of NORMAL, MOCHI, BLOUB, TRAPEZ.
+ * @param style Persistent style below EYE_STYLE_COUNT.
  */
 void eyes_set_style(EyeStyle style);
 

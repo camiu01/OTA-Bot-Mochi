@@ -162,6 +162,9 @@
 	X(Mochi, "mochi", "mochi") \
 	X(Bloub, "bloub", "bloub") \
 	X(Trapez, "trapez", "trapez") \
+	X(Anime, "anime", "anime") \
+	X(Kitsune, "kitsune", "kitsune") \
+	X(Drl, "headlight DRL", "fari DRL") \
 	X(White, "white", "bianco") \
 	X(Mint, "mint", "menta") \
 	X(Cyan, "cyan", "ciano") \

@@ -63,7 +63,7 @@ static void double_tap_tests() {
 	assert(!cleared.take_double() && !cleared.tap);
 }
 
-/** @brief Vertical rubbing pets; taps, single strokes, and swipes do not. */
+/** @brief Single vertical strokes and rubbing pet; taps and horizontal swipes do not. */
 static void pet_tests() {
 	TouchActions tap;
 	tap.update(true, 120, 100, 0);
@@ -78,7 +78,7 @@ static void pet_tests() {
 		now += 20;
 		single.update(true, 121, next, now);
 	}
-	assert(!single.take_pet());
+	assert(single.take_pet());
 	single.update(false, 0, 0, now + 20);
 	assert(!single.take_pet());
 
@@ -116,7 +116,7 @@ static void pet_tests() {
 		for (uint8_t step = 0; step < 6; ++step) {
 			now += 20;
 			int16_t ny = leg % 2 ? 100 + step * 5 : 130 - step * 5;
-			wide.update(true, int16_t(100 + step * 10), ny, now);
+			wide.update(true, int16_t(100 + step * 15), ny, now);
 		}
 	}
 	assert(!wide.take_pet());
@@ -150,6 +150,7 @@ int main() {
 	assert(swipe.update(true, 100, 100, 20) == 1);
 	double_tap_tests();
 	pet_tests();
-	gentle_pet_tests(); rejected_pet_tests();
+	gentle_pet_tests(); rejected_pet_tests(); single_direction_pet_tests(); drifting_tap_tests();
+	repeated_pet_tests();
 	return 0;
 }
