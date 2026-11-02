@@ -24,6 +24,7 @@ set sound-faces on
 set sound-timer on
 set sound-alerts on
 set sound-ambient on
+set sound-charging on
 set sound-night-mute on
 save
 ```
@@ -278,7 +279,9 @@ charging cue rather than delaying it into a backlog.
 
 Charging uses read-only AXP2101 REG01 bits 6:5, following the
 [manufacturer's datasheet, section 6.13.2.2](https://files.waveshare.com/wiki/common/X-power-AXP2101_SWcharge_V1.0.pdf).
-It checks every 500 ms and requires two consistent samples. The initial known
+It checks every 500 ms and requires two consistent samples. The same debounced
+state drives the header charge bolt, the DEVICE STATUS indicator and
+`battery=<n>% charging=on|off` in the USB `show` output. The initial known
 state is a silent baseline: booting while already charging plays no additional
 charge cue. A later idle/discharging-to-charging transition requests one sound,
 with a 30-second audio cooldown. Missing PMUs, wrong chip IDs, read errors and

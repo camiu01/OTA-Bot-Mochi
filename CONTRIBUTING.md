@@ -28,9 +28,16 @@ application-only upload cannot migrate it.
 - `src/eyes/`: Eyes Engine sources, public API via `eyes_api.h`
 - `src/ui/`: shared theme, BLE snapshots, utility screens, bounded text layout
 - `src/clock/`: synchronized, region-based clock face
-- `src/power/`: PWM backlight and host-testable brightness policy
+- `src/power/`: PWM/AMOLED backlight, plausibility-gated battery percentage and read-only PMU charge state
 - `src/touch/`: touch probing and horizontal gesture tracker
-- `src/update/`: local Wi-Fi firmware maintenance, image validation and QR screen
+- `src/settings/`: versioned preferences, menu rows, night policy and USB commands
+- `src/sound/`: bounded cues, buzzer/ES8311 backends and optional SD WAVs
+- `src/ancs/`: iPhone ANCS notifications and the AMS media service
+- `src/network/`: station reconnection, NTP and the bounded weather worker
+- `src/diagnostics/`: read-only device status values
+- `src/bus/`: the single shared I2C controller
+- `src/play/`: Pong and Tris logic
+- `src/update/`: local Wi-Fi firmware maintenance, web settings/face editor, image validation and QR screen
 - `pin_config.h`: all pin mappings, fully remappable
 - `gfx_helper.h` / `gfx_helper.cpp`: display helpers, palette, text layout
 - `images.h`: splash, icons, bitmaps

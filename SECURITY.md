@@ -35,14 +35,18 @@ We aim to acknowledge valid reports within 7 days and to provide a remediation p
 In scope:
 
 - ESP32-S3 firmware in this repository
-- BLE Chronos integration and callbacks
+- BLE Chronos integration and callbacks, including iPhone ANCS/AMS
 - IMU handling and expression logic
 - Display rendering and UI screens
+- The temporary local Wi-Fi maintenance server: session authorization, the OTA
+  upload endpoint, web settings/face editor and saved network credentials
 
 Out of scope:
 
 - Physical hardware attacks requiring device possession
 - Third-party libraries, Arduino core, toolchains, and companion mobile apps
+- Router, ISP or LAN infrastructure outside the board, and TLS interception of
+  traffic that never reaches the device
 - Social engineering and physical tampering
 
 ---

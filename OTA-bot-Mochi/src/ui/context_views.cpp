@@ -18,6 +18,7 @@
 #include "../settings/settings.h"
 #include "../power/backlight.h"
 #include "../power/battery.h"
+#include "../power/charging.h"
 #include "../../pin_config.h"
 #include <stdio.h>
 
@@ -107,6 +108,7 @@ void device(Arduino_GFX *gfx, const UiSnapshot &data) {
 	ui_label(gfx, tr(Text::BatteryPrefix) +
 		(charge == BATTERY_UNAVAILABLE ? tr(Text::BatteryMissing) : String(charge) + "%"),
 		ui_s(28), ui_s(180), ui_s(184), 1, charge == BATTERY_UNAVAILABLE ? UI_MUTED : UI_TEXT);
+	if (charging_active()) { ui_charge_badge(gfx, ui_s(206), ui_s(176)); }
 }
 }
 

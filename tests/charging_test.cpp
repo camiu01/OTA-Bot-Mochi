@@ -1,6 +1,6 @@
 /**
  * @file charging_test.cpp
- * @brief Charge-edge debounce, unknown readings, shared-bus status and counter rollover.
+ * @brief Charge-edge debounce, indicator state, unknown readings, shared-bus status and counter rollover.
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "../OTA-bot-Mochi/src/power/charging.h"
@@ -12,9 +12,12 @@
 /** @brief Ignore boot-on-USB, noisy transitions and errors without replaying an event. */
 void policy_checks() {
 	ChargingTracker tracker;
+	assert(tracker.state() == ChargeState::Unknown);
 	assert(!tracker.update(ChargeState::Charging));
 	assert(!tracker.update(ChargeState::Charging));
+	assert(tracker.state() == ChargeState::Charging);
 	assert(!tracker.update(ChargeState::Unknown));
+	assert(tracker.state() == ChargeState::Charging);
 	assert(!tracker.update(ChargeState::Charging) && !tracker.update(ChargeState::Charging));
 	assert(!tracker.update(ChargeState::Idle));
 	assert(!tracker.update(ChargeState::Charging));
@@ -34,14 +37,19 @@ void hardware_checks() {
 	auto &registers = bus.registers[0x34]; registers[0x03] = 0x4A;
 	registers[0x01] = 0x40;
 	assert(!charging_poll(500) && !charging_poll(1000));
+	assert(!charging_active());
 	registers[0x01] = 0x20;
 	assert(!charging_poll(1500) && !charging_poll(1501) && charging_poll(2000));
+	assert(charging_active());
 	bus.read_ok = false; assert(!charging_poll(2500)); bus.read_ok = true;
+	assert(charging_active());
 	assert(!charging_poll(3000) && !charging_poll(3500));
 	registers[0x01] = 0x60;
 	assert(!charging_poll(4000) && !charging_poll(4500));
+	assert(charging_active());
 	registers[0x01] = 0;
 	assert(!charging_poll(5000) && !charging_poll(5500));
+	assert(!charging_active());
 	registers[0x03] = 0; registers[0x01] = 0x20;
 	assert(!charging_poll(6000) && !charging_poll(6500));
 	registers[0x03] = 0x4A;
@@ -64,6 +72,7 @@ void hardware_checks() {
 	registers[0x03] = 0x4A;
 #else
 	assert(!charging_poll(0) && !charging_poll(1000) && !charging_poll(UINT32_MAX));
+	assert(!charging_active());
 	uint16_t mv = 0;
 	assert(!axp2101_battery_mv(mv));
 #endif

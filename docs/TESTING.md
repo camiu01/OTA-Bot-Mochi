@@ -484,8 +484,9 @@ separately in TODO.
    or observe test controls while driving.
 10. Run an extended BLE session and measure heap, power, and battery runtime.
 11. Battery reading is best-effort on unverified hardware. Open Clock → DESK
-    TOOLS → DEVICE STATUS with no battery fitted: the row must read NOT MEASURED
-    and USB `show` must report `battery=unavailable`. On LCD, with a known
+    TOOLS → DEVICE STATUS with no battery fitted: the row must read NOT MEASURED,
+    no charge bolt appears, and USB `show` must report
+    `battery=unavailable charging=off`. On LCD, with a known
     charged LiPo and the expected divider on `BAT_ADC`, compare the shown
     percentage against a multimeter across the discharge curve. On AMOLED V2,
     the percentage comes from the AXP2101 battery-voltage ADC, so compare it the
@@ -543,10 +544,12 @@ calibration are verified.
 
 Both native runners include Music protocol/command tests, an AMS adapter with
 controlled GATT, per-panel Music rendering, read-only SD WAV parsing/playback,
-and LCD/AMOLED charge detection tests. ES8311 tests select the actual startup,
-charging and five family paths through the production audio service, verify
-fallback, and exercise master/night/SD cancellation. These checks do not compile
-the ESP32 firmware or prove real SD/BLE/PMU behavior.
+and LCD/AMOLED charge detection tests. The charge suite also checks the
+debounced state exposed to the header bolt, the DEVICE STATUS row and the USB
+`show` line, including read errors that keep the last stable state. ES8311 tests
+select the actual startup, charging and five family paths through the production
+audio service, verify fallback, and exercise master/night/SD cancellation. These
+checks do not compile the ESP32 firmware or prove real SD/BLE/PMU behavior.
 
 For the user-owned AMOLED bench check:
 
@@ -555,8 +558,11 @@ For the user-owned AMOLED bench check:
    mode plus Night mute, expect silence and no SD playback.
 3. With a properly connected, verified battery setup, begin from a known
    non-charging state and connect the intended charging supply: expect one cue
-   after two stable 500 ms samples. Booting already charging establishes a silent
-   baseline. No automatic charging cue is expected on LCD OLD.
+   after two stable 500 ms samples, the accent percentage plus charge bolt in the
+   header, the same bolt on DEVICE STATUS and `charging=on` in USB `show`.
+   Unplugging must clear the bolt without replaying the cue. Booting already
+   charging establishes a silent baseline. No automatic charging cue is expected
+   on LCD OLD.
 4. Exercise affectionate, calm, excited, negative and ordinary reactions. Verify
    the matching family file, then remove a family file to test `face.wav`
    fallback, and remove both to test the built-in chirp.

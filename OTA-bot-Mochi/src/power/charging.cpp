@@ -9,6 +9,10 @@
 #include "../bus/i2c_bus.h"
 
 namespace {
+ChargingTracker tracker;
+uint32_t sampled_at = 0;
+bool sampled = false;
+
 /** @brief Read one PMU status byte on the main task. @param reg Register. @param value Output. @return Complete response. */
 bool read_status(uint8_t reg, uint8_t &value) {
 	TwoWire &wire = i2c_bus();
@@ -22,9 +26,6 @@ bool read_status(uint8_t reg, uint8_t &value) {
 
 bool charging_poll(uint32_t now) {
 #if defined(MOCHI_BOARD_AMOLED_18)
-	static ChargingTracker tracker;
-	static uint32_t sampled_at = 0;
-	static bool sampled = false;
 	if (sampled && uint32_t(now - sampled_at) < 500) { return false; }
 	sampled = true; sampled_at = now;
 	uint8_t identity = 0, status = 0;
@@ -36,6 +37,14 @@ bool charging_poll(uint32_t now) {
 	return tracker.update(direction == 3 ? ChargeState::Unknown : state);
 #else
 	(void)now;
+	return false;
+#endif
+}
+
+bool charging_active() {
+#if defined(MOCHI_BOARD_AMOLED_18)
+	return tracker.state() == ChargeState::Charging;
+#else
 	return false;
 #endif
 }

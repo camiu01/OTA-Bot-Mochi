@@ -36,21 +36,11 @@ different touch wiring; it is not covered.
 
 ## Compile
 
-```sh
-# LCD board (default)
-arduino-cli compile --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=disabled,FlashSize=16M" \
-  --build-property "upload.maximum_size=6553600" \
-  --build-property "compiler.cpp.extra_flags=-DMOCHI_BOARD_LCD_169" OTA-bot-Mochi
-
-# AMOLED board (V2)
-arduino-cli compile --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=opi,FlashSize=16M" \
-  --build-property "upload.maximum_size=6553600" \
-  --build-property "compiler.cpp.extra_flags=-DMOCHI_BOARD_AMOLED_18" OTA-bot-Mochi
-```
-
-The same two profiles are also available as the PlatformIO environments
-`esp32s3-lcd` and `esp32s3-amoled` in `platformio.ini`; see
-[Testing](TESTING.md#platformio-alternative).
+Both profiles are compiled with the commands in
+[Testing](TESTING.md#arduino-cli); that section is the canonical copy, including
+the `upload.maximum_size=6553600` override. The same two profiles are also
+available as the PlatformIO environments `esp32s3-lcd` and `esp32s3-amoled` in
+`platformio.ini`; see [PlatformIO alternative](TESTING.md#platformio-alternative).
 
 See `docs/TESTING.md` for the toolchain setup and `docs/UI.md` for the shared
 layout rules.
@@ -177,7 +167,9 @@ current consumption remain unverified on the original LCD hardware.
 
 `src/power/charging.*` reads AXP2101 identity at 0x03 and current-direction
 status at 0x01 over the existing SDA15/SCL14 controller. A stable transition
-into charging can request the optional sound cue. Booting while already
+into charging can request the optional sound cue, and `charging_active()` exposes
+the same debounced state to the header bolt, the DEVICE STATUS row and the USB
+`show` output. Booting while already
 charging establishes a silent baseline. The same module exposes the battery
 voltage from the 13-bit REG34/REG35 ADC, gated on the REG00 battery-present bit;
 `src/power/battery.*` maps those millivolts through the shared LiPo curve. This

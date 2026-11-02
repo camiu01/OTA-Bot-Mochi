@@ -10,6 +10,7 @@
 #include "../ui/weather_sync.h"
 #include "../sound/sound.h"
 #include "../power/battery.h"
+#include "../power/charging.h"
 #include "../../pin_config.h"
 #include <Arduino.h>
 #include <ctype.h>
@@ -132,8 +133,8 @@ void show() {
 		p.sound_charging ? "on" : "off");
 	Serial.printf("sound-status=%s gpio=%d\n", sound_status_name(), int(BUZZER));
 	uint8_t charge = battery_percent();
-	if (charge == BATTERY_UNAVAILABLE) { Serial.println("battery=unavailable"); }
-	else { Serial.printf("battery=%u%%\n", unsigned(charge)); }
+	if (charge == BATTERY_UNAVAILABLE) { Serial.printf("battery=unavailable charging=%s\n", charging_active() ? "on" : "off"); }
+	else { Serial.printf("battery=%u%% charging=%s\n", unsigned(charge), charging_active() ? "on" : "off"); }
 }
 
 /** @brief Print every accepted mood name for the USB vocabulary. */

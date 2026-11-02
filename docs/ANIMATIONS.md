@@ -178,8 +178,8 @@ additional framebuffer or stored image assets.
 
 Automatic Random/IMU/shake reactions wait for the complete visible cycle.
 Deliberate touch reactions can still interrupt it. Returning from a reaction
-starts a fresh complete cycle. The original IDs 0–96 and version-five
-thirteen-byte profile remain unchanged.
+starts a fresh complete cycle. The original IDs 0–96 and the version-five
+profile layout that stored them remain unchanged.
 
 The effects allocate no additional framebuffers, tasks, particle arrays or GIF
 decoder. Their dirty region covers the canvas while active because drops,

@@ -7,6 +7,7 @@
 #include "../../pin_config.h"
 #include "../power/backlight.h"
 #include "../power/battery.h"
+#include "../power/charging.h"
 #include "../sound/sound.h"
 
 uint16_t UI_CARD = 0x18C3;
@@ -128,6 +129,18 @@ void ui_sound_badge(Arduino_GFX *gfx, int16_t x, int16_t y) {
 }
 
 /**
+ * @brief Draw the compact charge bolt shown while the PMU reports charging.
+ * @param gfx Canvas.
+ * @param x Left edge; glyph spans x..x+7 and y..y+12.
+ * @param y Top edge.
+ */
+void ui_charge_badge(Arduino_GFX *gfx, int16_t x, int16_t y) {
+	uint16_t color = UI_ACCENT;
+	gfx->fillTriangle(x + 5, y, x + 1, y + 6, x + 4, y + 6, color);
+	gfx->fillTriangle(x + 2, y + 12, x + 8, y + 5, x + 5, y + 5, color);
+}
+
+/**
  * @brief Render header and pagination with the selected eye-color accent.
  * @param gfx Canvas.
  * @param title Screen title.
@@ -138,8 +151,10 @@ void ui_chrome(Arduino_GFX *gfx, const char *title, bool connected, uint8_t page
 	gfx->fillRect(0, 0, LCD_WIDTH, ui_s(52), UI_BG);
 	ui_label(gfx, "MOCHI / COMPANION", ui_s(16), ui_s(12), ui_s(180), 1, UI_MUTED);
 	uint8_t charge = battery_percent();
+	bool charging = charging_active();
 	ui_label(gfx, charge == BATTERY_UNAVAILABLE ? String("--%") : String(charge) + "%",
-		ui_s(182), ui_s(12), ui_s(34), 1, UI_MUTED);
+		ui_s(174), ui_s(12), ui_s(32), 1, charging ? UI_ACCENT : UI_MUTED);
+	if (charging) { ui_charge_badge(gfx, ui_s(208), ui_s(11)); }
 	gfx->fillCircle(ui_s(220), ui_s(16), 3, connected ? UI_ACCENT : UI_MUTED);
 	// Doubled header text ends later on scaled panels, so the badge steps aside instead of colliding.
 	int16_t badge_x = ui_s(150);

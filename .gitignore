@@ -1,6 +1,9 @@
 # Local Factory workspace files
 /.factory/
 
+# Local editor workspace files
+/.vscode/
+
 # Generated build and release output
 build/
 artifact/

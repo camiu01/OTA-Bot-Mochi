@@ -22,6 +22,8 @@ public:
 		_stable = state;
 		return started;
 	}
+	/** @brief Last debounced state, kept across read errors. @return Stable state, Unknown until two samples exist. */
+	ChargeState state() const { return _stable; }
 private:
 	ChargeState _candidate = ChargeState::Unknown, _stable = ChargeState::Unknown;
 	uint8_t _samples = 0;
@@ -29,6 +31,9 @@ private:
 
 /** @brief Sample the AMOLED PMU at 500 ms intervals on the existing shared I2C bus. @param now Milliseconds. @return New stable charge start; always false on LCD. */
 bool charging_poll(uint32_t now);
+
+/** @brief Report the last debounced charge direction for the header and status page. @return True only for a stable charging state; always false on LCD. */
+bool charging_active();
 
 /** @brief Read the AXP2101 battery voltage from its 13-bit ADC, without changing any charger setting. @param mv Output millivolts. @return True only for a complete, battery-present read; always false on LCD. */
 bool axp2101_battery_mv(uint16_t &mv);

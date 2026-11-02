@@ -79,6 +79,7 @@ testing on both boards. See the validation limits below.
 | Personalization | Global face exclusions, local browser settings, eye colors, brightness, 180-degree screen flip, motion presets, EN/IT labels, and explicitly saved preferences |
 | Local firmware update | Temporary protected LAN session or WPA2 setup network, on-screen QR and browser upload of the matching release application |
 | Power button | AMOLED V2: PWR 4s off / 1s on. LCD OLD: hold PWR 4s and release to turn off, press to restart; USB uses light sleep. Hardware switching requires board validation |
+| Battery and charging indicator | Plausibility-gated percentage in the header and DEVICE STATUS; an accent charge bolt while the AMOLED PMU reports a stable charging state. Read-only: no charger configuration |
 
 Eyes and local desk Pong/timers work without a phone. Clocks can sync through
 Chronos or automatic NTP on a [saved Wi-Fi network](docs/NETWORK.md).
@@ -113,7 +114,8 @@ A [240x280 gallery](docs/images/colored-performances-240.png) shows the LCD layo
 - LCD battery percentage is an uncalibrated, plausibility-gated estimate.
   AMOLED battery percentage comes from the AXP2101 PMU's battery-voltage ADC
   behind the same plausibility gate. Read-only PMU charge-start detection is
-  implemented for optional audio cues; physical charging validation remains pending.
+  implemented for optional audio cues and drives the header/status charge bolt;
+  physical charging validation remains pending.
 
 ### Planned or deferred
 
@@ -287,12 +289,12 @@ Look for `UI ready`, the detected touch address, and `IMU ready` or `IMU unavail
 startup shows an animated OTA BOT / MOCHI title for 2.2 seconds, then an eye greeting. A startup cue follows only when saved Sound settings allow it. Defaults
 are white MOCHI eyes, neutral mood, 30% day brightness, and sound off.
 
-The new OTA firmware does not yet have a completed local Arduino CLI build:
-the initial build reached the old board-size limit, and the corrected retry was
-cancelled. See [OTA validation limits](docs/OTA.md#validation-and-limits).
-The inspected CI run built both profiles at core **3.3.11**; earlier
-AMOLED device bring-up used **3.3.12**. Neither build result identifies which
-binary is currently installed or proves hardware operation.
+The current source has no completed Arduino CLI build: the last attempt hit the
+old board-size limit and the corrected retry was cancelled. Source checkpoint
+`8b752ba` compiled both profiles locally through PlatformIO, and the inspected
+CI run built both profiles at core **3.3.11**; earlier AMOLED device bring-up
+used **3.3.12**. Neither result identifies which binary is currently installed
+or proves hardware operation. See [OTA validation limits](docs/OTA.md#validation-and-limits).
 
 ### PlatformIO (alternative path)
 

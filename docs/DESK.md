@@ -28,7 +28,7 @@ Swipe down on Clock to open Scrivania, then select:
 | BIG CLOCK | Large hours/minutes, seconds, AM/PM when applicable, and date |
 | DESK OVERVIEW | Time, phone connection, temperature/city, and weather freshness |
 | TIMER / POMODORO | Local 5-minute or 15-minute timer, or one 25-minute focus/5-minute rest pair |
-| DEVICE STATUS | BLE connection, backlight percentage, IMU initialization, clock sync, preference save state, sound state, and battery estimate |
+| DEVICE STATUS | BLE connection, backlight percentage, IMU initialization, clock sync, preference save state, sound state, battery estimate, and a charge bolt while the PMU reports charging |
 | PONG | Play against an automatic right paddle; tap the court at the desired height to move the left paddle, RESET starts a new game |
 | ANALOG CLOCK | Hour, minute and second hands with synchronized digital time below |
 | TIC TAC TOE / TRIS | You play X against Mochi O; tap an empty cell, NEW GAME clears the board |
@@ -50,7 +50,7 @@ clears it. The `tic_tac_toe` Mood is a separate decorative demo.
 
 Swipe up from a tool to return to the hub; swipe up from the hub to return to
 Clock. A horizontal swipe from a tool goes to the previous/next primary page
-relative to Clock, so the carousel still has only six destinations. The Clock
+relative to Clock, so the carousel still has only seven destinations. The Clock
 position dot stays selected in these tools.
 
 Time requires a Chronos sync after boot and then continues while disconnected.
@@ -62,7 +62,8 @@ by the board. Device status shows initialization, not vehicle telemetry. The
 battery row is a best-effort LiPo estimate from an unverified ADC divider on
 `BAT_ADC` (LCD) or the AXP2101 battery-voltage ADC (AMOLED V2); implausible
 readings (no battery fitted) are reported as NOT MEASURED,
-and the conversion is native-tested but physically unvalidated.
+and the conversion is native-tested but physically unvalidated. A charge bolt
+appears beside the row while the AMOLED PMU reports a stable charging state.
 
 ## Local timer
 

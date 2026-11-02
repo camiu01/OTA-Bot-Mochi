@@ -35,8 +35,8 @@ session and are never saved. The separately saved home-network
 credentials and station connection survive session close. Use only while parked.
 
 The separate version-one `mochi/faces` NVS record contains a catalog length,
-bitmap and checksum. The existing thirteen-byte v7 profile and its migrations
-are unchanged. Missing/invalid records enable all faces; newly appended IDs are
+bitmap and checksum. The separate seventeen-byte version-ten profile and its
+migrations are unchanged. Missing/invalid records enable all faces; newly appended IDs are
 enabled when loading an older valid bitmap. Defaults restores all faces in RAM.
 
 ## Local HTTP contract

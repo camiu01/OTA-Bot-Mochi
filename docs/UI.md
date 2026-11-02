@@ -6,8 +6,10 @@ The eye color is the shared primary color, including controls, calls, and weathe
 Seven position dots indicate the selected
 screen; the header shows a speaker icon (crossed out while sound is off or
 night-muted), Bluetooth state, and the battery percentage (`--%` until a
-plausible reading exists). The configured backlight percentage is shown on the
-DEVICE STATUS page, not in the header.
+plausible reading exists). While the PMU reports a stable charging state, the
+percentage uses the accent color and a charge bolt appears beside it. The
+configured backlight percentage is shown on the DEVICE STATUS page, not in the
+header.
 
 ## Controls
 
@@ -253,8 +255,10 @@ driving-maneuver classifier; repeated rough-road motion can still resemble a
 shake, so leave it disabled in the car. The reaction lasts two seconds and
 restores the selected mood. Disabling shake cancels a pending reaction.
 
-AXP2101 PWR-key setup probes and checks the PMU, but no charging driver or
-charger status is implemented. Battery percentage is a
+AXP2101 PWR-key setup probes and checks the PMU, but no charging configuration
+is implemented: voltage/current limits and safety registers stay untouched. The
+read-only charge direction from the PMU drives the header charge bolt and the
+DEVICE STATUS indicator; it never writes PMU registers. Battery percentage is a
 best-effort, plausibility-gated estimate from `BAT_ADC` on LCD or the AXP2101
 battery-voltage ADC on AMOLED V2; without a plausible reading the Device status
 page shows NOT MEASURED. The LCD SYS_EN/SYS_OUT pins

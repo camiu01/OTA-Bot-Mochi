@@ -6,7 +6,11 @@ Functional confirmations below are scoped to
 AMOLED V2 unless another board is explicitly recorded.
 
 - [x] Fix the eye-motion reference test by subtracting its same-time backdrop; the complete native runner reports all host tests passed (2026-10-28).
-- [ ] Compile both profiles with the pinned CI toolchain, checking the new Wi-Fi code, flash size and heap headroom.
+- [ ] Compile both profiles with the pinned CI toolchain (Arduino CLI 1.2.0, ESP32
+  core 3.3.11), checking the Wi-Fi and charging code, flash size and heap headroom,
+  and record the result at the current HEAD.
+- [ ] Re-run the GitHub Actions workflow at the current HEAD; the last inspected
+  run is `e0ac13a`, several commits behind.
 - [x] Install/update AMOLED V2 over COM6 using unchanged 16 MB OTA layout v1; verify image hashes, reboot and retained saved settings (2026-10-29).
 - [ ] Verify LCD OLD installation/migration separately and record calibration effects.
 - [ ] Update both directions between two trusted OTA-capable firmware images via the browser, retaining saved settings and calibration.
@@ -157,6 +161,14 @@ These are not additional reported failures of the working Chronos/IMU/UI paths.
 - [ ] Verify battery circuitry/divider calibration, the AXP2101 percentage reading
   and AMOLED PMU charge-start transitions on hardware; the new readers do not
   validate charger setup.
+- [ ] Verify the charge indicator on AMOLED V2: the bolt appears only after two
+  stable charging samples, the percentage switches to the accent color, `--%`
+  still appears without a plausible reading, the DEVICE STATUS bolt matches the
+  header, and USB `show` reports `charging=on|off` across plug/unplug and
+  read-error transitions. Native tests do not prove the PMU direction bits.
+- [ ] Confirm a saved version-nine profile survives the update to version ten on a
+  real device: charging switch on by default, night schedule retained, and only an
+  explicit SAVE rewriting the seventeen-byte record.
 - [ ] Measure power consumption and battery runtime.
 
 ### Other boards and measured robustness
@@ -166,6 +178,9 @@ These are not additional reported failures of the working Chronos/IMU/UI paths.
   continuous beeping and I2C crashes on 2026-10-13.
 - [x] Require OPI PSRAM for the AMOLED 368x448 canvas.
 - [x] Cover both board profiles and multiple panel geometries in native tests.
+- [ ] Verify the extended SAVE/Back band on the tall AMOLED panel: both buttons are
+  tappable to the panel edge, the four-pixel inert margin stays inert, and the band
+  never activates the row above it.
 - [ ] Repeat newly added eye/desk features and audio checks on the LCD OLD board;
   AMOLED confirmation does not certify a different physical board.
 - [ ] Measure worst-case frame time and extended-session heap behavior.
@@ -184,6 +199,8 @@ These are not additional reported failures of the working Chronos/IMU/UI paths.
   run 40499404191 at e0ac13ad78ba5467062553ea8833125f7ca6d140 succeeded.
   This does not validate later workspace changes; see `docs/CI.md`.
 - [ ] Implement automatic OTA deployment if requested; binaries are not deployed automatically.
+- [ ] Record release/CI evidence for the `v1.3.0` tag; `docs/CI.md` still describes
+  only the inspected `v1.2.0` run.
 
 See `docs/UI.md`, `docs/SETTINGS.md`, `docs/BOARDS.md`, and `docs/TESTING.md`
 for behavior, board details, and reproducible checks.
@@ -195,7 +212,9 @@ for behavior, board details, and reproducible checks.
 - [ ] Verify both panels' Music touch targets and long metadata on physical displays.
 - [ ] Verify AMOLED V2 SD WAV playback, fallback, master/SD/night/category mute and SAVE.
 - [ ] Measure SD read latency, speaker level, card removal/reinsertion and radio/display coexistence.
-- [ ] Compile both firmware profiles through the user-owned build workflow.
+- [ ] Verify the single mount with ten-second backoff: an absent or partially
+  populated card must not remount on every cue or stall display frames, and a
+  later insertion must recover without rebooting the device.
 
 - [ ] Verify startup.wav once per restart, charging.wav on a real stable charge
   start, five face-family WAVs and generic/built-in fallback; check mute/priority.
@@ -207,4 +226,18 @@ for behavior, board details, and reproducible checks.
 
 - [x] Check bilingual navigation, read-only behavior and layout on three native panel geometries; verify captured heap pools, reset causes, long uptime and SD last-attempt states with controlled fixtures.
 - [ ] Verify SYSTEM > Diagnostics on both physical panels: scroll/BACK, live BLE/Wi-Fi transitions, heap values, reset reason and SD last-attempt state. Native tests do not establish physical behavior.
-- [ ] Compile both board profiles using the user-owned firmware build workflow.
+- [ ] Decide whether a persistent crash/reset record is needed; today the summary is
+  USB-only and a disconnect loses it.
+
+- [ ] Verify the face-library web editor on a real phone/desktop browser: save,
+  the "keep at least one face" rejection, the 409 revision conflict, and offline use.
+
+## Documentation and repository hygiene
+
+- [ ] Decide whether to restore `CHANGELOG.md`, deleted in `245a768` after the v1.3.0
+  alignment, or state that release notes live only in GitHub Releases.
+- [ ] Add a device photo or short video to the repository; the README still has
+  only native emulator renders.
+- [ ] Split `src/settings/settings_menu.cpp` (415 lines) and
+  `OTA-bot-Mochi.ino` (435 lines) to stay under the 400-line guideline in
+  `CONTRIBUTING.md`.

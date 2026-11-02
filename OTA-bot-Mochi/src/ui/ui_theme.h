@@ -77,6 +77,13 @@ void ui_chrome(Arduino_GFX *gfx, const char *title, bool connected, uint8_t page
  */
 void ui_sound_badge(Arduino_GFX *gfx, int16_t x, int16_t y);
 /**
+ * @brief Draw the compact charge bolt shown while the PMU reports charging.
+ * @param gfx Canvas.
+ * @param x Left edge; glyph spans x..x+7 and y..y+12.
+ * @param y Top edge.
+ */
+void ui_charge_badge(Arduino_GFX *gfx, int16_t x, int16_t y);
+/**
  * @brief Draw a calm empty state.
  * @param gfx Canvas.
  * @param title Primary message.

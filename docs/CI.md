@@ -89,7 +89,8 @@ an existing output directory. CI runs it before compiling firmware.
 ## Inspected release evidence (2026-10-27)
 
 The public GitHub tag API resolves **v1.2.0** to
-`e0ac13ad78ba5467062553ea8833125f7ca6d140`, also the local starting HEAD.
+`e0ac13ad78ba5467062553ea8833125f7ca6d140`, which was the local HEAD when this
+inspection was recorded.
 The [release run 40499404191](https://github.com/camiu01/OTA-Bot-Mochi/actions/runs/40499404191)
 reports **success** for `host`, `firmware`, and `release`. Its individual steps
 include successful native/packaging tests and both Arduino CLI board builds.
