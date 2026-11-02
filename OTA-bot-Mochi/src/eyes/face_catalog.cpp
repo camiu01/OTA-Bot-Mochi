@@ -134,6 +134,16 @@
 #include "faces/uwu.h"
 #include "faces/yokai.h"
 #include "faces/tic_tac_toe.h"
+#include "faces/mecha_mask.h"
+#include "faces/mecha_break.h"
+#include "faces/hollow_anger.h"
+#include "faces/snickering.h"
+#include "faces/hiccup.h"
+#include "faces/retro_tv.h"
+#include "faces/mecha_pilot.h"
+#include "faces/comet.h"
+#include "faces/yakura.h"
+#include "faces/chinese_dragon.h"
 
 /** @brief Complete ID-ordered catalog; names remain checked against the public table. */
 constexpr FacePresetEntry FACE_PRESETS[EXPRESSION_COUNT] = {
@@ -272,6 +282,16 @@ constexpr FacePresetEntry FACE_PRESETS[EXPRESSION_COUNT] = {
 	{UWU, face_defs::uwu_face::preset},
 	{YOKAI, face_defs::yokai_face::preset},
 	{TIC_TAC_TOE, face_defs::tic_tac_toe_face::preset},
+	{MECHA_MASK, face_defs::mecha_mask_face::preset},
+	{MECHA_BREAK, face_defs::mecha_break_face::preset},
+	{HOLLOW_ANGER, face_defs::hollow_anger_face::preset},
+	{SNICKERING, face_defs::snickering_face::preset},
+	{HICCUP, face_defs::hiccup_face::preset},
+	{RETRO_TV, face_defs::retro_tv_face::preset},
+	{MECHA_PILOT, face_defs::mecha_pilot_face::preset},
+	{COMET, face_defs::comet_face::preset},
+	{YAKURA, face_defs::yakura_face::preset},
+	{CHINESE_DRAGON, face_defs::chinese_dragon_face::preset},
 };
 static_assert(face_entries_valid(FACE_PRESETS), "Every expression requires one valid ID-ordered face");
 

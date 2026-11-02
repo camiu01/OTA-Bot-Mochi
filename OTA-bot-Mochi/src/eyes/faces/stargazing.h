@@ -5,6 +5,7 @@
  */
 #pragma once
 #include "../face_support.h"
+#include "../face_random.h"
 
 namespace face_defs { namespace stargazing_face {
 using namespace face_primitives;
@@ -18,7 +19,7 @@ inline void local_eye_performance_stars(Arduino_GFX *gfx, const EyeConfig &cfg, 
 	for (uint8_t i = 0; i < 28; ++i) {
 		int16_t x = margin + ((i * 73 + 17) % 211) * (cfg.screenW - 2 * margin) / 211;
 		int16_t y = margin + ((i * i * 11 + 7) % 101) * (cfg.screenH * 3 / 4 - margin) / 101;
-		float light = 0.55f + 0.35f * sinf((elapsed % 6000) * 0.00314159265f + i * 1.7f);
+		float light = 0.3f + 0.6f * face_smooth_random(elapsed, 1700u + i * 37u, 511u + i * 73u);
 		uint16_t tint = i % 3 ? eye_rgb(180, 210, 255) : eye_rgb(255, 220, 160);
 		uint16_t ink = eye_mix(tint, cfg.bgColor, uint8_t(a * light * 100));
 		int16_t r = i % 7 == 0 ? cfg.screenW / 120 + 1 : 0;

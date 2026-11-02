@@ -52,6 +52,7 @@ struct FacePreset {
 	bool hasReactionInk = false, performance = false, fullScene = false;
 	bool wholeEye = false, replacesSolid = false, cross = false, sideGaze = false;
 	bool normalCycle = false;	/**< Blink into the effect and return to the style's neutral eyes each six-second cycle. */
+	bool keepOpen = false;	/**< Suppress eyelid closure while retaining gaze and body motion. */
 };
 
 /** @brief An explicit public ID and its immutable definition. */

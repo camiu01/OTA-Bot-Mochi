@@ -15,7 +15,7 @@ rows. Changes are live in RAM and do not write flash while browsing.
 | --- | --- | --- |
 | LOOK | Eyes | normal, mochi, bloub, trapez |
 | LOOK | Color | white, mint, cyan, amber, pink, blue |
-| LOOK | Mood | opens a 3-column grid of all 135 expressions/animated moods, five rows visible at a time (45 rows total); tap a cell, swipe to scroll |
+| LOOK | Mood | opens a 3-column grid of all 145 expressions/animated moods, five rows visible at a time (49 rows total); tap a cell, swipe to scroll |
 | DISPLAY | Day level | 5, 10, 20, 30, 50, 70, 90% |
 | DISPLAY | Manual night | off / on; ON overrides the automatic schedule |
 | DISPLAY | Night level | 1, 3, 5, 8, 12, 20% |
@@ -303,7 +303,11 @@ star, sparkle, glee, beaming, manic, hyper, squish, derp) with the same glance. 
 a different expression without changing the saved base, style, or color. The tap
 reactions take priority over ordinary IMU moods; an active dizzy reaction keeps
 priority and ignores them. Petting still requests affectionate faces, and
-further strokes extend the same face up to six seconds from the first stroke.
+further strokes keep the same face until three seconds after the last recognized stroke.
+Slow strokes accumulate even one-pixel samples; a deliberate vertical reversal
+is enough, while jitter, taps and horizontal swipes do not pet.
+The pink heart follows the contact independently of the selected eye color.
+Continued petting does not replay the reaction sound on every stroke.
 Each reaction chirps with a fresh random pitch drawn from its face family's
 tone band (see [Audio and motion](SOUND.md)).
 A hold still opens Settings and a swipe does not also trigger a random face.

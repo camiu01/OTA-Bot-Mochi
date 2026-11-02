@@ -126,7 +126,7 @@ void eyes_draw() {
 	EyeConfig cfg = eyes_config();
 	EyeState &st = eyes_state();
 	EyeState drawing = st;
-	const EyeLifeFrame &pose = eyes_life_frame();
+	EyeLifeFrame pose = eyes_life_frame();
 	if (pose.active) {
 		cfg.expression = pose.expression; drawing.blinking = false;
 		drawing.saccadeX = drawing.saccadeY = drawing.floatY = 0;
@@ -134,6 +134,10 @@ void eyes_draw() {
 	}
 	cfg.expression = face_filter().resolve(cfg.expression);
 	const FacePreset *preset = face_preset(cfg.expression);
+	if (preset && preset->keepOpen) {
+		drawing.blinking = false;
+		pose.openL = pose.openR = 1;
+	}
 	bool scene = preset && preset->fullScene;
 	uint32_t elapsed = eye_effect_elapsed(st, cfg.expression);
 	EyeLayout layout = eye_layout(cfg, scene ? EyeState{} : drawing);
@@ -156,7 +160,7 @@ void eyes_draw() {
 		paint(gfx, right, drawing, layout.right, elapsed, eyes_config().fgColor);
 	}
 	if (st.heartUntilMs != 0) {
-		paint_heart(gfx, cfg.fgColor, st.heartX, st.heartY);
+		paint_heart(gfx, eye_rgb(255, 112, 157), st.heartX, st.heartY);
 	}
 	store_union(st, eye_effect_bounds(cfg, layout), cfg);
 	// Particles and reversible morphs travel beyond the ordinary pair's rectangle.

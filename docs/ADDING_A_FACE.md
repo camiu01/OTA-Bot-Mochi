@@ -1,7 +1,7 @@
 # Editing and adding a face
 
 Every existing expression has one file in `OTA-bot-Mochi/src/eyes/faces/`:
-135 files, named after the canonical USB names. Each file owns an immutable
+145 files, named after the canonical USB names. Each file owns an immutable
 `FacePreset` and its expression-specific drawing and animation procedures.
 For example, edit `faces/curious.h` for CURIOUS or `faces/crying.h` for CRYING.
 
@@ -82,6 +82,9 @@ Use existing `face_primitives` helpers from `face_support.h` for reusable shapes
 lid cuts, colors and interpolation. A callback may draw or calculate frame-local
 geometry, but must not block, log to Serial, persist settings, or allocate another
 framebuffer. Preserve the existing clocks and transient-palette restoration.
+
+Set `keepOpen` for a symbol that must ignore eyelid closure, including live-pose
+blinks. Moon and Fire also omit `normalCycle` so their artwork remains visible.
 
 For example, TIRED's exact one-third top and one-quarter bottom lid cuts remain
 in `faces/tired.h`, instead of approximating them with percentage cuts.

@@ -54,8 +54,10 @@ QR URL fragment. A LAN client cannot obtain it by forging the AP Host.
 | `POST /faces` | Requires token, `Content-Type: text/plain` and `X-Mochi-Faces-Revision` matching the current decimal revision; body is exactly the fixed-width lowercase hexadecimal bitmap |
 
 Bitmap bit `id % 8` of byte `id / 8` means enabled. Bytes are encoded as two hex
-digits each, in ascending byte order. For 135 faces the body has 34 characters;
-the last byte's unused high bit must be zero. At least one bit must be set.
+digits each, in ascending byte order. For 145 faces the body has 38 characters;
+the nineteen-byte mask uses only bit 0 of its final byte. Its seven reserved
+high bits must stay zero. At least one bit must be set. Loading an older
+144-face record preserves its exclusions and enables the appended dragon.
 
 POST returns the same state on success (200) or failed storage (507, changes
 remain live in RAM and can be retried). Invalid masks/body/type return 400 without

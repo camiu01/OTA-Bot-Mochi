@@ -7,6 +7,8 @@
 #include "../OTA-bot-Mochi/src/touch/touch_actions.h"
 #include <assert.h>
 #include <stdint.h>
+#include <initializer_list>
+#include "petting_gesture_regressions.h"
 
 /** @brief Stroke down-up-down with small steps while keeping X steady. */
 static void stroke(TouchActions &actions, int16_t x, uint32_t &now) {
@@ -99,7 +101,7 @@ static void pet_tests() {
 
 	actions.update(true, 120, actions.y, now + 100);
 	stroke(actions, 120, now);
-	assert(!actions.take_pet());
+	assert(actions.take_pet());
 
 	now += 1600;
 	stroke(actions, 120, now);
@@ -148,5 +150,6 @@ int main() {
 	assert(swipe.update(true, 100, 100, 20) == 1);
 	double_tap_tests();
 	pet_tests();
+	gentle_pet_tests(); rejected_pet_tests();
 	return 0;
 }

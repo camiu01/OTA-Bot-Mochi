@@ -11,6 +11,12 @@
 #include <iostream>
 #include <utility>
 #include "../OTA-bot-Mochi/src/eyes/eye_life.h"
+#include "../OTA-bot-Mochi/src/eyes/faces/moon.h"
+#include "../OTA-bot-Mochi/src/eyes/faces/mecha_mask.h"
+#include "../OTA-bot-Mochi/src/eyes/faces/tic_tac_toe.h"
+#include <set>
+#include "../OTA-bot-Mochi/src/eyes/face_random.h"
+#include "face_scene_regressions.h"
 
 /** @brief Accept only the explicit semantic accents owned by a symbol face. */
 static bool themed_pixel(Expression face, uint16_t pixel) {
@@ -45,7 +51,10 @@ static void palette_tests() {
 				eyes_set_expression(static_cast<Expression>(value));
 				eyes_draw();
 				bool solid = style == MOCHI || style == TRAPEZ;
-				assert(std::count(gfx.pixels.begin(), gfx.pixels.end(), ink) > 0);
+				if (value == FIRE) {
+					assert(std::count(gfx.pixels.begin(), gfx.pixels.end(), ink) == 0);
+					assert(std::count(gfx.pixels.begin(), gfx.pixels.end(), eye_rgb(255, 112, 32)) > 0);
+				} else { assert(std::count(gfx.pixels.begin(), gfx.pixels.end(), ink) > 0); }
 				for (uint16_t pixel : gfx.pixels) {
 					assert(pixel == 0 || pixel == ink || themed_pixel(Expression(value), pixel) ||
 						(!solid && (pixel == 0xF800 || pixel == 0x07E0)));
@@ -65,7 +74,7 @@ static void palette_tests() {
 	}
 }
 
-/** @brief Petting hearts use the selected body color and erase without trails. */
+/** @brief Petting hearts stay pink independently of the eye ink and erase without trails. */
 static void heart_tests() {
 	Arduino_GFX gfx;
 	for (uint8_t style = 0; style < 4; ++style) {
@@ -80,7 +89,7 @@ static void heart_tests() {
 		state.heartX = 120;
 		state.heartY = 40;
 		eyes_draw();
-		assert(gfx.pixels[43 * gfx.width() + 117] == 0x07FF);
+		assert(gfx.pixels[43 * gfx.width() + 117] == eye_rgb(255, 112, 157));
 		assert(gfx.pixels != baseline);
 		auto dirty = gfx.pixels;
 		state.dirtyInit = false;
@@ -120,7 +129,7 @@ static void animated_symbols() {
 		for (uint8_t style = 0; style < 4; ++style) {
 			eyes_init(&gfx);
 			eyes_set_style(EyeStyle(style));
-			for (Expression face : {LOADING, GLITCH}) {
+			for (Expression face : {LOADING, GLITCH, MOON, FIRE}) {
 				eyes_set_expression(face);
 				std::vector<uint16_t> initial;
 				bool changed = false;
@@ -136,6 +145,139 @@ static void animated_symbols() {
 				}
 				assert(changed);
 			}
+		}
+	}
+}
+
+/** @brief Lunar quarters mirror, full moon peaks, and each cycle returns to new. */
+static void lunar_phases() {
+	Arduino_GFX gfx(80, 80);
+	std::vector<size_t> coverage;
+	std::vector<uint16_t> waxing;
+	for (uint32_t time : {1200u, 1650u, 2100u, 2550u, 3000u, 3450u, 3900u, 4350u, 4800u, 7200u}) {
+		gfx.fillScreen(0);
+		face_defs::moon_face::phase_disc(&gfx, 40, 40, 28, (time % 6000 - 1200) / 3600.0f, 0xFFFF);
+		coverage.push_back(std::count_if(gfx.pixels.begin(), gfx.pixels.end(), [](uint16_t p) { return p != 0; }));
+		if (time == 2100) { waxing = gfx.pixels; }
+		if (time == 3900) {
+			for (int y = 10; y < 70; ++y) {
+				for (int x = 10; x < 70; ++x) { assert(gfx.pixels[y * 80 + x] == waxing[y * 80 + 80 - x]); }
+			}
+		}
+	}
+	assert(coverage[0] == 0 && coverage[8] == 0 && coverage[9] == 0);
+	for (size_t i = 1; i <= 4; ++i) { assert(coverage[i] > coverage[i - 1]); }
+	for (size_t i = 5; i <= 8; ++i) { assert(coverage[i] < coverage[i - 1]); }
+}
+
+/** @brief Moon and Fire ignore eyelid closure without suppressing ordinary blinking. */
+static void moon_stays_open() {
+	for (const auto &panel : {std::pair<int, int>{240, 280}, {368, 448}}) {
+		Arduino_GFX gfx(panel.first, panel.second);
+		for (uint8_t style = 0; style < 4; ++style) {
+			eyes_init(&gfx); eyes_life_reset(); eyes_set_style(EyeStyle(style));
+			for (Expression face : {MOON, FIRE, NEUTRAL}) {
+				eyes_set_expression(face);
+				eyes_draw();
+				eyes_state().lastMs = eyes_state().effectStartMs + 2250;
+				eyes_state().blinking = false; eyes_draw();
+				auto open = gfx.pixels;
+				eyes_state().blinking = true; eyes_draw();
+				if ((open == gfx.pixels) != (face != NEUTRAL)) {
+					std::cerr << "Blink mismatch: " << panel.first << " style " << unsigned(style)
+						<< " face " << eyes_expression_name(face) << "\n";
+				}
+				assert((open == gfx.pixels) == (face != NEUTRAL));
+			}
+		}
+	}
+}
+
+/** @brief Robot masks share a closed pose, open symmetrically and erase without trails. */
+static void robot_masks() {
+	for (const auto &panel : {std::pair<int, int>{240, 280}, {368, 448}}) {
+		Arduino_GFX gfx(panel.first, panel.second);
+		eyes_init(&gfx); eyes_life_reset();
+		for (uint8_t style = 0; style < 4; ++style) {
+			eyes_set_style(EyeStyle(style));
+			eyes_set_expression(NEUTRAL); eyes_draw();
+			auto original = gfx.pixels;
+			for (Expression face : {MECHA, MECHA_MASK, MECHA_BREAK}) {
+				eyes_set_expression(face); eyes_draw();
+				uint32_t start = eyes_state().effectStartMs;
+				for (uint32_t time : {0u, 1200u, 2000u, 2400u, 3000u, 4200u, 4800u, 6000u}) {
+					eyes_state().lastMs = start + time; eyes_draw();
+					auto frame = gfx.pixels;
+					if (time == 2000) { assert(frame != original); }
+					if (time == 2000 && face != MECHA_MASK) {
+						assert(std::count(frame.begin(), frame.end(), eyes_config().fgColor) == 0);
+					}
+					if (time == 0 || time >= 4800) { assert(frame == original); }
+					if (face == MECHA_MASK) {
+						EyeLayout eyes = eye_layout(eyes_config(), EyeState{});
+						int bottom = std::max(eyes.left.y + eyes.left.h, eyes.right.y + eyes.right.h);
+						assert(std::equal(frame.begin(), frame.begin() + bottom * gfx.width(), original.begin()));
+					}
+					eyes_state().dirtyInit = false; eyes_draw();
+					assert(frame == gfx.pixels);
+				}
+			}
+		}
+	}
+}
+
+/** @brief Pseudo-random matches preserve legal prefixes, stop at results and vary each cycle. */
+static void varied_matches() {
+	std::set<unsigned> openings;
+	for (uint32_t cycle = 0; cycle < 128; ++cycle) {
+		TicTacToe previous;
+		for (uint32_t time = 0; time <= 11000; time += 100) {
+			uint8_t first, second;
+			auto game = face_defs::tic_tac_toe_face::match(cycle * 12000 + time, first, second);
+			assert(first < 9 && second < 9 && first != second);
+			openings.insert(first * 9 + second);
+			unsigned xs = 0, os = 0, changes = 0;
+			for (uint8_t i = 0; i < 9; ++i) {
+				xs += game.cells[i] == 1; os += game.cells[i] == 2;
+				if (previous.cells[i]) { assert(previous.cells[i] == game.cells[i]); }
+				changes += previous.cells[i] != game.cells[i];
+			}
+			assert(xs == os || xs == os + 1);
+			if (time) { assert(changes <= 1); }
+			if (previous.result()) { assert(changes == 0); }
+			previous = game;
+		}
+		assert(previous.result());
+	}
+	assert(openings.size() > 20);
+}
+
+/** @brief Event samples stay bounded and particle paths vary without frame-order state. */
+static void varied_particles() {
+	std::set<float> samples;
+	for (uint32_t i = 0; i < 256; ++i) {
+		float value = face_random(i, 71u);
+		assert(value >= 0 && value <= 1 && value == face_random(i, 71u));
+		samples.insert(value);
+	}
+	assert(samples.size() > 240);
+	for (const auto &panel : {std::pair<int, int>{240, 280}, {368, 448}}) {
+		Arduino_GFX gfx(panel.first, panel.second);
+		eyes_init(&gfx);
+		for (Expression face : {COMET, SAKURA, HICCUP}) {
+			EyeConfig cfg = eyes_config(); cfg.expression = face;
+			EyeLayout pair = eye_layout(cfg, EyeState{});
+			const FacePreset *p = face_preset(face);
+			assert(p && p->scenery);
+			p->scenery(&gfx, cfg, pair, 2700, 1);
+			auto first = gfx.pixels;
+			gfx.fillScreen(cfg.bgColor);
+			p->scenery(&gfx, cfg, pair, 8700, 1);
+			assert(first != gfx.pixels);
+			gfx.fillScreen(cfg.bgColor);
+			p->scenery(&gfx, cfg, pair, 2700, 1);
+			assert(first == gfx.pixels);
+			gfx.fillScreen(cfg.bgColor);
 		}
 	}
 }
@@ -187,10 +329,37 @@ static void normal_cycle_tests() {
 		eyes_init(&gfx);
 		for (uint8_t style = 0; style < 4; ++style) {
 			eyes_set_style(EyeStyle(style));
-			for (Expression face : {TARGET, SPARKLE, MUSIC, MOON, LOW_BATT, LOADING, GLITCH, FIRE}) {
+			for (Expression face : {TARGET, SPARKLE, MUSIC, LOW_BATT, LOADING, GLITCH}) {
 				cycle_case(gfx, face, 0, 0);
 				cycle_case(gfx, face, UINT32_MAX - 300, 0x0841);
 			}
+		}
+	}
+}
+
+/** @brief Yakura retains ember discs, pale brows and deterministic cycle variation on every style. */
+static void yakura_colors() {
+	for (const auto &panel : {std::pair<int, int>{240, 280}, {368, 448}}) {
+		Arduino_GFX gfx(panel.first, panel.second);
+		eyes_init(&gfx);
+		for (uint8_t style = 0; style < 4; ++style) {
+			eyes_set_style(EyeStyle(style));
+			EyeConfig cfg = eyes_config(); cfg.expression = YAKURA; cfg.bgColor = 0x0841;
+			EyeLayout pair = eye_layout(cfg, EyeState{});
+			auto p = face_preset(YAKURA);
+			assert(p && p->performanceScene);
+			gfx.fillScreen(cfg.bgColor);
+			assert(p->performanceScene(&gfx, cfg, pair, 2300, 1));
+			auto first = gfx.pixels;
+			for (uint16_t color : {eye_rgb(242, 120, 68), eye_rgb(187, 221, 247)}) {
+				assert(std::count(first.begin(), first.end(), color) > 20);
+			}
+			gfx.fillScreen(cfg.bgColor);
+			assert(p->performanceScene(&gfx, cfg, pair, 8300, 1));
+			assert(gfx.pixels != first);
+			gfx.fillScreen(cfg.bgColor);
+			assert(p->performanceScene(&gfx, cfg, pair, 2300, 1));
+			assert(gfx.pixels == first);
 		}
 	}
 }
@@ -199,6 +368,14 @@ static void normal_cycle_tests() {
 int main() {
 	assert(settings_init());
 	symbol_tests();
+	lunar_phases();
+	moon_stays_open();
+	robot_masks();
+	varied_particles();
+	yakura_colors();
+	snickering_strokes(); lateral_anger_markers();
+	dragon_colors(); varied_weather();
+	varied_matches();
 	symbol_coverage();
 	animated_symbols();
 	normal_cycle_tests();

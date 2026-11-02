@@ -42,7 +42,7 @@ int main() {
 	call(s, "POST /faces"); assert(s.code == 409);
 	s.headers["X-Mochi-Faces-Revision"] = String(settings_faces_revision());
 	unsigned writes = test_flash_writes;
-	for (std::string bad : {std::string(FaceFilter::BYTES * 2, '0'), std::string(FaceFilter::BYTES * 2, 'f'), std::string("short"), std::string(2000, 'a')}) {
+	for (std::string bad : {std::string(FaceFilter::BYTES * 2, '0'), std::string(FaceFilter::BYTES * 2, 'g'), std::string("short"), std::string(2000, 'a')}) {
 		s.request_body = bad; call(s, "POST /faces"); assert(s.code == 400 && test_flash_writes == writes);
 	}
 	s.request_body = mask; s.headers["Content-Type"] = "text/html";

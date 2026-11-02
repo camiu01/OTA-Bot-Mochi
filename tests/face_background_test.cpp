@@ -20,7 +20,7 @@
 #include <iostream>
 
 /** @brief Moods owning a persistent backdrop; GLOW and HEADLIGHTS predate the batch. */
-static const Expression BACKDROPPED[] = {MECHA, SAMURAI, TITAN, YOKAI, NEON, WHEELS, SAKURA, BAMBOO, TRAFFIC, ZEN, DAYDREAM};
+static const Expression BACKDROPPED[] = {SAMURAI, TITAN, YOKAI, NEON, WHEELS, SAKURA, BAMBOO, TRAFFIC, ZEN, DAYDREAM};
 
 /** @brief Check one pixel against both eye boxes, including their rounding margin. */
 static bool outside_pair(const EyeLayout &pair, int16_t x, int16_t y) {
@@ -35,7 +35,7 @@ static void catalog_rule() {
 	for (uint8_t id = 0; id < EXPRESSION_COUNT; ++id) {
 		const FacePreset *p = face_preset(Expression(id));
 		assert(p != nullptr);
-		bool expected = id == GLOW || id == HEADLIGHTS || id == MOON;
+		bool expected = id == GLOW || id == HEADLIGHTS || id == MOON || id == MECHA_MASK;
 		for (Expression mood : BACKDROPPED) { expected = expected || id == mood; }
 		assert((p->background != nullptr) == expected);
 		if (expected) { assert(p->bounds != nullptr); }
@@ -146,10 +146,10 @@ static void handoff() {
 			eyes_init(&gfx); eyes_set_style(MOCHI);
 			eyes_set_eye_colors(0x0841, 0xFFFF, 0xF800, 0x07E0);
 			eyes_state() = EyeState{};
-			eyes_set_expression(MECHA);
+			eyes_set_expression(SAMURAI);
 			eyes_state().lastMs = start - 6000; eyes_draw();
 			eyes_state().lastMs = start; eyes_life_step(start, 33); eyes_draw();
-			size_t probe = size_t(gfx.height() / 2) * gfx.width();
+			size_t probe = size_t(gfx.height() / 4) * gfx.width() + gfx.width() / 2;
 			uint16_t initial = gfx.pixels[probe];
 			assert(initial != 0x0841);
 			eyes_set_expression(NEUTRAL); eyes_life_step(start, 0);

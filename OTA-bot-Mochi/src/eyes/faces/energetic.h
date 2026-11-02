@@ -5,6 +5,7 @@
  */
 #pragma once
 #include "../face_support.h"
+#include "../face_random.h"
 
 namespace face_defs { namespace energetic_face {
 using namespace face_primitives;
@@ -54,13 +55,16 @@ inline void local_eye_turbo_smoke(Arduino_GFX *gfx, const EyeConfig &cfg, int16_
 	}
 	uint32_t phase = elapsed % 1500;
 	for (uint8_t i = 0; i < 3; ++i) {
-		if (phase < i * 100u || phase >= i * 100u + 900u) { continue; }
-		float t = (phase - i * 100u) / 900.0f;
-		int16_t size = int16_t(r * (0.1f + 0.24f * t) * a);
+		uint32_t salt = (left ? 173u : 947u) + i * 71u, event = elapsed / 1500;
+		uint32_t start = i * 100u + uint32_t(face_random(event, salt) * 90);
+		if (phase < start || phase >= start + 900u) { continue; }
+		float t = (phase - start) / 900.0f;
+		float sizeVariation = 0.85f + 0.3f * face_random(event, salt + 37);
+		int16_t size = int16_t(r * (0.1f + 0.24f * t) * a * sizeVariation);
 		if (size < 1) { continue; }
 		int16_t x = eye_limit(int16_t(end + direction * t * r * 0.3f), size, cfg.screenW - size - 1);
-		int16_t y = int16_t(cy + r / 4 - t * r * 1.6f);
-		uint16_t ink = eye_mix(eye_rgb(175, 185, 195), cfg.bgColor, uint8_t(a * (1 - t) * 70));
+		int16_t y = int16_t(cy + r / 4 - t * r * (1.4f + 0.3f * face_random(event, salt + 89)));
+		uint16_t ink = eye_mix(eye_rgb(175, 185, 195), cfg.bgColor, uint8_t(a * sinf(t * 3.14159265f) * 70));
 		gfx->fillCircle(x, y, size, ink);
 		gfx->fillCircle(x - direction * size / 2, y - size / 2, size * 3 / 4, ink);
 	}

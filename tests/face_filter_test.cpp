@@ -29,18 +29,53 @@ static void formats() {
 	assert(!f.set(TIC_TAC_TOE, false) && f.count() == 1);
 	char hex[FaceFilter::BYTES * 2 + 1]; f.hex(hex);
 	assert(decoded.parse_hex(hex) && decoded == f);
-	for (std::string bad : {std::string(FaceFilter::BYTES * 2, '0'), std::string(FaceFilter::BYTES * 2, 'f'), std::string("xyz")}) {
+	for (std::string bad : {std::string(FaceFilter::BYTES * 2, '0'), std::string(FaceFilter::BYTES * 2, 'g'), std::string("xyz")}) {
 		assert(!decoded.parse_hex(bad.c_str()) && decoded == f);
 	}
 	uint8_t record[FaceFilter::RECORD_BYTES]; f.encode(record);
 	assert(decoded.decode(record, sizeof(record)) && decoded == f);
 	assert(!decoded.decode(record, sizeof(record) - 1));
+	uint8_t previous[20] = {1, 136};
+	previous[2 + TIC_TAC_TOE / 8] = uint8_t(1U << (TIC_TAC_TOE % 8));
+	previous[sizeof(previous) - 1] = 0xA5;
+	for (size_t i = 0; i < sizeof(previous) - 1; ++i) { previous[sizeof(previous) - 1] ^= previous[i]; }
+	assert(decoded.decode(previous, sizeof(previous)) && decoded.allows(MECHA_BREAK));
+	assert(decoded.count() == EXPRESSION_COUNT - 136 + 1 && decoded.allows(TIC_TAC_TOE));
+	uint8_t prior[21] = {1, 137};
+	prior[2 + TIC_TAC_TOE / 8] = uint8_t(1U << (TIC_TAC_TOE % 8));
+	prior[sizeof(prior) - 1] = 0xA5;
+	for (size_t i = 0; i < sizeof(prior) - 1; ++i) { prior[sizeof(prior) - 1] ^= prior[i]; }
+	assert(decoded.decode(prior, sizeof(prior)) && decoded.count() == EXPRESSION_COUNT - 137 + 1);
+	assert(decoded.allows(TIC_TAC_TOE) && !decoded.allows(MECHA_BREAK));
+	for (uint8_t id = HOLLOW_ANGER; id < EXPRESSION_COUNT; ++id) { assert(decoded.allows(Expression(id))); }
+	// ID 144 crosses a byte boundary; keep all old exclusions and enable only the appended ID.
+	uint8_t last[21] = {1, 144};
+	last[2 + TIC_TAC_TOE / 8] = uint8_t(1U << (TIC_TAC_TOE % 8));
+	last[sizeof(last) - 1] = 0xA5;
+	for (size_t i = 0; i < sizeof(last) - 1; ++i) { last[sizeof(last) - 1] ^= last[i]; }
+	assert(decoded.decode(last, sizeof(last)) && decoded.count() == 2);
+	assert(decoded.allows(TIC_TAC_TOE) && decoded.allows(CHINESE_DRAGON) && !decoded.allows(YAKURA));
+	assert(decoded.decode(record, sizeof(record)) && decoded == f);
 	record[2] ^= 1; assert(!decoded.decode(record, sizeof(record)) && decoded == f);
 	uint8_t old[] = {1, 8, 1, uint8_t(0xA5 ^ 1 ^ 8 ^ 1)};
 	assert(decoded.decode(old, sizeof(old)));
 	assert(decoded.allows(NEUTRAL) && !decoded.allows(HAPPY) && decoded.allows(TIC_TAC_TOE));
 	old[2] = 0; old[3] = 0xA5 ^ 1 ^ 8;
 	assert(!decoded.decode(old, sizeof(old)));
+}
+/** @brief Reserved high bits are rejected before either hexadecimal or NVS state is assigned. */
+static void reserved_bits() {
+	static_assert(EXPRESSION_COUNT == 145 && FaceFilter::BYTES == 19 && FaceFilter::RECORD_BYTES == 22,
+		"The appended dragon owns only bit zero of the final mask byte");
+	FaceFilter f, decoded;
+	char hex[FaceFilter::BYTES * 2 + 1]; f.hex(hex);
+	assert(hex[FaceFilter::BYTES * 2 - 1] == '1');
+	hex[FaceFilter::BYTES * 2 - 1] = '3';
+	assert(!decoded.parse_hex(hex) && decoded == f);
+	uint8_t record[FaceFilter::RECORD_BYTES]; f.encode(record);
+	record[FaceFilter::RECORD_BYTES - 2] |= 2;
+	record[FaceFilter::RECORD_BYTES - 1] ^= 2;
+	assert(!decoded.decode(record, sizeof(record)) && decoded == f);
 }
 /** @brief Every one-face library survives all modes, touches and sustained IMU samples. */
 static void pools() {
@@ -105,6 +140,6 @@ static void rendering() {
 	settings_defaults();
 }
 int main() {
-	formats(); pools(); persistence(); rendering();
+	formats(); reserved_bits(); pools(); persistence(); rendering();
 	std::cout << "Face exclusions, one-face pools, NVS failure/migration, touch/IMU and raster guards passed\n";
 }

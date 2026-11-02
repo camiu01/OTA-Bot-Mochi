@@ -5,6 +5,7 @@
  */
 #pragma once
 #include "../face_support.h"
+#include "../face_random.h"
 
 namespace face_defs { namespace smoke_face {
 using namespace face_primitives;
@@ -23,30 +24,24 @@ inline void performanceMotion(bool left, uint32_t phase, float a, float &sx, flo
 /** @brief smoke local_eye_performance_air implementation. */
 inline void local_eye_performance_air(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b,
 		uint32_t elapsed, float a) {
-	int16_t cx = b.x + b.w / 2, cy = b.y + b.h / 2, scale = eye_scale(cfg);
+	int16_t cx = b.x + b.w / 2, scale = eye_scale(cfg);
 	uint16_t ink = eye_mix(eye_performance_ink(cfg, b.left, elapsed), cfg.bgColor, uint8_t(a * 45));
-	if (cfg.expression == SWINGING) {
-		gfx->drawLine(cfg.screenW * (b.left ? 1 : 3) / 4,
-			eye_limit(b.y - cfg.screenH / 6, 0, cfg.screenH - 1), cx, b.y, ink);
-	} else if (cfg.expression == SMOKE || cfg.expression == SICK) {
-		for (uint8_t i = 0; i < 3; ++i) {
-			float t = ((elapsed % 6000 + i * 500) % 1500) / 1500.0f;
-			int16_t r = int16_t((cfg.expression == SICK ? 3 : 5 + 5 * t) * scale / 100);
-			if (r < 1) { r = 1; }
-			int16_t x = eye_limit(int16_t(cx + sinf(t * 6.2831853f + i) * b.w / 3), r, cfg.screenW - r - 1);
-			int16_t y = eye_limit(int16_t(b.y - t * cfg.screenH / 7), r, cfg.screenH - r - 1);
-			uint16_t puff = eye_mix(ink, cfg.bgColor, uint8_t((1 - t) * 100));
-			if (cfg.expression == SICK) { gfx->drawCircle(x, y, r, puff); }
-			else { gfx->fillCircle(x, y, r, puff); }
-		}
-	} else if (cfg.expression == BLINDING || cfg.expression == BUZZING) {
-		for (uint8_t i = 0; i < 6; ++i) {
-			float angle = i * 1.04719755f + (elapsed % 6000) * 0.00104719755f;
-			int16_t rx = b.w / 2 + scale / 10, ry = b.h / 2 + scale / 10;
-			gfx->drawLine(int16_t(cx + cosf(angle) * rx), int16_t(cy + sinf(angle) * ry),
-				int16_t(cx + cosf(angle) * (rx + scale / 12)),
-				int16_t(cy + sinf(angle) * (ry + scale / 12)), ink);
-		}
+	for (uint8_t i = 0; i < 3; ++i) {
+		uint32_t travel = elapsed + i * 566u;
+		uint32_t event = travel / 1700, salt = (b.left ? 173u : 947u) + i * 71u;
+		uint32_t start = uint32_t(face_random(event, salt + 11) * 220);
+		uint32_t duration = 1100u + uint32_t(face_random(event, salt + 19) * 300);
+		uint32_t phase = travel % 1700;
+		if (phase < start || phase >= start + duration) { continue; }
+		float t = (phase - start) / float(duration);
+		float size = 0.8f + 0.4f * face_random(event, salt);
+		float drift = face_random(event, salt + 37) * 2 - 1;
+		int16_t r = int16_t((5 + 5 * t) * size * scale / 100);
+		if (r < 1) { r = 1; }
+		int16_t x = eye_limit(int16_t(cx + (sinf(t * 4 + i) + drift * t) * b.w / 4), r, cfg.screenW - r - 1);
+		int16_t y = eye_limit(int16_t(b.y - t * cfg.screenH / 7), r, cfg.screenH - r - 1);
+		uint16_t puff = eye_mix(ink, cfg.bgColor, uint8_t(sinf(t * 3.14159265f) * 100));
+		gfx->fillCircle(x, y, r, puff);
 	}
 }
 

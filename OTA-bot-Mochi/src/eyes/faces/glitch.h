@@ -5,15 +5,18 @@
  */
 #pragma once
 #include "../face_support.h"
+#include "../face_random.h"
 
 namespace face_defs { namespace glitch_face {
 /** @brief Break the eye into displaced bands while keeping every fragment inside its box. */
 inline bool referenceBody(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeState &st, const EyeBox &b, uint32_t elapsed, uint16_t neutral) {
 	(void)elapsed; (void)neutral;
 	eye_body(gfx, cfg, b);
-	uint32_t cycle = st.lastMs % 2400;
-	bool burst = cycle < 360 || (cycle >= 1440 && cycle < 1680);
-	uint8_t phase = uint8_t(st.lastMs / (burst ? 120 : 600) + (b.left ? 0 : 3));
+	uint32_t event = st.lastMs / 3600, cycle = st.lastMs % 3600;
+	uint32_t first = 200u + uint32_t(face_random(event, 173u) * 450);
+	uint32_t second = 2000u + uint32_t(face_random(event, 947u) * 400);
+	bool burst = (cycle >= first && cycle < first + 240) || (cycle >= second && cycle < second + 180);
+	uint8_t phase = uint8_t(face_random(st.lastMs / (burst ? 160 : 700), b.left ? 511u : 733u) * 200);
 	int16_t line = eye_limit(int16_t(b.h / 24), 1, 6);
 	if (burst) {
 		face_primitives::glitch_glyph(gfx, b.x + b.w / 2, b.y + b.h / 2,

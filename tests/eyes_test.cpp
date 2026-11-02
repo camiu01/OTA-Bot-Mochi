@@ -12,6 +12,7 @@
 #include <assert.h>
 #include <algorithm>
 #include <iostream>
+#include "petting_policy_regressions.h"
 
 /** @brief Check solid versus pupilled style rendering, not just preset dimensions. */
 static void style_tests() {
@@ -176,49 +177,6 @@ static void imu_face_tests() {
 	for (uint32_t now = 50; now <= 500; now += 50) { policy.sample(0.4f, 0, 0, now, true); }
 	assert(policy.update(500, false, true, 0) == tapped);
 	assert(policy.update(3000, false, true, 0) == NEUTRAL);
-}
-
-/** @brief Petting requests a temporary affectionate face and never the base. */
-static void pet_tests() {
-	auto affectionate = [](Expression face) {
-		return face == HAPPY || face == LOVE || face == GLEE ||
-			face == BEAMING || face == MILD_HAPPY || face == EXCITED;
-	};
-	FacePolicy policy;
-	policy.reset(NEUTRAL, 0);
-	policy.pet(0, 0);
-	Expression petted = policy.update(0, false, false, 0);
-	assert(affectionate(petted));
-	assert(policy.update(2999, false, false, 0) == petted);
-	assert(policy.update(3000, false, false, 0) == NEUTRAL);
-	policy.reset(HAPPY, 0);
-	policy.pet(0, 1);
-	assert(policy.update(0, false, false, 0) != HAPPY);
-	policy.reset(NEUTRAL, 0);
-	policy.pet(0, 0);
-	Expression held = policy.update(0, false, true, 0);
-	for (uint32_t now = 50; now <= 500; now += 50) { policy.sample(0.4f, 0, 0, now, true); }
-	assert(policy.update(500, false, true, 0) == held);
-	assert(policy.update(3000, false, true, 0) == NEUTRAL);
-	// Continued stroking keeps the same face and extends it up to six seconds.
-	FacePolicy stroked;
-	stroked.reset(NEUTRAL, 0);
-	stroked.pet(0, 0);
-	Expression stroke_face = stroked.update(0, false, false, 0);
-	stroked.pet(1500, 0);
-	assert(stroked.update(4499, false, false, 0) == stroke_face);
-	stroked.pet(3000, 0);
-	assert(stroked.update(5999, false, false, 0) == stroke_face);
-	stroked.pet(4500, 0);
-	assert(stroked.update(6000, false, false, 0) == NEUTRAL);
-	// A tap ends the affection run: the next pet is a fresh three-second reaction.
-	FacePolicy mixed;
-	mixed.reset(NEUTRAL, 0);
-	mixed.pet(0, 0);
-	mixed.tap(1000, 0);
-	mixed.pet(1200, 0);
-	assert(mixed.update(4199, false, false, 0) != NEUTRAL);
-	assert(mixed.update(4200, false, false, 0) == NEUTRAL);
 }
 
 /** @brief A double tap requests a playful face from its own bounded pool. */

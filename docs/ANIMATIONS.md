@@ -1,11 +1,5 @@
 # Original colored animations
 
-The local `sd_content` collection from
-[watcher-mochi](https://github.com/pham-tuan-binh/watcher-mochi) was reviewed as a
-visual reference. Its README separates the Apache-2.0 firmware from proprietary
-Dasai GIF artwork. None of those GIFs, extracted frames, textures, or traced
-shapes are included in this firmware.
-
 The additions here are original procedural drawings. They preserve broad themes
 such as rain, a visualizer, or shrinking eyes, not the source choreography.
 Mouths, complete cartoon faces, source text and logos are omitted. Similar
@@ -62,7 +56,7 @@ canvas, changing brightness, allocating another framebuffer or writing settings.
 
 ## Themed backdrop entry
 
-MECHA, SAMURAI, TITAN, YOKAI, NEON, WHEELS, SAKURA, BAMBOO, TRAFFIC, MOON,
+SAMURAI, TITAN, YOKAI, NEON, WHEELS, SAKURA, BAMBOO, TRAFFIC, MOON,
 ZEN and DAYDREAM backdrops fade in over
 1.2 seconds when the mood changes, with a smooth start and stop. Their final
 geometry stays unchanged; backdrop contrast is reduced to 55% of its previous
@@ -83,9 +77,53 @@ and preserve the selected eye ink, saved settings and existing silhouettes.
 
 `tic_tac_toe` (ID 134) adds an original twelve-second miniature match, like Pong.
 The two eyes move and morph directly into the first cyan X and amber O,
-then three more pieces appear, a winning diagonal is marked, and both pieces
+then legal alternating moves follow a cycle-seeded pseudo-random shuffle.
+Play stops at a win or draw, the actual winning line is marked, and both pieces
 morph back into the configured eyes. This elapsed-time-only demo has
 no shared state with the playable [Tris desk tool](DESK.md).
+
+`mecha` closes a complete pale-alloy helmet with copper optics, split forehead
+plates, dark joints and a segmented chin over
+the configured original eyes, then opens to reveal them again.
+`mecha_mask` (ID 135) moves only the lower mask; the original eyes retain normal
+gaze and blink behavior and remain uncovered.
+`mecha_break` (ID 136) releases its visor, guards and jaw separately on diagonal
+trajectories. All three use procedural shared artwork, not embedded GIF frames.
+The refreshed armor takes its broad material and mechanical cues from the supplied
+mask photograph, with original plate contours, orange accents and vent placement.
+
+Eight additional selectable performances keep the earlier IDs unchanged:
+
+| ID | USB name | Original behavior |
+| --- | --- | --- |
+| 137 | `hollow_anger` | Inward-sloping hollow eyes swell toward the viewer with one anger sparkle on the right |
+| 138 | `snickering` | Eye silhouettes morph directly into luminous closed chevrons beneath comic streaks |
+| 139 | `hiccup` | Eyes squash, jolt upward and recover while small bubbles escape below |
+| 140 | `retro_tv` | Eyes shrink into a miniature CRT with antennas, knobs and a moving color scan |
+| 141 | `mecha_pilot` | A rounded pale pilot helmet nods; its green display eyes squint and reopen |
+| 142 | `comet` | Lowered blue eyes sway beneath three tapered shooting stars |
+| 143 | `yakura` | Round orange ember eyes beneath swept pale brows and gently curling smoke ribbons |
+| 144 | `chinese_dragon` | Original red Chinese dragon with branched gold horns, long whiskers and a curling serpentine body |
+
+Yakura adds an eye-only interpretation of `yakura.gif`, distinct from Yokai's
+horns and orbiting flames. Its ribbon shapes use a stable per-cycle sample,
+so curls vary between performances without flickering within a frame sequence.
+
+Comet paths, Sakura petal lanes and hiccup bubble drift use stateless event hashes.
+Each event retains its sample throughout its flight; particles fade away before
+their next path is chosen. Hiccup preparation timing and jolt intensity vary
+between its four beats. No global RNG, particle allocation, profile changes or
+per-frame random jumps are involved. Rain varies its lanes, drop lengths and
+per-drop speeds; Smoke varies puff size, drift and timing. Distracted picks new gaze
+targets with short holds, while Stargazing varies twinkle without moving stars.
+Buzzing adds small, eased bee deviations. Glitch uses sparse irregular bursts
+without brighter colors or faster flashing. Energetic varies only exhaust
+smoke, not the impeller rotation. Fire flicker and the Tris shuffle retain
+their existing pseudo-random behavior.
+
+Moon cycles through lunar phases and Fire flickers with
+pseudo-random orange/yellow tongues; both remain open without ordinary-eye
+handoffs. See [UI](UI.md).
 
 Select Settings > LOOK > Mood, or type `mood dancing` in the USB/emulator console.
 The same renderer supports LCD and AMOLED and all four eye styles.
@@ -102,8 +140,8 @@ These are native raster previews, not device photographs.
 | 100 | `growing` | Green eyes expand and breathe |
 | 101 | `shrink` | Violet eyes contract and recover |
 | 102 | `swinging` | Amber eyes swing from thin pendulum strings |
-| 103 | `blinding` | Amber squint with rotating soft rays, no full-screen flash |
-| 104 | `buzzing` | Yellow eyes vibrate beside short motion rays |
+| 103 | `blinding` | Amber squint with rotating, smoothly shifting rainbow rays, no full-screen flash |
+| 104 | `buzzing` | Yellow eyes vibrate as a striped bee orbits the pair with fluttering wings |
 | 105 | `sick` | Green eyes sway beneath rising bubbles |
 | 106 | `splash` | Blue eyes, a small wave and droplets |
 | 107 | `spraying` | Cyan eyes with outward droplet jets |
@@ -127,7 +165,7 @@ These are native raster previews, not device photographs.
 | 125 | `wheels` | Two counter-rotating five-spoke wheels |
 | 126 | `sakura` | Pink swaying eyes beneath drifting petals |
 | 127 | `samurai` | Asymmetric inclined blue eyes above a broad diagonal steel blade with a traveling glint |
-| 128 | `mecha` | Yellow visor eyes, original armor outlines and a scanner |
+| 128 | `mecha` | Copper optics, split pale-alloy plates, dark joints and a segmented chin |
 | 129 | `bamboo` | Pink bobbing eyes between two swaying bamboo stalks |
 | 130 | `titan` | Expanding amber eyes framed by pulsing angular energy ribs |
 | 131 | `upside_down` | Eyes follow a reversible half-turn orbit, without rotating UI or touch |
@@ -260,14 +298,15 @@ not reworked to match variants of a source animation.
 | --- | --- |
 | `0` | `neutral` |
 | `UwU` | `uwu` (new) |
-| `angry`, `angry2`, `gian_du` | `angry`, `enraged` |
+| `angry`, `angry2` | `angry`, `enraged` |
+| `gian_du` | `hollow_anger` (original hollow-eye close-up) |
 | `angry3`, `xi_lua` | `fire` (existing flame theme) |
 | `aot` | `titan` (new, original energy-rib theme) |
 | `bee` | `buzzing` |
 | `chong_mat` | `swirly` |
 | `cry`, `cry2`, `khoc` | `crying` |
 | `cuoi`, `happy_2` | `squeezed`, `laughing` |
-| `cuoi_khinh_bi` | `judge` |
+| `cuoi_khinh_bi` | `snickering` (eye-only comic laugh) |
 | `dasai`, `dasai2`, `mochidoo` | `mistake` (original OTA BOT banner, no source branding) |
 | `demon_slayer` | `bamboo` (new, original grove theme) |
 | `den_giao_thong` | `traffic` (new) |
@@ -275,9 +314,10 @@ not reworked to match variants of a source animation.
 | `devil`, `devil_2` | `devil` |
 | `devil_eyes` | `menacing` |
 | `distracted` | `distracted` |
-| `egg` | `happy` (eye-only smile) |
-| `glitch`, `noname` | `glitch` |
-| `gundam` | `mecha` (new, original visor theme) |
+| `egg` | `hiccup` (eye-only physical gag, no mouth) |
+| `glitch` | `glitch` |
+| `noname` | `retro_tv` (original CRT, no source video or lettering) |
+| `gundam` | `mecha`, `mecha_pilot` (original armor and rounded pilot themes) |
 | `hand_some` | `smug` |
 | `hat_xi`, `hat_xi_2` | `sneeze` |
 | `hehe` | `smirk` |
@@ -296,7 +336,7 @@ not reworked to match variants of a source animation.
 | `police` | `police` |
 | `pong` | `pong` |
 | `rain` | `rain` |
-| `rainbow` | `glow` |
+| `rainbow` | `glow`; `blinding` adds original chromatic rays |
 | `sakura` | `sakura` (new) |
 | `samurai` | `samurai` (new) |
 | `scared` | `scared` |
@@ -304,7 +344,7 @@ not reworked to match variants of a source animation.
 | `smile` | `mild_happy` |
 | `smirk` | `smirk` |
 | `speed`, `speed_ex`, `toc_do` | `gauge` |
-| `star` | `stargazing` |
+| `star` | `stargazing`, `comet` (original shooting-star scene) |
 | `sung_nuoc`, `sung_nuoc_2` | `spraying`, `splash` |
 | `sushi` | `sushi` |
 | `thong_long`, `thu_nho` | `shrink` (eye shrinking only; no noose scene) |
@@ -312,4 +352,4 @@ not reworked to match variants of a source animation.
 | `up_size_down` | `upside_down` (new) |
 | `wheels` | `wheels` (new) |
 | `xi_khoi` | `smoke` |
-| `yakura` | `yokai` (new, original ember/wisp theme) |
+| `yakura` | `yakura` (round ember eyes and pale smoke brows, no mouth) |

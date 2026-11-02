@@ -42,16 +42,17 @@ and `MOCHI_BOARD_AMOLED_18` for AMOLED checks, so an Arduino IDE selection in
 An explicit LCD CLI build can likewise use
 `--build-property "compiler.cpp.extra_flags=-DMOCHI_BOARD_LCD_169"`.
 The real eye renderer also runs against a native raster substitute: all four
-styles, all 135 expressions/animated moods, and both blink states (1080 combinations), a proof
+styles, all 145 expressions/animated moods, and both blink states (1160 combinations), a proof
 that every expression renders differently from NEUTRAL on every style, that no
-two names draw the same pixels on any style (pairwise uniqueness, 36180
+two names draw the same pixels on any style (pairwise uniqueness, 41760
 comparisons), solid-style pupil/highlight exclusion, trapezoid symmetry, IMU
 gaze/roll bounds, radius limits, and dirty-region erasure are checked. The
 configured palette has its own suite: resting emotions and symbols must keep
-the selected ink on every style, across three selected body colors.
-The petting heart must use the selected body color and erase without trails.
+the selected ink on every style, across three selected body colors, except
+Fire's explicitly borderless orange/yellow flames.
+The petting heart must remain pink independently of the eye color and erase without trails.
 The face catalog checks compile the documented C++17 per-eye preset example and
-validate all 135 IDs/names, parameter ranges, USB selection and settings round-trips.
+validate all 145 IDs/names, parameter ranges, USB selection and settings round-trips.
 Two frozen pre-refactor raster fixtures check pixels and dirty bounds across six
 panels and four styles; the expanded fixture samples 47,232 frames across all
 123-expression legacy catalog. See [Editing and adding a face](ADDING_A_FACE.md) for scope and
@@ -507,8 +508,11 @@ A short eye tap must react for three seconds, glance toward the touch point,
 and restore the selected mood; a quick double tap must show a playful face for
 3.5 seconds; holds and swipes must trigger neither. Petting must keep the same
 affectionate face while stroking continues, show the heart marker near the
-finger on each recognized stroke, and end within six seconds of the
-first stroke. On Eyes, confirm no audio-status icon appears at startup, while
+finger on each recognized stroke, and end three seconds after the
+last stroke, including a stroking session longer than six seconds. Check slow
+one-pixel movements, sparse samples and millis rollover in native tests; on both
+panels, confirm jitter and horizontal swipes never pet and continued strokes
+do not replay the sound. On Eyes, confirm no audio-status icon appears at startup, while
 muted, or after enabling sound elsewhere and returning. Other pages must keep
 a recognizable speaker in their header, with waves when enabled and a cross
 when muted. Flip SENSORS → Screen flip while parked: the interface, touch

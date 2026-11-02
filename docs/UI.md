@@ -13,6 +13,30 @@ header.
 
 ## Controls
 
+The Moon face animates new, waxing crescent, first quarter, waxing gibbous,
+full, waning gibbous, last quarter and waning crescent moons over its six-second
+decorative cycle. Both eyes share the phase, with golden fill, configured ink
+along the edge and the existing star field. Moon stays open without blinking or
+returning to ordinary eyes; this animation does not track the real lunar calendar.
+Fire also stays open, with no ordinary-eye handoff or configured-color outline.
+Its orange and yellow flame tongues flicker independently, with smoothly
+interpolated pseudo-random height and sway.
+
+`mecha` closes a complete angular helmet over the configured original eyes,
+holds its copper optics, split pale-alloy plates and segmented chin, then retracts the visor,
+side guards and jaw in staggered stages to reveal those same eyes again.
+`mecha_mask` (ID 135) moves only the lower mask beneath the original live eyes:
+no helmet, visor or cover is drawn over them. `mecha_break` (ID 136) releases the visor first, then the
+guards and jaw, with diagonally departing pieces. All three use a six-second
+mechanical cycle, not a permanently drawn robot face.
+The `tic_tac_toe` face uses a cycle-seeded shuffle for legal alternating moves,
+stops at a win or draw and changes its opening and outcome between cycles.
+The playable desk Tris opponent is unchanged.
+IDs 137–143 add `hollow_anger`, `snickering`, `hiccup`, `retro_tv`,
+`mecha_pilot`, `comet` and `yakura`. These six-second performances preserve the selected
+style and palette at both endpoints. Comet paths, Sakura petals and hiccup
+bubbles have deterministic event-based variation, not per-frame randomness.
+
 - Settings → SYSTEM → **Firmware update** opens a temporary Wi-Fi maintenance
   screen, outside the seven-page carousel. Its password and browser address are
   shown on the display; normal controls pause until exit, timeout or restart.
@@ -41,9 +65,11 @@ header.
   pool, with the same glance toward your finger. Dizzy keeps priority.
 - Stroke vertically up and down on Eyes to pet Mochi: rubbing the screen
   without drifting sideways requests a temporary affectionate face from the
-  happy/love family, and a small heart marker appears near your finger for
+  happy/love family, and a small pink heart appears near your finger for
   under a second as confirmation. Continued strokes keep the same face and
-  extend it up to six seconds. Petting never changes saved preferences,
+  keep it active until three seconds after the last recognized stroke, without
+  replaying its sound each time. Slow strokes count too; a deliberate up/down
+  reversal is enough, while small finger jitter is ignored. Petting never changes saved preferences,
   leaves Eyes, or opens Settings. Use vertical strokes; horizontal motion
   pages away.
 - Eyes has no header or audio-status icon, even when muted. Other pages keep

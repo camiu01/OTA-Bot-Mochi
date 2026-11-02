@@ -19,8 +19,8 @@ names, separated by spaces, or `all`. Then choose a style and screen size.
 Defaults are `uwu`, `mochi`, 240x280, six seconds and 30 FPS.
 
 To see every face without typing commands, double-click **`tools/export-all-gifs.bat`**.
-It exports all 135 faces in all four styles into a fresh output folder, with
-separate `mochi/`, `bloub/`, `normal/` and `trapez/` subfolders: **540 named GIF
+It exports all 145 faces in all four styles into a fresh output folder, with
+separate `mochi/`, `bloub/`, `normal/` and `trapez/` subfolders: **580 named GIF
 files**, one per face and style. Open the files in your image viewer.
 This batch can take a few minutes. The window stays open to show the output path
 or any error.

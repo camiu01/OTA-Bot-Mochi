@@ -24,11 +24,11 @@ rounded even though the TRAPEZ preset sets `radius` to 0. The left eye is always
 canonical evaluation and the right eye is its exact horizontal mirror, which keeps
 the reflected halves pixel-identical.
 
-## Expressions and animated moods (135)
+## Expressions and animated moods (145)
 
 Each expression has its own `faces/<canonical_name>.h`, containing its per-eye
 `FacePreset` and expression-specific effects. `face_catalog.cpp` registers all
-135 definitions; reusable primitives and the render pipeline remain shared.
+145 definitions; reusable primitives and the render pipeline remain shared.
 For parameters, a compiled example and registration, see
 [Adding a face](../../../docs/ADDING_A_FACE.md).
 
@@ -79,8 +79,8 @@ For parameters, a compiled example and registration, see
 | 42 | CAT | Vertical slit eyes |
 | 43 | HALO | Halo ring set into the upper eye |
 | 44 | DEVIL | Paired horns in the upper eye |
-| 45 | FIRE | Flame-shaped eyes |
-| 46 | MOON | Crescent-shaped eyes |
+| 45 | FIRE | Open, borderless orange/yellow flickering flames |
+| 46 | MOON | Open eyes cycling through lunar phases |
 | 47 | SPARKLE | Four-point sparkle eyes |
 | 48 | BOLT | Lightning bolt eyes |
 | 49 | DIAMOND | Rhombus eyes |
@@ -144,6 +144,11 @@ distinct scenery rather than replacing those ordinary moods.
 cycle morphs the eyes into the first X/O pieces, plays out a match, and morphs back,
 using the same entry/return timing as Pong.
 The interactive Tris game is under Clock → Desk tools, separate from this demo.
+Its opening and legal alternating moves vary with each cycle's pseudo-random seed.
+
+`mood mecha` closes a full helmet over the configured eyes and then uncovers them.
+`mood mecha_mask` selects ID 135, moving only the mask below the live original eyes.
+`mood mecha_break` selects ID 136, with the helmet breaking away in separate pieces.
 
 Select these moods in Settings → LOOK → Mood, or use USB commands such as
 `mood arc_happy`, `mood squeezed`, `mood pong`, and `mood clock_eyes`.

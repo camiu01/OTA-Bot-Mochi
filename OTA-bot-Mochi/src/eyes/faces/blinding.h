@@ -40,8 +40,17 @@ inline void local_eye_performance_air(Arduino_GFX *gfx, const EyeConfig &cfg, co
 			else { gfx->fillCircle(x, y, r, puff); }
 		}
 	} else if (cfg.expression == BLINDING || cfg.expression == BUZZING) {
+		const uint16_t spectrum[] = {
+			eye_rgb(246, 113, 124), eye_rgb(246, 185, 95), eye_rgb(215, 226, 108),
+			eye_rgb(110, 218, 177), eye_rgb(116, 181, 246), eye_rgb(199, 135, 235)
+		};
 		for (uint8_t i = 0; i < 6; ++i) {
 			float angle = i * 1.04719755f + (elapsed % 6000) * 0.00104719755f;
+			float hue = (elapsed % 6000) / 1000.0f;
+			uint8_t index = uint8_t(hue);
+			uint16_t color = eye_mix(spectrum[(i + index + 1) % 6], spectrum[(i + index) % 6],
+				uint8_t((hue - index) * 100));
+			ink = eye_mix(color, cfg.bgColor, uint8_t(a * 65));
 			int16_t rx = b.w / 2 + scale / 10, ry = b.h / 2 + scale / 10;
 			gfx->drawLine(int16_t(cx + cosf(angle) * rx), int16_t(cy + sinf(angle) * ry),
 				int16_t(cx + cosf(angle) * (rx + scale / 12)),

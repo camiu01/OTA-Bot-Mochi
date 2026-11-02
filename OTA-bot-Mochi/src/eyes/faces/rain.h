@@ -5,6 +5,7 @@
  */
 #pragma once
 #include "../face_support.h"
+#include "../face_random.h"
 
 namespace face_defs { namespace rain_face {
 using namespace face_primitives;
@@ -23,13 +24,17 @@ inline void performanceMotion(bool left, uint32_t phase, float a, float &sx, flo
 inline void local_eye_performance_rain(Arduino_GFX *gfx, const EyeConfig &cfg, uint32_t elapsed, float a) {
 	uint32_t phase = elapsed % 6000;
 	if (phase < 600) { return; }
-	int16_t tail = cfg.screenH / 35 + 2;
 	uint16_t ink = eye_mix(eye_rgb(80, 180, 245), cfg.bgColor, uint8_t(a * 85));
 	for (uint8_t i = 0; i < 12; ++i) {
 		if (phase - 600 < i * 80u) { continue; }
-		uint32_t age = (phase - 600 - i * 80u) % 1300;
-		int16_t x = 2 + ((i * 71 + 11) % 127) * (cfg.screenW - 4) / 127;
-		int16_t head = int32_t(age) * (cfg.screenH + tail) / 1300;
+		uint32_t travel = phase - 600 - i * 80u;
+		uint32_t event = elapsed / 6000 * 5 + travel / 1700;
+		uint32_t age = travel % 1700;
+		uint32_t period = 1100u + uint32_t(face_random(event, 131u + i * 71u) * 500);
+		if (age >= period) { continue; }
+		int16_t tail = int16_t((cfg.screenH / 35 + 2) * (0.7f + face_random(event, 337u + i * 59u)));
+		int16_t x = int16_t(2 + face_random(event, 173u + i * 113u) * (cfg.screenW - 5));
+		int16_t head = int32_t(age) * (cfg.screenH + tail) / period;
 		int16_t top = eye_limit(head - tail, 0, cfg.screenH - 1);
 		int16_t bottom = eye_limit(head, top, cfg.screenH - 1);
 		gfx->drawLine(x, top, x, bottom, ink);

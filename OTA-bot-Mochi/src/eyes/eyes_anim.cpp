@@ -357,8 +357,8 @@ EyeState &eyes_state() {
  * @param nowMs Value of millis() at call time.
  */
 void eyes_glance(int16_t x, int16_t y, uint32_t nowMs) {
-	int32_t gx = (int32_t(x) - LCD_WIDTH / 2) * 12 / (LCD_WIDTH / 2);
-	int32_t gy = (int32_t(y) - LCD_HEIGHT / 2) * 8 / (LCD_HEIGHT / 2);
+	int32_t gx = (int32_t(x) - s_cfg.screenW / 2) * 12 / (s_cfg.screenW / 2);
+	int32_t gy = (int32_t(y) - s_cfg.screenH / 2) * 8 / (s_cfg.screenH / 2);
 	s_state.saccadeX = int16_t(gx);
 	s_state.saccadeY = int16_t(gy);
 	s_state.glanceUntilMs = nowMs + 2500;

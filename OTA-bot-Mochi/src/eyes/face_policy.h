@@ -29,8 +29,9 @@ class FacePolicy {
 	 * @param pool Candidate expressions.
 	 * @param pool_size Pool length.
 	 * @param dur Reaction duration in milliseconds.
+	 * @return True only when an allowed reaction was started.
 	 */
-	void react(uint32_t now, uint32_t choice, const Expression *pool, uint8_t pool_size, uint32_t dur) {
+	bool react(uint32_t now, uint32_t choice, const Expression *pool, uint8_t pool_size, uint32_t dur) {
 		uint8_t index = uint8_t(choice % pool_size);
 		bool found = false;
 		for (uint16_t i = 0; i < uint16_t(pool_size) * 2; ++i) {
@@ -38,12 +39,13 @@ class FacePolicy {
 			if (face_filter().allows(pool[index]) && pool[index] != base &&
 				(i >= pool_size || (pool[index] != previous && pool[index] != face))) { found = true; break; }
 		}
-		if (!found) { return; }
+		if (!found) { return false; }
 		face = previous = pool[index]; started = last_random = now;
 		duration = dur; random_delay = 12000 + choice % 18001;
 		active = true; motion = false; manual = true; qualifying = false;
 		affection = false;
 		chain_count = 0;
+		return true;
 	}
 
 	/**
@@ -122,25 +124,21 @@ public:
 		react(now, choice, pool, uint8_t(sizeof(pool) / sizeof(pool[0])), 3500);
 	}
 	/**
-	 * @brief Trigger an affectionate face; continued stroking extends it up to six seconds.
+	 * @brief Keep one affectionate face until three seconds after the last recognized stroke.
 	 * @param now Time.
 	 * @param choice Random input.
+	 * @return True only for a fresh affectionate reaction, not an extension.
 	 */
-	void pet(uint32_t now, uint32_t choice) {
+	bool pet(uint32_t now, uint32_t choice) {
 		static const Expression pool[] = {
 			HAPPY, LOVE, GLEE, BEAMING, MILD_HAPPY, EXCITED
 		};
-		if (active && affection) {
-			uint32_t end = started + duration;
-			uint32_t wanted = now + 3000;
-			if (wanted > end) { end = wanted; }
-			if (end > started + 6000) { end = started + 6000; }
-			duration = end - started;
-			last_random = now;
-			return;
+		if (active && affection && face_filter().allows(face) && uint32_t(now - started) < duration) {
+			started = last_random = now; duration = 3000;
+			return false;
 		}
-		react(now, choice, pool, uint8_t(sizeof(pool) / sizeof(pool[0])), 3000);
-		affection = true;
+		affection = react(now, choice, pool, uint8_t(sizeof(pool) / sizeof(pool[0])), 3000);
+		return affection;
 	}
 	/** @brief Select a base mood and restart automatic timers. @param value Mood. @param now Timestamp. */
 	void reset(Expression value, uint32_t now) {

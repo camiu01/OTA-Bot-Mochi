@@ -5,6 +5,7 @@
  */
 #pragma once
 #include "../face_support.h"
+#include "../face_random.h"
 
 namespace face_defs { namespace buzzing_face {
 using namespace face_primitives;
@@ -54,6 +55,24 @@ inline void local_eye_performance_air(Arduino_GFX *gfx, const EyeConfig &cfg, co
 inline void scenery(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeLayout &layout, uint32_t elapsed, float a) {
 	const EyeBox eyes[] = {layout.left, layout.right};
 	for (const EyeBox &b : eyes) { local_eye_performance_air(gfx, cfg, b, elapsed, a); }
+	float angle = (elapsed % 6000) * 0.0020943951f
+		+ (face_smooth_random(elapsed, 1400, 173u) - 0.5f) * 0.24f;
+	int16_t r = eye_limit(int16_t(cfg.screenW / 45), 2, 10);
+	float drift = (face_smooth_random(elapsed, 1700, 947u) - 0.5f) * 0.025f;
+	int16_t cx = eye_limit(int16_t(cfg.screenW / 2 + cosf(angle) * cfg.screenW * (0.40f + drift)),
+		3 * r, int16_t(cfg.screenW - 3 * r - 1));
+	int16_t cy = int16_t(cfg.screenH / 2 + sinf(angle) * cfg.screenH * (0.28f + drift));
+	int16_t wing = int16_t(r + r * (0.5f + 0.5f * sinf((elapsed % 6000) * 0.062831853f)));
+	uint16_t gold = eye_mix(eye_rgb(250, 202, 72), cfg.bgColor, uint8_t(a * 100));
+	uint16_t dark = eye_mix(eye_rgb(70, 49, 30), cfg.bgColor, uint8_t(a * 100));
+	uint16_t white = eye_mix(eye_rgb(192, 224, 239), cfg.bgColor, uint8_t(a * 75));
+	gfx->fillCircle(cx - r, cy - wing, r, white);
+	gfx->fillCircle(cx + r, cy - wing, r, white);
+	gfx->fillRoundRect(cx - 2 * r, cy - r, 4 * r + 1, 2 * r + 1, r, gold);
+	gfx->fillRect(cx - r, cy - r, r, 2 * r + 1, dark);
+	gfx->fillRect(cx + r, cy - r, r, 2 * r + 1, dark);
+	int16_t head = cosf(angle) > 0 ? int16_t(cx - 2 * r) : int16_t(cx + 2 * r);
+	gfx->fillCircle(head, cy, r, dark);
 }
 
 /** @brief Immutable buzzing face; C++17 named-field initialization. */

@@ -9,6 +9,24 @@
 #include "../../play/tic_tac_toe_draw.h"
 
 namespace face_defs { namespace tic_tac_toe_face {
+/** @brief Reconstruct a legal match from a cycle-seeded shuffle, stopping on win or draw. */
+inline TicTacToe match(uint32_t elapsed, uint8_t &first, uint8_t &second) {
+	uint8_t order[] = {0, 1, 2, 3, 4, 5, 6, 7, 8};
+	uint32_t seed = (elapsed / 12000) ^ 0x9e3779b9u;
+	for (uint8_t i = 8; i > 0; --i) {
+		seed = seed * 1664525u + 1013904223u;
+		uint8_t j = uint8_t((seed >> 8) % (i + 1));
+		uint8_t saved = order[i]; order[i] = order[j]; order[j] = saved;
+	}
+	first = order[0]; second = order[1];
+	uint32_t phase = elapsed % 12000;
+	uint8_t moves = phase < 4000 ? 2 : uint8_t(3 + (phase - 4000) / 900);
+	if (moves > 9) { moves = 9; }
+	TicTacToe game;
+	for (uint8_t i = 0; i < moves && !game.result(); ++i) { game.cells[order[i]] = uint8_t(1 + i % 2); }
+	return game;
+}
+
 /** @brief Carve four growing wedges from a style body until it becomes a thick X. */
 inline void carve_cross(Arduino_GFX *gfx, const EyeBox &b, float a, uint16_t bg) {
 	int16_t cx = b.x + b.w / 2, cy = b.y + b.h / 2;
@@ -39,25 +57,18 @@ inline bool scene(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeLayout &layou
 	int16_t side = int16_t((cfg.screenW < cfg.screenH ? cfg.screenW : cfg.screenH) * 3 / 4);
 	int16_t cell = side / 3, mark = cell / 2;
 	int16_t x = (cfg.screenW - cell * 3) / 2, y = (cfg.screenH - cell * 3) / 2;
-	TicTacToe demo;
-	uint32_t phase = elapsed % 12000;
-	if (phase >= 4000) { demo.cells[4] = 1; }
-	if (phase >= 5800) { demo.cells[1] = 2; }
-	if (phase >= 7600) { demo.cells[8] = 1; }
+	uint8_t first = 0, second = 0;
+	TicTacToe demo = match(elapsed, first, second);
 	tic_tac_toe_draw(gfx, demo, x, y, cell * 3,
 		eye_mix(cfg.fgColor, cfg.bgColor, uint8_t(a * 45)),
 		eye_mix(eye_rgb(70, 220, 235), cfg.bgColor, uint8_t(a * 100)),
 		eye_mix(eye_rgb(255, 185, 80), cfg.bgColor, uint8_t(a * 100)));
 	EyeBox targets[] = {
-		{int16_t(x + (cell - mark) / 2), int16_t(y + (cell - mark) / 2), mark, mark, 0, true},
-		{int16_t(x + 2 * cell + (cell - mark) / 2), int16_t(y + (cell - mark) / 2), mark, mark, int16_t(mark / 2), false}
+		{int16_t(x + first % 3 * cell + (cell - mark) / 2), int16_t(y + first / 3 * cell + (cell - mark) / 2), mark, mark, 0, true},
+		{int16_t(x + second % 3 * cell + (cell - mark) / 2), int16_t(y + second / 3 * cell + (cell - mark) / 2), mark, mark, int16_t(mark / 2), false}
 	};
 	piece(gfx, cfg, layout.left, targets[0], a);
 	piece(gfx, cfg, layout.right, targets[1], a);
-	if (phase >= 7600) {
-		uint16_t ink = eye_mix(eye_rgb(70, 220, 235), cfg.bgColor, uint8_t(a * 100));
-		gfx->drawLine(x + cell / 2, y + cell / 2, x + cell * 5 / 2, y + cell * 5 / 2, ink);
-	}
 	return true;
 }
 /** @brief Register a Pong-style twelve-second scene with no persistent state. */

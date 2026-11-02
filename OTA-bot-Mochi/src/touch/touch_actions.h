@@ -35,6 +35,7 @@ struct TouchActions {
 		active = false; tap = false; double_tap = false; hold = false; pet = false;
 		scroll = 0; vertical = horizontal = false;
 		flips = 0; travel = 0; last_dir = 0;
+		tap_armed = false; pet_once = false;
 	}
 
 	/**
@@ -73,38 +74,34 @@ struct TouchActions {
 	 * @param now Timestamp.
 	 */
 	void pet_sample(uint32_t now) {
-		int32_t dy = int32_t(y) - last_y;
-		last_y = y;
-		if (dy < -20 || dy > 20 || (dy >= -2 && dy <= 2)) { return; }
-		int8_t dir = dy > 0 ? 1 : -1;
-		uint16_t step = uint16_t(dy < 0 ? -dy : dy);
-		travel = uint16_t(travel + step);
-		if (last_dir == 0) {
-			last_dir = dir;
+		int32_t ax = int32_t(x) - start_x;
+		int32_t jump = int32_t(y) - last_y;
+		if (held || horizontal || ax <= -30 || ax >= 30 || jump < -80 || jump > 80) {
+			anchor_y = last_y = y; last_dir = 0; flips = 0; travel = 0;
 			return;
 		}
-		if (dir != last_dir) {
-			int32_t seg = int32_t(y) - anchor_y;
-			if (seg < 0) { seg = -seg; }
-			if (seg >= 14) {
-				flips++;
-				anchor_y = y;
-				last_dir = dir;
+		if (last_dir == 0) {
+			int32_t dy = int32_t(y) - anchor_y;
+			if (dy > -12 && dy < 12) { return; }
+			last_dir = dy > 0 ? 1 : -1;
+			travel = uint16_t(dy * last_dir); last_y = y;
+			moved = true;
+		} else {
+			int32_t advance = (int32_t(y) - last_y) * last_dir;
+			if (advance > 0 || advance <= -12) {
+				if (advance < 0) { last_dir = -last_dir; flips = 1; advance = -advance; }
+				uint32_t total = uint32_t(travel) + uint32_t(advance);
+				travel = uint16_t(total > UINT16_MAX ? UINT16_MAX : total);
+				last_y = y;
 			}
 		}
-		if (flips < 2 || travel < 60) { return; }
-		int32_t ax = int32_t(x) - start_x;
-		if (ax < 0) { ax = -ax; }
-		if (ax >= 30) { return; }
-		if (uint32_t(now - started) < 200) { return; }
-		if (pet_once && uint32_t(now - last_pet) < 1500) { return; }
-		pet = true;
+		if (flips == 0 || travel < 48 || uint32_t(now - started) < 180) { return; }
+		if (pet_once && uint32_t(now - last_pet) < 400) { return; }
+		pet = true; moved = true; vertical = true; scroll = 0; tap_armed = false;
 		last_pet = now;
 		pet_once = true;
 		flips = 0;
 		travel = 0;
-		last_dir = 0;
-		anchor_y = y;
 	}
 
 	/**
@@ -145,6 +142,7 @@ struct TouchActions {
 		pet_sample(now);
 		int32_t dx = int32_t(x) - start_x, dy = int32_t(y) - start_y;
 		if (dx < -18 || dx > 18 || dy < -18 || dy > 18) { moved = true; }
+		if (moved) { tap_armed = false; }
 		int32_t ax = dx < 0 ? -dx : dx, ay = dy < 0 ? -dy : dy;
 		if (!held && !vertical && !horizontal) {
 			if (ay >= 28 && ay >= ax * 2) { vertical = true; scroll = dy < 0 ? 1 : -1; }

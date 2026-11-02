@@ -150,6 +150,38 @@ static void object_regressions(EyeConfig cfg, const EyeLayout &layout) {
 	rain_regression(cfg);
 }
 
+/** @brief Bee and chromatic rays animate deterministically and vanish at cycle endpoints. */
+static void reference_accents(EyeConfig cfg, const EyeLayout &layout) {
+	Arduino_GFX gfx(cfg.screenW, cfg.screenH);
+	for (Expression mood : {BUZZING, BLINDING}) {
+		cfg.expression = mood;
+		for (uint32_t t : {0u, 5400u, 6000u}) {
+			gfx.fillScreen(cfg.bgColor);
+			eye_performance_background(&gfx, cfg, layout, t);
+			assert(std::all_of(gfx.pixels.begin(), gfx.pixels.end(),
+				[&](uint16_t c) { return c == cfg.bgColor; }));
+		}
+		gfx.fillScreen(cfg.bgColor);
+		eye_performance_background(&gfx, cfg, layout, 3000);
+		auto first = gfx.pixels;
+		assert(std::count(first.begin(), first.end(), cfg.bgColor) < int(first.size()));
+		gfx.fillScreen(cfg.bgColor);
+		eye_performance_background(&gfx, cfg, layout, 3300);
+		assert(gfx.pixels != first);
+		gfx.fillScreen(cfg.bgColor);
+		eye_performance_background(&gfx, cfg, layout, 3000);
+		assert(gfx.pixels == first);
+		if (mood == BUZZING) {
+			assert(std::count(first.begin(), first.end(), eye_rgb(250, 202, 72)) > 0);
+			assert(std::count(first.begin(), first.end(), eye_rgb(70, 49, 30)) > 0);
+		} else {
+			auto colors = first;
+			std::sort(colors.begin(), colors.end());
+			assert(std::unique(colors.begin(), colors.end()) - colors.begin() >= 7);
+		}
+	}
+}
+
 /** @brief Validate the requested subjects and starry-sky gaze on each style. @param width Panel width. @param height Panel height. */
 static void scene_regressions(int16_t width, int16_t height) {
 	Arduino_GFX gfx(width, height);
@@ -162,6 +194,7 @@ static void scene_regressions(int16_t width, int16_t height) {
 		EyeLayout layout = eye_layout(cfg, EyeState{});
 		equalizer_regression(cfg, layout);
 		object_regressions(cfg, layout);
+		reference_accents(cfg, layout);
 		cfg.expression = STARGAZING;
 		EyeLayout sky = layout;
 		eye_performance_layout(cfg, sky, 3000);
@@ -316,7 +349,8 @@ static void banner_regressions() {
 /** @brief Appended GIF themes survive rollover and non-black dirty redraws on every panel/style. */
 static void appended_cycles() {
 	const int16_t panels[][2] = {{240,280}, {240,320}, {320,480}, {368,448}, {128,160}, {160,128}};
-	assert(TRAFFIC == 123 && YOKAI == 133 && TIC_TAC_TOE == 134 && EXPRESSION_COUNT == 135);
+	assert(TRAFFIC == 123 && YOKAI == 133 && TIC_TAC_TOE == 134 && MECHA_MASK == 135 && MECHA_BREAK == 136);
+	assert(HOLLOW_ANGER == 137 && COMET == 142 && YAKURA == 143 && CHINESE_DRAGON == 144 && EXPRESSION_COUNT == 145);
 	for (const auto &panel : panels) {
 		Arduino_GFX gfx(panel[0], panel[1]);
 		eyes_init(&gfx);
@@ -355,5 +389,6 @@ int main() {
 	upward_pupils();
 	appended_cycles();
 	assert(settings_update(saved));
-	std::cout << "38 colored performances, original scene regressions and appended scene cycles passed\n";
+	std::cout << unsigned(EXPRESSION_COUNT - DANCING)
+		<< " colored performances, original scene regressions and appended scene cycles passed\n";
 }

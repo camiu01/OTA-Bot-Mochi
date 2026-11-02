@@ -81,12 +81,14 @@ void eyes_faces_double(uint32_t now, int16_t x, int16_t y) {
 /** @brief Trigger an affectionate temporary face and a heart marker unless dizzy is active. @param now Timestamp. @param x Stroke X. @param y Stroke Y. */
 void eyes_faces_pet(uint32_t now, int16_t x, int16_t y) {
 	if (eyes_state().dizzyUntilMs != 0) { return; }
-	policy.pet(now, uint32_t(random(1000000L)));
+	bool fresh = policy.pet(now, uint32_t(random(1000000L)));
+	eyes_glance(x, y, now);
 	eyes_faces_step(now);
-	sound_request_face(eyes_face_tone(eyes_config().expression), now);
+	if (fresh) { sound_request_face(eyes_face_tone(eyes_config().expression), now); }
 	EyeState &state = eyes_state();
-	state.heartX = int16_t(x < 7 ? 7 : (x > LCD_WIDTH - 8 ? LCD_WIDTH - 8 : x));
-	state.heartY = int16_t(y < 20 ? 20 : (y > LCD_HEIGHT - 14 ? LCD_HEIGHT - 14 : y));
+	int16_t w = eyes_config().screenW, h = eyes_config().screenH;
+	state.heartX = int16_t(x < 7 ? 7 : (x > w - 8 ? w - 8 : x));
+	state.heartY = int16_t(y < 20 ? 20 : (y > h - 14 ? h - 14 : y));
 	state.heartUntilMs = now + 900;
 }
 

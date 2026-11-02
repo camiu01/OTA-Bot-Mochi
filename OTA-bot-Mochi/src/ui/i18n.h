@@ -303,6 +303,16 @@
 	X(ExprUwu, "uwu", "uwu") \
 	X(ExprYokai, "yokai", "yokai") \
 	X(ExprTicTacToe, "tic tac toe", "tris") \
+	X(ExprMechaMask, "mecha mask", "mecha maschera") \
+	X(ExprMechaBreak, "mecha break", "mecha pezzi") \
+	X(ExprHollowAnger, "hollow anger", "rabbia cava") \
+	X(ExprSnickering, "snickering", "risatina") \
+	X(ExprHiccup, "hiccup", "singhiozzo") \
+	X(ExprRetroTv, "retro TV", "TV retro") \
+	X(ExprMechaPilot, "mecha pilot", "mecha pilota") \
+	X(ExprComet, "comet", "cometa") \
+	X(ExprYakura, "yakura", "yakura") \
+	X(ExprChineseDragon, "red dragon", "drago rosso") \
 	X(Calm, "calm", "calmo") \
 	X(Dasai, "normal", "normale") \
 	X(Playful, "playful", "vivace") \
