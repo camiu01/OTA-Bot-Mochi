@@ -36,3 +36,5 @@ uint32_t settings_faces_revision();
 bool settings_night();
 /** @brief Feed trusted local time on the main task without writing preferences. @param valid Clock synchronized. @param hour Local 24-hour value. */
 void settings_clock(bool valid, uint8_t hour);
+/** @brief Apply the session-only phone quiet/sleep schedule without saving preferences. @param active Remote night state. */
+void settings_remote_night(bool active);

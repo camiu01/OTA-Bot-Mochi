@@ -6,6 +6,8 @@ New-Item -ItemType Directory -Path $output | Out-Null
 # Build one native executable and stop on the first failure.
 function Invoke-HostTest([string] $Name, [string[]] $Sources, [string[]] $Flags = @()) {
 	if ($Sources -contains "$root\OTA-bot-Mochi\src\update\ota_update.cpp") { $Sources += $network }
+	if ($Sources -contains "$root\OTA-bot-Mochi\src\ui\screens.cpp") { $Sources += $companion }
+	if ($Sources -contains "$root\OTA-bot-Mochi\src\companion\companion_service.cpp") { $Sources += "$root\tests\stubs\backlight_activity.cpp" }
 	# An IDE-local AMOLED selection must not change the LCD baseline fixtures.
 	if ($Flags -notcontains '-DMOCHI_BOARD_AMOLED_18') { $Flags += '-DMOCHI_BOARD_LCD_169' }
 	& g++ -std=c++17 -Wall -Wextra -Werror @Flags -I "$root\tests\stubs" @Sources -o "$output\$Name.exe"
@@ -15,6 +17,8 @@ function Invoke-HostTest([string] $Name, [string[]] $Sources, [string[]] $Flags 
 }
 $network = @("$root\OTA-bot-Mochi\src\network\network_config.cpp",
 	"$root\OTA-bot-Mochi\src\network\network_service.cpp", "$root\tests\stubs\network_weather.cpp")
+$companion = @('companion_state.cpp', 'companion_service.cpp', 'companion_language.cpp', 'phone_view.cpp', 'phone_qr.cpp') |
+	ForEach-Object { Join-Path $root "OTA-bot-Mochi\src\companion\$_" }
 try {
 	& g++ -std=c++17 -Wall -Wextra -Werror -I "$root\tests\stubs" -DMOCHI_BOARD_LCD_169 -fsyntax-only "$root\OTA-bot-Mochi\src\touch\touch.cpp"
 	if ($LASTEXITCODE -ne 0) { throw 'Touch driver syntax check failed' }
@@ -61,12 +65,20 @@ try {
 	)
 	Invoke-HostTest 'swipe' @("$root\tests\swipe_test.cpp")
 	Invoke-HostTest 'ancs' @("$root\tests\ancs_test.cpp", "$root\OTA-bot-Mochi\src\ancs\ancs_parser.cpp")
+	Invoke-HostTest 'utf8-text' @("$root\tests\utf8_text_test.cpp", "$root\OTA-bot-Mochi\src\ui\ui_state.cpp")
+	$boot = @("$root\tests\ota_boot_test.cpp", "$root\OTA-bot-Mochi\src\update\ota_boot.cpp")
+	Invoke-HostTest 'ota-boot' $boot @('-I', "$root\tests\stubs\ota", '-DCONFIG_APP_ROLLBACK_ENABLE=1', '-DCONFIG_BOOTLOADER_APP_ROLLBACK_ENABLE=1')
+	Invoke-HostTest 'ota-boot-disabled' $boot @('-I', "$root\tests\stubs\ota")
 	Invoke-HostTest 'ams' @("$root\tests\ams_test.cpp", "$root\OTA-bot-Mochi\src\ancs\ams_service.cpp", "$root\OTA-bot-Mochi\src\ui\ui_state.cpp") @('-I', "$root\tests\stubs\media")
 	Invoke-HostTest 'sd-audio' @("$root\tests\sd_audio_test.cpp") @('-DMOCHI_BOARD_AMOLED_18')
 	Invoke-HostTest 'music' @("$root\tests\music_test.cpp", "$root\OTA-bot-Mochi\src\ui\ui_state.cpp")
 	$charging = @("$root\tests\charging_test.cpp", "$root\OTA-bot-Mochi\src\power\charging.cpp", "$root\OTA-bot-Mochi\src\bus\i2c_bus.cpp")
 	Invoke-HostTest 'charging-lcd' $charging
 	Invoke-HostTest 'charging-amoled' $charging @('-DMOCHI_BOARD_AMOLED_18')
+	$battery = @("$root\tests\battery_test.cpp", "$root\OTA-bot-Mochi\src\power\battery.cpp", "$root\OTA-bot-Mochi\src\power\charging.cpp", "$root\OTA-bot-Mochi\src\bus\i2c_bus.cpp")
+	Invoke-HostTest 'battery-lcd' $battery
+	Invoke-HostTest 'battery-amoled' $battery @('-DMOCHI_BOARD_AMOLED_18')
+	Invoke-HostTest 'battery-chronos' @("$root\tests\battery_chronos_test.cpp")
 	Invoke-HostTest 'tic-tac-toe' @("$root\tests\tic_tac_toe_test.cpp")
 	$ota = $runtime + @("$root\tests\ota_test.cpp", "$root\OTA-bot-Mochi\src\update\ota_update.cpp", "$root\OTA-bot-Mochi\src\update\ntp_sync.cpp", "$root\tests\stubs\imu_noop.cpp")
 	Invoke-HostTest 'ota-lcd' $ota @('-I', "$root\tests\stubs\ota")
@@ -104,7 +116,7 @@ try {
 	Invoke-HostTest 'settings-web' ($runtime + @("$root\tests\settings_web_test.cpp", "$root\OTA-bot-Mochi\src\update\ota_update.cpp", "$root\OTA-bot-Mochi\src\update\ntp_sync.cpp", "$root\tests\stubs\imu_noop.cpp")) @('-I', "$root\tests\stubs\ota")
 	Invoke-HostTest 'settings-web-amoled' ($runtime + @("$root\tests\settings_web_test.cpp", "$root\OTA-bot-Mochi\src\update\ota_update.cpp", "$root\OTA-bot-Mochi\src\update\ntp_sync.cpp", "$root\tests\stubs\imu_noop.cpp")) @('-DMOCHI_BOARD_AMOLED_18', '-I', "$root\tests\stubs\ota")
 	Invoke-HostTest 'network' ($runtime + @("$root\tests\network_test.cpp", "$root\OTA-bot-Mochi\src\update\ota_update.cpp", "$root\OTA-bot-Mochi\src\update\ntp_sync.cpp", "$root\tests\stubs\imu_noop.cpp")) @('-I', "$root\tests\stubs\ota")
-	Invoke-HostTest 'network-weather' @("$root\tests\network_weather_test.cpp", "$root\OTA-bot-Mochi\src\network\network_weather_parse.cpp") @('-I', "$root\tests\stubs\ota")
+	Invoke-HostTest 'network-weather' @("$root\tests\network_weather_test.cpp", "$root\OTA-bot-Mochi\src\network\network_weather_parse.cpp") @('-I', "$root\tests\stubs\ota", '-I', "$root\tests\stubs\diagnostics")
 	Invoke-HostTest 'ntp-sync' @("$root\tests\ntp_sync_test.cpp", "$root\OTA-bot-Mochi\src\update\ntp_sync.cpp") @('-I', "$root\tests\stubs\ota")
 	Invoke-HostTest 'face-preset-raster' ($renderRuntime + @("$root\tests\face_preset_raster_test.cpp") + $renderEyes)
 	Invoke-HostTest 'all-faces-raster' ($renderRuntime + @("$root\tests\face_preset_raster_test.cpp") + $renderEyes) @('-O2', '-DALL_FACES_RASTER')
@@ -125,6 +137,11 @@ try {
 		"$root\OTA-bot-Mochi\src\settings\settings_menu.cpp",
 		"$root\tests\stubs\imu_noop.cpp"
 	)
+	$companionService = @("$root\tests\companion_test.cpp", "$root\tests\stubs\imu_noop.cpp") + $companion[0..2]
+	Invoke-HostTest 'companion' ($runtime + $companionService)
+	$phonePanel = @($uiPanel | Where-Object { $_ -ne "$root\tests\ui_panel_test.cpp" }) + "$root\tests\companion_panel_test.cpp"
+	Invoke-HostTest 'companion-panel-lcd' ($runtime + $phonePanel)
+	Invoke-HostTest 'companion-panel-amoled' ($runtime + $phonePanel) @('-DMOCHI_BOARD_AMOLED_18')
 	Invoke-HostTest 'ui-panel' ($runtime + $uiPanel)
 	Invoke-HostTest 'ui-panel-240x320' ($runtime + $uiPanel) @('-DLCD_WIDTH=240', '-DLCD_HEIGHT=320')
 	Invoke-HostTest 'ui-panel-368x448' ($runtime + $uiPanel) @('-DMOCHI_BOARD_AMOLED_18')

@@ -16,7 +16,7 @@ struct OtaStatus {
 	bool success = false;
 	const char *error = nullptr;
 	char ssid[33] = {};
-	char password[9] = {};
+	char password[13] = {};
 	char address[16] = "192.168.4.1";
 	char url[80] = {};
 	size_t received = 0;

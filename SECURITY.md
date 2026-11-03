@@ -15,7 +15,11 @@ Only the latest 1.x release receives security updates. Older revisions, forks wi
 
 ## Reporting a Vulnerability
 
-Report vulnerabilities via GitHub Issues on the OTA-Bot-Mochi repository.
+Report vulnerabilities privately through
+[Report a vulnerability](https://github.com/camiu01/OTA-Bot-Mochi/security/advisories/new).
+Private vulnerability reporting was enabled on 2026-11-02. Do not post exploit
+details in public Issues. If the private form becomes unavailable, open an Issue
+requesting a private contact channel without describing the vulnerability.
 
 Include:
 
@@ -53,4 +57,4 @@ Out of scope:
 
 ## Safe Disclosure
 
-Do not publicly disclose an unpatched vulnerability. Give maintainers reasonable time to fix and release before publishing details. Coordinate disclosure through the original GitHub Issue thread. Credit is given on request once the fix is released.
+Do not publicly disclose an unpatched vulnerability. Give maintainers reasonable time to fix and release before publishing details. Coordinate disclosure through the private security advisory. Credit is given on request once the fix is released.

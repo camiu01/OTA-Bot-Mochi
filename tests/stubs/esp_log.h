@@ -6,3 +6,5 @@
 #pragma once
 inline unsigned test_log_warnings = 0;
 #define ESP_LOGW(tag, message) do { (void)(tag); (void)(message); ++test_log_warnings; } while (0)
+inline unsigned test_log_errors = 0;
+#define ESP_LOGE(tag, message, ...) do { (void)(tag); (void)(message); ++test_log_errors; } while (0)

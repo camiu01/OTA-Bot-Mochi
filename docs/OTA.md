@@ -39,7 +39,7 @@ Firmware compilation, uploading and physical validation remain user-operated.
    network and scan the displayed browser QR. It includes the current DHCP
    address and temporary authorization; do not share it.
    Otherwise scan the **Wi-Fi QR** to join `Mochi-…`.
-   Alternatively, enter the displayed eight-character password manually.
+   Alternatively, enter the displayed twelve-character password manually.
    **DETAILS / DETTAGLI** switches to the full text instructions; **WI-FI QR**
    switches back. Stay connected even if the OS reports “no Internet”.
 6. On the setup AP, open **`http://192.168.4.1`** directly. On saved Wi-Fi,
@@ -58,10 +58,15 @@ Setup AP credentials are generated once per device and stored separately in
 serve both settings and firmware sessions. Forgetting the home network does
 not change them; erasing device NVS does. Storage failure prevents AP startup
 rather than silently generating temporary credentials. They are not printed over USB.
-Passwords contain eight random uppercase letters/digits from
+Passwords contain twelve random uppercase letters/digits from
 `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`, excluding ambiguous `0`, `1`, `I`, `O` and
 lowercase letters. Each character uses five unbiased hardware-random bits.
 The upload authorization token remains an independent 128-bit random value.
+Secret generation requires the Bluetooth controller to be enabled; otherwise
+maintenance refuses to start. It does not enable the ADC entropy source while
+Bluetooth is running. Existing valid eight-character AP records are upgraded
+once to a new twelve-character password while retaining the SSID. Re-scan the
+Wi-Fi QR or forget the old saved AP password on the phone after this upgrade.
 The Wi-Fi QR remains stable; it connects to Wi-Fi, not to the update
 page. Open the displayed browser address after connecting.
 
@@ -93,13 +98,20 @@ table, NVS, filesystem, or bootloader.
 The complete image is validated by ESP-IDF `esp_ota_end()` before
 `esp_ota_set_boot_partition()` selects it. Failed/interrupted uploads do not
 select the new slot. This protects against incomplete writes, not every possible
-power failure or a valid image that crashes at boot. **Automatic boot-health
-rollback is not implemented or promised by Mochi.** Framework defaults may
-confirm a new image before the sketch runs; that is not a device health check.
-USB recovery remains necessary.
+power failure. Mochi defers Arduino's early confirmation and confirms a pending
+image only after setup completed with display/UI and BLE initialization and
+the main loop observed fifteen seconds of healthy operation. This requires
+`CONFIG_APP_ROLLBACK_ENABLE` and `CONFIG_BOOTLOADER_APP_ROLLBACK_ENABLE` in the
+installed framework/bootloader. A reset before confirmation can return to the
+previous valid slot. This is not a complete peripheral self-test and does not
+promise power-loss recovery. An older USB-installed bootloader may lack rollback;
+an app-only update cannot change it. Keep USB recovery available and validate
+both physical boards before relying on this policy.
 
 WPA2 protects the isolated network. A random session token, exact Host check and
 same-origin browser requests guard the upload endpoint; no CORS is enabled.
+Denied uploads receive 403 without changing the owner's error or upload state.
+Maintenance pages share no-store, frame denial, nosniff, no-referrer and CSP headers.
 HTTP is not TLS. The board/layout marker and image checksum are **not a digital
 signature**: someone with the session's local access and authorization can
 install a compatible malicious image. Secure Boot, signed releases, anti-rollback,

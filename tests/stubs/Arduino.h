@@ -1,6 +1,6 @@
 /**
  * @file Arduino.h
- * @brief Minimal native test substitute, not an Arduino compatibility layer.
+ * @brief Minimal native test substitute with target libc name collisions, not an Arduino compatibility layer.
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #pragma once
@@ -12,6 +12,11 @@
 #include <cstdarg>
 #include <cstdio>
 #include "pwm.h"
+
+#if defined(_WIN32)
+// Newlib exposes this legacy name through Arduino.h; Windows headers omit it.
+extern "C" char *index(const char *, int);
+#endif
 
 inline uint32_t test_now = 0;
 /** @brief Supply a controlled clock. @return Test timestamp. */

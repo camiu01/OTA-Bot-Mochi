@@ -16,6 +16,7 @@ public:
 	inline static WebServer *instance = nullptr;
 	std::function<void()> get, post, upload_callback, pending;
 	std::map<std::string, String> headers;
+	std::map<std::string, String> response_headers;
 	std::map<std::string, std::function<void()>> routes;
 	HTTPUpload file;
 	String host = "192.168.4.1", body;
@@ -36,7 +37,7 @@ public:
 	WebServer &client() { return *this; }
 	void stop() { listening = false; stopped = true; }
 	void collectHeaders(const char **, size_t) {}
-	void sendHeader(const char *, const char *) {}
+	void sendHeader(const char *key, const char *value) { response_headers[key] = value; }
 	void send(int value, const char *, const String &text) { code = value; body = text; }
 	void on(const char *path, HTTPMethod method, std::function<void()> fn) {
 		routes[std::string(method == HTTP_GET ? "GET " : "POST ") + path] = fn;

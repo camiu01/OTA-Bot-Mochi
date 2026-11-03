@@ -26,7 +26,7 @@ void ota_begin(uint32_t, void (*)(), bool faces) {
 	session.active = true;
 	session.faces = faces;
 	strcpy(session.ssid, "Mochi-Update-abcdef");
-	strcpy(session.password, "ABCD2345");
+	strcpy(session.password, "ABCD2345EFGH");
 }
 void ota_poll(uint32_t) {}
 void ota_stop() { session = OtaStatus{}; }
@@ -69,7 +69,7 @@ int main() {
 		int encoded = test_qr_calls;
 		refresh(gfx, 180);
 		assert(session.active && contains(gfx, tr(Text::OtaBrowser)));
-		assert(contains(gfx, "ABCD2345") && contains(gfx, tr(Text::OtaQr)));
+		assert(contains(gfx, "ABCD2345EFGH") && contains(gfx, tr(Text::OtaQr)));
 		refresh(gfx, 180);
 		assert(contains(gfx, tr(Text::OtaScan)) && test_qr_calls == encoded);
 		session.receiving = true; session.total = 100; session.received = 25;
@@ -96,7 +96,7 @@ int main() {
 		test_qr_result = 1; gfx.text.clear();
 		ota_screen_begin(&gfx, test_now);
 		assert(contains(gfx, tr(Text::OtaBrowser)));
-		assert(contains(gfx, "ABCD2345") && !contains(gfx, tr(Text::OtaScan)));
+		assert(contains(gfx, "ABCD2345EFGH") && !contains(gfx, tr(Text::OtaScan)));
 		test_qr_result = ESP_OK;
 		ota_stop();
 		gfx.text.clear(); ota_screen_begin(&gfx, test_now, true);

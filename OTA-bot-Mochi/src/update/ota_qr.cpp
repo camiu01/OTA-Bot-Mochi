@@ -41,7 +41,7 @@ bool safe(const char *text, size_t limit) {
 bool ota_qr_prepare(const char *ssid, const char *password) {
 	width = 0;
 	memset(modules, 0, sizeof(modules));
-	if (!safe(ssid, 23) || !safe(password, 8) || strlen(password) != 8) { return false; }
+	if (!safe(ssid, 23) || !safe(password, 12) || strlen(password) != 12) { return false; }
 	char payload[64];
 	int used = snprintf(payload, sizeof(payload), "WIFI:T:WPA;S:%s;P:%s;;", ssid, password);
 	if (used < 0 || size_t(used) >= sizeof(payload)) { return false; }

@@ -221,4 +221,35 @@ for behavior, board details, and reproducible checks.
   `OTA-bot-Mochi.ino` (435 lines) to stay under the 400-line guideline in
   `CONTRIBUTING.md`.
 
-- [ ] Validate enlarged LOVE/STAR, filled BOLT, CLOCK_EYES dial contrast, CALCULATING math symbols, QUESTION/MONEY/POWER/SWIRLY glyphs, and brighter DAYDREAM clouds on both physical panels. Native raster checks do not establish hardware readability.
+## Audit patch acceptance
+
+- [ ] Validate Android Clock > Desk > Phone tools on both physical panels:
+  find in both directions, timeout/stop, camera permissions/readiness, phone
+  battery, eight alarms/repeats, water/movement windows, quiet/sleep across
+  midnight, EN/IT ID association, hourly forecasts, sixteen-contact cache
+  and nine QR slots. Repeat disconnect/reconnect and mute/night scenarios.
+- [ ] Verify iPhone mode hides the Chronos-only tile/actions and replaces
+  Chronos clock/weather hints while retaining ANCS/AMS and Wi-Fi features.
+- [ ] Measure the new bounded companion cache and BLE/HTTPS/audio task stack
+  headroom on LCD (no PSRAM) and AMOLED; native tests are not RAM profiling.
+
+- [ ] Verify the battery-with-bolt icon appears/disappears on stable charge changes
+  without changing pages. Recheck AMOLED displayed 0%/100% against the reported
+  nominal 3% shutdown/92% full-charge endpoints and compare Android Chronos
+  percentage/charging status after connecting and reconnecting. Native raster
+  and setter fixtures do not prove phone delivery or battery calibration.
+
+- [ ] Compile both board profiles with the shared core 3.3.12 and NimBLE 2.5.2 pins;
+  inspect the new CI run, not a previous release run.
+- [ ] On both physical boards, verify a pending OTA image remains unconfirmed until
+  display/UI/BLE setup and fifteen seconds of healthy loop activity. Reset during
+  that window and confirm return to the previous valid slot with the installed
+  rollback-enabled bootloader; retain USB recovery.
+- [ ] Verify AP v1-to-v2 migration: unchanged SSID, new twelve-character password,
+  failed-write refusal, updated phone Wi-Fi credentials and scannable QR.
+- [ ] Measure internal largest-free-block and task stack headroom during Wi-Fi/BLE
+  coexistence and repeated HTTPS work; calibrate the conservative 45 KiB gate.
+- [ ] Track remaining trust changes separately: signed images, LAN transport/client
+  binding and physical approval, authenticated pairing and flash/NVS encryption.
+
+See `docs/AUDIT_REMEDIATION.md` for implemented findings and validation limits.

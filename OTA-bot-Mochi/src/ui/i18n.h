@@ -5,7 +5,9 @@
  */
 #pragma once
 #include <stdint.h>
+#include "i18n_companion.h"
 #define UI_TRANSLATIONS(X) \
+	UI_COMPANION_TRANSLATIONS(X) \
 	X(Eyes, "MOCHI", "MOCHI") \
 	X(Clock, "CLOCK", "OROLOGIO") \
 	X(MusicVolume, "VOLUME", "VOLUME") \
@@ -351,7 +353,6 @@
 	X(DiagArmed, "Enabled", "Abilitato") \
 	X(DiagMissing, "Unavailable", "Non disponibile") \
 	X(DiagUnchecked, "Not checked", "Non verificata")
-
 enum class Text : uint16_t {
 #define UI_ENUM(key, en, it) key,
 	UI_TRANSLATIONS(UI_ENUM)

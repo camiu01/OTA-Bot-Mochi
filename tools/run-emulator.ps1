@@ -4,7 +4,7 @@ param(
 	[ValidatePattern('^[1-9][0-9]*x[1-9][0-9]*$')]
 	[string] $Size,
 	[ValidateSet('eyes', 'clock', 'music', 'route', 'alerts', 'weather', 'settings',
-		'desk', 'bigclock', 'overview', 'timer', 'device', 'pong', 'analogclock', 'tris')]
+		'desk', 'bigclock', 'overview', 'timer', 'device', 'pong', 'analogclock', 'tris', 'phone')]
 	[string] $Page,
 	[ValidateRange(1, 2147483647)]
 	[int] $Frames,
@@ -76,6 +76,11 @@ $sources = @(
 	'OTA-bot-Mochi/src/ui/weather_sync.cpp',
 	'OTA-bot-Mochi/src/ui/screens.cpp',
 	'OTA-bot-Mochi/src/ui/context_views.cpp',
+	'OTA-bot-Mochi/src/companion/companion_state.cpp',
+	'OTA-bot-Mochi/src/companion/companion_service.cpp',
+	'OTA-bot-Mochi/src/companion/companion_language.cpp',
+	'OTA-bot-Mochi/src/companion/phone_view.cpp',
+	'OTA-bot-Mochi/src/companion/phone_qr.cpp',
 	'OTA-bot-Mochi/src/clock/clock_ui.cpp',
 	'OTA-bot-Mochi/src/sound/sound.cpp',
 	'OTA-bot-Mochi/src/sound/buzzer_output.cpp',

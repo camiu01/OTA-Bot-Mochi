@@ -6,6 +6,7 @@
 #include "clock_ui.h"
 #include "../ui/ui_theme.h"
 #include "../ui/i18n.h"
+#include "../settings/settings.h"
 #include "../../pin_config.h"
 #include <atomic>
 
@@ -46,7 +47,7 @@ bool clock_ready() { return synced.load(); }
 void clock_invalidate() { invalidated = true; }
 
 /**
- * @brief Draw synchronized time while retaining it across disconnections.
+ * @brief Draw synchronized time or phone-mode-appropriate setup hints, retaining time across disconnections.
  * @param gfx Canvas.
  * @param watch Chronos time source.
  * @param connected Bluetooth flag.
@@ -63,7 +64,7 @@ bool clock_draw(Arduino_GFX *gfx, ChronosESP32 &watch, bool connected) {
 	}
 	String time = ready ? watch.getHourZ() + watch.getTime(":%M") : "--:--";
 	String seconds = ready ? watch.getTime(":%S") + " " + watch.getAmPmC() : tr(Text::Waiting);
-	String date = ready ? watch.getTime("%d / %m / %Y") : tr(Text::OpenChronos);
+	String date = ready ? watch.getTime("%d / %m / %Y") : tr(settings_get().phone_ios ? Text::IosTimeHint : Text::OpenChronos);
 	String status = tr(connected ? Text::Connected : Text::Offline);
 	changed |= field(gfx, time, 0, 108, 4, UI_TEXT);
 	changed |= field(gfx, seconds, 1, 150, 1, UI_ACCENT);

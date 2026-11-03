@@ -294,8 +294,8 @@ If it is not in `PATH`, replace `arduino-cli` below with that full invocation.
 
 ```sh
 arduino-cli core update-index --additional-urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
-arduino-cli core install esp32:esp32@3.3.11 --additional-urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
-arduino-cli lib install "ESP32Time@2.0.6" "NimBLE-Arduino@2.5.1"
+arduino-cli core install esp32:esp32@3.3.12 --additional-urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
+arduino-cli lib install "ESP32Time@2.0.6" "NimBLE-Arduino@2.5.2"
 arduino-cli lib install --no-deps "ChronosESP32@1.9.1" "GFX Library for Arduino@1.6.9"
 arduino-cli board list
 arduino-cli compile --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=disabled,FlashSize=16M" --build-property "upload.maximum_size=6553600" --build-property "compiler.cpp.extra_flags=-DMOCHI_BOARD_LCD_169" OTA-bot-Mochi
@@ -351,8 +351,9 @@ and crashed in the shared I2C driver on 2026-10-13. The 8 MB onboard PSRAM
 therefore remains unused. Upload replaces existing firmware.
 On Linux, replace `COM3` with the port reported by `board list`, often `/dev/ttyACM0`.
 
-The pins above are the CI configuration. The v1.2.0 release run successfully
-built both profiles with them; see [CI evidence](CI.md). This does not establish
+The pins above are the current CI targets from `versions.ini`. The inspected
+v1.2.0 release used the previous core 3.3.11 and NimBLE-Arduino 2.5.1 pins;
+see [CI evidence](CI.md). This does not establish
 which firmware is installed on a device. No upload was performed during the
 2026-10-27 consolidation. Local verification uses PlatformIO; Arduino CLI remains
 the independent CI/reference path.
@@ -362,8 +363,8 @@ See [GitHub Actions workflow](CI.md) for cached builds and downloadable artifact
 
 `platformio.ini` at the repository root mirrors both Arduino CLI profiles with
 `src_dir = OTA-bot-Mochi`, the same library pins (ESP32Time 2.0.6,
-NimBLE-Arduino 2.5.1, ChronosESP32 1.9.1, GFX Library for Arduino 1.6.9), and
-`espressif32 @ 8.0.0` (Arduino core 3.3.12, close to the CI pin 3.3.11). The
+NimBLE-Arduino 2.5.2, ChronosESP32 1.9.1, GFX Library for Arduino 1.6.9), and
+`espressif32 @ 8.0.0` (Arduino core 3.3.12, matching the CI core pin). The
 default environment is `esp32s3-lcd`, so a bare `pio run` builds only the LCD
 profile; pass `-e` explicitly and build/upload only the environment matching
 the physical board. Uploading replaces the installed application, as with the

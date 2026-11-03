@@ -80,3 +80,12 @@ API/provider discovery: Orbit resource
 checked against https://open-meteo.com/en/docs and its geocoding documentation.
 Native transport fixtures and builds do not verify physical Wi-Fi/BLE coexistence,
 router DHCP, TLS, QR scanning, power consumption or real provider availability.
+
+Before allocating the HTTPS body or starting TLS, the weather worker requires
+an internal, byte-addressable contiguous free block of at least 45 KiB. Below
+that threshold it emits a structured warning and returns a failed reply; the
+automatic weather policy retries after its existing five-minute failure backoff.
+An explicit request remains subject to its existing thirty-second rate limit.
+This conservative gate also applies to location searches. It is a starting
+threshold, not measured proof of TLS headroom on either board; native tests
+cover its boundary but do not measure radio/TLS allocations or task stacks.

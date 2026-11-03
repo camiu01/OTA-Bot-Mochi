@@ -11,11 +11,13 @@
 #include <WebServer.h>
 
 namespace face_web {
-/** @brief Common non-cacheable responses for settings and session HTML. */
+/** @brief Apply the same non-cacheable, origin-restricted policy to every maintenance response. */
 inline void headers(WebServer &server) {
 	server.sendHeader("Cache-Control", "no-store");
 	server.sendHeader("X-Frame-Options", "DENY");
 	server.sendHeader("X-Content-Type-Options", "nosniff");
+	server.sendHeader("Referrer-Policy", "no-referrer");
+	server.sendHeader("Content-Security-Policy", "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'");
 }
 /** @brief Escape static catalog/localization strings as JSON string values. */
 inline String quoted(const char *value) {
@@ -49,7 +51,6 @@ inline void page(WebServer &server, const char *token) {
 	html.replace("%LANG%", settings_get().language == 1 ? "it" : "en");
 	html.replace("</style>", (String(WEB_STYLE) + "</style>").c_str());
 	headers(server);
-	server.sendHeader("Content-Security-Policy", "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'");
 	server.send(200, "text/html", html);
 }
 /** @brief Reject invalid input before changing RAM or writing the separate NVS record. */

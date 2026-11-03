@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "ancs_parser.h"
+#include "../ui/utf8_text.h"
 
 /** @brief Clear a partial response. */
 void AncsParser::reset() {
@@ -28,7 +29,7 @@ bool AncsParser::event(const uint8_t *data, size_t length) {
 	return true;
 }
 
-/** @brief Parse complete TLVs, retaining only the requested fields. */
+/** @brief Parse complete TLVs, retaining requested fields without splitting UTF-8 code points. */
 bool AncsParser::append(const uint8_t *data, size_t length) {
 	if (!pending_ || (!data && length) || bytes_.size() + length > 1536) { reset(); return false; }
 	if (!length) { return false; }
@@ -45,10 +46,10 @@ bool AncsParser::append(const uint8_t *data, size_t length) {
 		if (size > 1024) { reset(); return false; }
 		if (at + 3 + size > bytes_.size()) { return false; }
 		std::string value = bytes_.substr(at + 3, size);
-		if (id == 0) { alert_.app = value.substr(0, 64); seen_ |= 1; }
-		if (id == 1) { alert_.title = value.substr(0, 160); seen_ |= 2; }
-		if (id == 3) { alert_.message = value.substr(0, 1024); seen_ |= 4; }
-		if (id == 5) { alert_.date = value.substr(0, 16); seen_ |= 8; }
+		if (id == 0) { alert_.app = value.substr(0, utf8_prefix(value.data(), value.size(), 64)); seen_ |= 1; }
+		if (id == 1) { alert_.title = value.substr(0, utf8_prefix(value.data(), value.size(), 160)); seen_ |= 2; }
+		if (id == 3) { alert_.message = value.substr(0, utf8_prefix(value.data(), value.size(), 1024)); seen_ |= 4; }
+		if (id == 5) { alert_.date = value.substr(0, utf8_prefix(value.data(), value.size(), 16)); seen_ |= 8; }
 		at += 3 + size;
 	}
 	bytes_.erase(5, at - 5);

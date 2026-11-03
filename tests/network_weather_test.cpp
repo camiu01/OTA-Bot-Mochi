@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "../OTA-bot-Mochi/src/network/network_weather.h"
+#include "../OTA-bot-Mochi/src/network/weather_memory.h"
 #include <cJSON.h>
 #include <cassert>
 #include <deque>
@@ -55,6 +56,10 @@ static void locations() {
 	test_json_root = object({{"error",node(5)}}); assert(!network_weather_parse("{}", 2, reply));
 }
 int main() {
+	test_internal_largest = 45 * 1024 - 1;
+	assert(!weather_memory_ready());
+	test_internal_largest = 45 * 1024;
+	assert(weather_memory_ready());
 	forecasts(); locations();
 	assert(network_weather_icon(0) == 1 && network_weather_icon(2) == 0 && network_weather_icon(3) == 4);
 	assert(network_weather_icon(51) == 3 && network_weather_icon(71) == 2 && network_weather_icon(99) == 3);

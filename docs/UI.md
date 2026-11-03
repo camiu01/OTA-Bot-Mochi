@@ -7,11 +7,32 @@ Seven position dots indicate the selected
 screen; the header shows a speaker icon (crossed out while sound is off or
 night-muted), Bluetooth state, and the battery percentage (`--%` until a
 plausible reading exists). While the PMU reports a stable charging state, the
-percentage uses the accent color and a charge bolt appears beside it. The
+percentage uses the accent color and a battery-with-bolt icon appears beside it.
+Stable charge start/stop and percentage changes invalidate the header immediately,
+without waiting for a phone packet or a page change. The
 configured backlight percentage is shown on the DEVICE STATUS page, not in the
 header.
 
+The AMOLED V2 display estimate is normalized using the user's observed nominal
+3% shutdown and 92% full-charge readings as 0% and 100%. Values outside that
+range are clamped, and intermediate values are rounded to the nearest percent.
+The LCD curve is unchanged. This adjusts the display only: it does not configure
+the PMU, change charge limits or alter the hardware shutdown voltage. Recheck
+both endpoints on the physical device; voltage-based state of charge remains approximate.
+
+Android Chronos mode publishes that same displayed percentage and the stable
+PMU charging flag through `ChronosESP32::setBattery` on the main task. Unknown
+readings are not sent as 255%; Chronos keeps its last valid cached value and
+handles change notifications and reconnect publication. Before the first valid
+sample the library's initial value may still be shown. ANCS mode is unaffected.
+
 ## Controls
+
+Android mode adds **Phone tools** as the eighth contextual desk tile. Find,
+camera, alarms, phone battery, reminders, app schedules, hourly forecasts,
+contacts, QR links and explicit app-language association are described in
+[Chronos integration](CHRONOS.md). The tile and Chronos-only actions are hidden
+in iPhone mode; the seven-page carousel remains unchanged.
 
 The Moon face animates new, waxing crescent, first quarter, waxing gibbous,
 full, waning gibbous, last quarter and waning crescent moons over its six-second
@@ -110,7 +131,7 @@ bubbles have deterministic event-based variation, not per-frame randomness.
   to be released, avoiding a page change underneath a settings tap.
 - Hold still for 1.2 seconds on the eyes screen to open Settings. A swipe or
   moving finger is not also treated as a tap or hold.
-- The desk hub presents seven 108x44-pixel cards in a two-column, four-row grid
+- The desk hub presents eight 108x44-pixel cards in Android mode, seven in iPhone mode, in a two-column, four-row grid
   (design coordinates), including playable Tris against Mochi. The
   local timer uses a full-width 50-pixel START/PAUSE accent button with
   48-pixel RESET and MODE buttons, so every desk control is a comfortable

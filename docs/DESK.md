@@ -32,8 +32,10 @@ Swipe down on Clock to open Scrivania, then select:
 | PONG | Play against an automatic right paddle; tap the court at the desired height to move the left paddle, RESET starts a new game |
 | ANALOG CLOCK | Hour, minute and second hands with synchronized digital time below |
 | TIC TAC TOE / TRIS | You play X against Mochi O; tap an empty cell, NEW GAME clears the board |
+| PHONE TOOLS (Android only) | Find phone, camera, battery, alarms, reminders, hourly weather, contacts, QR and language association; see [Chronos](CHRONOS.md) |
 
-The hub shows seven 108x44-pixel cards in a two-column, four-row grid. Gaps between cards are
+The hub shows eight 108x44-pixel cards in Android mode and seven in iPhone mode,
+in a two-column, four-row grid. Gaps between cards are
 not tap targets. Coordinates scale for both the 240x280 LCD and 368x448 AMOLED.
 Pong runs at the display frame cadence, pauses off-page or behind a call overlay,
 and caps physics catch-up at 100 ms. Scores wrap after 99. Game state stays in

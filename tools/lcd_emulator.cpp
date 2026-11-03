@@ -21,6 +21,9 @@
 #include "../OTA-bot-Mochi/src/ui/ui_state.h"
 #include "../OTA-bot-Mochi/src/ui/ui_theme.h"
 #include "../OTA-bot-Mochi/src/ui/view_state.h"
+#include "../OTA-bot-Mochi/src/companion/companion_state.h"
+#include "../OTA-bot-Mochi/src/companion/companion_service.h"
+#include "../OTA-bot-Mochi/src/companion/companion_language.h"
 #include <cctype>
 #include <cstdio>
 #include <cstdlib>
@@ -51,13 +54,13 @@ std::string boot_command;
 
 const char *page_name(UiPage value) {
 	static const char *const names[] = {"Eyes", "Clock", "Music", "Route", "Alerts", "Weather",
-		"Settings", "Desk", "Big clock", "Overview", "Timer", "Device", "Pong", "Analog clock", "Tris"};
+		"Settings", "Desk", "Big clock", "Overview", "Timer", "Device", "Pong", "Analog clock", "Tris", "Phone tools"};
 	return uint8_t(value) < sizeof(names) / sizeof(names[0]) ? names[uint8_t(value)] : "?";
 }
 
 bool page_from_name(const std::string &name, UiPage &out) {
 	static const char *const keys[] = {"eyes", "clock", "music", "route", "alerts", "weather",
-		"settings", "desk", "bigclock", "overview", "timer", "device", "pong", "analogclock", "tris"};
+		"settings", "desk", "bigclock", "overview", "timer", "device", "pong", "analogclock", "tris", "phone"};
 	for (uint8_t i = 0; i < sizeof(keys) / sizeof(keys[0]); ++i) {
 		if (name == keys[i]) { out = UiPage(i); return true; }
 	}
@@ -166,6 +169,7 @@ void render_frame(SDL_Renderer *renderer, SDL_Texture *texture, SDL_Window *wind
 		ui_config(watch, CF_MUSIC, 0, watch.music.state);
 	}
 	settings_clock(clock_ready(), uint8_t(watch.getHour(true)));
+	companion_poll(watch, test_now, clock_ready());
 	bool changed = screens_draw(&gfx, watch, page, test_now);
 	if (page == UiPage::Eyes && !screens_calling()) {
 		if (changed) { eyes_state().dirtyInit = false; }
@@ -201,10 +205,12 @@ void boot_firmware() {
 	settings_init();
 	backlight_init(0);
 	ui_state_init();
+	companion_init(); companion_language_init();
 	eyes_init(&gfx);
 	settings_apply();
 	view_reset();
 	seed_demo_data();
+	companion_connection(ui_snapshot().connected);
 	eyes_faces_greet(0);
 	sound_init(0);
 	battery_sample(0);

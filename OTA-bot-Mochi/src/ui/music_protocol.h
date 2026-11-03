@@ -5,11 +5,12 @@
  */
 #pragma once
 #include "ui_state.h"
+#include "utf8_text.h"
 #include <cmath>
 #include <cstdio>
 #include <string>
 
-/** @brief Decode a complete AMS entity value. @param music State. @param data Packet. @param size Bytes. @return Recognized valid update. */
+/** @brief Decode AMS values while retaining only complete UTF-8 metadata. @param music State. @param data Packet. @param size Bytes. @return Recognized valid update. */
 inline bool music_entity(UiMusic &music, const uint8_t *data, size_t size) {
 	if (!data || size < 3 || (data[2] & ~1U)) { return false; }
 	if (data[0] == 0 && data[1] == 2) {
@@ -35,6 +36,7 @@ inline bool music_entity(UiMusic &music, const uint8_t *data, size_t size) {
 	if (data[0] != 2 || (data[1] != 0 && data[1] != 2)) { return false; }
 	String text;
 	size_t limit = data[1] == 2 ? 160 : 96;
+	limit = utf8_prefix(reinterpret_cast<const char *>(data + 3), size - 3, limit);
 	for (size_t i = 3; i < size && i - 3 < limit; ++i) {
 		if (!data[i]) { return false; }
 		text += char(data[i]);

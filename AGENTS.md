@@ -76,8 +76,8 @@ interface claims on the ESP32-S3. That build beeped continuously and crashed
 in the shared I2C driver on 2026-10-13; PSRAM must stay disabled there. The
 AMOLED profile is the opposite case: its 368x448 canvas needs PSRAM=opi. CI pins
 Arduino CLI 1.2.0,
-ESP32 core 3.3.11, ChronosESP32 1.9.1, GFX Library for Arduino 1.6.9,
-ESP32Time 2.0.6, and NimBLE-Arduino 2.5.1. Setup commands are in
+ESP32 core 3.3.12, ChronosESP32 1.9.1, GFX Library for Arduino 1.6.9,
+ESP32Time 2.0.6, and NimBLE-Arduino 2.5.2. Setup commands are in
 `docs/TESTING.md`. `.github/workflows/checks.yml` gates firmware compilation
 on native tests and provides downloadable binaries, not automatic OTA deployment.
 

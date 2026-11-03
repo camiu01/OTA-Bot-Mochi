@@ -6,6 +6,7 @@
 #pragma once
 #include "../play/mini_widgets.h"
 #include "../clock/clock_ui.h"
+#include "../settings/settings.h"
 #include "ui_theme.h"
 #include "i18n.h"
 #include <string.h>
@@ -40,11 +41,11 @@ inline void desk_pong_draw(Arduino_GFX *gfx, uint32_t now) {
 	ui_label(gfx, tr(Text::Reset), ui_s(18), ui_s(242), ui_s(204), 1, UI_TEXT);
 }
 
-/** @brief Draw actual synchronized time, never a fabricated offline time. @param gfx Canvas. @param watch Chronos clock. */
+/** @brief Draw synchronized time or a phone-mode-appropriate setup hint. @param gfx Canvas. @param watch Chronos clock. */
 inline void desk_analog_draw(Arduino_GFX *gfx, ChronosESP32 &watch) {
 	uint32_t seconds = 0;
 	if (!clock_ready() || !desk_clock_seconds(watch.getTime("%H:%M:%S").c_str(), seconds)) {
-		ui_empty(gfx, tr(Text::TimeUnavailable), tr(Text::OpenSync));
+		ui_empty(gfx, tr(Text::TimeUnavailable), tr(settings_get().phone_ios ? Text::IosTimeHint : Text::OpenSync));
 		return;
 	}
 	mini_clock_draw(gfx, ui_s(120), ui_s(146), ui_s(72), seconds, UI_TEXT, UI_ACCENT);

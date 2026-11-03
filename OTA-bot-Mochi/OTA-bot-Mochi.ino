@@ -33,6 +33,7 @@
 #include "src/ui/boot_button.h"
 #include "src/power/backlight.h"
 #include "src/power/battery.h"
+#include "src/power/battery_chronos.h"
 #include "src/power/charging.h"
 #include "src/power/power_button_shutdown.h"
 #include "src/settings/settings.h"
@@ -40,10 +41,14 @@
 #include "src/settings/usb_commands.h"
 #include "src/update/ota_screen.h"
 #include "src/update/ota_update.h"
+#include "src/update/ota_boot.h"
 #include "src/update/ntp_sync.h"
 #include "src/network/network_service.h"
 #include "src/bus/i2c_bus.h"
 #include "src/ancs/ancs_service.h"
+#include "src/companion/companion_state.h"
+#include "src/companion/companion_service.h"
+#include "src/companion/companion_language.h"
 #include "runtime_diagnostics.h"
 
 ChronosESP32 watch("OTA bot");
@@ -64,6 +69,7 @@ Arduino_GFX *gfx = new Arduino_Canvas(LCD_WIDTH, LCD_HEIGHT, display);
 UiPage current_screen = UiPage::Eyes;
 AutoPagePolicy auto_page;
 bool screen_ready = false;
+bool boot_ready = false;
 bool applied_flip = false;
 StartupAnimation startup;
 StartupAnimation shutdown_animation;
@@ -90,6 +96,7 @@ void ringer_callback(String caller, bool active) {
 /** @brief Cache connection changes. @param connected Bluetooth state. */
 void connection_callback(bool connected) {
 	ui_connection(connected);
+	companion_connection(connected);
 }
 
 /**
@@ -100,7 +107,13 @@ void connection_callback(bool connected) {
  */
 void config_callback(Config config, uint32_t a, uint32_t b) {
 	if (config == CF_TIME && a == 1) { clock_time_synced(); }
+	companion_config(watch, config, a, b);
 	ui_config(watch, config, a, b);
+}
+
+/** @brief Copy bounded hourly forecast packets missing from configuration events. @param data Packet bytes. @param length Packet size. */
+void companion_data_callback(uint8_t *data, int length) {
+	if (length > 0) { companion_data(data, size_t(length), watch.getDayofYear()); }
 }
 
 /** @brief Install callbacks after the UI lock is ready and start BLE. */
@@ -115,6 +128,7 @@ void init_chronos() {
 	watch.setConnectionCallback(connection_callback);
 	watch.setNotificationCallback(notification_callback);
 	watch.setConfigurationCallback(config_callback);
+	watch.setDataCallback(companion_data_callback);
 	watch.setRingerCallback(ringer_callback);
 	watch.begin();
 }
@@ -305,7 +319,7 @@ void handle_auto_page(uint32_t now) {
 	}
 }
 
-/** @brief Initialize display, snapshot lock, BLE, eyes, and touch. */
+/** @brief Initialize display, snapshot lock, BLE, eyes, and touch before opening the OTA health window. */
 void setup() {
 	bool power_ready = power_button_init();
 	boot_button.begin(millis());
@@ -313,14 +327,16 @@ void setup() {
 	if (!settings_init()) { Serial.println("Settings storage unavailable; using RAM defaults"); }
 	if (!power_ready) { Serial.println("PWR button configuration unavailable"); }
 	init_screen();
-	if (!ui_state_init()) {
+	if (!ui_state_init() || !companion_init()) {
 		Serial.println("UI state initialization failed; BLE not started");
 		screen_ready = false;
 		return;
 	}
 	ios_mode_boot = settings_get().phone_ios;
-	if (ios_mode_boot) { ancs_begin(); }
-	else { init_chronos(); }
+	companion_language_init();
+	bool ble_ready = false;
+	if (ios_mode_boot) { ble_ready = ancs_begin(); }
+	else { init_chronos(); ble_ready = watch.isRunning(); }
 	ntp_sync_bind([](const tm &t) {
 		watch.setTime(t.tm_sec, t.tm_min, t.tm_hour, t.tm_mday, t.tm_mon + 1, t.tm_year + 1900);
 		clock_time_synced(); screens_invalidate();
@@ -336,6 +352,7 @@ void setup() {
 	weather_bind_network([] { network_weather_now(millis()); });
 	startup.begin(millis());
 	last_frame_ms = millis() - FRAME_INTERVAL_MS;
+	boot_ready = ble_ready;
 	Serial.printf("UI ready, free heap: %lu bytes\n", static_cast<unsigned long>(ESP.getFreeHeap()));
 }
 
@@ -353,8 +370,9 @@ void update_backlight(uint32_t now) {
 	backlight_update(now, touch_pressed(), screens_keep_awake() || shutting_down);
 }
 
-/** @brief Service BLE and touch continuously, rendering only complete changed frames. */
+/** @brief Service BLE, battery telemetry and touch, observe OTA boot health, and render complete changed frames. */
 void loop() {
+	ota_boot_poll(millis(), boot_ready && screen_ready);
 	network_poll(millis(), !ota_status().active || ota_status().faces);
 	settings_clock(clock_ready(), uint8_t(watch.getHour(true)));
 	if (ota_status().active) {
@@ -372,6 +390,7 @@ void loop() {
 	settings_usb_poll();
 	if (!ios_mode_boot) {
 		watch.loop();
+		companion_poll(watch, millis(), clock_ready());
 		music_android_poll(watch);
 	}
 	delay(1);
@@ -398,6 +417,7 @@ void loop() {
 	if (!ios_mode_boot && weather_sync_due(now, watch.isConnected(), watch.isSubscribed())) { watch.syncRequest(); }
 	battery_sample(now);
 	if (charging_poll(now)) { sound_request(SoundCue::Charging, now); }
+	if (!ios_mode_boot) { battery_chronos_poll(watch); }
 	view_timer().tick(now);
 	sound_poll(now, ui_page_events(), current_screen == UiPage::Eyes && !screens_calling(),
 		view_timer().resting, view_timer().finished);

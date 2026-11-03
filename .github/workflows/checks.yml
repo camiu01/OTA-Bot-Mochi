@@ -15,54 +15,55 @@ concurrency:
   cancel-in-progress: ${{ github.event_name != 'release' }}
 
 env:
-  ARDUINO_CLI_VERSION: "1.2.0"
-  ESP32_CORE_VERSION: "3.3.11"
   BOARD_FQBN: "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=disabled,FlashSize=16M"
 
 jobs:
   host:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Native regression tests
         run: bash scripts/test-host.sh
       - name: Release packaging tests
         run: python3 tests/release_package_test.py
+      - name: Shared build pin tests
+        run: python3 tests/build_versions_test.py
 
   firmware:
     needs: host
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
-      - uses: actions/checkout@v4
-      - uses: arduino/setup-arduino-cli@v2
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Load shared build pins
+        run: python3 scripts/build-versions.py >> "$GITHUB_ENV"
+      - uses: arduino/setup-arduino-cli@81d310742121c928ea9c8bbd407b4217b432ae02 # v2.0.0
         with:
           version: ${{ env.ARDUINO_CLI_VERSION }}
       - name: Cache Arduino core and libraries
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: |
             ~/.arduino15
             ~/Arduino/libraries
-          key: arduino-${{ runner.os }}-${{ hashFiles('.github/workflows/checks.yml') }}
+          key: arduino-${{ runner.os }}-${{ hashFiles('.github/workflows/checks.yml', 'versions.ini') }}
       - name: Install pinned ESP32 core
         run: |
           arduino-cli core update-index --additional-urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
           arduino-cli core install "esp32:esp32@${ESP32_CORE_VERSION}" --additional-urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
       - name: Install pinned libraries
         run: |
-          arduino-cli lib install "ESP32Time@2.0.6" "NimBLE-Arduino@2.5.1"
-          arduino-cli lib install --no-deps "ChronosESP32@1.9.1" "GFX Library for Arduino@1.6.9"
+          arduino-cli lib install "ESP32Time@${ESP32TIME_VERSION}" "NimBLE-Arduino@${NIMBLE_VERSION}"
+          arduino-cli lib install --no-deps "ChronosESP32@${CHRONOS_VERSION}" "GFX Library for Arduino@${GFX_VERSION}"
       - name: Restore compiled object cache
-        uses: actions/cache@v4
+        if: github.event_name != 'release' && !startsWith(github.ref, 'refs/tags/')
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: |
             ${{ runner.temp }}/arduino-build
             ${{ runner.temp }}/arduino-build-amoled
-          key: objects-${{ runner.os }}-${{ hashFiles('.github/workflows/checks.yml') }}-${{ hashFiles('OTA-bot-Mochi/**') }}
-          restore-keys: |
-            objects-${{ runner.os }}-${{ hashFiles('.github/workflows/checks.yml') }}-
+          key: objects-${{ runner.os }}-${{ hashFiles('.github/workflows/checks.yml', 'versions.ini') }}-${{ hashFiles('OTA-bot-Mochi/**') }}
       - name: Compile, without connecting to a device
         shell: bash
         run: |
@@ -97,7 +98,7 @@ jobs:
             printf 'Arduino CLI: %s\n' "$ARDUINO_CLI_VERSION"
             printf 'ESP32 core: %s\n' "$ESP32_CORE_VERSION"
             printf 'FQBN: %s\n' "$BOARD_FQBN"
-            printf 'Libraries: ESP32Time 2.0.6; NimBLE-Arduino 2.5.1; ChronosESP32 1.9.1; GFX Library for Arduino 1.6.9\n'
+            printf 'Libraries: ESP32Time %s; NimBLE-Arduino %s; ChronosESP32 %s; GFX Library for Arduino %s\n' "$ESP32TIME_VERSION" "$NIMBLE_VERSION" "$CHRONOS_VERSION" "$GFX_VERSION"
             printf 'Reference board: Waveshare ESP32-S3-Touch-LCD-1.69 OLD\n'
             printf 'Profile: -DMOCHI_BOARD_LCD_169\n'
             printf 'Partitions: sketch partitions.csv, Mochi 16MB OTA layout v1, two 0x640000-byte app slots\n'
@@ -111,7 +112,7 @@ jobs:
             printf 'Build run: %s/%s/actions/runs/%s\n' "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID"
             printf 'Arduino CLI: %s\n' "$ARDUINO_CLI_VERSION"
             printf 'ESP32 core: %s\n' "$ESP32_CORE_VERSION"
-            printf 'Libraries: ESP32Time 2.0.6; NimBLE-Arduino 2.5.1; ChronosESP32 1.9.1; GFX Library for Arduino 1.6.9\n'
+            printf 'Libraries: ESP32Time %s; NimBLE-Arduino %s; ChronosESP32 %s; GFX Library for Arduino %s\n' "$ESP32TIME_VERSION" "$NIMBLE_VERSION" "$CHRONOS_VERSION" "$GFX_VERSION"
             printf 'Profile: -DMOCHI_BOARD_AMOLED_18 (Waveshare ESP32-S3-Touch-AMOLED-1.8 V2)\n'
             printf 'Partitions: sketch partitions.csv, Mochi 16MB OTA layout v1, two 0x640000-byte app slots\n'
             printf 'FQBN: esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=opi,FlashSize=16M\n'
@@ -133,7 +134,7 @@ jobs:
             (cd "$directory" && sha256sum --check SHA256SUMS.txt)
           done
       - name: Publish downloadable firmware artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: mochi-esp32s3-${{ github.sha }}
           path: ${{ runner.temp }}/firmware/
@@ -141,7 +142,7 @@ jobs:
           retention-days: 14
 
       - name: Publish AMOLED profile artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: mochi-esp32s3-amoled-${{ github.sha }}
           path: ${{ runner.temp }}/firmware-amoled/
@@ -156,17 +157,17 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
       - name: Download LCD firmware from this run
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: mochi-esp32s3-${{ github.sha }}
           path: ${{ runner.temp }}/release-lcd
       - name: Download AMOLED firmware from this run
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: mochi-esp32s3-amoled-${{ github.sha }}
           path: ${{ runner.temp }}/release-amoled

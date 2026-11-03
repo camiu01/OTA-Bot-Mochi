@@ -129,15 +129,17 @@ void ui_sound_badge(Arduino_GFX *gfx, int16_t x, int16_t y) {
 }
 
 /**
- * @brief Draw the compact charge bolt shown while the PMU reports charging.
+ * @brief Draw a battery outline and inset bolt while the PMU reports charging.
  * @param gfx Canvas.
  * @param x Left edge; glyph spans x..x+7 and y..y+12.
  * @param y Top edge.
  */
 void ui_charge_badge(Arduino_GFX *gfx, int16_t x, int16_t y) {
 	uint16_t color = UI_ACCENT;
-	gfx->fillTriangle(x + 5, y, x + 1, y + 6, x + 4, y + 6, color);
-	gfx->fillTriangle(x + 2, y + 12, x + 8, y + 5, x + 5, y + 5, color);
+	gfx->fillRect(x + 2, y, 4, 2, color);
+	gfx->drawRect(x, y + 2, 8, 11, color);
+	gfx->fillTriangle(x + 5, y + 4, x + 2, y + 8, x + 4, y + 8, color);
+	gfx->fillTriangle(x + 3, y + 11, x + 6, y + 7, x + 4, y + 7, color);
 }
 
 /**

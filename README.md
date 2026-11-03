@@ -69,7 +69,7 @@ testing on both boards. See the validation limits below.
 | Touch reactions | Taps, double taps, and vertical petting strokes trigger temporary faces, then restore the selected mood |
 | Motion reactions | Accelerometer changes relative to saved calibration (or a temporary startup reference) move the gaze; optional motion moods and shake-to-dizzy reactions |
 | Digital and analog clocks | Display Chronos- or NTP-synchronized time; continue offline, resynchronize after reboot |
-| Desk tools | Large clock, time/weather overview, device status, playable Pong and Tris, and local timers |
+| Desk tools | Large clock, time/weather overview, device status, playable Pong and Tris, local timers, and [Android phone tools](docs/CHRONOS.md) |
 | Timer / Pomodoro | 5-minute or 15-minute timer, or one 25-minute work / 5-minute rest pair; keeps running when viewing another page |
 | Phone navigation | Displays received turn instructions, icon, distance, ETA, and speed when supplied |
 | Alerts and calls | Keeps eight local alerts with browsing, dismissal and message pagination; displays incoming caller information; calls must be handled on the phone |
@@ -192,9 +192,12 @@ and use the profile matching the physical board; you do not need both workflows.
   environments that mirror the same board profiles.
 
 There is no standalone ESP-IDF project: the ESP32 Arduino core embeds ESP-IDF underneath, but this repository
-builds Arduino sketches only. The two paths pin slightly different toolchains (CI pins ESP32 core 3.3.11;
-PlatformIO resolves Arduino core 3.3.12 through `espressif32 @ 8.0.0`), so a successful build on one path does
-not verify the other.
+builds Arduino sketches only. Both paths share library pins in `versions.ini` and target Arduino core
+3.3.12 (PlatformIO resolves it through `espressif32 @ 8.0.0`). A successful build on one path still does
+not verify the other. CI exports the manifest with `scripts/build-versions.py`.
+Before lending, selling or giving away the device, use **Forget Wi-Fi** and
+remove phone bonds. Credentials are stored in unencrypted flash; this firmware
+does not provide flash or NVS encryption. See [audit follow-up](docs/AUDIT_REMEDIATION.md).
 
 ### Arduino CLI (CI/reference path)
 
@@ -205,11 +208,11 @@ see [toolchain setup](docs/TESTING.md#arduino-cli). You also need Git. A USB dat
 
 | Dependency | Version |
 | --- | --- |
-| ESP32 Arduino core | 3.3.11 |
+| ESP32 Arduino core | 3.3.12 |
 | ChronosESP32 | 1.9.1 |
 | GFX Library for Arduino | 1.6.9 |
 | ESP32Time | 2.0.6 |
-| NimBLE-Arduino | 2.5.1 |
+| NimBLE-Arduino | 2.5.2 |
 
 #### 2. Clone
 
@@ -224,8 +227,8 @@ Run these single-line commands from the repository root, individually, in PowerS
 
 ```sh
 arduino-cli core update-index --additional-urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
-arduino-cli core install esp32:esp32@3.3.11 --additional-urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
-arduino-cli lib install "ESP32Time@2.0.6" "NimBLE-Arduino@2.5.1"
+arduino-cli core install esp32:esp32@3.3.12 --additional-urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
+arduino-cli lib install "ESP32Time@2.0.6" "NimBLE-Arduino@2.5.2"
 arduino-cli lib install --no-deps "ChronosESP32@1.9.1" "GFX Library for Arduino@1.6.9"
 ```
 
@@ -358,7 +361,7 @@ of Clock, not additional carousel pages.
 | Tap / quick double tap on Eyes | Temporary random / playful face and a glance toward the touch |
 | Stroke vertically on Eyes | Temporary affectionate face and a short-lived heart near the finger |
 | Hold still on Eyes for 1.2 seconds | Open Settings |
-| Swipe down on Clock | Open the seven-tool desk menu |
+| Swipe down on Clock | Open desk tools: eight in Android mode, seven in iPhone mode |
 | Swipe up from a tool / desk menu | Return to the desk menu / Clock |
 | Tap the court in desk Pong | Move the left paddle to that height; RESET starts a new game |
 | Swipe down on Route | Toggle large/details layout; holding Route restores the configured default |

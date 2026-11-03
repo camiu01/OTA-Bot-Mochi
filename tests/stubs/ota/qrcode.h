@@ -1,6 +1,6 @@
 /** @brief Observable QR encoder callback; does not implement or validate QR encoding. */
 #pragma once
-#include <esp_ota_ops.h>
+#include "esp_ota_ops.h"
 #include <string>
 using esp_qrcode_handle_t = const uint8_t *;
 struct esp_qrcode_config_t {

@@ -17,8 +17,28 @@ static void attribute(std::vector<uint8_t> &response, uint8_t id, const std::str
 	response.insert(response.end(), value.begin(), value.end());
 }
 
+/** @brief Retain complete UTF-8 in every bounded ANCS field, even across transport fragments. */
+static void utf8_checks() {
+	AncsParser parser;
+	uint8_t event[] = {0, 0, 4, 1, 42, 0, 0, 0};
+	assert(parser.event(event, sizeof(event)));
+	std::vector<uint8_t> response = {0, 42, 0, 0, 0};
+	attribute(response, 0, std::string(63, 'a') + "\xc3\xa8");
+	attribute(response, 1, std::string(159, 't') + "\xf0\x9f\x98\x80");
+	attribute(response, 3, "message");
+	attribute(response, 5, "20261102T120000");
+	for (size_t i = 0; i < response.size(); ++i) {
+		assert(parser.append(response.data() + i, 1) == (i + 1 == response.size()));
+	}
+	assert(parser.alert().app == std::string(63, 'a'));
+	assert(parser.alert().title == std::string(159, 't'));
+	parser.set_app(std::string(63, 'a') + "\xc3\xa8");
+	assert(parser.alert().app == std::string(63, 'a'));
+}
+
 /** @brief Verify bounded, fragmented, malformed, and reset behavior. @return Process status. */
 int main() {
+	utf8_checks();
 	AncsParser parser;
 	uint8_t event[] = {0, 0, 4, 1, 42, 0, 0, 0};
 	assert(!parser.event(event, 7));

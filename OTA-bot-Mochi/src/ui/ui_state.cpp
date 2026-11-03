@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "ui_state.h"
+#include "utf8_text.h"
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
 
@@ -33,13 +34,13 @@ void select_alert() {
 }
 
 /**
- * @brief Limit incoming text to a bounded amount of retained memory.
+ * @brief Limit incoming text to complete UTF-8 code points within the retained byte budget.
  * @param text Incoming text.
  * @param limit Maximum retained bytes.
  * @return Bounded text.
  */
 String bounded(const String &text, unsigned int limit) {
-	return text.substring(0, limit);
+	return text.substring(0, utf8_prefix(text.c_str(), text.length(), limit));
 }
 }
 

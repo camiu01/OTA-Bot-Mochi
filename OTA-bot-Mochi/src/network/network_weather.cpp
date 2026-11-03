@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "network_weather.h"
+#include "weather_memory.h"
+#include <esp_log.h>
 #include <esp_http_client.h>
 #include <esp_crt_bundle.h>
 #include <freertos/FreeRTOS.h>
@@ -37,8 +39,9 @@ void query_value(const char *source, char *out) {
 	}
 	*out = 0;
 }
-/** @brief Use only the two fixed documented HTTPS origins, rejecting redirects. */
+/** @brief Reject TLS startup on low internal memory; otherwise use fixed HTTPS origins without redirects. */
 void fetch(const WeatherJob &job, WeatherReply &reply) {
+	if (!weather_memory_ready()) { ESP_LOGW("weather", "HTTPS deferred: internal heap fragmented or low"); return; }
 	char url[512] = {};
 	if (job.search) {
 		char encoded[193]; query_value(job.query, encoded);

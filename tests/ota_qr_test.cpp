@@ -33,8 +33,8 @@ static void raster_check(int16_t side) {
 int main() {
 	Arduino_GFX gfx;
 	assert(!ota_qr_draw(&gfx, 0, 0, 124));
-	assert(ota_qr_prepare("Mochi-Update-abcdef", "ABCD2345"));
-	assert(test_qr_payload == "WIFI:T:WPA;S:Mochi-Update-abcdef;P:ABCD2345;;");
+	assert(ota_qr_prepare("Mochi-Update-abcdef", "ABCD2345EFGH"));
+	assert(test_qr_payload == "WIFI:T:WPA;S:Mochi-Update-abcdef;P:ABCD2345EFGH;;");
 	assert(test_qr_version == 4 && test_qr_ecc == ESP_QRCODE_ECC_MED);
 	raster_check(124);
 	raster_check(189);
@@ -43,20 +43,21 @@ int main() {
 	assert(!ota_qr_draw(&gfx, -1, 0, 124));
 	assert(!ota_qr_draw(&gfx, gfx.width() - 10, 0, 124));
 	for (const char *ssid : {"", "bad;ssid", "bad:ssid", "bad\\ssid", "bad\"ssid", "123456789012345678901234"}) {
-		assert(!ota_qr_prepare(ssid, "ABCD2345"));
+		assert(!ota_qr_prepare(ssid, "ABCD2345EFGH"));
 		assert(!ota_qr_draw(&gfx, 0, 0, 124));
 	}
-	assert(!ota_qr_prepare(nullptr, "ABCD2345"));
+	assert(!ota_qr_prepare(nullptr, "ABCD2345EFGH"));
 	assert(!ota_qr_prepare("Mochi", nullptr));
 	assert(!ota_qr_prepare("Mochi", "short"));
-	assert(!ota_qr_prepare("Mochi", "ABCD23456"));
+	assert(!ota_qr_prepare("Mochi", "ABCD2345EFGH6"));
 	assert(!ota_qr_prepare("Mochi", "ABCD;345"));
-	assert(ota_qr_prepare("Mochi-Update-123456", "Z8765432"));
+	assert(!ota_qr_prepare("Mochi", "ABCD2345"));
+	assert(ota_qr_prepare("Mochi-Update-123456", "Z8765432ABCD"));
 	assert(test_qr_payload.find("abcdef") == std::string::npos);
 	test_qr_result = 1;
-	assert(!ota_qr_prepare("Mochi", "ABCD2345") && !ota_qr_draw(&gfx, 0, 0, 124));
+	assert(!ota_qr_prepare("Mochi", "ABCD2345EFGH") && !ota_qr_draw(&gfx, 0, 0, 124));
 	test_qr_result = ESP_OK; test_qr_size = 37;
-	assert(!ota_qr_prepare("Mochi", "ABCD2345") && !ota_qr_draw(&gfx, 0, 0, 124));
+	assert(!ota_qr_prepare("Mochi", "ABCD2345EFGH") && !ota_qr_draw(&gfx, 0, 0, 124));
 	test_qr_size = 33;
 	assert(ota_qr_prepare_url("http://192.168.1.42/#0123456789abcdef0123456789abcdef"));
 	assert(test_qr_payload == "http://192.168.1.42/#0123456789abcdef0123456789abcdef");

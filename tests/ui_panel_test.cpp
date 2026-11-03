@@ -22,6 +22,8 @@
 #include "../OTA-bot-Mochi/src/settings/usb_commands.h"
 #include "../OTA-bot-Mochi/src/eyes/eyes_api.h"
 #include "../OTA-bot-Mochi/src/sound/sound.h"
+#include "../OTA-bot-Mochi/src/power/charging.h"
+#include "../OTA-bot-Mochi/src/bus/i2c_bus.h"
 #include "../OTA-bot-Mochi/pin_config.h"
 #include <assert.h>
 #include <Preferences.h>
@@ -66,6 +68,51 @@ static void sound_badge_checks() {
 	}
 	assert(settings_update(saved));
 	sound_init(0);
+}
+
+/** @brief Battery outline and inset bolt stay inside the compact charging badge. */
+static void charge_badge_checks() {
+	Arduino_GFX icon(12, 17);
+	icon.fillScreen(UI_BG);
+	ui_charge_badge(&icon, 2, 2);
+	assert(icon.pixels[2 * icon.w + 4] == UI_ACCENT);
+	assert(icon.pixels[4 * icon.w + 2] == UI_ACCENT);
+	assert(icon.pixels[14 * icon.w + 9] == UI_ACCENT);
+	assert(icon.pixels[10 * icon.w + 6] == UI_ACCENT);
+	for (int y = 0; y < icon.h; ++y) {
+		for (int x = 0; x < icon.w; ++x) {
+			if (x < 2 || x > 9 || y < 2 || y > 14) { assert(icon.pixels[y * icon.w + x] == UI_BG); }
+		}
+	}
+}
+
+/** @brief Charging transitions repaint a stationary header without a phone event or timer tick. */
+static void charging_header_checks(Arduino_GFX &gfx, ChronosESP32 &watch) {
+#if defined(MOCHI_BOARD_AMOLED_18)
+	auto &bus = i2c_bus();
+	bus.present[0x34] = true;
+	auto &registers = bus.registers[0x34];
+	registers[0x03] = 0x4A; registers[0x01] = 0;
+	assert(!charging_poll(10000) && !charging_poll(10500));
+	registers[0x01] = 0x20;
+	assert(!charging_poll(11000));
+	assert(screens_draw(&gfx, watch, UiPage::Weather, 11000));
+	assert(!screens_draw(&gfx, watch, UiPage::Weather, 11001));
+	int x = ui_s(208), y = ui_s(11);
+	assert(gfx.pixels[y * gfx.w + x + 2] == UI_BG);
+	assert(charging_poll(11500));
+	assert(screens_draw(&gfx, watch, UiPage::Weather, 11500));
+	assert(gfx.pixels[y * gfx.w + x + 2] == UI_ACCENT);
+	registers[0x01] = 0;
+	assert(!charging_poll(12000));
+	assert(screens_draw(&gfx, watch, UiPage::Weather, 12500));
+	assert(!charging_poll(12500) && !charging_active());
+	assert(screens_draw(&gfx, watch, UiPage::Weather, 12501));
+	assert(gfx.pixels[y * gfx.w + x + 2] == UI_BG);
+#else
+	(void)gfx; (void)watch;
+	assert(!charging_active());
+#endif
 }
 
 /** @brief Render every carousel and tool page once with realistic content. @param gfx Canvas. @param watch Chronos clock. */
@@ -299,6 +346,8 @@ int main() {
 	sd_settings_checks();
 	music_panel_checks(gfx, watch);
 	sound_badge_checks();
+	charge_badge_checks();
+	charging_header_checks(gfx, watch);
 	page_render_checks(gfx, watch);
 	menu_checks();
 	grid_checks();
