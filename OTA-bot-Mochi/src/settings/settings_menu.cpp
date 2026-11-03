@@ -66,6 +66,7 @@ int16_t bottom_band_bottom() {
 /** @brief Number of rows in the current panel. */
 uint8_t row_count() {
 	static const uint8_t counts[] = {3, 7, 4, 5, 5, 7};
+	if (tab == TAB_SYSTEM && HAS_SD_ROW) { return 8; }
 	if (tab != TAB_AUDIO) { return counts[tab]; }
 	return sound_options ? 5 : (HAS_SD_ROW ? 6 : 5);
 }
@@ -207,6 +208,9 @@ void extra_rows(Arduino_GFX *gfx, const CompanionSettings &p) {
 			row(gfx, 4, tr(Text::FirmwareUpdate), tr(Text::Open));
 			row(gfx, 5, tr(Text::WebSettings), tr(Text::Open));
 		row(gfx, 6, tr(Text::Diagnostics), tr(Text::Open));
+#if MOCHI_HAS_SD_AUDIO
+		row(gfx, 7, tr(Text::SdFirmware), tr(Text::Open));
+#endif
 	} else if (sound_options) {
 		row(gfx, 0, tr(Text::Faces), on_off(p.sound_faces));
 		row(gfx, 1, tr(Text::TimerLabel), on_off(p.sound_timer));
@@ -376,6 +380,7 @@ MenuAction settings_menu_tap(int16_t x, int16_t y) {
 	if (y >= ui_s(94) && y < ui_s(222)) {
 		uint8_t index = uint8_t(first_row + (y - ui_s(94)) / ui_s(44));
 		uint8_t count = row_count();
+		if (tab == TAB_SYSTEM && HAS_SD_ROW && index == 7) { return MenuAction::SdUpdate; }
 			if (tab == TAB_SYSTEM && index == 4) { return MenuAction::Update; }
 			if (tab == TAB_SYSTEM && index == 5) { return MenuAction::FacesWeb; }
 		if (tab == TAB_SYSTEM && index == 6) {

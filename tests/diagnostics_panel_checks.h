@@ -52,7 +52,15 @@ inline void diagnostics_panel_checks(Arduino_GFX &gfx) {
 		auto p = original; p.language = language; assert(settings_update(p));
 		for (uint8_t tab = 0; tab < 5; ++tab) { settings_menu_tap(ui_s(200), ui_s(70)); }
 		for (uint8_t row = 0; row < 4; ++row) { assert(settings_menu_scroll(1)); }
+#if MOCHI_HAS_SD_AUDIO
+		assert(settings_menu_scroll(1));
+		gfx.text.clear(); settings_menu_draw(&gfx);
+		assert(std::find(gfx.text.begin(), gfx.text.end(), tr(Text::SdFirmware)) != gfx.text.end());
+		assert(settings_menu_tap(ui_s(120), ui_s(200)) == MenuAction::SdUpdate);
+		assert(!settings_menu_scroll(1) && settings_menu_scroll(-1));
+#else
 		assert(!settings_menu_scroll(1));
+#endif
 		unsigned writes = test_flash_writes;
 		bool dirty = settings_dirty(); uint32_t revision = settings_revision();
 		assert(settings_menu_tap(ui_s(120), ui_s(200)) == MenuAction::Changed);

@@ -44,6 +44,7 @@ rows. Changes are live in RAM and do not write flash while browsing.
 | SYSTEM | Route default | large / details |
 | SYSTEM | Phone mode | Android/Chronos (default) or iPhone/ANCS; SAVE and restart to switch |
 | SYSTEM | Firmware update | temporary Wi-Fi and browser upload of a matching release `*-app.bin`; see [OTA](OTA.md) |
+| SYSTEM | Firmware from SD | AMOLED V2 only; check `/mochi/update/mochi-amoled-18-v2-app.bin`, then explicitly confirm installation; see [microSD updates](OTA.md#update-from-microsd-amoled-v2) |
 | SYSTEM | Wi-Fi settings | temporary browser access to display settings, saved Wi-Fi, automatic NTP and city-based weather; see [Web settings](WEB_SETTINGS.md) and [Network](NETWORK.md) |
 
 Use previous/next arrows to cycle the six sections. Three 44-pixel row targets are visible at a time. Swipe up/down to reach the

@@ -3,6 +3,7 @@
 Mochi can receive a manually downloaded GitHub release application through a
 temporary authorized LAN session or Wi-Fi access point. It does not contact GitHub, check for new versions,
 or install anything automatically. Both board profiles use the same flow.
+AMOLED V2 also supports a manually confirmed microSD installation without Wi-Fi.
 
 ## First installation
 
@@ -21,6 +22,68 @@ procedure in [Installing](INSTALLING.md). A full image can erase both records.
 Do not select a different partition layout in local builds. The updater refuses
 to start if the running/inactive application slots do not match this layout.
 Firmware compilation, uploading and physical validation remain user-operated.
+
+## Update from microSD (AMOLED V2)
+
+First install firmware that includes **Firmware from SD**, using USB or the
+existing Wi-Fi updater. This is not a bootloader feature and cannot appear on
+an older installation just by inserting a card. LCD OLD does not expose it.
+
+1. Download the trusted release's **`mochi-amoled-18-v2-app.bin`** and verify its
+   SHA-256 using the release checksum file. Do not use a full image, bootloader,
+   partition table, ZIP, another board's firmware or an older image without the
+   embedded board/layout marker.
+2. On the same FAT-formatted microSD used for sounds, create `/mochi/update/`.
+   Keep the filename unchanged:
+   **`/mochi/update/mochi-amoled-18-v2-app.bin`**.
+3. Save any changed preferences explicitly. Power Mochi off, insert the card,
+   then power it on with stable USB power.
+4. Open **Settings → SYSTEM → Firmware from SD** (Italian: **Firmware da SD**).
+   Scroll to the last SYSTEM row, below Diagnostics.
+5. Wait for the compatibility scan, then tap **START / AVVIA** to confirm the
+   installation. Merely opening the screen or inserting the card never writes
+   firmware. Checking and writing each show their own progress.
+6. Keep the card and power connected. The image is written to the inactive
+   application slot and validated by ESP-IDF before selecting it for boot.
+   Mochi restarts after success. Check display, touch, Bluetooth and settings.
+
+BACK cancels checking, confirmation or an unfinished write between chunks.
+After an error, BACK and reopen the screen to retry. An incomplete write does
+not select the new boot slot. Physical power-loss recovery still needs testing;
+keep USB recovery available and do not remove power during installation.
+
+The updater opens only the fixed application path for reading. It never formats,
+renames, deletes or writes card files: `/mochi/sounds/` and the source firmware
+remain intact. Leaving the image on the card does not reinstall it at boot;
+every installation requires the menu and confirmation again. Flash NVS,
+calibration, partition table and bootloader are not rewritten.
+
+Audio pauses without changing saved sound preferences. A shared exclusive card
+lease waits for the audio worker to close its files and unmount SDMMC before
+maintenance mounts it. A busy/stalled audio worker fails safely after ten seconds
+with a restart/retry message instead of accessing the card concurrently.
+The whole manual session expires after five minutes. Reads/writes advance at
+most 4096 source bytes per main-loop poll; SD driver and flash operations can
+still stall a frame. Normal animations, phone processing and USB commands pause,
+while touch/progress remain available between chunks. This mode starts no web
+server or setup AP and works with SD sounds disabled.
+
+Native tests cover both profiles, missing/invalid files, split board markers,
+size/layout checks, explicit confirmation, cancellation, timeout/rollover,
+changed source data, short reads, flash/finalization/boot-selection failures,
+card ownership and EN/IT layouts on both panel sizes. These fixtures do not
+validate real card removal, flash power loss, physical display responsiveness
+or a completed on-device SD installation. Firmware signatures and anti-rollback
+remain outside this feature, as with the browser updater.
+
+Local validation on 2026-11-03: the full PowerShell native runner exited with
+code zero and `All host tests passed`. Sequential PlatformIO LCD and AMOLED
+builds passed with the pinned core 3.3.12; three existing ChronosESP32 warnings
+remain (deprecated service start and two unused variables). The 2,476,976-byte
+AMOLED application includes the SD updater and matching board/layout marker.
+USB upload on COM6 verified all written hashes; the USB settings terminal
+responded afterward with the same saved profile and `unsaved=no`. No physical
+SD installation, card-removal/power-loss test or visual/touch check was performed.
 
 ## Update from a release
 

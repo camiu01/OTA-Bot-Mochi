@@ -9,6 +9,7 @@
 #include "../OTA-bot-Mochi/src/sound/sound.h"
 #include "../OTA-bot-Mochi/src/sound/face_sounds.h"
 #include "../OTA-bot-Mochi/src/sound/power_sounds.h"
+#include "../OTA-bot-Mochi/src/bus/sd_owner.h"
 #include "../OTA-bot-Mochi/src/settings/settings.h"
 #include "../OTA-bot-Mochi/src/bus/i2c_bus.h"
 #include "../OTA-bot-Mochi/pin_config.h"
@@ -321,9 +322,33 @@ static void sd_family_tests() {
 	sound_init(test_now); pump();
 }
 
+/** @brief The actual audio worker acknowledges card release before maintenance may mount it. */
+static void sd_lease_tests() {
+	profile = CompanionSettings{}; profile.sound = profile.sound_sd = true;
+	UiPageEvents events;
+	SD_MMC.files["/mochi/sounds/test.wav"] = wav_fixture(1, 16000);
+	test_now += 40000; sound_init(test_now);
+	assert(sound_request(SoundCue::Test, test_now));
+	sound_poll(test_now, events, false, false, false); pump(3);
+	assert(sd_owner.load() == SdOwner::Audio && !sd_acquire(SdOwner::Update));
+	sound_init(test_now);
+	assert(!sd_acquire(SdOwner::Update));
+	pump();
+	assert(sd_acquire(SdOwner::Update));
+	unsigned mounts = SD_MMC.mounts, opens = SD_MMC.opens;
+	test_now += 2000;
+	assert(sound_request(SoundCue::Test, test_now));
+	sound_poll(test_now, events, false, false, false); pump(3);
+	assert(SD_MMC.mounts == mounts && SD_MMC.opens == opens);
+	assert(sd_owner.load() == SdOwner::Update);
+	sound_init(test_now); pump();
+	assert(sd_owner.load() == SdOwner::Update);
+	sd_release(SdOwner::Update);
+}
+
 /** @brief Run without physical audio output. @return Success. */
 int main() {
 	pcm_tests(); sequence_tests(); failure_tests(); playback_tests(); service_tests();
-	delayed_service_tests(); sequence_mute_tests(); sd_service_tests(); sd_family_tests(); sd_power_tests();
+	delayed_service_tests(); sequence_mute_tests(); sd_service_tests(); sd_family_tests(); sd_power_tests(); sd_lease_tests();
 	std::cout << "ES8311 codec, PCM sequences, delayed rendering, DMA drain, mute, and failures passed\n";
 }

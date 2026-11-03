@@ -77,6 +77,9 @@ try {
 	Invoke-HostTest 'ota-boot-disabled' $boot @('-I', "$root\tests\stubs\ota")
 	Invoke-HostTest 'ams' @("$root\tests\ams_test.cpp", "$root\OTA-bot-Mochi\src\ancs\ams_service.cpp", "$root\OTA-bot-Mochi\src\ui\ui_state.cpp") @('-I', "$root\tests\stubs\media")
 	Invoke-HostTest 'sd-audio' @("$root\tests\sd_audio_test.cpp") @('-DMOCHI_BOARD_AMOLED_18')
+	$sdUpdate = @("$root\tests\sd_update_test.cpp", "$root\OTA-bot-Mochi\src\update\sd_update.cpp")
+	Invoke-HostTest 'sd-update-lcd' $sdUpdate @('-I', "$root\tests\stubs\ota")
+	Invoke-HostTest 'sd-update-amoled' $sdUpdate @('-I', "$root\tests\stubs\ota", '-DMOCHI_BOARD_AMOLED_18')
 	Invoke-HostTest 'music' @("$root\tests\music_test.cpp", "$root\OTA-bot-Mochi\src\ui\ui_state.cpp")
 	$charging = @("$root\tests\charging_test.cpp", "$root\OTA-bot-Mochi\src\power\charging.cpp", "$root\OTA-bot-Mochi\src\bus\i2c_bus.cpp")
 	Invoke-HostTest 'charging-lcd' $charging
@@ -96,6 +99,9 @@ try {
 		"$root\OTA-bot-Mochi\src\update\ota_qr.cpp", "$root\tests\stubs\imu_noop.cpp")
 	Invoke-HostTest 'ota-screen-lcd' ($runtime + $otaScreen) @('-I', "$root\tests\stubs\ota")
 	Invoke-HostTest 'ota-screen-amoled' ($runtime + $otaScreen) @('-I', "$root\tests\stubs\ota", '-DMOCHI_BOARD_AMOLED_18')
+	$sdScreen = @("$root\tests\sd_update_screen_test.cpp", "$root\OTA-bot-Mochi\src\update\sd_update_screen.cpp", "$root\tests\stubs\imu_noop.cpp")
+	Invoke-HostTest 'sd-update-screen-lcd' ($runtime + $sdScreen)
+	Invoke-HostTest 'sd-update-screen-amoled' ($runtime + $sdScreen) @('-DMOCHI_BOARD_AMOLED_18')
 	& g++ -std=c++17 -Wall -Wextra -Werror -I "$root\tests\stubs" -DMOCHI_BOARD_LCD_169 -fsyntax-only "$root\OTA-bot-Mochi\src\update\ota_screen.cpp"
 	if ($LASTEXITCODE -ne 0) { throw 'OTA screen syntax check failed' }
 	Invoke-HostTest 'startup' @("$root\tests\startup_test.cpp")

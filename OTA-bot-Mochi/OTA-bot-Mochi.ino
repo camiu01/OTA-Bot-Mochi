@@ -40,6 +40,8 @@
 #include "src/settings/settings_menu.h"
 #include "src/settings/usb_commands.h"
 #include "src/update/ota_screen.h"
+#include "src/update/sd_update.h"
+#include "src/update/sd_update_screen.h"
 #include "src/update/ota_update.h"
 #include "src/update/ota_boot.h"
 #include "src/update/ntp_sync.h"
@@ -293,6 +295,7 @@ void handle_touch(uint32_t now) {
 	if (tap && current_screen == UiPage::Settings && !screens_calling()) {
 		MenuAction action = settings_menu_tap(x, y);
 		if (action == MenuAction::Update) { ota_screen_begin(gfx, now); return; }
+		else if (action == MenuAction::SdUpdate) { sd_update_screen_begin(gfx, now); return; }
 		else if (action == MenuAction::FacesWeb) { ota_screen_begin(gfx, now, true); return; }
 		else if (action == MenuAction::Exit) { switch_screen(UiPage::Eyes, now); }
 		else if (action == MenuAction::Changed) { screens_invalidate(); }
@@ -373,8 +376,17 @@ void update_backlight(uint32_t now) {
 /** @brief Service BLE, battery telemetry and touch, observe OTA boot health, and render complete changed frames. */
 void loop() {
 	ota_boot_poll(millis(), boot_ready && screen_ready);
-	network_poll(millis(), !ota_status().active || ota_status().faces);
+	network_poll(millis(), !sd_update_status().active && (!ota_status().active || ota_status().faces));
 	settings_clock(clock_ready(), uint8_t(watch.getHour(true)));
+	if (sd_update_status().active) {
+		sd_update_screen_poll(millis());
+		if (!sd_update_status().active) {
+			sound_init(millis());
+			switch_screen(UiPage::Settings, millis());
+		}
+		delay(1);
+		return;
+	}
 	if (ota_status().active) {
 		// Automatic setup must not hide the existing trusted USB recovery terminal.
 		if (ota_status().faces) { settings_usb_poll(); }
@@ -407,7 +419,7 @@ void loop() {
 	runtime_diagnostics::poll(now);
 #endif
 	handle_touch(now);
-	if (ota_status().active) { return; }
+	if (ota_status().active || sd_update_status().active) { return; }
 	eyes_imu_poll(now);
 	bool flip = imu_orientation().target(settings_get().flipped);
 	if (!touch_pressed() && flip != applied_flip) {

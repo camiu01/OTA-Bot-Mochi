@@ -22,6 +22,10 @@
 	X(Weather, "WEATHER", "METEO") \
 	X(Settings, "SETTINGS", "IMPOSTAZIONI") \
 	X(FirmwareUpdate, "Firmware update", "Aggiorna firmware") \
+	X(SdFirmware, "Firmware from SD", "Firmware da SD") \
+	X(SdChecking, "Checking SD firmware", "Controllo firmware SD") \
+	X(SdConfirm, "Install this firmware?", "Installare firmware?") \
+	X(SdKeepPower, "Keep power and SD in", "Non spegnere / togliere SD") \
 	X(OtaWifi, "Connect to Wi-Fi:", "Connetti al Wi-Fi:") \
 	X(OtaPassword, "Wi-Fi password:", "Password Wi-Fi:") \
 	X(OtaBrowser, "Open browser:", "Apri nel browser:") \

@@ -8,6 +8,7 @@
 #include "wav_reader.h"
 #include "sound.h"
 #include "../diagnostics/device_status.h"
+#include "../bus/sd_owner.h"
 #if MOCHI_HAS_SD_AUDIO
 #include <SD_MMC.h>
 #include <cstdio>
@@ -51,7 +52,11 @@ public:
 	/** @brief Close the current clip on cancellation or completion. */
 	void stop() { if (_file) { _file.close(); } _remaining = 0; }
 	/** @brief Unmount after disabling SD sounds; called only by the audio worker. */
-	void release() { stop(); if (_mounted) { SD_MMC.end(); _mounted = false; } _mount_failed = false; _mount_failed_at = 0; }
+	void release() {
+		stop();
+		if (_mounted) { SD_MMC.end(); _mounted = false; sd_release(SdOwner::Audio); }
+		_mount_failed = false; _mount_failed_at = 0;
+	}
 	/** @brief Read playback state without touching the filesystem. @return Data remains. */
 	bool playing() const { return _remaining != 0; }
 
@@ -90,10 +95,11 @@ private:
 	bool ensure_mounted() {
 		if (_mounted) { return true; }
 		if (_mount_failed && uint32_t(millis() - _mount_failed_at) < MOUNT_RETRY_MS) { return false; }
+		if (!sd_acquire(SdOwner::Audio)) { return false; }
 		if (!SD_MMC.setPins(SDMMC_CLK, SDMMC_CMD, SDMMC_DATA) || !SD_MMC.begin("/sdcard", true, false)) {
 			ESP_LOGW("sd-audio", "Card unavailable; using built-in cue");
 			_mount_failed = true; _mount_failed_at = millis();
-			SD_MMC.end(); return false;
+			SD_MMC.end(); sd_release(SdOwner::Audio); return false;
 		}
 		_mount_failed = false;
 		_mounted = true;

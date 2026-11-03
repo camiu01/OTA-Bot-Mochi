@@ -72,6 +72,9 @@ build_test ota-boot -I "$root/tests/stubs/ota" -DCONFIG_APP_ROLLBACK_ENABLE=1 -D
 build_test ota-boot-disabled -I "$root/tests/stubs/ota" "${boot[@]}"
 build_test ams -I "$root/tests/stubs/media" "$root/tests/ams_test.cpp" "$root/OTA-bot-Mochi/src/ancs/ams_service.cpp" "$root/OTA-bot-Mochi/src/ui/ui_state.cpp"
 build_test sd-audio -DMOCHI_BOARD_AMOLED_18 "$root/tests/sd_audio_test.cpp"
+sd_update=("$root/tests/sd_update_test.cpp" "$root/OTA-bot-Mochi/src/update/sd_update.cpp")
+build_test sd-update-lcd -I "$root/tests/stubs/ota" "${sd_update[@]}"
+build_test sd-update-amoled -I "$root/tests/stubs/ota" -DMOCHI_BOARD_AMOLED_18 "${sd_update[@]}"
 build_test music "$root/tests/music_test.cpp" "$root/OTA-bot-Mochi/src/ui/ui_state.cpp"
 charging=("$root/tests/charging_test.cpp" "$root/OTA-bot-Mochi/src/power/charging.cpp" "$root/OTA-bot-Mochi/src/bus/i2c_bus.cpp")
 build_test charging-lcd "${charging[@]}"
@@ -91,6 +94,9 @@ ota_screen=("$root/tests/ota_screen_test.cpp" "$root/OTA-bot-Mochi/src/update/ot
 	"$root/OTA-bot-Mochi/src/update/ota_qr.cpp" "$root/tests/stubs/imu_noop.cpp")
 build_test ota-screen-lcd -I "$root/tests/stubs/ota" "${runtime[@]}" "${ota_screen[@]}"
 build_test ota-screen-amoled -I "$root/tests/stubs/ota" -DMOCHI_BOARD_AMOLED_18 "${runtime[@]}" "${ota_screen[@]}"
+sd_screen=("$root/tests/sd_update_screen_test.cpp" "$root/OTA-bot-Mochi/src/update/sd_update_screen.cpp" "$root/tests/stubs/imu_noop.cpp")
+build_test sd-update-screen-lcd "${runtime[@]}" "${sd_screen[@]}"
+build_test sd-update-screen-amoled -DMOCHI_BOARD_AMOLED_18 "${runtime[@]}" "${sd_screen[@]}"
 g++ -std=c++17 -Wall -Wextra -Werror -I "$root/tests/stubs" -DMOCHI_BOARD_LCD_169 -fsyntax-only "$root/OTA-bot-Mochi/src/update/ota_screen.cpp"
 build_test startup "$root/tests/startup_test.cpp"
 build_test face-variety "$root/tests/face_variety_test.cpp"

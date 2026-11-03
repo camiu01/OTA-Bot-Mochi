@@ -31,6 +31,9 @@ The firmware targets the Waveshare **ESP32-S3-Touch-LCD-1.69 OLD** and, through 
 - **Wireless updates:** after the first OTA-capable USB installation, upload
   your board's release `*-app.bin` through the [local OTA screen](docs/OTA.md).
   Hardware validation of this new updater is still pending.
+- **microSD updates (AMOLED V2):** use SYSTEM → Firmware from SD with the matching
+  release application in `/mochi/update/`, then confirm on screen.
+  See [microSD installation and validation limits](docs/OTA.md#update-from-microsd-amoled-v2).
 - **Limits:** no verified battery runtime; charging configuration is unimplemented.
 
 ## See it in action
