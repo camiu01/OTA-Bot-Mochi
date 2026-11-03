@@ -18,7 +18,7 @@ inline constexpr uint8_t ROWS = 11;
 
 /** @brief Describe the last worker observation, never implying a card probe when disabled. @return Localized state. */
 inline const char *sd_label() {
-#if MOCHI_BOARD_LCD_169
+#if !MOCHI_HAS_SD_AUDIO
 	return tr(Text::DiagUnsupported);
 #else
 	if (!settings_get().sound_sd) { return tr(Text::Off); }
@@ -34,7 +34,7 @@ inline const char *sd_label() {
 /** @brief Format one live value without including phone content or network credentials. @param index Row. @param state Platform snapshot. @param connected BLE link. @return Bounded value. */
 inline String value(uint8_t index, const device_status::Snapshot &state, bool connected) {
 	switch (index) {
-		case 0: return MOCHI_BOARD_LCD_169 ? "LCD 1.69 OLD" : "AMOLED 1.8 V2";
+		case 0: return MOCHI_BOARD_NAME;
 		case 1: return tr(connected ? Text::Connected : Text::Offline);
 		case 2: return state.measured ? tr(state.wifi ? Text::Connected : Text::Offline) : "--";
 		case 3: return tr(eyes_imu_ready() ? Text::ImuReady : Text::ImuMissing);

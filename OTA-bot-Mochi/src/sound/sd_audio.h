@@ -8,6 +8,7 @@
 #include "wav_reader.h"
 #include "sound.h"
 #include "../diagnostics/device_status.h"
+#if MOCHI_HAS_SD_AUDIO
 #include <SD_MMC.h>
 #include <cstdio>
 #include <esp_log.h>
@@ -100,3 +101,14 @@ private:
 	uint32_t _mount_failed_at = 0;
 	bool _mounted = false, _mount_failed = false;
 };
+
+#else
+/** @brief No-card backend leaves generated codec tones available. */
+class SdAudio {
+public:
+	bool start(uint8_t) { return false; }
+	void release() {}
+	bool playing() const { return false; }
+	bool render(int16_t *, size_t, uint8_t) { return false; }
+};
+#endif

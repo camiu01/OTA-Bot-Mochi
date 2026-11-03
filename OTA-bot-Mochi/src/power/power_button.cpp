@@ -7,7 +7,7 @@
 #include "../../pin_config.h"
 #include "../bus/i2c_bus.h"
 
-#if defined(MOCHI_BOARD_AMOLED_18)
+#if MOCHI_HAS_AXP2101
 namespace {
 constexpr uint8_t PMU_ADDRESS = 0x34;
 constexpr uint8_t POWER_OFF_CONTROL = 0x22;
@@ -47,7 +47,7 @@ bool write_register(uint8_t reg, uint8_t value) {
 } // namespace
 #endif
 
-#if defined(MOCHI_BOARD_AMOLED_18)
+#if MOCHI_HAS_AXP2101
 bool power_button_init() {
 	preview_ready = key_down = preview = false;
 	last_poll = 0;

@@ -55,8 +55,8 @@ static uint8_t nominal_percent_mv(uint16_t mv) {
 
 uint8_t battery_percent_mv(uint16_t mv) {
 	uint8_t nominal = nominal_percent_mv(mv);
-#if defined(MOCHI_BOARD_AMOLED_18)
-	constexpr uint8_t EMPTY_PERCENT = 3, FULL_PERCENT = 92;
+#if MOCHI_BATTERY_EMPTY_PERCENT != 0 || MOCHI_BATTERY_FULL_PERCENT != 100
+	constexpr uint8_t EMPTY_PERCENT = MOCHI_BATTERY_EMPTY_PERCENT, FULL_PERCENT = MOCHI_BATTERY_FULL_PERCENT;
 	if (nominal <= EMPTY_PERCENT) { return 0; }
 	if (nominal >= FULL_PERCENT) { return 100; }
 	constexpr uint8_t RANGE = FULL_PERCENT - EMPTY_PERCENT;
@@ -94,7 +94,7 @@ void battery_sample(uint32_t now) {
 	if (samples < 255) { ++samples; }
 #if BAT_ADC >= 0
 	tracker.update(uint16_t(analogRead(BAT_ADC)));
-#elif defined(MOCHI_BOARD_AMOLED_18)
+#elif MOCHI_HAS_AXP2101
 	// The AMOLED V2 has no divider; the AXP2101 reports millivolts directly.
 	uint16_t mv = 0;
 	tracker.update_mv(axp2101_battery_mv(mv) ? mv : 0);

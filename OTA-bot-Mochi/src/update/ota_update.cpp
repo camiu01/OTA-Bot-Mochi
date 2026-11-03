@@ -141,11 +141,7 @@ void settings_routes() {
 
 /** @brief Board-specific release asset name. @return Filename. */
 const char *filename() {
-#if MOCHI_BOARD_LCD_169
-	return "mochi-lcd-169-app.bin";
-#else
-	return "mochi-amoled-18-v2-app.bin";
-#endif
+	return MOCHI_OTA_FILENAME;
 }
 
 /** @brief Serve the local form without caching its session token. */

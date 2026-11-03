@@ -11,11 +11,7 @@
 
 /** @brief Embedded board/layout identity, retained by the streaming checker. @return Marker. */
 inline const char *ota_image_marker() {
-#if MOCHI_BOARD_LCD_169
-	return "MOCHI-OTA-v1:lcd-169:16m-v1:END";
-#else
-	return "MOCHI-OTA-v1:amoled-18-v2:16m-v1:END";
-#endif
+	return MOCHI_OTA_MARKER;
 }
 
 /** @brief Strict decimal upload size, bounded by the inactive slot. @param text Header. @param limit Slot bytes. @return Size, zero if invalid. */

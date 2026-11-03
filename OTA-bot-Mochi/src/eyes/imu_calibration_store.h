@@ -10,7 +10,7 @@
 #include <string.h>
 
 constexpr uint8_t IMU_CALIBRATION_BYTES = 9;
-constexpr uint8_t IMU_CALIBRATION_BOARD = MOCHI_BOARD_LCD_169 ? 0 : 2;
+constexpr uint8_t IMU_CALIBRATION_BOARD = MOCHI_IMU_CALIBRATION_ID;
 
 /** @brief Validate and decode an exact-size record without modifying the destination on failure. @param bytes Record. @param length Byte count. @param policy Destination. @param manual Current manual flip. @return Valid reference. */
 inline bool imu_calibration_decode(const uint8_t *bytes, size_t length, ImuOrientation &policy, bool manual) {

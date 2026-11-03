@@ -20,6 +20,8 @@ $network = @("$root\OTA-bot-Mochi\src\network\network_config.cpp",
 $companion = @('companion_state.cpp', 'companion_service.cpp', 'companion_language.cpp', 'phone_view.cpp', 'phone_qr.cpp') |
 	ForEach-Object { Join-Path $root "OTA-bot-Mochi\src\companion\$_" }
 try {
+	& python "$root\tests\board_profiles_test.py"
+	if ($LASTEXITCODE -ne 0) { throw 'Board profile checks failed' }
 	& g++ -std=c++17 -Wall -Wextra -Werror -I "$root\tests\stubs" -DMOCHI_BOARD_LCD_169 -fsyntax-only "$root\OTA-bot-Mochi\src\touch\touch.cpp"
 	if ($LASTEXITCODE -ne 0) { throw 'Touch driver syntax check failed' }
 	# The second board profile must also parse: touch reset, backlight pin,

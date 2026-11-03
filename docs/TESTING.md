@@ -2,6 +2,9 @@
 
 ## Native regression tests
 
+The runners require Python 3 (`python` on Windows, `python3` on Unix) for
+board profile contracts, including custom selection and rejected configurations.
+
 These tests use `g++` with C++17 and test doubles for the display, Chronos, I2C,
 FreeRTOS mutex, USB serial input, and preferences. They do **not** compile ESP32 firmware, open a serial port,
 or replace firmware on a connected device.

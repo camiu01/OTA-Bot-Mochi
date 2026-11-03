@@ -5,7 +5,7 @@
  */
 #include "charging.h"
 #include "../../pin_config.h"
-#if defined(MOCHI_BOARD_AMOLED_18)
+#if MOCHI_HAS_AXP2101
 #include "../bus/i2c_bus.h"
 
 namespace {
@@ -25,7 +25,7 @@ bool read_status(uint8_t reg, uint8_t &value) {
 #endif
 
 bool charging_poll(uint32_t now) {
-#if defined(MOCHI_BOARD_AMOLED_18)
+#if MOCHI_HAS_AXP2101
 	if (sampled && uint32_t(now - sampled_at) < 500) { return false; }
 	sampled = true; sampled_at = now;
 	uint8_t identity = 0, status = 0;
@@ -42,7 +42,7 @@ bool charging_poll(uint32_t now) {
 }
 
 bool charging_active() {
-#if defined(MOCHI_BOARD_AMOLED_18)
+#if MOCHI_HAS_AXP2101
 	return tracker.state() == ChargeState::Charging;
 #else
 	return false;
@@ -50,7 +50,7 @@ bool charging_active() {
 }
 
 bool axp2101_battery_mv(uint16_t &mv) {
-#if defined(MOCHI_BOARD_AMOLED_18)
+#if MOCHI_HAS_AXP2101
 	uint8_t identity = 0, status = 0, high = 0, low = 0;
 	if (!i2c_bus_begin(IIC_SDA, IIC_SCL, 400000) || !read_status(0x03, identity) ||
 		identity != 0x4A || !read_status(0x00, status) || !(status & 0x08) ||

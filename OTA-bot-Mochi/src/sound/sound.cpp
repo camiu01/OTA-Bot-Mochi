@@ -8,12 +8,12 @@
 #include "../settings/settings.h"
 #include "../../pin_config.h"
 #include <Arduino.h>
-#if defined(MOCHI_BOARD_AMOLED_18)
+#if MOCHI_HAS_ES8311
 #include "es8311_output.h"
 #endif
 
 namespace {
-#if defined(MOCHI_BOARD_AMOLED_18)
+#if MOCHI_HAS_ES8311
 using Note = SoundNote;
 bool playback_started = false, playback_sd = false;
 #else
@@ -81,7 +81,7 @@ void stop() { queued = active = SoundCue::Count; buzzer_end(); attached = false;
 /** @brief Submit a complete AMOLED cue, or service the LCD's current PWM note. @param now Time. */
 void play(uint32_t now) {
 	Sequence s = sequence(active);
-#if defined(MOCHI_BOARD_AMOLED_18)
+#if MOCHI_HAS_ES8311
 	(void)now;
 	if (!playback_started) {
 		if (!attached) { attached = buzzer_begin(); }
@@ -156,7 +156,7 @@ void sound_poll(uint32_t now, const UiPageEvents &events, bool eyesVisible, bool
 	last_done = done; last_rest = resting;
 	const auto &p = settings_get();
 	if (!p.sound || (settings_night() && p.sound_night_mute)) { stop(); failed = false; ambient_since = now; return; }
-#if defined(MOCHI_BOARD_AMOLED_18)
+#if MOCHI_HAS_ES8311
 	if (playback_sd && !p.sound_sd) {
 		playback_sd = false;
 		active = SoundCue::Count; if (attached) { buzzer_write(0, 0); }
@@ -178,7 +178,7 @@ void sound_poll(uint32_t now, const UiPageEvents &events, bool eyesVisible, bool
 			for (uint8_t i = 0; i < 3; ++i) { face_notes[i] = queued_face_notes[i]; }
 			active_face_file = queued_face_file;
 		}
-#if defined(MOCHI_BOARD_AMOLED_18)
+#if MOCHI_HAS_ES8311
 		playback_started = false;
 #endif
 	}
@@ -194,7 +194,7 @@ SoundStatus sound_status() {
 }
 
 const char *sound_status_name() {
-#if defined(MOCHI_BOARD_AMOLED_18)
+#if MOCHI_HAS_ES8311
 	static const char *names[] = {"off", "night-mute", "armed", "i2s-ready", "i2s-error"};
 #else
 	static const char *names[] = {"off", "night-mute", "armed", "pwm-ready", "pwm-error"};

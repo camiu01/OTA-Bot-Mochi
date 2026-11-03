@@ -6,7 +6,7 @@
 #include "power_button.h"
 #include "../../pin_config.h"
 
-#if MOCHI_BOARD_LCD_169
+#if MOCHI_POWER_LATCH
 #include "power_button_policy.h"
 #include <Arduino.h>
 #include <driver/gpio.h>

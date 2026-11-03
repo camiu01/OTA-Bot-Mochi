@@ -53,17 +53,17 @@
 
 ChronosESP32 watch("OTA bot");
 bool ios_mode_boot = false;
-#if MOCHI_BOARD_LCD_169
+#if MOCHI_DISPLAY_ST7789
 Arduino_DataBus *bus = new Arduino_ESP32SPI(LCD_DC, LCD_CS, LCD_SCK, LCD_MOSI);
 Arduino_GFX *display = new Arduino_ST7789(bus, LCD_RST, 0, true,
-	LCD_WIDTH, LCD_HEIGHT, 0, 20, 0, 0);
+	LCD_WIDTH, LCD_HEIGHT, MOCHI_PANEL_OFFSET_X, MOCHI_PANEL_OFFSET_Y, 0, 0);
 #else
 Arduino_DataBus *bus = new Arduino_ESP32QSPI(
 	LCD_CS, LCD_SCLK, LCD_SDIO0, LCD_SDIO1, LCD_SDIO2, LCD_SDIO3);
 // CO5300: the visible area starts at RAM column 16; the panel reset is held by
 // the TCA9554 expander, which init_screen() releases before the first command.
-Arduino_CO5300 *display = new Arduino_CO5300(bus, -1, 0,
-	LCD_WIDTH, LCD_HEIGHT, 16, 0, 0, 0);
+Arduino_CO5300 *display = new Arduino_CO5300(bus, LCD_RST, 0,
+	LCD_WIDTH, LCD_HEIGHT, MOCHI_PANEL_OFFSET_X, MOCHI_PANEL_OFFSET_Y, 0, 0);
 #endif
 Arduino_GFX *gfx = new Arduino_Canvas(LCD_WIDTH, LCD_HEIGHT, display);
 UiPage current_screen = UiPage::Eyes;
@@ -118,13 +118,8 @@ void companion_data_callback(uint8_t *data, int length) {
 
 /** @brief Install callbacks after the UI lock is ready and start BLE. */
 void init_chronos() {
-#if MOCHI_BOARD_LCD_169
-	// Chronos 1.9.1 has no 240x280 preset; this is the nearest rectangular metadata profile.
-	watch.setScreen(CS_240x283_172_RTF);
-#else
-	// Chronos 1.9.1 has no 368x448 preset; nearest profile by aspect ratio and area.
-	watch.setScreen(CS_410x494_200_RTF);
-#endif
+	// Profile selects the nearest Chronos metadata preset.
+	watch.setScreen(MOCHI_CHRONOS_SCREEN);
 	watch.setConnectionCallback(connection_callback);
 	watch.setNotificationCallback(notification_callback);
 	watch.setConfigurationCallback(config_callback);
@@ -133,7 +128,7 @@ void init_chronos() {
 	watch.begin();
 }
 
-#if !MOCHI_BOARD_LCD_169
+#if MOCHI_PANEL_EXPANDER
 /** @brief Read one TCA9554 register. @param wire Shared bus. @param reg Register. @param value Output value. @return Success. */
 bool expander_read(TwoWire &wire, uint8_t reg, uint8_t &value) {
 	wire.beginTransmission(IO_EXPANDER_ADDR);
@@ -183,6 +178,9 @@ void release_panel_reset() {
 	(void)expander_write(wire, 0x01, uint8_t(output | IO_EXPANDER_RESET_PINS));
 }
 
+#endif
+
+#if MOCHI_DISPLAY_CO5300
 /** @brief Route the shared brightness policy into the AMOLED controller. @param percent Brightness percentage. */
 void apply_display_brightness(uint8_t percent) {
 	display->setBrightness(uint8_t(uint32_t(percent) * 255 / 100));
@@ -191,8 +189,10 @@ void apply_display_brightness(uint8_t percent) {
 
 /** @brief Initialize the buffered canvas; never draw after an allocation failure. */
 void init_screen() {
-#if !MOCHI_BOARD_LCD_169
+#if MOCHI_PANEL_EXPANDER
 	release_panel_reset();
+#endif
+#if MOCHI_DISPLAY_CO5300
 	backlight_bind_display(apply_display_brightness);
 #endif
 	if (!gfx->begin()) {

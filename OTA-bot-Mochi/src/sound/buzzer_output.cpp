@@ -60,7 +60,7 @@ void buzzer_end() {
 	digitalWrite(BUZZER, LOW);
 	ready = false;
 }
-#elif defined(MOCHI_BOARD_AMOLED_18)
+#elif MOCHI_HAS_ES8311
 #include "es8311_output.h"
 bool buzzer_begin() { return es8311_begin(); }
 bool buzzer_write(uint16_t hz, uint8_t percent) { return es8311_write(hz, percent); }
@@ -72,7 +72,7 @@ void buzzer_end() {}
 #endif
 
 bool buzzer_healthy() {
-#if defined(MOCHI_BOARD_AMOLED_18)
+#if MOCHI_HAS_ES8311
 	return es8311_healthy();
 #else
 	return true;
