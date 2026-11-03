@@ -35,8 +35,9 @@ void hardware_checks() {
 	assert(!charging_poll(0));
 	bus.present[0x34] = true;
 	auto &registers = bus.registers[0x34]; registers[0x03] = 0x4A;
-	registers[0x01] = 0x40;
+	registers[0x01] = 0x40; registers[0x00] = 0x20;
 	assert(!charging_poll(500) && !charging_poll(1000));
+	assert(!charging_disconnected());
 	assert(!charging_active());
 	registers[0x01] = 0x20;
 	assert(!charging_poll(1500) && !charging_poll(1501) && charging_poll(2000));
@@ -73,14 +74,42 @@ void hardware_checks() {
 #else
 	assert(!charging_poll(0) && !charging_poll(1000) && !charging_poll(UINT32_MAX));
 	assert(!charging_active());
+	assert(!charging_disconnected());
 	uint16_t mv = 0;
 	assert(!axp2101_battery_mv(mv));
 #endif
 }
 
+/** @brief Charge completion is not unplugging; missing/invalid reads cannot manufacture a falling edge. */
+void unplug_checks() {
+#if defined(MOCHI_BOARD_AMOLED_18)
+	auto &bus = i2c_bus();
+	auto &registers = bus.registers[0x34];
+	registers[0x00] = 0x20; registers[0x01] = 0;
+	assert(!charging_poll(10000) && !charging_poll(10500));
+	assert(!charging_active() && !charging_disconnected());
+	registers[0x00] = 0; registers[0x01] = 0x40;
+	assert(!charging_poll(11000) && !charging_disconnected());
+	bus.read_ok = false;
+	assert(!charging_poll(11500) && !charging_disconnected());
+	bus.read_ok = true;
+	assert(!charging_poll(12000) && !charging_disconnected());
+	assert(!charging_poll(12500) && charging_disconnected());
+	assert(!charging_poll(12501) && !charging_disconnected());
+	assert(!charging_poll(13000) && !charging_disconnected());
+	registers[0x00] = 0x20;
+	assert(!charging_poll(13500) && !charging_poll(14000) && !charging_disconnected());
+	registers[0x00] = 0; registers[0x01] = 0x60;
+	assert(!charging_poll(14500) && !charging_poll(15000) && !charging_disconnected());
+	registers[0x01] = 0x40;
+	assert(!charging_poll(15500) && !charging_disconnected());
+	assert(!charging_poll(16000) && charging_disconnected());
+#endif
+}
+
 /** @brief Run the portable and per-board charge policy checks. @return Success. */
 int main() {
-	policy_checks(); hardware_checks();
+	policy_checks(); hardware_checks(); unplug_checks();
 	std::cout << "Charge start debounce, silent baseline and read-only PMU checks passed\n";
 	return 0;
 }

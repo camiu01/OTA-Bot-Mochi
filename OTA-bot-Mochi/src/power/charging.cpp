@@ -10,6 +10,8 @@
 
 namespace {
 ChargingTracker tracker;
+ChargingTracker power_tracker;
+bool unplugged = false;
 uint32_t sampled_at = 0;
 bool sampled = false;
 
@@ -26,17 +28,34 @@ bool read_status(uint8_t reg, uint8_t &value) {
 
 bool charging_poll(uint32_t now) {
 #if MOCHI_HAS_AXP2101
+	unplugged = false;
 	if (sampled && uint32_t(now - sampled_at) < 500) { return false; }
 	sampled = true; sampled_at = now;
-	uint8_t identity = 0, status = 0;
+	uint8_t identity = 0, status = 0, power = 0;
 	if (!i2c_bus_begin(IIC_SDA, IIC_SCL, 400000) || !read_status(0x03, identity) ||
-		identity != 0x4A || !read_status(0x01, status)) { return tracker.update(ChargeState::Unknown); }
+		identity != 0x4A || !read_status(0x01, status) || !read_status(0x00, power)) {
+		power_tracker.update(ChargeState::Unknown);
+		return tracker.update(ChargeState::Unknown);
+	}
 	// AXP2101 REG01[6:5] reports battery current direction; USB power alone is not charging.
 	uint8_t direction = (status >> 5) & 3;
+	// REG00[5] is VBUS-good, independent of current direction and charge completion.
+	bool was_connected = power_tracker.state() == ChargeState::Charging;
+	power_tracker.update(direction == 3 ? ChargeState::Unknown :
+		(power & 0x20 ? ChargeState::Charging : ChargeState::Idle));
+	unplugged = was_connected && power_tracker.state() == ChargeState::Idle;
 	ChargeState state = direction == 1 ? ChargeState::Charging : ChargeState::Idle;
 	return tracker.update(direction == 3 ? ChargeState::Unknown : state);
 #else
 	(void)now;
+	return false;
+#endif
+}
+
+bool charging_disconnected() {
+#if MOCHI_HAS_AXP2101
+	return unplugged;
+#else
 	return false;
 #endif
 }

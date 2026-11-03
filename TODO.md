@@ -5,6 +5,8 @@
 Functional confirmations below are scoped to
 AMOLED V2 unless another board is explicitly recorded.
 
+- [ ] Compile and audition all 20 eye sound variants in each of the five families on LCD OLD and AMOLED V2; check numbered SD WAVs, legacy/generated fallbacks, mute and BLE/display coexistence. Native tests do not establish physical audibility or SD latency.
+- [ ] Physically verify all 20 charge-start and 20 unplug variants on AMOLED V2, including numbered SD WAVs, charge completion with VBUS present, real cable removal, noisy/failed PMU reads, independent cooldowns and Charging/master/night mute. USB previews do not prove physical edge detection.
 - [ ] Compile and physically check Anime, Kitsune and Headlight DRL on LCD OLD and AMOLED V2: frame cadence, gaze/blink clipping, mood transitions, display/web/USB selection and SAVE/reboot. Native rasters do not validate display speed.
 - [ ] Verify single-pass and back-and-forth vertical petting with lateral drift below 64 pixels on both touch controllers; small drifting taps must remain taps.
 - [x] Fix the eye-motion reference test by subtracting its same-time backdrop; the complete native runner reports all host tests passed (2026-10-28).

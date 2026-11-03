@@ -32,6 +32,9 @@ private:
 /** @brief Sample the AMOLED PMU at 500 ms intervals on the existing shared I2C bus. @param now Milliseconds. @return New stable charge start; always false on LCD. */
 bool charging_poll(uint32_t now);
 
+/** @brief Report a debounced VBUS-good falling edge from the most recent poll; throttled/error polls clear it. @return Disconnected after a known connected baseline; always false on LCD. */
+bool charging_disconnected();
+
 /** @brief Report the last debounced charge direction for the header and status page. @return True only for a stable charging state; always false on LCD. */
 bool charging_active();
 

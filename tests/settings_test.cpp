@@ -202,6 +202,9 @@ static void usb_tests() {
 	assert(settings_parse("sound", current).action == UsbAction::SoundStatus);
 	assert(settings_parse("SOUND TEST", current).action == UsbAction::SoundTest);
 	assert(settings_parse("sound test extra", current).action == UsbAction::Invalid);
+	assert(settings_parse("sound charging", current).action == UsbAction::ChargingTest);
+	assert(settings_parse("SOUND UNPLUGGED", current).action == UsbAction::UnpluggedTest);
+	assert(settings_parse("sound unplugged extra", current).action == UsbAction::Invalid);
 	assert(settings_parse("reboot", current).action == UsbAction::Reboot);
 	assert(settings_parse("reboot now", current).action == UsbAction::Invalid);
 	assert(settings_parse("save extra", current).action == UsbAction::Invalid);

@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "../OTA-bot-Mochi/src/sound/sd_audio.h"
+#include "../OTA-bot-Mochi/src/sound/face_sounds.h"
+#include "../OTA-bot-Mochi/src/sound/power_sounds.h"
 #include "wav_fixture.h"
 #include <cassert>
 #include <iostream>
@@ -63,13 +65,13 @@ void sd_checks() {
 void cue_file_checks() {
 	SdAudio sd;
 	SD_MMC.files["/mochi/sounds/face.wav"] = wav_fixture();
-	assert(sd.start(SOUND_SD_FACE_BASE + uint8_t(FaceTone::Warm)));
+	assert(sd.start(face_sound_file(FaceTone::Warm, 0)));
 	assert(SD_MMC.last_path == "/mochi/sounds/face.wav");
 	SD_MMC.files["/mochi/sounds/face-warm.wav"] = wav_fixture();
-	assert(sd.start(SOUND_SD_FACE_BASE + uint8_t(FaceTone::Warm)));
+	assert(sd.start(face_sound_file(FaceTone::Warm, 0)));
 	assert(SD_MMC.last_path == "/mochi/sounds/face-warm.wav");
 	SD_MMC.files["/mochi/sounds/face-warm.wav"] = {1, 2, 3};
-	assert(sd.start(SOUND_SD_FACE_BASE + uint8_t(FaceTone::Warm)));
+	assert(sd.start(face_sound_file(FaceTone::Warm, 0)));
 	assert(SD_MMC.last_path == "/mochi/sounds/face.wav");
 	for (const char *name : {"startup", "charging"}) {
 		std::string path = std::string("/mochi/sounds/") + name + ".wav";
@@ -80,9 +82,60 @@ void cue_file_checks() {
 	sd.release();
 }
 
+/** @brief Every numbered family file wins; malformed variants retain both legacy fallbacks. */
+void variant_file_checks() {
+	SdAudio sd;
+	const char *families[] = {"bright", "warm", "soft", "bounce", "flat"};
+	for (uint8_t family = 0; family < uint8_t(FaceTone::Count); ++family) {
+		std::string base = std::string("/mochi/sounds/face-") + families[family];
+		for (uint8_t variant = 0; variant < SOUND_FACE_VARIANTS; ++variant) {
+			std::string number = (variant < 9 ? "0" : "") + std::to_string(variant + 1);
+			std::string path = base + "-" + number + ".wav";
+			uint8_t id = face_sound_file(FaceTone(family), variant);
+			SD_MMC.files[path] = wav_fixture();
+			assert(sd.start(id) && SD_MMC.last_path == path);
+			SD_MMC.files[path] = {1, 2, 3};
+			SD_MMC.files[base + ".wav"] = wav_fixture();
+			assert(sd.start(id) && SD_MMC.last_path == base + ".wav");
+			SD_MMC.files.erase(base + ".wav");
+			assert(sd.start(id) && SD_MMC.last_path == "/mochi/sounds/face.wav");
+			SD_MMC.files.erase("/mochi/sounds/face.wav");
+			assert(!sd.start(id) && !sd.playing());
+			SD_MMC.files["/mochi/sounds/face.wav"] = wav_fixture();
+		}
+	}
+	unsigned opens = SD_MMC.opens;
+	assert(!sd.start(SOUND_SD_FACE_BASE - 1));
+	assert(!sd.start(SOUND_SD_FACE_BASE + uint8_t(FaceTone::Count) * SOUND_FACE_VARIANTS));
+	assert(!sd.start(255) && SD_MMC.opens == opens);
+	sd.release();
+}
+
+/** @brief Both power banks select numbered WAVs, then legacy files, then generated fallback. */
+void power_file_checks() {
+	SdAudio sd;
+	for (bool connected : {true, false}) {
+		std::string base = std::string("/mochi/sounds/") + (connected ? "charging" : "unplugged");
+		for (uint8_t variant = 0; variant < SOUND_POWER_VARIANTS; ++variant) {
+			uint8_t id = power_sound_file(connected, variant);
+			std::string number = (variant < 9 ? "0" : "") + std::to_string(variant + 1);
+			std::string path = base + "-" + number + ".wav";
+			SD_MMC.files[path] = wav_fixture();
+			assert(sd.start(id) && SD_MMC.last_path == path);
+			SD_MMC.files[path] = {1, 2, 3};
+			SD_MMC.files[base + ".wav"] = wav_fixture();
+			assert(sd.start(id) && SD_MMC.last_path == base + ".wav");
+			SD_MMC.files.erase(base + ".wav");
+			assert(!sd.start(id) && !sd.playing());
+		}
+	}
+	assert(!sd.start(SOUND_SD_POWER_BASE - 1));
+	assert(!sd.start(SOUND_SD_POWER_BASE + 2 * SOUND_POWER_VARIANTS));
+	sd.release();
+}
 /** @brief Run WAV and SD decoder regressions. @return Success. */
 int main() {
-	wav_checks(); sd_checks(); cue_file_checks();
+	wav_checks(); sd_checks(); cue_file_checks(); variant_file_checks(); power_file_checks();
 	std::cout << "Read-only SD WAV boundaries, decoding and cancellation passed\n";
 	return 0;
 }

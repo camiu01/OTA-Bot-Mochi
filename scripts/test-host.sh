@@ -56,6 +56,8 @@ build_test() {
 	"$output/$name"
 }
 python3 "$root/tests/board_profiles_test.py"
+g++ -std=c++17 -Wall -Wextra -Werror -I "$root/tests/stubs" "$root/tools/export-sounds.cpp" -o "$output/export-sounds"
+python3 "$root/tests/sound_export_test.py" "$output/export-sounds"
 g++ -std=c++17 -Wall -Wextra -Werror -I "$root/tests/stubs" -DMOCHI_BOARD_LCD_169 -fsyntax-only "$root/OTA-bot-Mochi/src/touch/touch.cpp"
 # The second board profile must also parse: touch reset, backlight pin, battery
 # ADC, and buzzer branches all switch with -DMOCHI_BOARD_AMOLED_18.

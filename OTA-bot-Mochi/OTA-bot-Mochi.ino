@@ -417,6 +417,7 @@ void loop() {
 	if (!ios_mode_boot && weather_sync_due(now, watch.isConnected(), watch.isSubscribed())) { watch.syncRequest(); }
 	battery_sample(now);
 	if (charging_poll(now)) { sound_request(SoundCue::Charging, now); }
+	if (charging_disconnected()) { sound_request(SoundCue::Unplugged, now); }
 	if (!ios_mode_boot) { battery_chronos_poll(watch); }
 	view_timer().tick(now);
 	sound_poll(now, ui_page_events(), current_screen == UiPage::Eyes && !screens_calling(),

@@ -41,7 +41,7 @@ public:
 			uint32_t length = uint32_t(notes[index].ms) * 16;
 			uint32_t edge = position < 80 ? position : 80;
 			if (length - position - 1 < edge) { edge = length - position - 1; }
-			out[2 * i] = out[2 * i + 1] = int32_t(out[2 * i]) * edge / 80;
+			out[2 * i] = out[2 * i + 1] = int32_t(out[2 * i]) * int32_t(edge) / 80;
 			if (++position == length) { ++index; position = 0; }
 		}
 	}

@@ -6,7 +6,7 @@
 #pragma once
 #include "settings_model.h"
 
-enum class UsbAction { Invalid, Help, Show, Set, Save, Defaults, RouteView, WeatherStatus, WeatherSync, SoundStatus, SoundTest, MoodNames, Reboot };
+enum class UsbAction { Invalid, Help, Show, Set, Save, Defaults, RouteView, WeatherStatus, WeatherSync, SoundStatus, SoundTest, MoodNames, Reboot, ChargingTest, UnpluggedTest };
 struct UsbCommand {
 	UsbAction action = UsbAction::Invalid;
 	CompanionSettings profile;

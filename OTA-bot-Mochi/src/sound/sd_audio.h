@@ -19,14 +19,29 @@ public:
 	/** @brief Open a fixed cue or reaction-family path lazily, with generic face fallback; never format a card. @param cue SoundCue ordinal. @return Valid file ready. */
 	bool start(uint8_t cue) {
 		stop();
-		static const char *const paths[] = {"ambient", "mood", "tap", "face", "notification", "rest", "done", "call", "test", "startup", "charging"};
+		static const char *const paths[] = {"ambient", "mood", "tap", "face", "notification", "rest", "done", "call", "test", "startup", "charging", "unplugged"};
 		static const char *const families[] = {"face-bright", "face-warm", "face-soft", "face-bounce", "face-flat"};
 		static_assert(sizeof(paths) / sizeof(paths[0]) == uint8_t(SoundCue::Count), "Keep SD cue names aligned");
 		static_assert(sizeof(families) / sizeof(families[0]) == uint8_t(FaceTone::Count), "Keep SD reaction families aligned");
-		bool family = cue >= SOUND_SD_FACE_BASE && cue < SOUND_SD_FACE_BASE + uint8_t(FaceTone::Count);
-		if (!family && cue >= sizeof(paths) / sizeof(paths[0])) { return false; }
+		bool family = cue >= SOUND_SD_FACE_BASE && cue < SOUND_SD_FACE_BASE + uint8_t(FaceTone::Count) * SOUND_FACE_VARIANTS;
+		bool power = cue >= SOUND_SD_POWER_BASE && cue < SOUND_SD_POWER_BASE + 2 * SOUND_POWER_VARIANTS;
+		if (!family && !power && cue >= sizeof(paths) / sizeof(paths[0])) { return false; }
 		if (!ensure_mounted()) { device_status::sd = device_status::SdState::Missing; return false; }
-		if (family && open_file(families[cue - SOUND_SD_FACE_BASE])) { device_status::sd = device_status::SdState::Ready; return true; }
+		if (family) {
+			uint8_t index = (cue - SOUND_SD_FACE_BASE) / SOUND_FACE_VARIANTS;
+			uint8_t variant = (cue - SOUND_SD_FACE_BASE) % SOUND_FACE_VARIANTS;
+			char name[32];
+			snprintf(name, sizeof(name), "%s-%02u", families[index], unsigned(variant + 1));
+			if (open_file(name) || open_file(families[index])) { device_status::sd = device_status::SdState::Ready; return true; }
+		}
+		if (power) {
+			uint8_t index = (cue - SOUND_SD_POWER_BASE) / SOUND_POWER_VARIANTS;
+			uint8_t variant = (cue - SOUND_SD_POWER_BASE) % SOUND_POWER_VARIANTS;
+			cue = uint8_t(index ? SoundCue::Unplugged : SoundCue::Charging);
+			char name[32];
+			snprintf(name, sizeof(name), "%s-%02u", paths[cue], unsigned(variant + 1));
+			if (open_file(name)) { device_status::sd = device_status::SdState::Ready; return true; }
+		}
 		if (open_file(paths[family ? uint8_t(SoundCue::Face) : cue])) { device_status::sd = device_status::SdState::Ready; return true; }
 		// Keep the card mounted: a later cue retries only the file open, not a full remount.
 		device_status::sd = device_status::SdState::Error;
