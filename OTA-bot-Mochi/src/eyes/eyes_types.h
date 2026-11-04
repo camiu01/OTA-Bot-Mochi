@@ -241,6 +241,7 @@ inline const char *eyes_expression_name(Expression expr) {
  * @brief Persistent configuration singleton.
  */
 struct EyeConfig {
+	uint32_t variationSeed = 0; /**< Render-only event seed; zero keeps the canonical drawing, never persisted. */
 	EyeStyle style;	/**< Active rendering style. */
 	Expression expression;	/**< Active emotional expression. */
 	uint16_t bgColor;	/**< Background clear color (RGB565). */

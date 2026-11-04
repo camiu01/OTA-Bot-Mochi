@@ -30,6 +30,7 @@
 #include <iostream>
 #include "music_panel_checks.h"
 #include "diagnostics_panel_checks.h"
+#include "dice_panel_checks.h"
 #include <string>
 
 /** @brief Speaker mouth faces right; mute cross and sound waves stay inside the badge. */
@@ -235,9 +236,9 @@ static void desk_checks() {
 	assert(screens_tap(UiPage::Desk, ui_s(200), ui_s(70), 0) == UiPage::Overview);
 	assert(screens_tap(UiPage::Desk, ui_s(20), ui_s(140), 0) == UiPage::Timer);
 	assert(screens_tap(UiPage::Desk, ui_s(200), ui_s(140), 0) == UiPage::Device);
-	assert(screens_tap(UiPage::Desk, ui_s(20), ui_s(180), 0) == UiPage::Pong);
-	assert(screens_tap(UiPage::Desk, ui_s(200), ui_s(180), 0) == UiPage::AnalogClock);
-	assert(screens_tap(UiPage::Desk, ui_s(20), ui_s(230), 0) == UiPage::Tris);
+	assert(screens_tap(UiPage::Desk, ui_s(20), ui_s(180), 0) == UiPage::AnalogClock);
+	assert(screens_tap(UiPage::Desk, ui_s(200), ui_s(180), 0) == UiPage::Phone);
+	assert(screens_tap(UiPage::Desk, ui_s(20), ui_s(230), 0) == UiPage::Desk);
 	assert(screens_tap(UiPage::Desk, ui_s(120), ui_s(210), 0) == UiPage::Desk);
 	assert(screens_tap(UiPage::Desk, ui_s(20), ui_s(104), 0) == UiPage::Desk);
 	uint8_t mode = view_timer().mode;
@@ -289,7 +290,7 @@ static void play_checks(Arduino_GFX &gfx, ChronosESP32 &watch) {
 	assert(screens_draw(&gfx, watch, UiPage::Pong, 90000));
 	assert(desk_pong().x == previous_x); // Off-page time must not advance a game.
 	assert(settings_dirty() == dirty);
-	assert(screens_scroll(UiPage::Pong, 1) == UiPage::Desk);
+	assert(screens_scroll(UiPage::Pong, 1) == UiPage::Games);
 	assert(screens_swipe(UiPage::AnalogClock, 1) == UiPage::Music);
 	assert(screens_parent(UiPage::Pong) == UiPage::Clock);
 	watch.analog_time = "bad";
@@ -323,7 +324,7 @@ static void tris_checks(Arduino_GFX &gfx, ChronosESP32 &watch) {
 	}
 	screens_tap(UiPage::Tris, ui_s(120), ui_s(244), 1500);
 	for (uint8_t cell : desk_tris().cells) { assert(cell == 0); }
-	assert(screens_scroll(UiPage::Tris, 1) == UiPage::Desk);
+	assert(screens_scroll(UiPage::Tris, 1) == UiPage::Games);
 	assert(screens_swipe(UiPage::Tris, 1) == UiPage::Music);
 	assert(settings_dirty() == dirty);
 	for (uint8_t language = 0; language < 2; ++language) {
@@ -357,6 +358,7 @@ int main() {
 	desk_checks();
 	play_checks(gfx, watch);
 	tris_checks(gfx, watch);
+	dice_panel_checks(gfx, watch);
 	std::cout << "Pages and menu layout passed on " << LCD_WIDTH << "x" << LCD_HEIGHT << "\n";
 	return 0;
 }

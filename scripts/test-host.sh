@@ -84,6 +84,7 @@ build_test battery-lcd "${battery[@]}"
 build_test battery-amoled -DMOCHI_BOARD_AMOLED_18 "${battery[@]}"
 build_test battery-chronos "$root/tests/battery_chronos_test.cpp"
 build_test tic-tac-toe "$root/tests/tic_tac_toe_test.cpp"
+build_test dice "$root/tests/dice_test.cpp"
 ota=("${runtime[@]}" "$root/tests/ota_test.cpp" "$root/OTA-bot-Mochi/src/update/ota_update.cpp" "$root/OTA-bot-Mochi/src/update/ntp_sync.cpp" "$root/tests/stubs/imu_noop.cpp")
 build_test ota-lcd -I "$root/tests/stubs/ota" "${ota[@]}"
 build_test ota-amoled -I "$root/tests/stubs/ota" -DMOCHI_BOARD_AMOLED_18 "${ota[@]}"
@@ -128,6 +129,7 @@ for source in "${runtime[@]}"; do
 done
 render_eyes=("$root/OTA-bot-Mochi/src/eyes/eyes_draw.cpp" "$root/tests/stubs/imu_noop.cpp")
 build_test eyes "${render_runtime[@]}" "$root/tests/eyes_test.cpp" "${render_eyes[@]}"
+build_test face-variation -O2 "${render_runtime[@]}" "$root/tests/face_variation_test.cpp" "${render_eyes[@]}"
 build_test face-filter "${render_runtime[@]}" "$root/tests/face_filter_test.cpp" \
 	"$root/OTA-bot-Mochi/src/eyes/eyes_draw.cpp" "$root/OTA-bot-Mochi/src/eyes/eyes_imu.cpp"
 build_test face-web -I "$root/tests/stubs/ota" "${runtime[@]}" "$root/tests/face_web_test.cpp" \

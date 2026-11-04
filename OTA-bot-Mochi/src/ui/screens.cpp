@@ -254,7 +254,9 @@ bool screens_draw(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, uint32_t n
 	if (!invalidated && !changed && !timer && page != UiPage::Clock) { return false; }
 	if (invalidated || changed || transition) {
 		static const Text titles[] = {Text::Eyes, Text::Clock, Text::Music, Text::Route, Text::Alerts, Text::Weather, Text::Settings,
-			Text::Desk, Text::BigClock, Text::Overview, Text::Timer, Text::Device, Text::Pong, Text::AnalogClock, Text::Tris, Text::CompanionTitle};
+			Text::Desk, Text::BigClock, Text::Overview, Text::Timer, Text::Device, Text::Pong, Text::AnalogClock, Text::Tris, Text::CompanionTitle,
+			Text::Games, Text::Dice};
+		static_assert(sizeof(titles) / sizeof(titles[0]) == uint8_t(UiPage::Count), "Every page needs a title");
 		ui_chrome(gfx, tr(overlay_active ? Text::CallTitle : titles[uint8_t(page)]),
 			cached.connected, uint8_t(screens_parent(page)));
 		clock_invalidate();

@@ -73,9 +73,9 @@ static void sparse_qr_checks(Arduino_GFX &gfx, ChronosESP32 &watch) {
 /** @brief Chronos-only tools disappear in iPhone mode while the main carousel remains unchanged. @param gfx Canvas. @param watch Clock. */
 static void ios_checks(Arduino_GFX &gfx, ChronosESP32 &watch) {
 	assert(screens_parent(UiPage::Phone) == UiPage::Clock);
-	assert(screens_tap(UiPage::Desk, ui_s(170), ui_s(225), 0) == UiPage::Phone);
+	assert(screens_tap(UiPage::Desk, ui_s(170), ui_s(180), 0) == UiPage::Phone);
 	CompanionSettings value = settings_get(); value.phone_ios = true; assert(settings_update(value));
-	assert(screens_tap(UiPage::Desk, ui_s(170), ui_s(225), 0) == UiPage::Desk);
+	assert(screens_tap(UiPage::Desk, ui_s(170), ui_s(180), 0) == UiPage::Desk);
 	for (UiPage page : {UiPage::Desk, UiPage::Phone, UiPage::Clock, UiPage::Weather, UiPage::BigClock, UiPage::AnalogClock}) {
 		gfx.text.clear(); screens_invalidate(); assert(screens_draw(&gfx, watch, page, 30000));
 		for (const std::string &text : gfx.text) {

@@ -30,10 +30,10 @@ inline void local_eye_performance_rain(Arduino_GFX *gfx, const EyeConfig &cfg, u
 		uint32_t travel = phase - 600 - i * 80u;
 		uint32_t event = elapsed / 6000 * 5 + travel / 1700;
 		uint32_t age = travel % 1700;
-		uint32_t period = 1100u + uint32_t(face_random(event, 131u + i * 71u) * 500);
+		uint32_t period = 1100u + uint32_t(face_random(event, 131u + i * 71u, cfg.variationSeed) * 500);
 		if (age >= period) { continue; }
-		int16_t tail = int16_t((cfg.screenH / 35 + 2) * (0.7f + face_random(event, 337u + i * 59u)));
-		int16_t x = int16_t(2 + face_random(event, 173u + i * 113u) * (cfg.screenW - 5));
+		int16_t tail = int16_t((cfg.screenH / 35 + 2) * (0.7f + face_random(event, 337u + i * 59u, cfg.variationSeed)));
+		int16_t x = int16_t(2 + face_random(event, 173u + i * 113u, cfg.variationSeed) * (cfg.screenW - 5));
 		int16_t head = int32_t(age) * (cfg.screenH + tail) / period;
 		int16_t top = eye_limit(head - tail, 0, cfg.screenH - 1);
 		int16_t bottom = eye_limit(head, top, cfg.screenH - 1);

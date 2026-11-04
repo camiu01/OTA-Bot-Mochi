@@ -11,7 +11,7 @@ namespace face_defs { namespace yakura_face {
 /** @brief Sweep two tapered, gently curling ribbons outward from each brow. */
 inline void brows(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b, uint32_t elapsed, float a) {
 	int16_t cx = b.x + b.w / 2, direction = b.left ? -1 : 1;
-	float seed = face_random(elapsed / 6000, b.left ? 173u : 947u);
+	float seed = face_random(elapsed / 6000, b.left ? 173u : 947u, cfg.variationSeed);
 	float wave = (elapsed % 6000) * 0.0031415927f + seed * 6.2831853f;
 	uint16_t ink = eye_mix(eye_rgb(187, 221, 247), cfg.bgColor, uint8_t(a * 100));
 	for (uint8_t strand = 0; strand < 2; ++strand) {

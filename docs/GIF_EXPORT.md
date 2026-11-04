@@ -111,3 +111,9 @@ face selection is disabled so the chosen face stays selected; its own blink,
 motion and performance colors remain active. GIF uses 256 colors and 10 ms timing
 units, so exported timing and gradients are approximations. RAM and temporary RGB
 storage are bounded per GIF, but larger/longer exports and `--all` take more time.
+
+The deterministic input also drives live entry seeds, smooth micro-motion,
+variable idle gestures and the rhythm/particle variants. Identical exports remain
+reproducible; hardware uses its normal random source. Use `--seconds 24` to inspect
+multiple special-effect cycles and the first idle gesture. Calm is not selected
+by the exporter; its previews use Dasai motion.

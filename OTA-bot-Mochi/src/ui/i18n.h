@@ -36,6 +36,11 @@
 	X(OtaDetails, "DETAILS", "DETTAGLI") \
 	X(OtaQr, "WI-FI QR", "QR WI-FI") \
 	X(Desk, "DESK TOOLS", "SCRIVANIA") \
+	X(Games, "GAMES", "GIOCHI") \
+	X(GamesHint, "SWIPE DOWN: GAMES", "SCENDI: GIOCHI") \
+	X(Dice, "DICE", "DADI") \
+	X(DiceRoll, "ROLL", "LANCIA") \
+	X(DiceTotal, "TOTAL", "TOTALE") \
 	X(BigClock, "BIG CLOCK", "OROLOGIO GRANDE") \
 	X(Overview, "DESK OVERVIEW", "RIEPILOGO") \
 	X(Timer, "FOCUS TIMER", "TIMER") \

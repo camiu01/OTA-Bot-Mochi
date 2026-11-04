@@ -19,7 +19,7 @@ inline void scenery(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeLayout &, u
 	for (uint8_t i = 0; i < 3; ++i) {
 		uint32_t travel = elapsed + i * 670u;
 		float t = (travel % 2000) / 2000.0f;
-		float lane = face_random(travel / 2000, 67u + i * 113u);
+		float lane = face_random(travel / 2000, 67u + i * 113u, cfg.variationSeed);
 		float visibility = sinf(t * 3.14159265f);
 		int16_t x = int16_t(cfg.screenW * (0.12f + 0.75f * t));
 		int16_t y = int16_t(cfg.screenH * (0.09f + 0.20f * lane + 0.12f * t));

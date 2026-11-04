@@ -5,10 +5,13 @@
  */
 #pragma once
 #include "eyes_types.h"
+#include "face_random.h"
 #include <math.h>
 
 struct EyeLifeFrame {
 	bool active = false;
+	uint32_t variationSeed = 0;
+	float variationAmount = 0;
 	Expression expression = NEUTRAL;
 	float openL = 1, openR = 1, scaleX = 1, scaleY = 1;
 	int16_t x = 0, y = 0;
@@ -20,20 +23,26 @@ class EyeLife {
 	EyeStyle style = NORMAL;
 	bool changing = false, gesturing = false;
 	uint32_t change_at = 0, gesture_at = 0, idle_at = 0, idle_delay = 18000;
+	uint32_t pending_seed = 0, variation_at = 0, gesture_duration = 900;
 	uint8_t gesture = 0;
 	float fromL = 1, fromR = 1, gazeX = 0, gazeY = 0;
 	int8_t sign = 1;
 	/** @brief Smoothstep in a bounded interval. @param p Progress. @return Eased. */
 	static float ease(float p) { p = p < 0 ? 0 : (p > 1 ? 1 : p); return p * p * (3 - 2 * p); }
+	/** @brief Change the event seed only when the new face becomes visible behind the blink. */
+	void reveal(uint32_t now) {
+		if (frame.expression != target) { frame.variationSeed = pending_seed; variation_at = now; }
+		frame.expression = target;
+	}
 	/** @brief Close, hold briefly, then reopen over a face handoff. @param now Time. @param amount Intensity. */
 	void transition(uint32_t now, float amount) {
 		float p = float(uint32_t(now - change_at)) / 320;
-		if (p >= 1) { changing = false; frame.expression = target; return; }
+		if (p >= 1) { changing = false; reveal(now); return; }
 		if (p < 0.35f) {
 			float close = ease(p / 0.35f);
 			frame.openL = fromL * (1 - close); frame.openR = fromR * (1 - close);
 		} else {
-			frame.expression = target;
+			reveal(now);
 			frame.openL = frame.openR = ease((p - 0.45f) / 0.55f);
 		}
 		float spring = sinf(3.14159265f * p);
@@ -42,7 +51,7 @@ class EyeLife {
 	}
 	/** @brief Apply one short decorative gesture, never change base/style. @param now Time. @param amount Intensity. */
 	void pose(uint32_t now, float amount) {
-		float p = float(uint32_t(now - gesture_at)) / 900;
+		float p = float(uint32_t(now - gesture_at)) / gesture_duration;
 		if (p >= 1) { gesturing = false; return; }
 		float wave = sinf(3.14159265f * p);
 		switch (gesture) {
@@ -58,6 +67,21 @@ class EyeLife {
 			case 5: frame.y += int16_t(sinf(p * 6.2831853f) * 4 * amount); break;
 		}
 	}
+	/** @brief Smooth per-entry micro-movements; preserve Calm and the explicit symmetry setting. */
+	void vary(uint32_t now, bool asymmetric) {
+		float a = frame.variationAmount;
+		if (!a) { return; }
+		uint32_t elapsed = now - variation_at, seed = frame.variationSeed;
+		auto sample = [&](uint32_t salt) { return face_smooth_random(elapsed, 1700 + salt % 900, salt, seed); };
+		frame.x += int16_t((sample(173) - 0.5f) * 8 * a);
+		frame.y += int16_t((sample(947) - 0.5f) * 6 * a);
+		frame.scaleX += (sample(511) - 0.5f) * 0.06f * a;
+		frame.scaleY += (sample(733) - 0.5f) * 0.08f * a;
+		if (asymmetric) {
+			frame.openL *= 1 - sample(157) * 0.045f * a;
+			frame.openR *= 1 - sample(439) * 0.045f * a;
+		}
+	}
 public:
 	/** @brief Reset on initialization. */
 	void reset() { *this = EyeLife{}; }
@@ -68,11 +92,14 @@ public:
 		uint8_t mode, float amount, uint32_t choice) {
 		if (!frame.active || style != cfg.style) {
 			reset(); frame.active = true; style = cfg.style; frame.expression = target = cfg.expression; idle_at = now;
+			frame.variationSeed = choice ? choice : 1; variation_at = now;
 		}
 		if (cfg.expression != target) {
 			fromL = frame.openL; fromR = frame.openR; change_at = now;
 			target = cfg.expression; changing = true; gesturing = false; idle_at = now;
+			pending_seed = choice ? choice : 1;
 		}
+		frame.variationAmount = mode ? amount : 0;
 		frame.openL = frame.openR = frame.scaleX = frame.scaleY = 1;
 		float alpha = float(dt > 100 ? 100 : dt) / (80 + float(dt > 100 ? 100 : dt));
 		gazeX += (st.saccadeX + st.tiltX - gazeX) * alpha;
@@ -88,9 +115,11 @@ public:
 		if (mode && !changing && !gesturing && uint32_t(now - idle_at) >= idle_delay) {
 			gesture = (gesture + 1 + choice % 5) % 6;
 			sign = choice & 1 ? 1 : -1; gesture_at = idle_at = now; gesturing = true;
+			gesture_duration = 700 + choice % 501;
 			idle_delay = (mode == 2 ? 12000 : 18000) + choice % 12001 + (amount < 0.8f ? 8000 : 0);
 		}
 		if (gesturing && !changing) { pose(now, amount); }
+		vary(now, cfg.asym != 0);
 	}
 };
 

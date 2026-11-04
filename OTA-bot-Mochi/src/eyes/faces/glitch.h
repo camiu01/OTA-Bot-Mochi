@@ -13,10 +13,10 @@ inline bool referenceBody(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeState
 	(void)elapsed; (void)neutral;
 	eye_body(gfx, cfg, b);
 	uint32_t event = st.lastMs / 3600, cycle = st.lastMs % 3600;
-	uint32_t first = 200u + uint32_t(face_random(event, 173u) * 450);
-	uint32_t second = 2000u + uint32_t(face_random(event, 947u) * 400);
+	uint32_t first = 200u + uint32_t(face_random(event, 173u, cfg.variationSeed) * 450);
+	uint32_t second = 2000u + uint32_t(face_random(event, 947u, cfg.variationSeed) * 400);
 	bool burst = (cycle >= first && cycle < first + 240) || (cycle >= second && cycle < second + 180);
-	uint8_t phase = uint8_t(face_random(st.lastMs / (burst ? 160 : 700), b.left ? 511u : 733u) * 200);
+	uint8_t phase = uint8_t(face_random(st.lastMs / (burst ? 160 : 700), b.left ? 511u : 733u, cfg.variationSeed) * 200);
 	int16_t line = eye_limit(int16_t(b.h / 24), 1, 6);
 	if (burst) {
 		face_primitives::glitch_glyph(gfx, b.x + b.w / 2, b.y + b.h / 2,

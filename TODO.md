@@ -5,6 +5,8 @@
 Functional confirmations below are scoped to
 AMOLED V2 unless another board is explicitly recorded.
 
+- [ ] Compile and physically check seeded face variation on LCD OLD and AMOLED V2: all styles, Calm/Dasai/Playful, dashboard/night intensity, open Moon/Fire, backdrop handoffs, frame cadence and clean palette restoration. Native timing/raster checks and GIF previews do not establish physical flicker or frame speed.
+- [ ] Compile and physically check the Games layer below Scrivania and D&D dice on LCD OLD/AMOLED V2: type/count controls, maximum 100D100 legibility, result paging, navigation, phone-mode visibility and unchanged results after redraw. Native tests do not prove physical touch usability or random-source quality.
 - [ ] Physically validate manual microSD firmware updates on AMOLED V2: valid alternate-slot install and retained settings/calibration, audio-to-update ownership handoff, missing/wrong/corrupt files, cancellation, real SD read failures, progress responsiveness and controlled interruption with USB recovery ready. Both builds, the full native suite and a USB installation passed on 2026-11-03; these are not proof of SD installation or power-loss safety.
 - [ ] Compile and audition all 20 eye sound variants in each of the five families on LCD OLD and AMOLED V2; check numbered SD WAVs, legacy/generated fallbacks, mute and BLE/display coexistence. Native tests do not establish physical audibility or SD latency.
 - [ ] Physically verify all 20 charge-start and 20 unplug variants on AMOLED V2, including numbered SD WAVs, charge completion with VBUS present, real cable removal, noisy/failed PMU reads, independent cooldowns and Charging/master/night mute. USB previews do not prove physical edge detection.

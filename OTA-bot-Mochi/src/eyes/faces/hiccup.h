@@ -27,7 +27,7 @@ inline void scenery(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeLayout &lay
 	for (uint8_t i = 0; i < 3; ++i) {
 		uint32_t travel = elapsed + i * 430u;
 		float t = (travel % 1500) / 1500.0f;
-		float drift = face_random(travel / 1500, 173u + i * 47u) * 2 - 1;
+		float drift = face_random(travel / 1500, 173u + i * 47u, cfg.variationSeed) * 2 - 1;
 		int16_t r = eye_limit(int16_t(cfg.screenW * (0.012f + 0.015f * t)), 1, 12);
 		int16_t x = int16_t(cfg.screenW / 2 + sinf(t * 4 + i) * cfg.screenW / 12 + drift * cfg.screenW / 20);
 		int16_t y = int16_t(bottom + cfg.screenH / 12 + (1 - t) * cfg.screenH / 10);

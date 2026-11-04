@@ -16,6 +16,7 @@
 #include "eye_effects.h"
 #include "eye_scenes.h"
 #include "face_filter.h"
+#include "face_variation.h"
 #include "eye_performance_draw.h"
 #include "../../pin_config.h"
 
@@ -134,6 +135,7 @@ void eyes_draw() {
 	EyeLifeFrame pose = eyes_life_frame();
 	if (pose.active) {
 		cfg.expression = pose.expression; drawing.blinking = false;
+		cfg.variationSeed = pose.variationAmount > 0 ? pose.variationSeed : 0;
 		drawing.saccadeX = drawing.saccadeY = drawing.floatY = 0;
 		drawing.tiltX = pose.x; drawing.tiltY = pose.y;
 	}
@@ -145,6 +147,9 @@ void eyes_draw() {
 	}
 	bool scene = preset && preset->fullScene;
 	uint32_t elapsed = eye_effect_elapsed(st, cfg.expression);
+	uint32_t varied = face_variation_elapsed(cfg, elapsed, pose.variationAmount);
+	drawing.lastMs += varied - elapsed;
+	elapsed = varied;
 	EyeLayout layout = eye_layout(cfg, scene ? EyeState{} : drawing);
 	if (scene && pose.active) { scene_entry(layout, cfg, drawing, pose, elapsed); }
 	if (scene) { drawing = EyeState{}; }

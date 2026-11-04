@@ -29,13 +29,13 @@ inline void local_eye_performance_air(Arduino_GFX *gfx, const EyeConfig &cfg, co
 	for (uint8_t i = 0; i < 3; ++i) {
 		uint32_t travel = elapsed + i * 566u;
 		uint32_t event = travel / 1700, salt = (b.left ? 173u : 947u) + i * 71u;
-		uint32_t start = uint32_t(face_random(event, salt + 11) * 220);
-		uint32_t duration = 1100u + uint32_t(face_random(event, salt + 19) * 300);
+		uint32_t start = uint32_t(face_random(event, salt + 11, cfg.variationSeed) * 220);
+		uint32_t duration = 1100u + uint32_t(face_random(event, salt + 19, cfg.variationSeed) * 300);
 		uint32_t phase = travel % 1700;
 		if (phase < start || phase >= start + duration) { continue; }
 		float t = (phase - start) / float(duration);
-		float size = 0.8f + 0.4f * face_random(event, salt);
-		float drift = face_random(event, salt + 37) * 2 - 1;
+		float size = 0.8f + 0.4f * face_random(event, salt, cfg.variationSeed);
+		float drift = face_random(event, salt + 37, cfg.variationSeed) * 2 - 1;
 		int16_t r = int16_t((5 + 5 * t) * size * scale / 100);
 		if (r < 1) { r = 1; }
 		int16_t x = eye_limit(int16_t(cx + (sinf(t * 4 + i) + drift * t) * b.w / 4), r, cfg.screenW - r - 1);

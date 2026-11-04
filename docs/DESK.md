@@ -29,14 +29,37 @@ Swipe down on Clock to open Scrivania, then select:
 | DESK OVERVIEW | Time, phone connection, temperature/city, and weather freshness |
 | TIMER / POMODORO | Local 5-minute or 15-minute timer, or one 25-minute focus/5-minute rest pair |
 | DEVICE STATUS | BLE connection, backlight percentage, IMU initialization, clock sync, preference save state, sound state, battery estimate, and a charge bolt while the PMU reports charging |
-| PONG | Play against an automatic right paddle; tap the court at the desired height to move the left paddle, RESET starts a new game |
 | ANALOG CLOCK | Hour, minute and second hands with synchronized digital time below |
-| TIC TAC TOE / TRIS | You play X against Mochi O; tap an empty cell, NEW GAME clears the board |
 | PHONE TOOLS (Android only) | Find phone, camera, battery, alarms, reminders, hourly weather, contacts, QR and language association; see [Chronos](CHRONOS.md) |
 
-The hub shows eight 108x44-pixel cards in Android mode and seven in iPhone mode,
-in a two-column, four-row grid. Gaps between cards are
+The hub shows six 108x44-pixel cards in Android mode and five in iPhone mode,
+in a two-column, three-row grid. Gaps between cards are
 not tap targets. Coordinates scale for both the 240x280 LCD and 368x448 AMOLED.
+
+## Games and D&D dice
+
+Swipe **down again from Scrivania** to open **GAMES / GIOCHI**. It groups:
+
+| Game | Content |
+| --- | --- |
+| DICE / DADI | Roll 1–100 dice of one selected type: D4, D6, D8, D10, D12, D20 or D100 |
+| PONG | Play against an automatic right paddle; tap the court at the desired height to move the left paddle, RESET starts a new game |
+| TIC TAC TOE / TRIS | You play X against Mochi O; tap an empty cell, NEW GAME clears the board |
+
+Dice starts at **1D20**. Use the top `<` / `>` buttons to change die type.
+The next row adjusts the count by **−10, −1, +1 or +10**, clamped to 1–100.
+Tap **ROLL / LANCIA** for a new roll. Each die is drawn once using Arduino's
+bounded random source; repainting, waiting or returning to the page never rerolls.
+The result shows the sum and twelve individual values per page. Tap the
+left/right half of the result card to browse pages, indicated by `<1/9>` for
+a 100-die pool. D100 results are 1–100, not 0–99. Changing count/type clears
+the old result. The selection, last roll and page remain in RAM across navigation;
+reboot resets to 1D20. No preferences are written.
+
+Rolls are homogeneous `XdY` pools, not mixed expressions. Modifiers and automatic
+advantage/disadvantage rules are not implemented. Games and dice also work in
+iPhone mode and without a phone connection.
+
 Pong runs at the display frame cadence, pauses off-page or behind a call overlay,
 and caps physics catch-up at 100 ms. Scores wrap after 99. Game state stays in
 RAM and never writes preferences. Taps move the paddle; holds and swipes keep
@@ -50,8 +73,9 @@ Occupied cells and taps during Mochi's turn are ignored. A finished board stays
 visible until NEW GAME. Leaving the tool preserves the RAM-only match; reboot
 clears it. The `tic_tac_toe` Mood is a separate decorative demo.
 
-Swipe up from a tool to return to the hub; swipe up from the hub to return to
-Clock. A horizontal swipe from a tool goes to the previous/next primary page
+Swipe up from a desk tool to return to Scrivania. From Dice, Pong or Tris,
+swipe up to Games, then up to Scrivania, then up to Clock. Swiping down on Games
+or Dice stays on the same page. A horizontal swipe from a tool goes to the previous/next primary page
 relative to Clock, so the carousel still has only seven destinations. The Clock
 position dot stays selected in these tools.
 
@@ -94,3 +118,7 @@ the Mood grid are separate decorative animations; see the
 [eye engine](../OTA-bot-Mochi/src/eyes/README.md).
 Physical rendering, touch targets, and actual Chronos behavior still need testing
 after a successful firmware build and upload.
+Dice fixtures exhaust every face of all seven types, 1/100-die bounds, the
+10,000 maximum sum, count/type edits, pagination, inert touch gaps, navigation,
+EN/IT labels and result persistence on LCD, taller LCD and AMOLED layouts.
+They do not establish hardware random-source quality or physical touch usability.

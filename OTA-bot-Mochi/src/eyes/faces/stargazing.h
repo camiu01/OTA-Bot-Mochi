@@ -19,7 +19,11 @@ inline void local_eye_performance_stars(Arduino_GFX *gfx, const EyeConfig &cfg, 
 	for (uint8_t i = 0; i < 28; ++i) {
 		int16_t x = margin + ((i * 73 + 17) % 211) * (cfg.screenW - 2 * margin) / 211;
 		int16_t y = margin + ((i * i * 11 + 7) % 101) * (cfg.screenH * 3 / 4 - margin) / 101;
-		float light = 0.3f + 0.6f * face_smooth_random(elapsed, 1700u + i * 37u, 511u + i * 73u);
+		if (cfg.variationSeed) {
+			x = margin + int16_t(face_random(i, 173, cfg.variationSeed) * (cfg.screenW - 2 * margin));
+			y = margin + int16_t(face_random(i, 947, cfg.variationSeed) * (cfg.screenH * 3 / 4 - margin));
+		}
+		float light = 0.3f + 0.6f * face_smooth_random(elapsed, 1700u + i * 37u, 511u + i * 73u, cfg.variationSeed);
 		uint16_t tint = i % 3 ? eye_rgb(180, 210, 255) : eye_rgb(255, 220, 160);
 		uint16_t ink = eye_mix(tint, cfg.bgColor, uint8_t(a * light * 100));
 		int16_t r = i % 7 == 0 ? cfg.screenW / 120 + 1 : 0;

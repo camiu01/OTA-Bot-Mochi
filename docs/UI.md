@@ -28,7 +28,7 @@ sample the library's initial value may still be shown. ANCS mode is unaffected.
 
 ## Controls
 
-Android mode adds **Phone tools** as the eighth contextual desk tile. Find,
+Android mode adds **Phone tools** as the sixth contextual desk tile. Find,
 camera, alarms, phone battery, reminders, app schedules, hourly forecasts,
 contacts, QR links and explicit app-language association are described in
 [Chronos integration](CHRONOS.md). The tile and Chronos-only actions are hidden
@@ -58,6 +58,18 @@ IDs 137–143 add `hollow_anger`, `snickering`, `hiccup`, `retro_tv`,
 style and palette at both endpoints. Comet paths, Sakura petals and hiccup
 bubbles have deterministic event-based variation, not per-frame randomness.
 
+All faces now receive session-only variation in Dasai and Playful modes:
+smooth micro-gaze, gentle stretch, and slight opening differences when asymmetry
+is enabled. Idle gestures last 700–1200 ms instead of a fixed beat. Special scenes
+retain their stable origin, but their active timing varies smoothly between cycles;
+the first/last 800 ms and complete loop durations stay unchanged so transitions
+and palette restoration remain predictable. Existing rain, petals, smoke, bubbles,
+comets, glitch bursts and stars use the visible face's entry seed. The star field
+also chooses a stable new arrangement on entry, not new positions every frame.
+No generic confetti, extra pupils or palette changes are added.
+Calm disables these additions; dashboard and night settings reduce micro-motion
+and rhythm variation. Seeds never enter the saved profile.
+
 - Settings → SYSTEM → **Firmware update** opens a temporary Wi-Fi maintenance
   screen, outside the seven-page carousel. Its password and browser address are
   shown on the display; normal controls pause until exit, timeout or restart.
@@ -65,10 +77,12 @@ bubbles have deterministic event-based variation, not per-frame randomness.
 
 - Swipe left/right through Eyes, Clock, Music, Route, Alerts, Weather, and Settings.
 - Vertical swipes follow the contextual layers: swipe **down** on Clock to open
-  Scrivania (desk tools), swipe **up** on Scrivania to return to Clock, and
-  swipe **up** on any desk tool to return to Scrivania. Swipe **down** on Route
+  Scrivania (desk tools), then **down** again for **Games / Giochi** (D&D dice,
+  Pong and Tris). Swipe **up** from a game to Games, from Games or a desk tool
+  to Scrivania, and from Scrivania to Clock. Swipe **down** on Route
   toggles the large/details layout and swipe **down** on Weather requests a
-  phone sync and a configured Internet weather refresh. A downward swipe anywhere else still returns straight to Eyes.
+  phone sync and a configured Internet weather refresh. Downward swipes on Games
+  and Dice stay there; other utility pages retain the quick return to Eyes.
   Vertical strokes still pet Mochi on Eyes and still scroll rows inside
   Settings.
 - Tap the top status strip, above the page title, on Clock, Music, Route, Alerts,
@@ -77,7 +91,7 @@ bubbles have deterministic event-based variation, not per-frame randomness.
   reactions) and inside Settings. This edits the RAM profile like the SOUND
   section does, so a Settings SAVE persists it too.
 - A downward swipe on Clock opens Scrivania: large clock, overview, local
-  timer, device status, Pong and analog clock, without adding them to the primary swipe
+  timer, device status and analog clock, without adding them to the primary swipe
   carousel. See [Desk tools](DESK.md).
 - A short tap on Eyes requests a temporary random face and makes the eyes
   glance toward the touch point for a couple of seconds. It does not change
@@ -131,8 +145,10 @@ bubbles have deterministic event-based variation, not per-frame randomness.
   to be released, avoiding a page change underneath a settings tap.
 - Hold still for 1.2 seconds on the eyes screen to open Settings. A swipe or
   moving finger is not also treated as a tap or hold.
-- The desk hub presents eight 108x44-pixel cards in Android mode, seven in iPhone mode, in a two-column, four-row grid
-  (design coordinates), including playable Tris against Mochi. The
+- The desk hub presents six 108x44-pixel cards in Android mode, five in iPhone mode,
+  in a two-column, three-row grid (design coordinates). Games lives one layer below;
+  Dice supports 1–100 D4/D6/D8/D10/D12/D20/D100 with individual results and a total.
+  The
   local timer uses a full-width 50-pixel START/PAUSE accent button with
   48-pixel RESET and MODE buttons, so every desk control is a comfortable
   parked-use target.

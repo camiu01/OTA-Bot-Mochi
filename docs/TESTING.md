@@ -61,6 +61,12 @@ filled DRL with a fixed white rim across selected center colors. Web tests save 
 new styles and reject the count sentinel. Frozen fixtures retain their four-style
 indexing and are not regenerated for the new styles.
 The petting heart must remain pink independently of the eye color and erase without trails.
+`face_variation_test.cpp` checks stable entry seeds, blink-covered seed handoffs,
+bounded micro-motion, Calm behavior and timestamp rollover. Rhythm tests cover all
+faces, ensuring monotonic time within each unchanged cycle and exact entry/restore
+windows. Live seeded rendering checks dirty-versus-clean redraws for every face,
+all seven styles and six panel sizes, including transitions and two full cycles.
+Native checks do not measure on-device frame time or physical flicker.
 The face catalog checks compile the documented C++17 per-eye preset example and
 validate all 145 IDs/names, parameter ranges, USB selection and settings round-trips.
 Two frozen pre-refactor raster fixtures check pixels and dirty bounds across six
@@ -452,9 +458,10 @@ separately in TODO.
    IMU share one I2C bus at SDA=11/SCL=10 on LCD OLD, SDA=15/SCL=14 on AMOLED V2; if touch answers but `IMU unavailable`
    persists, suspect the sensor identity or wiring rather than the bus pins.
 2. Swipe through all screens and test repeated/edge gestures. Swipe down on Clock
-   to open Scrivania, down on Route to toggle the layout, down on Weather to
+   to open Scrivania, down again to open Games, down on Route to toggle the layout, down on Weather to
    request a sync, and down on Alerts or a desk tool to confirm the quick return
-   to Eyes; confirm upward swipes walk back through Scrivania to Clock, and
+   to Eyes (Games/Dice remain on-page); confirm upward swipes walk back from
+   Dice/Pong/Tris through Games, Scrivania and Clock, and
    vertical strokes still pet on Eyes and still scroll rows in Settings.
    Tap the top status strip on Clock, Route, Alerts, Weather, or a desk tool to
    toggle sound: unmuting must chirp once, the strip must do nothing on Eyes and
@@ -505,13 +512,17 @@ separately in TODO.
     same way with a battery connected. Do not treat the native conversion tests
     as physical validation.
 
-Also test a downward swipe on Clock into Scrivania and all seven tools. Verify
+Also test a downward swipe on Clock into Scrivania and again into Games.
+Verify all available tools and games, including the Android-only Phone tools tile.
+For Dice, exercise all seven types, ±1/±10 count controls and 1/100 limits,
+individual result paging, sums up to 10,000, unchanged results after repaint/page
+changes, and reset to 1D20 after reboot. Verify
 large clock legibility, timer continuation while viewing other pages,
 default-silent completion, Tris turns/win/draw/new-game behavior, and reboot reset.
 Confirm every hub card and timer
 button is an easy parked-use target, a downward swipe on Route toggles the
 layout, a downward swipe on Weather requests a sync, and upward swipes walk
-back from tools to Scrivania to Clock; other pages keep the downward-swipe
+back from games through Games to Scrivania to Clock; other pages keep the downward-swipe
 home to Eyes.
 Switch Route layout temporarily, SAVE a different setting, and reboot: the saved
 route default must win. Test `route default`, a Route hold, and SYSTEM → Route default.
