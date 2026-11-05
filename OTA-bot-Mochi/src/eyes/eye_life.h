@@ -28,6 +28,25 @@ class EyeLife {
 	uint8_t gesture = 0;
 	float fromL = 1, fromR = 1, gazeX = 0, gazeY = 0;
 	int8_t sign = 1;
+	float comfort = 0;
+	/** @brief Blend explicit affection and pickup feedback without replacing a face or palette. */
+	bool feedback(const EyeState &st, uint32_t now, uint32_t dt) {
+		if (st.dizzyUntilMs) { comfort = 0; return false; }
+		bool pet = st.petUntilMs && int32_t(st.petUntilMs - now) > 0;
+		float alpha = float(dt > 100 ? 100 : dt) / (180 + float(dt > 100 ? 100 : dt));
+		comfort += ((pet ? 1.0f : 0.0f) - comfort) * alpha;
+		if (!pet && comfort < 0.005f) { comfort = 0; }
+		frame.openL *= 1 - comfort * 0.38f; frame.openR *= 1 - comfort * 0.38f;
+		frame.scaleX += comfort * 0.025f; frame.scaleY -= comfort * 0.025f;
+		bool waking = !st.tracking && !pet && !comfort && st.wakeUntilMs && int32_t(st.wakeUntilMs - now) > 0;
+		if (waking) {
+			float p = 1 - float(uint32_t(st.wakeUntilMs - now)) / 1400;
+			float open = 0.55f + 0.45f * ease(p / 0.6f);
+			frame.openL *= open; frame.openR *= open;
+			frame.scaleY += sinf(3.14159265f * p) * 0.08f;
+		}
+		return pet || comfort > 0 || waking;
+	}
 	/** @brief Give every entry a fresh idle wait instead of a fixed first gesture time. */
 	void arm_idle(uint32_t now, uint32_t choice, uint8_t mode, float amount) {
 		idle_at = now;
@@ -121,8 +140,9 @@ public:
 			float open = p < 1 ? 1 - sinf(3.14159265f * p) : 1;
 			frame.openL *= open; frame.openR *= open;
 		}
-		if (!mode || st.tracking) { gesturing = false; idle_at = now; }
-		if (mode && allow_idle && !st.tracking && !changing && !gesturing && uint32_t(now - idle_at) >= idle_delay) {
+		bool responding = feedback(st, now, dt);
+		if (!mode || st.tracking || responding) { gesturing = false; idle_at = now; }
+		if (mode && allow_idle && !st.tracking && !responding && !changing && !gesturing && uint32_t(now - idle_at) >= idle_delay) {
 			gesture = (gesture + 1 + choice % 5) % 6;
 			sign = choice & 1 ? 1 : -1; gesture_at = idle_at = now; gesturing = true;
 			gesture_duration = 700 + choice % 501;
@@ -130,7 +150,7 @@ public:
 		}
 		if (gesturing && !changing) { pose(now, amount); }
 		vary(now, cfg.asym != 0, st.tracking);
-		frame.busy = changing || gesturing;
+		frame.busy = changing || gesturing || responding;
 	}
 };
 

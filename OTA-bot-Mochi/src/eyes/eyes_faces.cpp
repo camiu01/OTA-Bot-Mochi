@@ -98,6 +98,7 @@ void eyes_faces_pet(uint32_t now, int16_t x, int16_t y) {
 	if (fresh) { sound_request_face(eyes_face_tone(eyes_config().expression), now); }
 	EyeState &state = eyes_state();
 	int16_t w = eyes_config().screenW, h = eyes_config().screenH;
+	state.petUntilMs = now + 1200; state.wakeUntilMs = 0;
 	state.heartX = int16_t(x < 7 ? 7 : (x > w - 8 ? w - 8 : x));
 	state.heartY = int16_t(y < 20 ? 20 : (y > h - 14 ? h - 14 : y));
 	state.heartUntilMs = now + 900;

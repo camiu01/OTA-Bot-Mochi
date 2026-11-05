@@ -156,6 +156,7 @@ void eyes_init(Arduino_GFX *display) {
 	s_state.dizzyUntilMs = 0;
 	s_state.glanceUntilMs = 0;
 	s_state.tracking = false;
+	s_state.petUntilMs = s_state.wakeUntilMs = 0;
 	s_state.heartUntilMs = 0;
 	s_state.savedExpr = NEUTRAL;
 	s_state.dirtyInit = false;
@@ -379,12 +380,18 @@ void eyes_glance(int16_t x, int16_t y, uint32_t nowMs) {
 
 void eyes_follow(int16_t x, int16_t y, bool touching, uint32_t nowMs) {
 	if (s_state.dizzyUntilMs) { touching = false; }
-	if (touching) { eyes_glance(x, y, nowMs); }
+	if (touching) { s_state.wakeUntilMs = 0; eyes_glance(x, y, nowMs); }
 	else if (s_state.tracking) {
 		s_state.glanceUntilMs = nowMs + 600;
 		s_state.nextSaccadeMs = nowMs + 600;
 	}
 	s_state.tracking = touching;
+}
+
+void eyes_wake(uint32_t nowMs) {
+	if (!settings_get().imu_faces || s_state.tracking || s_state.dizzyUntilMs ||
+		(s_state.petUntilMs && int32_t(s_state.petUntilMs - nowMs) > 0)) { return; }
+	s_state.wakeUntilMs = nowMs + 1400;
 }
 
 /**
@@ -412,6 +419,8 @@ void eyes_update(uint32_t nowMs) {
 	eyes_imu_poll(nowMs);
 	eyes_faces_step(nowMs);
 	eyes_life_step(nowMs, dt);
+	if (s_state.petUntilMs && int32_t(nowMs - s_state.petUntilMs) >= 0) { s_state.petUntilMs = 0; }
+	if (s_state.wakeUntilMs && int32_t(nowMs - s_state.wakeUntilMs) >= 0) { s_state.wakeUntilMs = 0; }
 	if (s_state.heartUntilMs != 0 && (int32_t)(nowMs - s_state.heartUntilMs) >= 0) {
 		s_state.heartUntilMs = 0;
 	}

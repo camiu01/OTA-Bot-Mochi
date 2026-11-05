@@ -108,6 +108,7 @@ void handle_key(SDL_Keycode key, bool &running) {
 	if (key == SDLK_p) { write_ppm(shot_path); return; }
 	if (key == SDLK_n) { inject_notification(); return; }
 	if (key == SDLK_r) { toggle_route(); return; }
+	if (key == SDLK_u) { eyes_wake(test_now); return; }
 	static const UiPage jump[] = {UiPage::Eyes, UiPage::Clock, UiPage::Music, UiPage::Navigation,
 		UiPage::Notification, UiPage::Weather, UiPage::Settings, UiPage::Desk};
 	if (key >= SDLK_0 && key <= SDLK_7) { switch_screen(jump[key - SDLK_0], test_now); }

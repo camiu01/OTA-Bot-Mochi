@@ -165,6 +165,9 @@ void eyes_glance(int16_t x, int16_t y, uint32_t nowMs);
 /** @brief Follow a live logical contact without consuming gestures or changing the face/profile. */
 void eyes_follow(int16_t x, int16_t y, bool touching, uint32_t nowMs);
 
+/** @brief Brief visual pickup wake; respects IMU opt-in, touch and Dizzy priority. */
+void eyes_wake(uint32_t nowMs);
+
 /**
  * @brief Redraw eyes from current config/state.
  */

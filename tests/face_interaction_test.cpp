@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "../OTA-bot-Mochi/src/eyes/eyes_api.h"
+#include "../OTA-bot-Mochi/src/eyes/eyes_faces.h"
 #include "../OTA-bot-Mochi/src/eyes/eye_life.h"
 #include "../OTA-bot-Mochi/src/eyes/face_policy.h"
 #include "../OTA-bot-Mochi/src/eyes/face_presets.h"
@@ -137,12 +138,49 @@ static void rendered(int w, int h) {
 	assert(changes >= 3);
 }
 
+/** @brief Explicit affection relaxes lids; pickup feedback respects opt-ins and interaction priority. */
+static void affection_and_wake(int w, int h) {
+	Arduino_GFX gfx(w, h);
+	auto p = settings_get(); p.random_faces = false; p.imu_faces = true;
+	p.mood = NEUTRAL; p.animation = 0; assert(settings_update(p));
+	for (uint8_t style = 0; style < EYE_STYLE_COUNT; ++style) {
+		test_now = UINT32_MAX - 2000;
+		eyes_init(&gfx); eyes_set_style(EyeStyle(style)); eyes_set_expression(NEUTRAL);
+		eyes_state().nextBlinkMs = test_now + 100000;
+		for (unsigned i = 0; i < 45; ++i) {
+			test_now += 33; eyes_follow(w / 2, h / 2, true, test_now);
+			if (i % 10 == 0) { eyes_faces_pet(test_now, w / 2, h / 2); }
+			eyes_update(test_now);
+		}
+		assert(eyes_life_frame().openL < 0.8f && eyes_life_frame().openR < 0.8f);
+		eyes_wake(test_now); assert(!eyes_state().wakeUntilMs);
+		eyes_follow(0, 0, false, test_now);
+		for (unsigned i = 0; i < 150; ++i) { test_now += 33; eyes_update(test_now); }
+		assert(eyes_life_frame().openL > 0.99f);
+		eyes_wake(test_now); assert(eyes_state().wakeUntilMs);
+		test_now += 33; eyes_update(test_now);
+		assert(eyes_life_frame().openL < 0.7f);
+		auto dirty = gfx.pixels; eyes_state().dirtyInit = false; eyes_draw(); assert(dirty == gfx.pixels);
+		eyes_follow(w / 2, h / 2, true, test_now); assert(!eyes_state().wakeUntilMs);
+		eyes_follow(0, 0, false, test_now);
+		for (unsigned i = 0; i < 60; ++i) { test_now += 33; eyes_update(test_now); }
+		assert(eyes_life_frame().openL > 0.99f);
+		eyes_state().dizzyUntilMs = test_now + 2000;
+		eyes_wake(test_now); assert(!eyes_state().wakeUntilMs);
+		eyes_state().dizzyUntilMs = 0;
+		assert(settings_get().mood == p.mood && settings_get().style == p.style);
+	}
+	p.imu_faces = false; assert(settings_update(p));
+	eyes_wake(test_now); assert(!eyes_state().wakeUntilMs);
+}
+
 int main() {
 	assert(settings_init());
 	schedules(); idle_waits(); idle_collision();
 	for (const auto &panel : {std::pair<int, int>{240, 280}, {368, 448}}) {
 		following(panel.first, panel.second);
 		rendered(panel.first, panel.second);
+		affection_and_wake(panel.first, panel.second);
 	}
 	std::cout << "Random complete loops, delayed visible handoff, rollover and live finger gaze passed\n";
 }

@@ -5,8 +5,9 @@
 Functional confirmations below are scoped to
 AMOLED V2 unless another board is explicitly recorded.
 
+- [ ] Physically tune and validate affection easing and the pickup wake heuristic on LCD OLD/AMOLED V2: gentle strokes, return to rest, real lifts in both orientations, bumps/road motion, touch/Dizzy priority and IMU opt-out. Native traces and LCD captures do not establish physical pickup accuracy.
 - [ ] Compile and physically check random whole-cycle scheduling and live finger gaze on LCD OLD/AMOLED V2: no truncated performances, repeat variability, follow/release and flipped coordinates, unchanged tap/pet/swipe/Settings hold, and Shake recovery. Native checks and GIFs are not proof of physical timing or touch tracking.
-- [ ] Investigate two Windows LCD-emulator access violations after writing the final PPM during concurrent default-backend runs. A single debugger run exited normally; all eight repeated sessions passed with `SDL_RENDER_DRIVER=software`. The accelerated-backend cause is not established.
+- [ ] Confirm the cause of two historical Windows LCD-emulator shutdown access violations. On 2026-11-05, 216 short and 16 long baseline runs did not reproduce them. Dummy-video sessions now bypass accelerated-driver probing, and partial/full SDL cleanup has regressions on both panels. This mitigates headless driver-lifetime exposure; the original crash cause remains unproven.
 
 - [ ] Compile and physically check seeded face variation on LCD OLD and AMOLED V2: all styles, Calm/Dasai/Playful, dashboard/night intensity, open Moon/Fire, backdrop handoffs, frame cadence and clean palette restoration. Native timing/raster checks and GIF previews do not establish physical flicker or frame speed.
 - [ ] Compile and physically check the Games layer below Scrivania and D&D dice on LCD OLD/AMOLED V2: type/count controls, maximum 100D100 legibility, result paging, navigation, phone-mode visibility and unchanged results after redraw. Native tests do not prove physical touch usability or random-source quality.

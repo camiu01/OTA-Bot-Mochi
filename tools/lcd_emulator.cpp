@@ -273,7 +273,7 @@ void usage(const char *program) {
 	std::printf("  --command line   run one USB console command at startup\n");
 	std::printf("  --screenshot P   write the final canvas to a PPM image\n");
 	std::printf("Mouse: click tap, drag swipe/scroll, hold 1.2s settings, wheel pages\n");
-	std::printf("Keys:  0..7 pages/tools, n alert, r route, p snapshot, q/ESC quit\n");
+	std::printf("Keys:  0..7 pages/tools, n alert, r route, u pickup wake, p snapshot, q/ESC quit\n");
 	std::printf("Terminal: type a USB command and press Enter (try: mood names, mood glow, help)\n");
 	std::printf("Window: press Enter to type a command there instead; replies appear in the terminal\n");
 }
@@ -304,6 +304,28 @@ bool parse_args(int argc, char **argv) {
 	return true;
 }
 
+uint32_t emulator_renderer_flags(const char *video_driver) {
+	// Dummy windows cannot accelerate; probing GPU drivers adds needless host-driver lifetime risks.
+	return video_driver && std::string(video_driver) == "dummy" ? SDL_RENDERER_SOFTWARE : SDL_RENDERER_ACCELERATED;
+}
+
+SDL_Renderer *emulator_create_renderer(SDL_Window *window) {
+	uint32_t flags = emulator_renderer_flags(SDL_GetCurrentVideoDriver());
+	SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, flags);
+	if (!renderer && flags != SDL_RENDERER_SOFTWARE) {
+		renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
+	}
+	return renderer;
+}
+
+void emulator_close_display(SDL_Window *window, SDL_Renderer *renderer, SDL_Texture *texture) {
+	SDL_StopTextInput();
+	if (texture) { SDL_DestroyTexture(texture); }
+	if (renderer) { SDL_DestroyRenderer(renderer); }
+	if (window) { SDL_DestroyWindow(window); }
+	SDL_Quit();
+}
+
 #ifndef MOCHI_EMULATOR_INPUT_TEST
 int main(int argc, char **argv) {
 	if (!parse_args(argc, argv)) { usage(argv[0]); return 2; }
@@ -321,14 +343,19 @@ int main(int argc, char **argv) {
 		}
 	}
 	if (!window) { std::fprintf(stderr, "SDL_CreateWindow: %s\n", SDL_GetError()); SDL_Quit(); return 1; }
-	SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-	if (!renderer) { renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE); }
-	if (!renderer) { std::fprintf(stderr, "SDL_CreateRenderer: %s\n", SDL_GetError()); SDL_Quit(); return 1; }
+	SDL_Renderer *renderer = emulator_create_renderer(window);
+	if (!renderer) {
+		std::fprintf(stderr, "SDL_CreateRenderer: %s\n", SDL_GetError());
+		emulator_close_display(window, nullptr, nullptr); return 1;
+	}
 	SDL_RenderSetLogicalSize(renderer, LCD_W, LCD_H);
 	SDL_RenderSetIntegerScale(renderer, SDL_TRUE);
 	SDL_Texture *texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
 		SDL_TEXTUREACCESS_STREAMING, LCD_W, LCD_H);
-	if (!texture) { std::fprintf(stderr, "SDL_CreateTexture: %s\n", SDL_GetError()); SDL_Quit(); return 1; }
+	if (!texture) {
+		std::fprintf(stderr, "SDL_CreateTexture: %s\n", SDL_GetError());
+		emulator_close_display(window, renderer, nullptr); return 1;
+	}
 	boot_firmware();
 	if (!boot_command.empty()) { Serial.input += boot_command + "\n"; }
 	if (start_page != page) { switch_screen(start_page, 0); }
@@ -339,10 +366,7 @@ int main(int argc, char **argv) {
 		std::fprintf(stderr, "screenshot failed: %s\n", shot_path.c_str());
 		status = 1;
 	}
-	SDL_DestroyTexture(texture);
-	SDL_DestroyRenderer(renderer);
-	SDL_DestroyWindow(window);
-	SDL_Quit();
+	emulator_close_display(window, renderer, texture);
 	return status;
 }
 #endif

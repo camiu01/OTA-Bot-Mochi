@@ -107,6 +107,14 @@ Idle gestures have random initial and repeat delays rather than a fixed first be
   Full-screen scenes retain their stable origin to avoid clipping. Lifting the
   finger resumes idle gaze after a short pause; released taps, vertical petting,
   horizontal swipes and the stationary 1.2-second Settings hold keep their roles.
+- Recognized petting strokes also ease the eyelids into a relaxed pose. Repeated
+  strokes sustain it; after the last stroke, the gaze and lids return smoothly.
+  This visual feedback works in Calm too and never adds pupils or changes ink.
+- With IMU faces enabled, a quiet-to-motion-to-settled change of pose can request
+  a brief pickup wake gesture. It opens the eyes gently without selecting a new
+  expression, changing saved preferences or adding sound. Live contact,
+  affection and Dizzy take priority; full-screen scenes retain their origin.
+  This is a conservative motion heuristic, not proof that the robot was lifted.
 - Double-tap quickly on Eyes for a playful face from a separate excited/star
   pool, with the same glance toward your finger. Dizzy keeps priority.
 - Stroke vertically in either direction on Eyes to pet Mochi: a single

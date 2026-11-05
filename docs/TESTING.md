@@ -76,6 +76,27 @@ real driver on both board profiles: repeated non-consuming contact reads,
 orientation mapping, release/error/out-of-bounds rejection and preserved tap,
 hold, pet and swipe events. The non-raster eye stub still advances the real
 expression clock so policy tests do not silently stall without pixels.
+
+`pickup_test.cpp` checks a stable 1.2-second rest, a moderate impulse, a changed
+pose settled for 200 ms within 1.5 seconds, and a six-second cooldown. It rejects
+disabled input, invalid samples, gaps, unchanged-pose bumps, slow tilts and strong
+impulses, including across timestamp rollover. The IMU suite also replays raw
+registers through the real driver in both orientations and verifies no flash
+writes. Interaction tests cover affection easing/release and pickup wake priority
+on both panel sizes and all seven styles. These synthetic traces do not establish
+pickup accuracy or safe rejection of every road movement.
+In the native LCD emulator, enable `set imu-face on` and press `u` to preview the
+visual wake gesture; this shortcut does not simulate accelerometer detection.
+
+The SDL emulator input checks (`tools/run-emulator.ps1 -TestInput`, with
+`-Size 240x280` or `-Size 368x448`) also exercise dummy-video renderer selection,
+invalid-window rejection and partial/full display cleanup. Dummy video selects
+software directly instead of probing GPU backends; interactive video keeps
+acceleration with software fallback. Texture, renderer and window are released
+before SDL shuts down, including renderer/texture creation failures.
+This isolates headless checks from unnecessary GPU initialization; it does not
+establish the cause of the two historical Windows shutdown crashes.
+
 The face catalog checks compile the documented C++17 per-eye preset example and
 validate all 145 IDs/names, parameter ranges, USB selection and settings round-trips.
 Two frozen pre-refactor raster fixtures check pixels and dirty bounds across six

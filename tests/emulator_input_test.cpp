@@ -48,11 +48,52 @@ static void terminal_commands() {
 	assert(settings_get().mood == uint8_t(Expression::HEADLIGHTS));
 }
 
+/** @brief Dummy sessions never request acceleration; full and partial startup cleanly release SDL. */
+static void display_lifecycle() {
+	assert(emulator_renderer_flags("dummy") == SDL_RENDERER_SOFTWARE);
+	assert(emulator_renderer_flags("windows") == SDL_RENDERER_ACCELERATED);
+	assert(emulator_renderer_flags("x11") == SDL_RENDERER_ACCELERATED);
+	assert(emulator_renderer_flags(nullptr) == SDL_RENDERER_ACCELERATED);
+	assert(SDL_setenv("SDL_VIDEODRIVER", "dummy", 1) == 0);
+	for (unsigned stage = 0; stage < 4; ++stage) {
+		assert(SDL_Init(SDL_INIT_VIDEO) == 0);
+		assert(!emulator_create_renderer(nullptr));
+		SDL_Window *window = nullptr;
+		SDL_Renderer *renderer = nullptr;
+		SDL_Texture *texture = nullptr;
+		if (stage >= 1) {
+			window = SDL_CreateWindow("lifecycle", 0, 0, LCD_W, LCD_H, SDL_WINDOW_HIDDEN);
+			assert(window);
+		}
+		if (stage >= 2) {
+			renderer = emulator_create_renderer(window); assert(renderer);
+			SDL_RendererInfo info{}; assert(SDL_GetRendererInfo(renderer, &info) == 0);
+			assert(info.flags & SDL_RENDERER_SOFTWARE);
+			assert(!(info.flags & SDL_RENDERER_ACCELERATED));
+		}
+		if (stage >= 3) {
+			texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, LCD_W, LCD_H);
+			assert(texture); SDL_StartTextInput();
+		}
+		emulator_close_display(window, renderer, texture);
+		assert(SDL_WasInit(SDL_INIT_VIDEO) == 0);
+	}
+	std::puts("Dummy renderer selection and partial/full SDL lifecycle passed");
+}
+
 /** @brief Run deterministic event-level input regressions. @return Success. */
 int main() {
+	display_lifecycle();
 	boot_firmware();
 	test_now = 10000;
 	reset_contact();
+	SDL_Event wake{}; wake.type = SDL_KEYDOWN; wake.key.keysym.sym = SDLK_u;
+	auto wake_profile = settings_get(); wake_profile.imu_faces = false;
+	assert(settings_update(wake_profile));
+	bool ignored = true; handle_event(wake, nullptr, ignored); assert(!eyes_state().wakeUntilMs);
+	wake_profile.imu_faces = true; assert(settings_update(wake_profile));
+	bool waking = true; handle_event(wake, nullptr, waking);
+	assert(eyes_state().wakeUntilMs == test_now + 1400);
 	// SDL_RenderSetLogicalSize already scales mouse events, even at 3x or after resizing.
 	mouse(SDL_MOUSEBUTTONDOWN, LCD_W * 3 / 4, LCD_H / 2);
 	assert(finger_x == LCD_W * 3 / 4 && finger_y == LCD_H / 2);

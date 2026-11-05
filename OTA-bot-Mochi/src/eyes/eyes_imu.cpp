@@ -24,6 +24,7 @@
  */
 #include "eyes_api.h"
 #include "motion_filter.h"
+#include "pickup_policy.h"
 #include "imu_orientation.h"
 #include "imu_calibration_store.h"
 #include "eyes_faces.h"
@@ -46,6 +47,7 @@ static uint8_t s_address = 0x6B;
 static uint32_t s_lastPoll = 0;
 static bool s_flipped = false;
 static MotionFilter s_motion;
+static PickupPolicy s_pickup;
 
 /**
  * @brief Write one byte to a QMI8658C register.
@@ -96,6 +98,7 @@ static bool imu_read_acc(int16_t *ax, int16_t *ay, int16_t *az) {
 void eyes_imu_init() {
 	s_imuOk = false;
 	s_motion = MotionFilter{};
+	s_pickup.reset();
 	eyes_imu_set_tilt(0, 0);
 	if (!i2c_bus_begin(QMI_SDA, QMI_SCL, 400000)) { return; }
 	TwoWire &bus = i2c_bus();
@@ -148,6 +151,7 @@ void eyes_imu_trigger_shake(uint32_t nowMs) {
 	if (!face_filter().allows(DIZZY)) { return; }
 	EyeState &st = eyes_state();
 	EyeConfig &cfg = eyes_config();
+	st.wakeUntilMs = st.petUntilMs = 0;
 	if (st.dizzyUntilMs != 0) {
 		st.dizzyUntilMs = nowMs + 2000;
 		return;
@@ -183,6 +187,7 @@ void eyes_imu_poll(uint32_t nowMs) {
 	orientation.target(settings_get().flipped);
 	bool calibrated = orientation.sample(fx, fy, fz, nowMs);
 	if (orientation.status == ImuCalibration::Sampling) {
+		s_pickup.reset();
 		eyes_imu_set_tilt(0, 0);
 		return;
 	}
@@ -193,8 +198,10 @@ void eyes_imu_poll(uint32_t nowMs) {
 	if (flipped != s_flipped) {
 		s_flipped = flipped;
 		s_motion = MotionFilter{};
+		s_pickup.reset();
 	}
 	if (calibrated) {
+		s_pickup.reset();
 		orientation.persisted = imu_calibration_save(orientation);
 		orientation.save_failed = !orientation.persisted;
 		float sign = flipped ? -1.0f : 1.0f;
@@ -207,6 +214,7 @@ void eyes_imu_poll(uint32_t nowMs) {
 	MotionSample sample = s_motion.update(fx, fy, fz, nowMs,
 		settings_get().shake && eyes_faces_automatic_ready(nowMs));
 	eyes_imu_set_tilt(sample.x, sample.y);
+	if (s_pickup.update(fx, fy, fz, nowMs, settings_get().imu_faces)) { eyes_wake(nowMs); }
 	eyes_faces_motion(sample.delta_x, sample.delta_y, sample.delta_z, nowMs);
 	if (sample.shake) {
 		eyes_imu_trigger_shake(nowMs);

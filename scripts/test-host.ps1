@@ -70,6 +70,7 @@ try {
 		"$root\tests\stubs\imu_noop.cpp"
 	)
 	Invoke-HostTest 'swipe' @("$root\tests\swipe_test.cpp")
+	Invoke-HostTest 'pickup' @("$root\tests\pickup_test.cpp")
 	$touch = @("$root\tests\touch_contact_test.cpp", "$root\OTA-bot-Mochi\src\touch\touch.cpp", "$root\OTA-bot-Mochi\src\bus\i2c_bus.cpp")
 	Invoke-HostTest 'touch-contact-lcd' $touch
 	Invoke-HostTest 'touch-contact-amoled' $touch @('-DMOCHI_BOARD_AMOLED_18')

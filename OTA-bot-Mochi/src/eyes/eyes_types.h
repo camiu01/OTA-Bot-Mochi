@@ -291,6 +291,8 @@ struct EyeState {
 	uint32_t dizzyUntilMs;	/**< Expiry time of DIZZY override, 0 when inactive. */
 	uint32_t glanceUntilMs;	/**< Expiry of the tap-directed gaze hold, 0 when idle. */
 	bool tracking = false; /**< A live finger owns gaze, never persisted. */
+	uint32_t petUntilMs = 0; /**< Last recognized stroke's visual relaxation, RAM-only. */
+	uint32_t wakeUntilMs = 0; /**< Brief pickup wake gesture, RAM-only. */
 	uint32_t heartUntilMs;	/**< Expiry of the petting heart marker, 0 when idle. */
 	int16_t heartX;		/**< Center X of the petting heart marker. */
 	int16_t heartY;		/**< Top Y of the petting heart marker. */
