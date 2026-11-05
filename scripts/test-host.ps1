@@ -70,6 +70,9 @@ try {
 		"$root\tests\stubs\imu_noop.cpp"
 	)
 	Invoke-HostTest 'swipe' @("$root\tests\swipe_test.cpp")
+	$touch = @("$root\tests\touch_contact_test.cpp", "$root\OTA-bot-Mochi\src\touch\touch.cpp", "$root\OTA-bot-Mochi\src\bus\i2c_bus.cpp")
+	Invoke-HostTest 'touch-contact-lcd' $touch
+	Invoke-HostTest 'touch-contact-amoled' $touch @('-DMOCHI_BOARD_AMOLED_18')
 	Invoke-HostTest 'ancs' @("$root\tests\ancs_test.cpp", "$root\OTA-bot-Mochi\src\ancs\ancs_parser.cpp")
 	Invoke-HostTest 'utf8-text' @("$root\tests\utf8_text_test.cpp", "$root\OTA-bot-Mochi\src\ui\ui_state.cpp")
 	$boot = @("$root\tests\ota_boot_test.cpp", "$root\OTA-bot-Mochi\src\update\ota_boot.cpp")
@@ -125,6 +128,7 @@ try {
 	$renderEyes = @("$root\OTA-bot-Mochi\src\eyes\eyes_draw.cpp", "$root\tests\stubs\imu_noop.cpp")
 	Invoke-HostTest 'eyes' ($renderRuntime + @("$root\tests\eyes_test.cpp") + $renderEyes)
 	Invoke-HostTest 'face-variation' ($renderRuntime + @("$root\tests\face_variation_test.cpp") + $renderEyes) @('-O2')
+	Invoke-HostTest 'face-interaction' ($renderRuntime + @("$root\tests\face_interaction_test.cpp") + $renderEyes) @('-O2')
 	Invoke-HostTest 'face-filter' ($renderRuntime + @("$root\tests\face_filter_test.cpp", "$root\OTA-bot-Mochi\src\eyes\eyes_draw.cpp", "$root\OTA-bot-Mochi\src\eyes\eyes_imu.cpp"))
 	Invoke-HostTest 'face-web' ($runtime + @("$root\tests\face_web_test.cpp", "$root\OTA-bot-Mochi\src\update\ota_update.cpp", "$root\OTA-bot-Mochi\src\update\ntp_sync.cpp", "$root\tests\stubs\imu_noop.cpp")) @('-I', "$root\tests\stubs\ota")
 	Invoke-HostTest 'settings-web' ($runtime + @("$root\tests\settings_web_test.cpp", "$root\OTA-bot-Mochi\src\update\ota_update.cpp", "$root\OTA-bot-Mochi\src\update\ntp_sync.cpp", "$root\tests\stubs\imu_noop.cpp")) @('-I', "$root\tests\stubs\ota")

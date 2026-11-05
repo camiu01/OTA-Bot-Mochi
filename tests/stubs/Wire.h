@@ -24,7 +24,8 @@ public:
 	void beginTransmission(uint8_t target) { address = target; sent.clear(); }
 	void write(uint8_t data) { sent.push_back(data); }
 	int endTransmission(bool = true) {
-		if (!present[address] || sent.empty()) { return 1; }
+		if (!present[address]) { return 1; }
+		if (sent.empty()) { return 0; }
 		pointer = sent[0];
 		if (sent.size() > 1 && pointer == fail_write_register) { return 1; }
 		for (size_t i = 1; i < sent.size(); ++i, ++pointer) {

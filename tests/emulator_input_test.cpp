@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "../tools/emulator.h"
+#include "../OTA-bot-Mochi/src/eyes/eyes_api.h"
 #include "../OTA-bot-Mochi/src/settings/usb_commands.h"
 #include "../OTA-bot-Mochi/src/settings/settings.h"
 #include <cassert>
@@ -56,8 +57,10 @@ int main() {
 	mouse(SDL_MOUSEBUTTONDOWN, LCD_W * 3 / 4, LCD_H / 2);
 	assert(finger_x == LCD_W * 3 / 4 && finger_y == LCD_H / 2);
 	assert(actions.active);
+	assert(eyes_state().tracking && eyes_state().saccadeX > 0);
 	mouse(SDL_MOUSEBUTTONUP, LCD_W * 3 / 4, LCD_H / 2);
 	assert(!finger && !actions.active && actions.tap_armed);
+	assert(!eyes_state().tracking);
 	// A second complete click in the same input batch must not disappear.
 	test_now += 100;
 	mouse(SDL_MOUSEBUTTONDOWN, LCD_W * 3 / 4, LCD_H / 2);
@@ -81,6 +84,8 @@ int main() {
 	bool running = true;
 	handle_event(lost, nullptr, running);
 	assert(!finger && !actions.active && !actions.tap_armed);
+	handle_touch(test_now);
+	assert(!eyes_state().tracking);
 	terminal_commands();
 	std::puts("Terminal command editing, CRLF, overflow recovery and execution passed");
 	std::puts("Emulator logical coordinates, fast/double click, hold, drag and focus loss passed");

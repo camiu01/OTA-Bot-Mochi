@@ -10,6 +10,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "emulator.h"
+#include "../OTA-bot-Mochi/src/eyes/eyes_api.h"
 #include "../OTA-bot-Mochi/src/eyes/eyes_faces.h"
 #include "../OTA-bot-Mochi/src/settings/settings_menu.h"
 #include "../OTA-bot-Mochi/src/ui/ui_theme.h"
@@ -168,6 +169,7 @@ Gesture take_gesture() {
 }
 
 void handle_touch(uint32_t now) {
+	eyes_follow(finger_x, finger_y, finger && page == UiPage::Eyes && !screens_calling(), now);
 	const Gesture g = take_gesture();
 	if (g.tap && g.y < 50 && !screens_calling() && page != UiPage::Eyes && page != UiPage::Settings) {
 		toggle_quick_sound(now);

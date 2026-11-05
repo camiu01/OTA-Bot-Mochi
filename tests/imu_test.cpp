@@ -122,19 +122,22 @@ static void continuous_shake_recovery() {
 	// Sensor read failures must not prevent an already-started override from expiring.
 	i2c_bus().read_ok = false;
 	Expression previous = NEUTRAL;
-	unsigned changes = 0;
-	for (uint32_t elapsed = 0; elapsed <= 120000; elapsed += 50) {
+	unsigned changes = 0, before_quiet = 0;
+	for (uint32_t elapsed = 0; elapsed <= 240000; elapsed += 50) {
 		test_now = 50000 + elapsed;
-		if (elapsed % 10000 == 0) { eyes_imu_trigger_shake(test_now); }
+		bool shaking = elapsed <= 120000;
+		if (shaking && elapsed % 10000 == 0) { eyes_imu_trigger_shake(test_now); }
 		eyes_update(test_now);
-		if (elapsed % 10000 == 1950) { assert(eyes_state().dizzyUntilMs != 0); }
+		if (shaking && elapsed % 10000 == 1950) { assert(eyes_state().dizzyUntilMs != 0); }
 		if (elapsed % 10000 >= 2000) {
 			assert(eyes_state().dizzyUntilMs == 0 && eyes_config().expression != DIZZY);
 			if (eyes_config().expression != previous && eyes_config().expression != NEUTRAL) { ++changes; }
 			previous = eyes_config().expression;
 		}
+		if (elapsed == 120000) { before_quiet = changes; }
 	}
-	assert(changes > 10);
+	// Repeated explicit shakes can restart a long scene; after they stop it must finish and advance.
+	assert(before_quiet > 0 && changes - before_quiet >= 3);
 	i2c_bus().read_ok = true;
 }
 

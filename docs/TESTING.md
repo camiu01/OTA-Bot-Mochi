@@ -67,6 +67,15 @@ faces, ensuring monotonic time within each unchanged cycle and exact entry/resto
 windows. Live seeded rendering checks dirty-versus-clean redraws for every face,
 all seven styles and six panel sizes, including transitions and two full cycles.
 Native checks do not measure on-device frame time or physical flicker.
+`face_interaction_test.cpp` checks random whole-loop holds, delayed rendered entry,
+safe handoff boundaries, timestamp rollover, live finger gaze on both panels and
+all seven styles, and release/Dizzy priority. Repeated identical random inputs
+must not make idle gestures block every scene boundary; Return must restore
+the base even after a scene longer than its idle interval. `touch_contact_test.cpp` links the
+real driver on both board profiles: repeated non-consuming contact reads,
+orientation mapping, release/error/out-of-bounds rejection and preserved tap,
+hold, pet and swipe events. The non-raster eye stub still advances the real
+expression clock so policy tests do not silently stall without pixels.
 The face catalog checks compile the documented C++17 per-eye preset example and
 validate all 145 IDs/names, parameter ranges, USB selection and settings round-trips.
 Two frozen pre-refactor raster fixtures check pixels and dirty bounds across six

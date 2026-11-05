@@ -24,7 +24,7 @@ static void continuous(uint32_t choice) {
 				assert(next != prior);
 				if (j < 2) { assert(face_family(next) != face_family(prior)); }
 			}
-			uint32_t length = FacePolicy::automatic_duration(next);
+			uint32_t length = FacePolicy::automatic_duration(next, choice);
 			assert(length >= 6000 && length % FacePolicy::cycle_duration(next) == 0);
 			assert(p.update(now + length - 1, true, false, choice, false, FACE_CONTINUOUS) == next);
 			seen.push_back(next); now += length;

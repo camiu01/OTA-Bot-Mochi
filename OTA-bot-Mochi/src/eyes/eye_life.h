@@ -10,6 +10,7 @@
 
 struct EyeLifeFrame {
 	bool active = false;
+	bool busy = false;
 	uint32_t variationSeed = 0;
 	float variationAmount = 0;
 	Expression expression = NEUTRAL;
@@ -27,6 +28,11 @@ class EyeLife {
 	uint8_t gesture = 0;
 	float fromL = 1, fromR = 1, gazeX = 0, gazeY = 0;
 	int8_t sign = 1;
+	/** @brief Give every entry a fresh idle wait instead of a fixed first gesture time. */
+	void arm_idle(uint32_t now, uint32_t choice, uint8_t mode, float amount) {
+		idle_at = now;
+		idle_delay = (mode == 2 ? 3000 : 5000) + choice % 7001 + (amount < 0.8f ? 5000 : 0);
+	}
 	/** @brief Smoothstep in a bounded interval. @param p Progress. @return Eased. */
 	static float ease(float p) { p = p < 0 ? 0 : (p > 1 ? 1 : p); return p * p * (3 - 2 * p); }
 	/** @brief Change the event seed only when the new face becomes visible behind the blink. */
@@ -68,13 +74,15 @@ class EyeLife {
 		}
 	}
 	/** @brief Smooth per-entry micro-movements; preserve Calm and the explicit symmetry setting. */
-	void vary(uint32_t now, bool asymmetric) {
+	void vary(uint32_t now, bool asymmetric, bool tracking) {
 		float a = frame.variationAmount;
 		if (!a) { return; }
 		uint32_t elapsed = now - variation_at, seed = frame.variationSeed;
 		auto sample = [&](uint32_t salt) { return face_smooth_random(elapsed, 1700 + salt % 900, salt, seed); };
-		frame.x += int16_t((sample(173) - 0.5f) * 8 * a);
-		frame.y += int16_t((sample(947) - 0.5f) * 6 * a);
+		if (!tracking) {
+			frame.x += int16_t((sample(173) - 0.5f) * 8 * a);
+			frame.y += int16_t((sample(947) - 0.5f) * 6 * a);
+		}
 		frame.scaleX += (sample(511) - 0.5f) * 0.06f * a;
 		frame.scaleY += (sample(733) - 0.5f) * 0.08f * a;
 		if (asymmetric) {
@@ -87,23 +95,25 @@ public:
 	void reset() { *this = EyeLife{}; }
 	/** @brief Access a read-only visual pose. @return Frame. */
 	const EyeLifeFrame &get() const { return frame; }
-	/** @brief Advance without drawing or I/O. @param cfg Target. @param st Raw gaze/blink. @param now Time. @param dt Bounded delta. @param mode Calm/Dasai/playful. @param amount Intensity. @param choice Random input. */
+	/** @brief Advance without drawing or I/O. @param cfg Target. @param st Raw gaze/blink. @param now Time. @param dt Bounded delta. @param mode Calm/Dasai/playful. @param amount Intensity. @param choice Random input. @param allow_idle Start new idle gestures unless a face handoff is due. */
 	void step(const EyeConfig &cfg, const EyeState &st, uint32_t now, uint32_t dt,
-		uint8_t mode, float amount, uint32_t choice) {
+		uint8_t mode, float amount, uint32_t choice, bool allow_idle = true) {
 		if (!frame.active || style != cfg.style) {
 			reset(); frame.active = true; style = cfg.style; frame.expression = target = cfg.expression; idle_at = now;
 			frame.variationSeed = choice ? choice : 1; variation_at = now;
+			arm_idle(now, choice, mode, amount);
 		}
 		if (cfg.expression != target) {
 			fromL = frame.openL; fromR = frame.openR; change_at = now;
 			target = cfg.expression; changing = true; gesturing = false; idle_at = now;
 			pending_seed = choice ? choice : 1;
+			arm_idle(now, choice, mode, amount);
 		}
 		frame.variationAmount = mode ? amount : 0;
 		frame.openL = frame.openR = frame.scaleX = frame.scaleY = 1;
 		float alpha = float(dt > 100 ? 100 : dt) / (80 + float(dt > 100 ? 100 : dt));
-		gazeX += (st.saccadeX + st.tiltX - gazeX) * alpha;
-		gazeY += (st.saccadeY + st.tiltY + st.floatY - gazeY) * alpha;
+		gazeX += (st.saccadeX + (st.tracking ? 0 : st.tiltX) - gazeX) * alpha;
+		gazeY += (st.saccadeY + (st.tracking ? 0 : st.tiltY + st.floatY) - gazeY) * alpha;
 		frame.x = int16_t(gazeX); frame.y = int16_t(gazeY);
 		if (changing) { transition(now, mode ? amount : 0); }
 		if (st.blinking) {
@@ -111,15 +121,16 @@ public:
 			float open = p < 1 ? 1 - sinf(3.14159265f * p) : 1;
 			frame.openL *= open; frame.openR *= open;
 		}
-		if (!mode) { gesturing = false; idle_at = now; }
-		if (mode && !changing && !gesturing && uint32_t(now - idle_at) >= idle_delay) {
+		if (!mode || st.tracking) { gesturing = false; idle_at = now; }
+		if (mode && allow_idle && !st.tracking && !changing && !gesturing && uint32_t(now - idle_at) >= idle_delay) {
 			gesture = (gesture + 1 + choice % 5) % 6;
 			sign = choice & 1 ? 1 : -1; gesture_at = idle_at = now; gesturing = true;
 			gesture_duration = 700 + choice % 501;
-			idle_delay = (mode == 2 ? 12000 : 18000) + choice % 12001 + (amount < 0.8f ? 8000 : 0);
+			idle_delay = (mode == 2 ? 4000 : 7000) + choice % 10001 + (amount < 0.8f ? 6000 : 0);
 		}
 		if (gesturing && !changing) { pose(now, amount); }
-		vary(now, cfg.asym != 0);
+		vary(now, cfg.asym != 0, st.tracking);
+		frame.busy = changing || gesturing;
 	}
 };
 

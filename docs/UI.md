@@ -70,6 +70,11 @@ No generic confetti, extra pupils or palette changes are added.
 Calm disables these additions; dashboard and night settings reduce micro-motion
 and rhythm variation. Seeds never enter the saved profile.
 
+Automatic dwell varies by a random number of complete loops, not arbitrary
+mid-animation deadlines. The first idle wait is randomized too. Handoffs wait
+for the displayed loop to finish, including the entry blink and any idle gesture.
+Idle gestures have random initial and repeat delays rather than a fixed first beat.
+
 - Settings → SYSTEM → **Firmware update** opens a temporary Wi-Fi maintenance
   screen, outside the seven-page carousel. Its password and browser address are
   shown on the display; normal controls pause until exit, timeout or restart.
@@ -96,6 +101,12 @@ and rhythm variation. Seeds never enter the saved profile.
 - A short tap on Eyes requests a temporary random face and makes the eyes
   glance toward the touch point for a couple of seconds. It does not change
   saved preferences or require automatic random moods to be enabled.
+- While touching Eyes, the gaze smoothly follows the current finger position.
+  Live contact overrides random gaze, micro-gaze and IMU tilt, and defers
+  automatic face changes without requesting a face or sound each frame.
+  Full-screen scenes retain their stable origin to avoid clipping. Lifting the
+  finger resumes idle gaze after a short pause; released taps, vertical petting,
+  horizontal swipes and the stationary 1.2-second Settings hold keep their roles.
 - Double-tap quickly on Eyes for a playful face from a separate excited/star
   pool, with the same glance toward your finger. Dizzy keeps priority.
 - Stroke vertically in either direction on Eyes to pet Mochi: a single

@@ -255,6 +255,10 @@ void toggle_quick_sound(uint32_t now) {
  */
 void handle_touch(uint32_t now) {
 	int8_t step = touch_poll(now);
+	int16_t follow_x = 0, follow_y = 0;
+	bool following = touch_position(follow_x, follow_y) && current_screen == UiPage::Eyes &&
+		!starting && !shutting_down && !screens_calling();
+	eyes_follow(follow_x, follow_y, following, now);
 	bool hold = touch_take_hold();
 	int16_t x, y;
 	bool tap = touch_take_tap(x, y);

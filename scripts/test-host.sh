@@ -65,6 +65,9 @@ g++ -std=c++17 -Wall -Wextra -Werror -I "$root/tests/stubs" -DMOCHI_BOARD_AMOLED
 	"$root/OTA-bot-Mochi/src/touch/touch.cpp" "$root/OTA-bot-Mochi/src/power/backlight.cpp" \
 	"$root/OTA-bot-Mochi/src/sound/buzzer_output.cpp" "$root/OTA-bot-Mochi/src/power/battery.cpp"
 build_test swipe "$root/tests/swipe_test.cpp"
+touch=("$root/tests/touch_contact_test.cpp" "$root/OTA-bot-Mochi/src/touch/touch.cpp" "$root/OTA-bot-Mochi/src/bus/i2c_bus.cpp")
+build_test touch-contact-lcd "${touch[@]}"
+build_test touch-contact-amoled -DMOCHI_BOARD_AMOLED_18 "${touch[@]}"
 build_test ancs "$root/tests/ancs_test.cpp" "$root/OTA-bot-Mochi/src/ancs/ancs_parser.cpp"
 build_test utf8-text "$root/tests/utf8_text_test.cpp" "$root/OTA-bot-Mochi/src/ui/ui_state.cpp"
 boot=("$root/tests/ota_boot_test.cpp" "$root/OTA-bot-Mochi/src/update/ota_boot.cpp")
@@ -130,6 +133,7 @@ done
 render_eyes=("$root/OTA-bot-Mochi/src/eyes/eyes_draw.cpp" "$root/tests/stubs/imu_noop.cpp")
 build_test eyes "${render_runtime[@]}" "$root/tests/eyes_test.cpp" "${render_eyes[@]}"
 build_test face-variation -O2 "${render_runtime[@]}" "$root/tests/face_variation_test.cpp" "${render_eyes[@]}"
+build_test face-interaction -O2 "${render_runtime[@]}" "$root/tests/face_interaction_test.cpp" "${render_eyes[@]}"
 build_test face-filter "${render_runtime[@]}" "$root/tests/face_filter_test.cpp" \
 	"$root/OTA-bot-Mochi/src/eyes/eyes_draw.cpp" "$root/OTA-bot-Mochi/src/eyes/eyes_imu.cpp"
 build_test face-web -I "$root/tests/stubs/ota" "${runtime[@]}" "$root/tests/face_web_test.cpp" \

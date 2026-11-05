@@ -126,7 +126,10 @@ Each loop restores the selected body color without changing the profile or theme
 Tap EYES to preview the actual animated eyes. This is not a separate preview page.
 
 Automatic faces stay visible for at least six seconds, repeating complete short
-animation loops before switching. Longer scenes keep their full duration.
+animation loops before switching. A random zero to two additional loops varies
+the dwell (zero or one for cycles of 9.6 seconds or longer). Changes wait for the
+real rendered cycle boundary, not a timer started before the entry blink.
+An active idle gesture or finger contact postpones automatic handoff.
 Tap, double-tap and pet reactions keep their existing durations.
 
 The `gauge`, `glow`, and `headlights` moods are decorative animations.
@@ -246,14 +249,17 @@ colors follow the visible expression, including temporary reactions.
 
 Automatic reactions wait for the selected mood to complete a visible cycle:
 12 seconds for Gauge/Pong, 9.6 seconds for Glow, 3.6 seconds for Headlights,
-six seconds for performances, and three seconds for other non-neutral expressions. Timing starts when the
+six seconds for performances, Moon and the blink-to-symbol Music/Low battery/
+Loading/Sparkle/Target/Glitch faces, and three seconds for other non-neutral expressions. Timing starts when the
 renderer actually shows the mood, including after returning from a reaction.
 Neutral allows automatic reactions immediately. Touch reactions remain immediate;
 decorative tilt/gaze keeps running while automatic mood changes wait.
 
-- **Random:** The first change is after 12 seconds. **Face flow** selects playback:
-  **Return** keeps the original one-face-then-base behavior (12–30-second
-  start intervals); **Group of 5** chains five random faces, then rests on the
+- **Random:** The first change waits a random 12–30 seconds, then the next safe
+  displayed cycle boundary. **Face flow** selects playback:
+  **Return** shows one random face, then rests on the base for 12–30 seconds
+  (counted from restoration so a long scene cannot accidentally chain);
+  **Group of 5** chains five random faces, then rests on the
   selected base for 12–30 seconds; **Sequence** continuously visits faces in
   enum/menu order; **Continuous** chains random faces without base pauses.
   Continuous excludes the last eight selected IDs and the two most recent
@@ -267,7 +273,8 @@ decorative tilt/gaze keeps running while automatic mood changes wait.
   All four require Random mood on. USB: `set face-flow return|group5|sequence|continuous`.
   SAVE persists the mode; older profiles default to Return.
   Each face keeps its complete cycle: ordinary faces three seconds, performances
-  six seconds, Gauge/Pong twelve, Glow 9.6, and Headlights 3.6.
+  and the Moon/blink-to-symbol faces six seconds, Gauge/Pong twelve, Glow 9.6,
+  and Headlights 3.6. Random dwell repeats these whole cycles.
   Automatic reactions draw from the whole expression set (every
   expression except neutral and the special dizzy state), avoiding the base
   mood and consecutive duplicates. Touch reactions keep a curated playful pool
