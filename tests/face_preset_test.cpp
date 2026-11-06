@@ -8,6 +8,7 @@
 #include "../OTA-bot-Mochi/src/eyes/eye_geometry.h"
 #include "../OTA-bot-Mochi/src/settings/settings.h"
 #include "../OTA-bot-Mochi/src/settings/usb_commands.h"
+#include "../OTA-bot-Mochi/src/ui/i18n.h"
 #include <assert.h>
 #include <set>
 #include <string>
@@ -67,6 +68,9 @@ static void public_tests() {
 	}
 	assert(eyes_set_expression_by_name("SADDOWN") && eyes_config().expression == SAD_DOWN);
 	assert(eyes_set_expression_by_name("sadup") && eyes_config().expression == SAD_UP);
+	static_assert(ANGEL == 145 && HALO == 43 && DEVIL == 44, "Keep existing face IDs stable");
+	assert(strcmp(tr_language(Text::ExprAngel, 0), "angel") == 0);
+	assert(strcmp(tr_language(Text::ExprAngel, 1), "angelo") == 0);
 	for (Expression id : {TIRED, FOCUSED, SLEEPY_EYES}) {
 		Serial.clear(); Serial.feed(std::string("mood ") + eyes_expression_name(id) + "\n");
 		while (Serial.available()) { settings_usb_poll(); }

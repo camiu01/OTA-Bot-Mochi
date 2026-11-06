@@ -2,6 +2,9 @@
 
 This is a bounded inventory, checked against `platformio.ini`,
 `.github/workflows/checks.yml` and installed package files on 2026-10-27.
+Build pins were updated on 2026-11-02: `versions.ini` now feeds both CI and
+PlatformIO. Arduino core 3.3.12 and NimBLE-Arduino 2.5.2 are selected patch
+updates; this does not claim they have been installed or built locally.
 It is **not** a complete transitive audit, complete redistribution-notice
 bundle, legal certification, hardware compliance assessment or animation-rights
 clearance. The project's GPL license does not relicense third-party code.
@@ -10,9 +13,9 @@ clearance. The project's GPL license does not relicense third-party code.
 | --- | --- | --- |
 | [ChronosESP32](https://github.com/fbiego/chronos-esp32) | 1.9.1; installed `library.properties` | Installed `LICENSE`: MIT, copyright (c) 2023 Felix Biego |
 | [ESP32Time](https://github.com/fbiego/ESP32Time) | 2.0.6; installed `library.properties` | Installed `LICENSE`: MIT, copyright (c) 2021 Felix Biego |
-| [NimBLE-Arduino](https://github.com/h2zero/NimBLE-Arduino) | 2.5.1; installed `library.properties` | Installed top-level `LICENSE`: Apache-2.0. Bundled `src/nimble/LICENSE` and `ext/tinycrypt/LICENSE` require separate retention/review; not a single-license transitive claim |
+| [NimBLE-Arduino](https://github.com/h2zero/NimBLE-Arduino) | 2.5.2 target in `versions.ini`; previous installed evidence was 2.5.1 | Previous installed top-level `LICENSE`: Apache-2.0. Bundled `src/nimble/LICENSE` and `ext/tinycrypt/LICENSE` require separate retention/review; recheck notices after installing 2.5.2; not a single-license transitive claim |
 | [GFX Library for Arduino](https://github.com/moononournation/Arduino_GFX) | 1.6.9; installed `library.properties` | Installed archive has no top-level LICENSE. README identifies Adafruit_GFX, LovyanGFX, TFT_eSPI and Ucglib origins. Do not assign one guessed license to all source/font files; review file notices and upstream version before redistribution |
-| [Arduino ESP32 framework](https://github.com/espressif/arduino-esp32) | CI 3.3.11; PlatformIO 3.3.12 (`framework-arduinoespressif32` 4.30312.261016) | Installed PlatformIO `package.json` declares LGPL-2.1-or-later; bundled ESP-IDF, SDK libraries and core components have additional terms, not audited here |
+| [Arduino ESP32 framework](https://github.com/espressif/arduino-esp32) | CI and PlatformIO target 3.3.12 (`framework-arduinoespressif32` 4.30312.261016 on the previously inspected PlatformIO installation) | Installed PlatformIO `package.json` declares LGPL-2.1-or-later; bundled ESP-IDF, SDK libraries and core components have additional terms, not audited here |
 
 The local package evidence is under `.pio/libdeps/<environment>/<library>/`;
 framework metadata is under PlatformIO's `packages/`. Those generated directories

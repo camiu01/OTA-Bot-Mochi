@@ -13,6 +13,7 @@
 #include "network_web.h"
 #include "ap_identity.h"
 #include "wifi_scan.h"
+#include "session_random.h"
 #include <WiFi.h>
 #include <WebServer.h>
 #include <esp_ota_ops.h>
@@ -46,9 +47,10 @@ void fail(const char *message) {
 
 /** @brief Require a per-session header unavailable to cross-origin HTML forms. @return Authorized. */
 bool authorized() {
+	const String provided = server.header("X-Mochi-Token");
 	return state.active && wifi_started && !state.success &&
 		local_host() &&
-		server.header("X-Mochi-Token") == token &&
+		provided.length() == 32 && session_token_equal(provided.c_str(), token) &&
 		uint32_t(millis() - started) < SESSION_MS;
 }
 /** @brief Apply the existing session boundary to all settings and clock routes. */
@@ -94,7 +96,7 @@ void settings_action() {
 	wifi_scan::stop(); ntp_sync_stop(); sound_init(millis()); state.faces = false; state.error = nullptr;
 	server.send(200, "application/json", "{\"firmware\":true}");
 }
-/** @brief Install settings routes alongside the unchanged face and firmware contracts. */
+/** @brief Reject page requests outside the local, unexpired settings session. */
 bool settings_authorized_page() {
 	if (state.active && state.faces && wifi_started && local_host() &&
 		uint32_t(millis() - started) < SESSION_MS) { return true; }
@@ -108,7 +110,6 @@ void settings_page() {
 	html.replace("%LANG%", settings_get().language ? "it" : "en");
 	html.replace("</style>", (String(WEB_STYLE) + "</style>").c_str());
 	face_web::headers(server);
-	server.sendHeader("Content-Security-Policy", "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'");
 	server.send(200, "text/html", html);
 }
 /** @brief Register settings HTML and authorized APIs. */
@@ -140,11 +141,7 @@ void settings_routes() {
 
 /** @brief Board-specific release asset name. @return Filename. */
 const char *filename() {
-#if MOCHI_BOARD_LCD_169
-	return "mochi-lcd-169-app.bin";
-#else
-	return "mochi-amoled-18-v2-app.bin";
-#endif
+	return MOCHI_OTA_FILENAME;
 }
 
 /** @brief Serve the local form without caching its session token. */
@@ -158,9 +155,7 @@ void page() {
 	html.replace("%FILE%", filename());
 	html.replace("%TOKEN%", state.lan ? "" : token);
 	html.replace("</style>", (String(WEB_STYLE) + "</style>").c_str());
-	server.sendHeader("Cache-Control", "no-store");
-	server.sendHeader("X-Frame-Options", "DENY");
-	server.sendHeader("X-Content-Type-Options", "nosniff");
+	face_web::headers(server);
 	server.send(200, "text/html", html);
 }
 
@@ -197,9 +192,14 @@ void upload_write() {
 		esp_ota_write(handle, upload.buf + skip, upload.currentSize - skip) != ESP_OK) { fail("Flash write failed."); }
 }
 
-/** @brief Handle multipart events; finalization waits for the entire HTTP request. */
+/** @brief Reject unauthorized multipart events without mutating the owner's upload state. */
 void upload() {
-	if (!authorized() || state.faces) { fail("Unauthorized or expired session."); server.client().stop(); return; }
+	if (!authorized() || state.faces) {
+		face_web::headers(server);
+		server.send(403, "text/plain", "Unauthorized or expired session.");
+		server.client().stop();
+		return;
+	}
 	switch (server.upload().status) {
 		case UPLOAD_FILE_START: upload_start(); break;
 		case UPLOAD_FILE_WRITE: upload_write(); break;
@@ -231,11 +231,14 @@ void finish() {
 	reboot_at = millis();
 }
 
-/** @brief Generate session-only secrets with the hardware RNG. @param out Hex buffer. @param bytes Random byte count. */
-void random_hex(char *out, size_t bytes) {
+/** @brief Fill the fixed-size session token only while the Bluetooth entropy source is active. */
+bool random_hex(char (&out)[33]) {
 	uint8_t random[16];
-	esp_fill_random(random, bytes);
-	for (size_t i = 0; i < bytes; ++i) { snprintf(out + i * 2, 3, "%02x", unsigned(random[i])); }
+	static_assert(sizeof(out) == sizeof(random) * 2 + 1, "Token capacity must match entropy bytes");
+	if (!session_random(random, sizeof(random))) { return false; }
+	for (size_t i = 0; i < sizeof(random); ++i) { snprintf(out + i * 2, 3, "%02x", unsigned(random[i])); }
+	memset(random, 0, sizeof(random));
+	return true;
 }
 
 /** @brief Register shared handlers once, retaining their existing authorization boundaries. */
@@ -276,7 +279,7 @@ void ota_begin(uint32_t now, void (*progress)(), bool faces) {
 		  (target->address == 0x650000 && running->address == 0x10000)))) {
 		fail("Install the OTA layout using USB first."); return;
 	}
-	random_hex(token, 16);
+	if (!random_hex(token)) { fail("Bluetooth entropy source unavailable. Restart Mochi."); return; }
 	state.lan = network_connected();
 	if (!state.lan && !ap_identity::load(state.ssid, state.password)) {
 		fail("Cannot load saved Wi-Fi identity. Close and retry."); return;
@@ -306,7 +309,7 @@ void ota_poll(uint32_t now) {
 	if (state.lan && network_connected() && !(network_address() == state.address)) {
 		strncpy(state.address, network_address().c_str(), sizeof(state.address) - 1);
 		strncpy(state.ssid, network_config().ssid, sizeof(state.ssid) - 1);
-		random_hex(token, 16);
+		if (!random_hex(token)) { ota_stop(); return; }
 		snprintf(state.url, sizeof(state.url), "http://%s/#%s", state.address, token);
 	}
 	if (wifi_started) { server.handleClient(); }

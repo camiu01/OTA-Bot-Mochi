@@ -38,7 +38,8 @@ application-only upload cannot migrate it.
 - `src/bus/`: the single shared I2C controller
 - `src/play/`: Pong and Tris logic
 - `src/update/`: local Wi-Fi firmware maintenance, web settings/face editor, image validation and QR screen
-- `pin_config.h`: all pin mappings, fully remappable
+- `pin_config.h`: hardware profile selection
+- `src/boards/`: per-board pins, capabilities and compatibility identities; see [Adding a board](docs/BOARDS.md#adding-a-board-with-existing-drivers)
 - `gfx_helper.h` / `gfx_helper.cpp`: display helpers, palette, text layout
 - `images.h`: splash, icons, bitmaps
 - `FreeSansBold12pt7b.h`: UI font

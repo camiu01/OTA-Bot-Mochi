@@ -122,20 +122,51 @@ static void continuous_shake_recovery() {
 	// Sensor read failures must not prevent an already-started override from expiring.
 	i2c_bus().read_ok = false;
 	Expression previous = NEUTRAL;
-	unsigned changes = 0;
-	for (uint32_t elapsed = 0; elapsed <= 120000; elapsed += 50) {
+	unsigned changes = 0, before_quiet = 0;
+	for (uint32_t elapsed = 0; elapsed <= 240000; elapsed += 50) {
 		test_now = 50000 + elapsed;
-		if (elapsed % 10000 == 0) { eyes_imu_trigger_shake(test_now); }
+		bool shaking = elapsed <= 120000;
+		if (shaking && elapsed % 10000 == 0) { eyes_imu_trigger_shake(test_now); }
 		eyes_update(test_now);
-		if (elapsed % 10000 == 1950) { assert(eyes_state().dizzyUntilMs != 0); }
+		if (shaking && elapsed % 10000 == 1950) { assert(eyes_state().dizzyUntilMs != 0); }
 		if (elapsed % 10000 >= 2000) {
 			assert(eyes_state().dizzyUntilMs == 0 && eyes_config().expression != DIZZY);
 			if (eyes_config().expression != previous && eyes_config().expression != NEUTRAL) { ++changes; }
 			previous = eyes_config().expression;
 		}
+		if (elapsed == 120000) { before_quiet = changes; }
 	}
-	assert(changes > 10);
+	// Repeated explicit shakes can restart a long scene; after they stop it must finish and advance.
+	assert(before_quiet > 0 && changes - before_quiet >= 3);
 	i2c_bus().read_ok = true;
+}
+
+/** @brief Replay a pickup through the actual shared-bus driver, preserving settings and flash. */
+static void pickup_driver_tests() {
+	for (bool flipped : {false, true}) {
+		for (bool enabled : {false, true}) {
+			test_now = 300000;
+			test_nvs.clear(); imu_orientation() = ImuOrientation{};
+			eyes_init(nullptr);
+			auto p = settings_get(); p.random_faces = p.shake = false;
+			p.mood = NEUTRAL; p.imu_faces = enabled; p.flipped = flipped;
+			assert(settings_update(p)); eyes_imu_init();
+			unsigned writes = test_flash_writes;
+			for (uint32_t t = 50; t <= 2200; t += 50) {
+				int16_t x = t >= 1550 ? 819 : 0;
+				int16_t z = t == 1450 || t == 1500 ? 2662 : (t >= 1550 ? 1877 : 2048);
+				axis(0x35, x); axis(0x37, 0); axis(0x39, z);
+				test_now = 300000 + t; eyes_imu_poll(test_now);
+				if (t < 1400) { assert(!eyes_state().wakeUntilMs); }
+			}
+			assert(bool(eyes_state().wakeUntilMs) == enabled);
+			assert(settings_get().mood == NEUTRAL && settings_get().flipped == flipped);
+			assert(test_flash_writes == writes);
+			eyes_state().petUntilMs = test_now + 1200;
+			eyes_imu_trigger_shake(test_now);
+			assert(!eyes_state().wakeUntilMs && !eyes_state().petUntilMs);
+		}
+	}
 }
 
 /** @brief Test scale, road-noise handling, shake opt-in, and restoration. @return Success. */
@@ -241,6 +272,7 @@ int main() {
 	assert(test_nvs["mochi-imu/zero"] == saved_zero && test_flash_writes == writes + 1);
 	test_save_fails = false;
 	continuous_shake_recovery();
+	pickup_driver_tests();
 	std::cout << "IMU setup, mount-relative gaze, shake opt-in/cooldown, and restoration passed\n";
 	return 0;
 }

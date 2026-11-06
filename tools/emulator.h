@@ -68,3 +68,10 @@ void handle_event(const SDL_Event &event, SDL_Renderer *renderer, bool &running)
 void terminal_character(char c);
 /** @brief Read a bounded batch from stdin without waiting for a command. */
 void poll_terminal();
+
+/** @brief Avoid probing GPU backends for SDL's dummy video driver. */
+uint32_t emulator_renderer_flags(const char *video_driver);
+/** @brief Create the appropriate renderer, retaining interactive software fallback. */
+SDL_Renderer *emulator_create_renderer(SDL_Window *window);
+/** @brief Release complete or partially initialized display resources before quitting SDL. */
+void emulator_close_display(SDL_Window *window, SDL_Renderer *renderer, SDL_Texture *texture);

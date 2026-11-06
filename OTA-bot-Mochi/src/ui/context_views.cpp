@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "context_views.h"
+#include "../companion/phone_view.h"
 #include "music_view.h"
 #include "view_state.h"
 #include "ui_theme.h"
@@ -12,6 +13,8 @@
 #include "weather_sync.h"
 #include "context_play.h"
 #include "context_tris.h"
+#include "context_hubs.h"
+#include "context_dice.h"
 #include "../sound/sound.h"
 #include "../clock/clock_ui.h"
 #include "../eyes/eyes_api.h"
@@ -44,27 +47,12 @@ struct TimerRow { int16_t reset_w, mode_x, mode_w, split; };
 TimerRow timer_row() {
 	return ui_scale() > 100 ? TimerRow{78, 96, 138, 90} : TimerRow{108, 126, 108, 120};
 }
-/** @brief Render seven tools in a two-column, four-row grid. @param gfx Canvas. */
-void hub(Arduino_GFX *gfx) {
-	static const Text labels[] = {Text::BigClock, Text::Overview, Text::TimerMenu, Text::Device, Text::Pong, Text::AnalogClock, Text::Tris};
-	uint8_t columns = uint8_t((ui_s(88) - 4) / (6 * ui_text_size(1)));
-	for (uint8_t i = 0; i < 7; ++i) {
-		int16_t x = ui_s(i % 2 ? 126 : 6);
-		int16_t y = ui_s(int16_t(58 + (i / 2) * 50));
-		gfx->fillRoundRect(x, y, ui_s(108), ui_s(44), ui_s(8), UI_CARD);
-		TextLines lines = wrap_text(tr(labels[i]), columns);
-		int16_t top = y + ui_s(24) - int16_t(lines.count ? lines.count : 1) * ui_s(8);
-		for (uint8_t l = 0; l < lines.count && l < 2; ++l) {
-			ui_label(gfx, lines.line[l], x + ui_s(10), top + l * ui_s(16), ui_s(88), 1, UI_TEXT);
-		}
-	}
-}
 /** @brief Render large synchronized time. @param gfx Canvas. @param watch Clock. */
 void large_clock(Arduino_GFX *gfx, ChronosESP32 &watch) {
 	ui_card(gfx, 62, 152);
 	ui_label(gfx, time_text(watch), ui_s(30), ui_s(99), ui_s(180), 6, UI_TEXT);
 	ui_label(gfx, clock_ready() ? watch.getTime(":%S") + " " + watch.getAmPmC() :
-		tr(Text::OpenSync), ui_s(28), ui_s(162), ui_s(184), 1, UI_ACCENT);
+		tr(settings_get().phone_ios ? Text::IosTimeHint : Text::OpenSync), ui_s(28), ui_s(162), ui_s(184), 1, UI_ACCENT);
 	ui_label(gfx, clock_ready() ? watch.getTime("%d / %m / %Y") : tr(Text::TimeUnavailable),
 		ui_s(28), ui_s(190), ui_s(184), 1, UI_MUTED);
 }
@@ -139,9 +127,10 @@ void context_route(Arduino_GFX *gfx, const UiSnapshot &data) {
 	}
 }
 
-/** @brief Draw a desk tool page. @param gfx Canvas. @param watch Clock. @param page Tool. @param data Snapshot. @param now Time. */
+/** @brief Draw local desk tools or the Android-only phone tools. @param gfx Canvas. @param watch Clock. @param page Tool. @param data Snapshot. @param now Time. */
 void context_draw(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, const UiSnapshot &data, uint32_t now) {
-	if (page == UiPage::Desk) { hub(gfx); }
+	if (page == UiPage::Desk || page == UiPage::Games) { context_hub_draw(gfx, page == UiPage::Games); }
+	if (page == UiPage::Dice) { desk_dice_draw(gfx); }
 	if (page == UiPage::BigClock) { large_clock(gfx, watch); }
 	if (page == UiPage::Overview) { overview(gfx, watch, data, now); }
 	if (page == UiPage::Timer) { timer_screen(gfx); }
@@ -149,6 +138,7 @@ void context_draw(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, const UiSn
 	if (page == UiPage::Pong) { desk_pong_draw(gfx, now); }
 	if (page == UiPage::AnalogClock) { desk_analog_draw(gfx, watch); }
 	if (page == UiPage::Tris) { desk_tris_draw(gfx, now); }
+	if (page == UiPage::Phone) { phone_view_draw(gfx, watch.getDayofYear()); }
 }
 
 /** @brief Dispatch short parked-use utility taps without persisting session choices. @param page Page. @param x X. @param y Y. @param now Time. @return Target. */
@@ -162,14 +152,9 @@ UiPage screens_tap(UiPage page, int16_t x, int16_t y, uint32_t now) {
 		}
 	}
 	if (page == UiPage::Music && !screens_calling()) { music_tap(x, y); }
-	if (page == UiPage::Desk) {
-		for (uint8_t i = 0; i < 7; ++i) {
-			int16_t left = ui_s(i % 2 ? 126 : 6), top = ui_s(58 + (i / 2) * 50);
-			if (x >= left && x < left + ui_s(108) && y >= top && y < top + ui_s(44)) {
-				return static_cast<UiPage>(uint8_t(UiPage::BigClock) + i);
-			}
-		}
-	}
+	if (page == UiPage::Desk || page == UiPage::Games) { return context_hub_tap(page == UiPage::Games, x, y); }
+	if (page == UiPage::Dice && desk_dice_tap(x, y)) { screens_invalidate(); }
+	if (page == UiPage::Phone) { phone_view_tap(x, y); return page; }
 	if (page == UiPage::Tris) { desk_tris_tap(x, y, now); screens_invalidate(); }
 	if (page == UiPage::Pong) {
 		if (y >= ui_s(82) && y < ui_s(210)) { desk_pong().move(float(y - ui_s(82)) * 160 / ui_s(128)); }
@@ -191,12 +176,16 @@ UiPage screens_tap(UiPage page, int16_t x, int16_t y, uint32_t now) {
 /** @brief Dispatch vertical gestures without persisting session choices. @param page Page. @param scroll +1 up, -1 down. @return Target. */
 UiPage screens_scroll(UiPage page, int8_t scroll) {
 	if (!scroll) { return page; }
+	if (page == UiPage::Phone && phone_view_scroll(scroll)) { return page; }
 	if (scroll > 0) {
+		if (page == UiPage::Pong || page == UiPage::Tris || page == UiPage::Dice) { return UiPage::Games; }
 		if (page == UiPage::Desk) { return UiPage::Clock; }
 		if (uint8_t(page) > uint8_t(UiPage::Desk)) { return UiPage::Desk; }
 		return page;
 	}
 	if (page == UiPage::Clock) { return UiPage::Desk; }
+	if (page == UiPage::Desk) { return UiPage::Games; }
+	if (page == UiPage::Games || page == UiPage::Dice) { return page; }
 	if (page == UiPage::Navigation) {
 		view_route_temporary(!view_route_large(settings_get().route_large));
 		screens_invalidate();

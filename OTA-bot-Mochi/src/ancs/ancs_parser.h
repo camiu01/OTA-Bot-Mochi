@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <string>
+#include "../ui/utf8_text.h"
 
 struct AncsAlert {
 	uint32_t uid = 0;
@@ -26,8 +27,8 @@ public:
 	void reset();
 	/** @brief Read the completed alert. @return Bounded alert. */
 	const AncsAlert &alert() const { return alert_; }
-	/** @brief Replace a bundle ID with the authorized iOS display name. @param name Bounded app label. */
-	void set_app(const std::string &name) { alert_.app = name.substr(0, 64); }
+	/** @brief Replace a bundle ID with a complete UTF-8 display name within 64 bytes. @param name App label. */
+	void set_app(const std::string &name) { alert_.app = name.substr(0, utf8_prefix(name.data(), name.size(), 64)); }
 	/** @brief Check whether an attribute request is pending. @return True when pending. */
 	bool pending() const { return pending_; }
 private:

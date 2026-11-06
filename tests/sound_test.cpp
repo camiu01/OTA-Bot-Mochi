@@ -4,11 +4,15 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "../OTA-bot-Mochi/src/sound/sound.h"
+#include "../OTA-bot-Mochi/src/sound/face_sounds.h"
+#include "../OTA-bot-Mochi/src/sound/power_sounds.h"
 #include "../OTA-bot-Mochi/src/settings/settings.h"
 #include "../OTA-bot-Mochi/pin_config.h"
 #include <Arduino.h>
 #include <assert.h>
 #include <iostream>
+#include <set>
+#include <string>
 static UiPageEvents events;
 
 /** @brief Disabled audio never claims a pin; short notes have gaps and strict rate limits. */
@@ -47,8 +51,8 @@ static void face_tone_tests() {
 	sound_poll(3110, events, false, false, false);
 	assert(test_pwm[2].duty == 0);
 	sound_poll(3130, events, false, false, false);
-	assert(test_pwm[2].frequency >= 1400 && test_pwm[2].frequency <= 1700);
-	sound_poll(3210, events, false, false, false);
+	assert(test_pwm[2].frequency >= 1200 && test_pwm[2].frequency <= 1740);
+	sound_poll(3260, events, false, false, false);
 	assert(test_pwm[2].duty == 0);
 	// Family bands differ: a flat blip stays low and does not rise.
 	sound_request_face(FaceTone::Flat, 4000);
@@ -59,7 +63,7 @@ static void face_tone_tests() {
 	assert(test_pwm[2].duty == 0);
 	sound_poll(4090, events, false, false, false);
 	assert(test_pwm[2].frequency >= 800 && test_pwm[2].frequency <= 1049);
-	sound_poll(4160, events, false, false, false);
+	sound_poll(4200, events, false, false, false);
 	assert(test_pwm[2].duty == 0);
 	// The faces switch silences every family without touching the master switch.
 	uint32_t quiet = test_pwm[2].frequency;
@@ -68,6 +72,41 @@ static void face_tone_tests() {
 	sound_poll(5000, events, false, false, false);
 	sound_poll(5010, events, false, false, false);
 	assert(test_pwm[2].frequency == quiet && test_pwm[2].duty == 0);
+}
+/** @brief All 100 melodies are distinct, bounded, and match actual PWM playback without repeats. */
+static void face_variant_tests() {
+	events = {};
+	auto p = settings_get(); p.sound = p.sound_faces = true; p.night = p.sound_ambient = false; settings_update(p);
+	for (uint8_t family = 0; family < uint8_t(FaceTone::Count); ++family) {
+		std::set<std::string> melodies;
+		for (uint8_t variant = 0; variant < SOUND_FACE_VARIANTS; ++variant) {
+			SoundNote notes[3]; face_sound_notes(FaceTone(family), variant, notes);
+			assert(PcmSequence::valid(notes, 3, 30));
+			melodies.insert(std::to_string(notes[0].hz) + ":" + std::to_string(notes[2].hz) + ":" + std::to_string(notes[2].ms));
+		}
+		assert(melodies.size() == SOUND_FACE_VARIANTS);
+		sound_init(0);
+		uint8_t previous = SOUND_FACE_VARIANTS;
+		std::set<uint8_t> selected;
+		for (uint32_t step = 1; step <= 200; ++step) {
+			unsigned seed = 1000 * family + step;
+			std::srand(seed);
+			uint8_t variant = uint8_t(random(long(SOUND_FACE_VARIANTS - (previous < SOUND_FACE_VARIANTS))));
+			if (variant >= previous) { ++variant; }
+			std::srand(seed);
+			uint32_t now = step * 1000;
+			sound_request_face(FaceTone(family), now);
+			sound_poll(now, events, false, false, false);
+			SoundNote notes[3]; face_sound_notes(FaceTone(family), variant, notes);
+			sound_poll(now + 10, events, false, false, false);
+			assert(test_pwm[2].frequency == notes[0].hz && test_pwm[2].duty > 0);
+			sound_poll(now + notes[0].ms + 35, events, false, false, false);
+			assert(test_pwm[2].frequency == notes[2].hz && test_pwm[2].duty > 0);
+			assert(variant != previous);
+			selected.insert(variant); previous = variant;
+		}
+		assert(selected.size() > 1);
+	}
 }
 /** @brief Manual bench test ignores category switches, but never bypasses master/night mute. */
 static void manual_test() {
@@ -179,7 +218,7 @@ static void device_cue_tests() {
 	sound_poll(1300, events, false, false, false);
 	assert(sound_request(SoundCue::Charging, 2000));
 	sound_poll(2000, events, false, false, false); sound_poll(2010, events, false, false, false);
-	assert(test_pwm[2].frequency == 1600 && test_pwm[2].duty > 0);
+	assert(test_pwm[2].frequency >= 1400 && test_pwm[2].frequency <= 1800 && test_pwm[2].duty > 0);
 	sound_poll(2300, events, false, false, false);
 	assert(!sound_request(SoundCue::Charging, 2500) && sound_request(SoundCue::Charging, 32000));
 	p.night = true; settings_update(p);
@@ -191,9 +230,59 @@ static void device_cue_tests() {
 	assert(!sound_request(SoundCue::Startup, 50000) && !sound_request(SoundCue::Charging, 62000));
 }
 
+/** @brief Power variants are distinct, rising/falling, category-controlled and independently rate-limited. */
+static void power_variant_tests() {
+	events = {};
+	auto p = settings_get(); p.sound = p.sound_charging = true; p.night = p.sound_ambient = false; settings_update(p);
+	for (bool connected : {true, false}) {
+		SoundCue cue = connected ? SoundCue::Charging : SoundCue::Unplugged;
+		std::set<std::string> melodies;
+		for (uint8_t variant = 0; variant < SOUND_POWER_VARIANTS; ++variant) {
+			SoundNote notes[3]; power_sound_notes(connected, variant, notes);
+			melodies.insert(std::to_string(notes[0].hz) + ":" + std::to_string(notes[2].hz));
+		}
+		assert(melodies.size() == SOUND_POWER_VARIANTS);
+		uint8_t previous = SOUND_POWER_VARIANTS;
+		sound_init(0);
+		std::set<uint8_t> selected;
+		for (uint32_t step = 1; step <= 200; ++step) {
+			std::srand(step);
+			uint8_t variant = uint8_t(random(long(SOUND_POWER_VARIANTS - (previous < SOUND_POWER_VARIANTS))));
+			if (variant >= previous) { ++variant; }
+			std::srand(step);
+			uint32_t now = step * 31000;
+			assert(sound_request(cue, now));
+			assert(!sound_request(cue, now + 1));
+			sound_poll(now, events, false, false, false);
+			SoundNote notes[3]; power_sound_notes(connected, variant, notes);
+			assert(PcmSequence::valid(notes, 3, 30));
+			assert(connected ? notes[2].hz > notes[0].hz : notes[2].hz < notes[0].hz);
+			sound_poll(now + 10, events, false, false, false);
+			assert(test_pwm[2].frequency == notes[0].hz && test_pwm[2].duty > 0);
+			sound_poll(now + notes[0].ms + 40, events, false, false, false);
+			assert(test_pwm[2].frequency == notes[2].hz && test_pwm[2].duty > 0);
+			assert(variant != previous);
+			selected.insert(variant); previous = variant;
+			melodies.insert(std::to_string(notes[0].hz) + ":" + std::to_string(notes[2].hz));
+		}
+		assert(selected.size() > 1);
+	}
+	sound_init(0);
+	assert(sound_request(SoundCue::Charging, 0) && sound_request(SoundCue::Unplugged, 1));
+	p.sound_charging = false; settings_update(p);
+	assert(!sound_request(SoundCue::Charging, 40000) && !sound_request(SoundCue::Unplugged, 40000));
+	sound_poll(40000, events, false, false, false);
+	assert(test_pwm[2].duty == 0);
+	p.sound_charging = true; p.night = true; settings_update(p);
+	assert(!sound_request(SoundCue::Charging, 80000) && !sound_request(SoundCue::Unplugged, 80000));
+	p.night = false; p.sound_alerts = true; settings_update(p);
+	assert(sound_request(SoundCue::Notification, 80000));
+	assert(!sound_request(SoundCue::Charging, 80000) && !sound_request(SoundCue::Unplugged, 80000));
+}
+
 /** @brief Run native sound regressions, never emit actual sound. @return Success. */
 int main() {
 	assert(settings_init());
-	note_tests(); mute_tests(); failure_tests(); context_tests(); manual_test(); face_tone_tests(); device_cue_tests();
+	note_tests(); mute_tests(); failure_tests(); context_tests(); manual_test(); face_tone_tests(); device_cue_tests(); face_variant_tests(); power_variant_tests();
 	std::cout << "Sound notes, priority, categories, night mute, failure handling, and rollover passed\n";
 }

@@ -124,6 +124,12 @@ int8_t touch_take_scroll() {
 /** @brief Return the most recent valid touch state. @return Finger contact state. */
 bool touch_pressed() { return s_pressed; }
 
+bool touch_position(int16_t &x, int16_t &y) {
+	if (!s_pressed) { return false; }
+	x = s_actions.x; y = s_actions.y;
+	return true;
+}
+
 /** @brief Consume a short tap. @param x Output X. @param y Output Y. @return Pending tap. */
 bool touch_take_tap(int16_t &x, int16_t &y) {
 	if (!s_actions.tap) { return false; }

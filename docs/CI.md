@@ -9,7 +9,8 @@ published releases (including prereleases), and
 1. **host:** Build and run all native regression tests, including real eye
    rendering against a raster substitute and automatic-face policies.
 2. **firmware:** After tests pass, compile both LCD and AMOLED profiles with
-   Arduino CLI. Core, CLI, and library versions are pinned in the workflow.
+   Arduino CLI. Core, CLI, platform, and library versions are pinned in `versions.ini`;
+   `scripts/build-versions.py` validates and exports the CI environment.
    The PlatformIO environments in `platformio.ini` are not built by CI.
    Both builds use the sketch-local 16 MB OTA partition table and
    `upload.maximum_size=6553600` for each 6.25 MiB application slot.
@@ -20,8 +21,11 @@ published releases (including prereleases), and
    run and attach named binaries, build information, flashing notes, and checksums
    to that release. A failed test or build prevents this job from running.
 
-Core/library downloads and compiled objects are cached. Arduino CLI still runs
-on every build and checks source changes; a cache hit does not skip compilation.
+Core/library downloads are cached with the workflow and version manifest in
+the key. Compiled objects use exact source keys only on non-release, non-tag
+builds; published releases and tag pushes start with fresh objects. Arduino CLI
+still runs on every build; a cache hit does not skip compilation.
+Actions are pinned to reviewed commit SHAs, with weekly Dependabot update checks.
 New push/PR runs cancel superseded runs for the same event and branch. Release
 runs are separate and are not canceled by a push or a newer run. No custom
 GitHub secret is needed. Build jobs have read-only repository permissions;

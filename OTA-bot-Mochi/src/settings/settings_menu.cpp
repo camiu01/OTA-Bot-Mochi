@@ -39,7 +39,7 @@ constexpr uint8_t GRID_MAX_FIRST = GRID_ROWS_TOTAL > GRID_ROWS ? GRID_ROWS_TOTAL
 enum MenuTab : uint8_t { TAB_LOOK, TAB_LIGHT, TAB_FACES, TAB_MOTION, TAB_AUDIO, TAB_SYSTEM, TAB_COUNT };
 
 /** SD sounds only appears on the board with an SD slot and codec. */
-#if defined(MOCHI_BOARD_AMOLED_18)
+#if MOCHI_HAS_SD_AUDIO
 constexpr bool HAS_SD_ROW = true;
 #else
 constexpr bool HAS_SD_ROW = false;
@@ -66,6 +66,7 @@ int16_t bottom_band_bottom() {
 /** @brief Number of rows in the current panel. */
 uint8_t row_count() {
 	static const uint8_t counts[] = {3, 7, 4, 5, 5, 7};
+	if (tab == TAB_SYSTEM && HAS_SD_ROW) { return 8; }
 	if (tab != TAB_AUDIO) { return counts[tab]; }
 	return sound_options ? 5 : (HAS_SD_ROW ? 6 : 5);
 }
@@ -155,7 +156,7 @@ void change_row(uint8_t index) {
 		if (index == 0) { p.sound = !p.sound; }
 		if (index == 1) { p.sound_level = p.sound_level < 5 ? 5 : (p.sound_level >= 30 ? 5 : (p.sound_level >= 25 ? 30 : p.sound_level + 5)); }
 		if (index == 2) { p.sound_night_mute = !p.sound_night_mute; }
-#if defined(MOCHI_BOARD_AMOLED_18)
+#if MOCHI_HAS_SD_AUDIO
 		if (index == 3) { p.sound_sd = !p.sound_sd; }
 #endif
 		if (index == SOUND_OPTIONS_ROW) { sound_options = true; first_row = 0; return; }
@@ -207,6 +208,9 @@ void extra_rows(Arduino_GFX *gfx, const CompanionSettings &p) {
 			row(gfx, 4, tr(Text::FirmwareUpdate), tr(Text::Open));
 			row(gfx, 5, tr(Text::WebSettings), tr(Text::Open));
 		row(gfx, 6, tr(Text::Diagnostics), tr(Text::Open));
+#if MOCHI_HAS_SD_AUDIO
+		row(gfx, 7, tr(Text::SdFirmware), tr(Text::Open));
+#endif
 	} else if (sound_options) {
 		row(gfx, 0, tr(Text::Faces), on_off(p.sound_faces));
 		row(gfx, 1, tr(Text::TimerLabel), on_off(p.sound_timer));
@@ -217,7 +221,7 @@ void extra_rows(Arduino_GFX *gfx, const CompanionSettings &p) {
 		row(gfx, 0, tr(Text::Sound), on_off(p.sound));
 		row(gfx, 1, tr(Text::Level), String(p.sound_level) + "%");
 		row(gfx, 2, tr(Text::NightMute), on_off(p.sound_night_mute));
-#if defined(MOCHI_BOARD_AMOLED_18)
+#if MOCHI_HAS_SD_AUDIO
 		row(gfx, 3, tr(Text::SoundSd), on_off(p.sound_sd));
 #endif
 		row(gfx, SOUND_OPTIONS_ROW, tr(Text::SoundOptions), tr(Text::Open));
@@ -376,6 +380,7 @@ MenuAction settings_menu_tap(int16_t x, int16_t y) {
 	if (y >= ui_s(94) && y < ui_s(222)) {
 		uint8_t index = uint8_t(first_row + (y - ui_s(94)) / ui_s(44));
 		uint8_t count = row_count();
+		if (tab == TAB_SYSTEM && HAS_SD_ROW && index == 7) { return MenuAction::SdUpdate; }
 			if (tab == TAB_SYSTEM && index == 4) { return MenuAction::Update; }
 			if (tab == TAB_SYSTEM && index == 5) { return MenuAction::FacesWeb; }
 		if (tab == TAB_SYSTEM && index == 6) {

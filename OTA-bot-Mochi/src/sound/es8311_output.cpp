@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "../../pin_config.h"
-#if defined(MOCHI_BOARD_AMOLED_18)
+#if MOCHI_HAS_ES8311
 #include "es8311_output.h"
 #include "pcm_tone.h"
 #include "sd_audio.h"

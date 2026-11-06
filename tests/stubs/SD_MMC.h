@@ -42,6 +42,7 @@ public:
 	unsigned mounts = 0, opens = 0, unmounts = 0;
 	int clk = -1, cmd = -1, data = -1;
 	std::map<std::string, std::vector<uint8_t>> files;
+	std::weak_ptr<std::vector<uint8_t>> last_data;
 	/** @brief Retain wiring for assertions. @param clock CLK. @param command CMD. @param input D0. @return Accepted. */
 	bool setPins(int clock, int command, int input) { clk = clock; cmd = command; data = input; return true; }
 	/** @brief Check one-bit, non-formatting mount semantics. @param path Mountpoint. @param one_bit Width. @param format Formatting. @return Present and valid options. */
@@ -55,6 +56,7 @@ public:
 		++opens; last_path = path; File file;
 		auto found = files.find(path);
 		if (present && std::string(mode) == "r" && found != files.end()) { file.data = std::make_shared<std::vector<uint8_t>>(found->second); }
+		last_data = file.data;
 		return file;
 	}
 };

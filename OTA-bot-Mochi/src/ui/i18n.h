@@ -5,7 +5,9 @@
  */
 #pragma once
 #include <stdint.h>
+#include "i18n_companion.h"
 #define UI_TRANSLATIONS(X) \
+	UI_COMPANION_TRANSLATIONS(X) \
 	X(Eyes, "MOCHI", "MOCHI") \
 	X(Clock, "CLOCK", "OROLOGIO") \
 	X(MusicVolume, "VOLUME", "VOLUME") \
@@ -20,6 +22,10 @@
 	X(Weather, "WEATHER", "METEO") \
 	X(Settings, "SETTINGS", "IMPOSTAZIONI") \
 	X(FirmwareUpdate, "Firmware update", "Aggiorna firmware") \
+	X(SdFirmware, "Firmware from SD", "Firmware da SD") \
+	X(SdChecking, "Checking SD firmware", "Controllo firmware SD") \
+	X(SdConfirm, "Install this firmware?", "Installare firmware?") \
+	X(SdKeepPower, "Keep power and SD in", "Non spegnere / togliere SD") \
 	X(OtaWifi, "Connect to Wi-Fi:", "Connetti al Wi-Fi:") \
 	X(OtaPassword, "Wi-Fi password:", "Password Wi-Fi:") \
 	X(OtaBrowser, "Open browser:", "Apri nel browser:") \
@@ -30,6 +36,11 @@
 	X(OtaDetails, "DETAILS", "DETTAGLI") \
 	X(OtaQr, "WI-FI QR", "QR WI-FI") \
 	X(Desk, "DESK TOOLS", "SCRIVANIA") \
+	X(Games, "GAMES", "GIOCHI") \
+	X(GamesHint, "SWIPE DOWN: GAMES", "SCENDI: GIOCHI") \
+	X(Dice, "DICE", "DADI") \
+	X(DiceRoll, "ROLL", "LANCIA") \
+	X(DiceTotal, "TOTAL", "TOTALE") \
 	X(BigClock, "BIG CLOCK", "OROLOGIO GRANDE") \
 	X(Overview, "DESK OVERVIEW", "RIEPILOGO") \
 	X(Timer, "FOCUS TIMER", "TIMER") \
@@ -214,7 +225,7 @@
 	X(ExprCrying, "crying", "piange") \
 	X(ExprSwirly, "swirly", "vortice") \
 	X(ExprCat, "cat", "gatto") \
-	X(ExprHalo, "halo", "alone") \
+	X(ExprHalo, "halo", "aureola") \
 	X(ExprDevil, "devil", "diavolo") \
 	X(ExprFire, "fire", "fuoco") \
 	X(ExprMoon, "moon", "luna") \
@@ -316,6 +327,7 @@
 	X(ExprComet, "comet", "cometa") \
 	X(ExprYakura, "yakura", "yakura") \
 	X(ExprChineseDragon, "red dragon", "drago rosso") \
+	X(ExprAngel, "angel", "angelo") \
 	X(Calm, "calm", "calmo") \
 	X(Dasai, "normal", "normale") \
 	X(Playful, "playful", "vivace") \
@@ -351,7 +363,6 @@
 	X(DiagArmed, "Enabled", "Abilitato") \
 	X(DiagMissing, "Unavailable", "Non disponibile") \
 	X(DiagUnchecked, "Not checked", "Non verificata")
-
 enum class Text : uint16_t {
 #define UI_ENUM(key, en, it) key,
 	UI_TRANSLATIONS(UI_ENUM)

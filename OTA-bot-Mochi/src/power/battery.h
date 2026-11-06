@@ -9,7 +9,7 @@
 /** @brief Sentinel for readings the unverified divider cannot plausibly produce. */
 constexpr uint8_t BATTERY_UNAVAILABLE = 0xFF;
 
-/** @brief Map a battery voltage to a bounded percentage. @param mv Battery millivolts. @return 0..100, or BATTERY_UNAVAILABLE. */
+/** @brief Map voltage to a bounded display percentage using the AMOLED's observed endpoints. @param mv Battery millivolts. @return 0..100; plausibility is checked by BatteryTracker. */
 uint8_t battery_percent_mv(uint16_t mv);
 
 /** @brief Convert one raw ADC sample through the assumed divider and plausibility window. @param raw ADC reading. @return Battery millivolts, or 0 when implausible. */

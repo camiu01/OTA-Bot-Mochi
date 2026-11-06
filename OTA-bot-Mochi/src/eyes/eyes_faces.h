@@ -33,5 +33,7 @@ void eyes_faces_pet(uint32_t now, int16_t x, int16_t y);
 void eyes_faces_greet(uint32_t now);
 /** @brief Apply automatic mood unless dizzy has priority. @param now Timestamp. */
 void eyes_faces_step(uint32_t now);
+/** @brief Whether an automatic change is due and waiting for a safe displayed boundary. */
+bool eyes_faces_waiting(uint32_t now);
 /** @brief Feed mount-relative IMU motion. @param x G. @param y G. @param z G. @param now Timestamp. */
 void eyes_faces_motion(float x, float y, float z, uint32_t now);

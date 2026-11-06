@@ -35,11 +35,12 @@ not recordings or synthesized speech. Verify the OLD board's buzzer on the bench
 before using it in the car.
 
 - Eye taps, double taps, pets, and automatic facial reactions can chirp with a
-  **randomized two-note tone shaped by the face family**: bright/playful faces
+  **one of 20 two-note melodies per face family** (100 total): bright/playful faces
   get an ascending mid-high warble, affectionate faces a warm mid-range chirp,
   sleepy/calm faces a slow low one, surprised/excited faces a quick high bounce,
-  and negative/uneasy faces a short low blip that stays flat. Every chirp picks
-  a fresh pitch inside its family band, so no two reactions sound identical.
+  and negative/uneasy faces a short low blip that stays flat. Variants change
+  pitch, melodic rise and/or duration within each family. Selection is random,
+  without consecutive repeats within a family during the session.
 - Pomodoro rest and timer completion can signal once.
 - New notifications/calls can signal once, not continuously ring.
 - Ambient chirps are quieter, rate-limited to at least a minute, and restricted
@@ -119,6 +120,23 @@ remaining audio complaint, consistent with v1.2.0's audio-stabilization notes.
 This is user-reported functional operation, not agent hardware testing or an
 enumeration of mute/category/level combinations. A recorded two-hour concurrent
 BLE/display/audio session and loudness measurements remain outstanding.
+
+On 2026-11-03 both PlatformIO profiles compiled with the pinned dependencies:
+LCD used 2,325,436 flash bytes / 81,896 static RAM bytes; AMOLED used
+2,412,219 / 82,624. Existing ChronosESP32 and Arduino_GFX dependency warnings
+remain. The installed COM6 partition table matched the generated 16 MB OTA v1
+table byte-for-byte before the user-authorized AMOLED upload; esptool verified
+all written hashes. The application SHA-256 was
+`e6c20df8d1798afcf7cbeebb929017a32150d314d20495c333b63499832c7106`.
+USB charge-start and unplug previews at level 8 were accepted and followed by
+`i2s-ready`; master-off blocking, the charge-start cooldown and night mute were
+checked. Original settings were restored with Sound off and `unsaved=no`;
+no `save` was sent. These checks do not establish audibility, actual SD playback,
+all-variant listening, physical cable-edge behavior or long-session stability.
+The native runner passed the preceding suites before an overstrict random-coverage
+assertion failed. After correcting that test-only assumption, the sound suite
+passed independently; both PWM core branches and ES8311 also passed. All 140
+exported WAVs passed format, uniqueness, amplitude and overwrite checks.
 
 ## Motion presets
 
@@ -226,6 +244,11 @@ Place files in `/mochi/sounds/` on a FAT-formatted microSD card:
 | `face-soft.wav` | Calm / sleepy reactions |
 | `face-bounce.wav` | Excited / surprised reactions |
 | `face-flat.wav` | Negative / uneasy reactions: sad, angry, worried |
+| `face-bright-01.wav` … `face-bright-20.wav` | 20 bright / playful variants |
+| `face-warm-01.wav` … `face-warm-20.wav` | 20 affectionate variants |
+| `face-soft-01.wav` … `face-soft-20.wav` | 20 calm / sleepy variants |
+| `face-bounce-01.wav` … `face-bounce-20.wav` | 20 excited / surprised variants |
+| `face-flat-01.wav` … `face-flat-20.wav` | 20 negative / uneasy variants |
 | `notification.wav` | New alert |
 | `rest.wav` | Timer rest phase |
 | `done.wav` | Timer completion |
@@ -233,6 +256,9 @@ Place files in `/mochi/sounds/` on a FAT-formatted microSD card:
 | `test.wav` | Test sound |
 | `startup.wav` | Once after the startup animation, if sound is enabled |
 | `charging.wav` | A newly detected stable charge start on AMOLED V2 |
+| `charging-01.wav` … `charging-20.wav` | 20 ascending charge-start variants |
+| `unplugged.wav` | Generic fallback when external power is removed on AMOLED V2 |
+| `unplugged-01.wav` … `unplugged-20.wav` | 20 descending external-power removal variants |
 
 Use RIFF/WAVE, uncompressed signed **16-bit PCM at 16,000 Hz**, mono or stereo,
 with a maximum duration of **three seconds per file**. MP3, floating-point WAV,
@@ -266,7 +292,7 @@ check, then verify Test sound at a low volume.
 ### Startup, charging and reaction rules
 
 Startup and charging cues follow the master Sound switch, level and Night mute.
-The charge cue additionally requires the **Charging** category, found with the
+Charge-start and unplug cues additionally require the **Charging** category, found with the
 other switches under SOUND → Sound options and on by default. Startup needs no
 category switch. Reaction-family files additionally require the Faces category.
 Version ten adds the charging-sound field; earlier profiles migrate with it on.
@@ -277,24 +303,74 @@ Startup is requested once after the 2.2-second intro. Enabling sound later does
 not replay it. Higher-priority phone alerts/calls can suppress a startup or
 charging cue rather than delaying it into a backlog.
 
-Charging uses read-only AXP2101 REG01 bits 6:5, following the
+Charge-start detection uses read-only AXP2101 REG01 bits 6:5, following the
 [manufacturer's datasheet, section 6.13.2.2](https://files.waveshare.com/wiki/common/X-power-AXP2101_SWcharge_V1.0.pdf).
 It checks every 500 ms and requires two consistent samples. The same debounced
 state drives the header charge bolt, the DEVICE STATUS indicator and
 `battery=<n>% charging=on|off` in the USB `show` output. The initial known
 state is a silent baseline: booting while already charging plays no additional
-charge cue. A later idle/discharging-to-charging transition requests one sound,
-with a 30-second audio cooldown. Missing PMUs, wrong chip IDs, read errors and
-reserved status values never create a synthetic charge-start event. LCD OLD has
-no verified charge-state input and therefore emits no automatic charging sound.
+charge cue. A later idle/discharging-to-charging transition requests one sound.
+External-power removal uses REG00 bit 5 (VBUS-good), independently debounced
+with two samples. Its known powered-to-unpowered transition requests an unplug
+cue, even after the battery has finished charging. Charge completion while VBUS
+remains good does **not** play an unplug sound. See the
+[AXP2101 reference implementation](https://github.com/lewisxhe/XPowersLib/blob/master/src/XPowersAXP2101.hpp)
+(`isVbusGood`, STATUS1=REG00).
+Each direction has an independent 30-second audio cooldown, so unplugging
+soon after charge start is not suppressed by the charge-start cooldown.
+Missing PMUs, wrong chip IDs, read errors and reserved status values never
+create a synthetic event. Boot establishes silent baselines for both signals.
+LCD OLD has no verified power-state input and emits neither automatic cue.
+An unplug sound requires the board to remain powered, for example by a suitable
+connected battery; removing its only power source cannot produce a sound.
 No charger voltage, current, safety limit, IRQ or power rail is changed.
 
 When a face reaction occurs, Mochi chooses its existing Bright/Warm/Soft/Bounce/Flat
-family and tries the matching `face-*.wav`. If that file is absent or unsupported,
-it tries `face.wav`, then the built-in family-shaped chirp. This is a mapping by
-reaction family, not one recording per individual expression. Startup/charging
-also have generated fallback cues if their WAV is unavailable. Supply your own
-recordings; no WAV bundle is included.
+family and one of its 20 variants. On AMOLED with SD sounds enabled, it tries
+`face-<family>-01.wav` through `face-<family>-20.wav` for that selected variant,
+then the legacy `face-<family>.wav`, then `face.wav`, then the matching generated
+melody. Missing or invalid files use this fallback order without trying other
+variant numbers. LCD and AMOLED without SD use the generated melodies directly.
+These five banks apply to eye reactions only. Separately, charge-start and unplug
+each have 20 rising/falling generated variants without consecutive repeats.
+Their WAV order is the selected `charging-NN.wav` / `unplugged-NN.wav`, then
+`charging.wav` / `unplugged.wav`, then the matching generated melody.
+Ambient, menu taps, mood, startup, timer and phone alert cues are unchanged.
+Master/night mute, Faces for eye reactions, Charging for both power events,
+cooldowns and priorities still apply.
+
+To preview power sounds over USB without unplugging the USB console:
+
+```text
+sound charging
+sound unplugged
+```
+
+These commands keep the real category/mute/priority rules and the independent
+30-second cooldowns; they do not simulate a PMU reading or save preferences.
+
+#### Export the 140 eye and power WAVs
+
+The native exporter reuses the firmware's exact melodies and PCM renderer,
+requires only the existing C++17 compiler, and does not build/upload firmware:
+
+```powershell
+g++ -std=c++17 -Wall -Wextra -Werror -I tests/stubs tools/export-sounds.cpp -o "$env:TEMP\export-sounds.exe"
+if ($LASTEXITCODE -ne 0) { throw "Sound WAV exporter build failed" }
+& "$env:TEMP\export-sounds.exe" exports/mochi-sounds
+```
+
+```sh
+g++ -std=c++17 -Wall -Wextra -Werror -I tests/stubs tools/export-sounds.cpp -o /tmp/export-sounds
+/tmp/export-sounds exports/mochi-sounds
+```
+
+Copy the generated `exports/mochi-sounds/mochi/` directory to the microSD root.
+The output is mono 16 kHz / 16-bit PCM with short fades, about 0.13–0.23 seconds
+per clip and an 80% peak ceiling before the configured playback level.
+The exporter refuses to overwrite existing files; choose a new output directory
+to export again. Generated files stay outside Git. You can replace these
+electronic chirps with your own compatible recordings using the same filenames.
 
 ### Scheduled night and phone-media volume
 

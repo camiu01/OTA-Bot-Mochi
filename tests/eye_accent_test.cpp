@@ -17,15 +17,18 @@
 #include <set>
 #include "../OTA-bot-Mochi/src/eyes/face_random.h"
 #include "face_scene_regressions.h"
+#include "symbol_color_regressions.h"
+#include "face_accessory_regressions.h"
 
 /** @brief Accept only the explicit semantic accents owned by a symbol face. */
 static bool themed_pixel(Expression face, uint16_t pixel) {
 	switch (face) {
 		case LOVE: return pixel == eye_rgb(255, 92, 150);
-		case MONEY: return pixel == eye_rgb(48, 224, 112);
-		case STAR: case BOLT: case SPARKLE: return pixel == eye_rgb(255, 210, 48);
-		case TARGET: case LOW_BATT: return pixel == eye_rgb(255, 88, 96);
-		case MUSIC: return pixel == eye_rgb(184, 96, 248);
+		case MONEY: case POWER: return pixel == eye_rgb(48, 224, 112);
+		case STAR: case BOLT: case SPARKLE: case HALO: case IDEA: return pixel == eye_rgb(255, 210, 48);
+		case TARGET: case LOW_BATT: case DEVIL: return pixel == eye_rgb(255, 88, 96);
+		case MUSIC: case SWIRLY: return pixel == eye_rgb(184, 96, 248);
+		case DIAMOND: case RING: case QUESTION: return pixel == eye_rgb(64, 212, 255);
 		case MOON: return pixel == eye_rgb(255, 228, 144);
 		case FIRE: return pixel == eye_rgb(255, 112, 32) || pixel == eye_rgb(255, 224, 64);
 		case GLITCH: return pixel == eye_rgb(64, 212, 255) || pixel == eye_rgb(248, 64, 184);
@@ -368,6 +371,8 @@ static void yakura_colors() {
 int main() {
 	assert(settings_init());
 	symbol_tests();
+	repaired_symbol_colors(); symbol_negative_space();
+	accessory_entry(); accessory_shapes(); accessory_redraw();
 	lunar_phases();
 	moon_stays_open();
 	robot_masks();

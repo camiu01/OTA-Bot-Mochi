@@ -11,8 +11,16 @@ using namespace face_primitives;
 
 /** @brief swirly glyph procedure. */
 inline bool glyph(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b, int16_t x, int16_t y, int16_t s, uint16_t color, uint16_t cut) {
-	(void)cfg; (void)b; (void)x; (void)y; (void)s; (void)cut;
-	spiral(gfx, x, y, s, color); return true;
+	(void)cfg; (void)b; (void)cut;
+	spiral(gfx, x, y, s, color);
+	if (s < 2) { return true; }
+	int16_t stroke = int16_t(s / 16 + 1);
+	for (int16_t i = 0; i <= 96; ++i) {
+		float angle = i * 0.1f, radius = i * (s - stroke) / 96.0f;
+		gfx->fillCircle(int16_t(x + cosf(angle) * radius), int16_t(y + sinf(angle) * radius),
+			int16_t(stroke - 1), eye_rgb(184, 96, 248));
+	}
+	return true;
 }
 
 /** @brief swirly reactionMotion procedure. */

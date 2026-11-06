@@ -12,7 +12,9 @@ using namespace face_primitives;
 /** @brief diamond glyph procedure. */
 inline bool glyph(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b, int16_t x, int16_t y, int16_t s, uint16_t color, uint16_t cut) {
 	(void)cfg; (void)b; (void)x; (void)y; (void)s; (void)cut;
-	rhombus(gfx, x, y, s, color); return true;
+	rhombus(gfx, x, y, s, color);
+	if (s > 4) { rhombus(gfx, x, y, int16_t(s - 2), eye_rgb(64, 212, 255)); }
+	return true;
 }
 
 /** @brief Immutable diamond face; C++17 named-field initialization. */

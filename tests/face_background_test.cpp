@@ -5,8 +5,8 @@
  * @details A backdrop is a permanent part of the mood, so it must be visible
  *          outside the pair, must not hide the eye body, and must return the
  *          same pixels after the performance clock has run out. The catalog
- *          rule also keeps the frozen raster fixtures honest: only the two
- *          legacy effect faces and this batch may paint behind the eyes.
+ *          rule also keeps the frozen raster fixtures honest: only listed
+ *          effects, themed backdrops and external accessories paint behind eyes.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
@@ -30,15 +30,17 @@ static bool outside_pair(const EyeLayout &pair, int16_t x, int16_t y) {
 	return true;
 }
 
-/** @brief Only the two legacy effect faces and the themed batch may paint a backdrop. */
+/** @brief Allow listed painters; small external accessories must not acquire themed exit fades. */
 static void catalog_rule() {
 	for (uint8_t id = 0; id < EXPRESSION_COUNT; ++id) {
 		const FacePreset *p = face_preset(Expression(id));
 		assert(p != nullptr);
-		bool expected = id == GLOW || id == HEADLIGHTS || id == MOON || id == MECHA_MASK;
+		bool accessory = id == DEVIL || id == HALO || id == ANGEL;
+		bool expected = accessory || id == GLOW || id == HEADLIGHTS || id == MOON || id == MECHA_MASK;
 		for (Expression mood : BACKDROPPED) { expected = expected || id == mood; }
 		assert((p->background != nullptr) == expected);
 		if (expected) { assert(p->bounds != nullptr); }
+		if (accessory) { assert(!eye_themed_backdrop(Expression(id))); }
 	}
 }
 

@@ -177,6 +177,33 @@ static void headlight_origin() {
 
 /** @brief The decorative limiter repeatedly cuts back in the red zone, then recovers. */
 static void gauge_limiter() {
+	for (const auto &panel : {std::pair<int16_t, int16_t>{240, 280}, {368, 448}, {128, 160}, {160, 128}}) {
+		Arduino_GFX gfx(panel.first, panel.second);
+		EyeConfig cfg{};
+		cfg.screenW = panel.first; cfg.screenH = panel.second;
+		cfg.bgColor = 0; cfg.fgColor = 0xFFFF;
+		EyeBox box = eye_gauge_box(cfg);
+		int16_t cx = box.x + box.w / 2, cy = box.y + box.h / 2, r = box.w / 2 - 3;
+		eye_gauge_draw(&gfx, cfg, 2800, 100);
+		int needle = 0, tick = 0;
+		for (int16_t x = cx - 8; x <= cx + 8; ++x) {
+			needle += gfx.pixels[(cy - r / 2) * panel.first + x] == eye_rgb(238, 65, 54);
+			tick += gfx.pixels[(cy - r + 2) * panel.first + x] == cfg.fgColor;
+		}
+		if (needle < 3 || tick < 3) {
+			std::cerr << "Gauge " << panel.first << "x" << panel.second
+				<< " needle width " << needle << " tick width " << tick << "\n";
+		}
+		assert(needle >= 3 && tick >= 3);
+		assert(gfx.pixels[(cy - r + r / 14) * panel.first + cx] == cfg.fgColor);
+		for (int16_t y = 0; y < panel.second; ++y) {
+			for (int16_t x = 0; x < panel.first; ++x) {
+				if (x < box.x || x >= box.x + box.w || y < box.y || y >= box.y + box.h) {
+					assert(gfx.pixels[y * panel.first + x] == cfg.bgColor);
+				}
+			}
+		}
+	}
 	assert(eye_gauge_sweep(2000) == 0);
 	assert(eye_gauge_sweep(2800) > 0.49f && eye_gauge_sweep(2800) < 0.51f);
 	for (uint32_t lap : {0u, 4000u}) {
@@ -330,7 +357,7 @@ static void face_flow_tests() {
 		Expression face = policy.update(now, true, false, 0, true, mode);
 		assert(face == HAPPY);
 		for (uint8_t i = 1; i <= 5; ++i) {
-			uint32_t length = FacePolicy::automatic_duration(face);
+			uint32_t length = mode == FACE_CONTINUOUS ? FacePolicy::cycle_duration(face) : FacePolicy::automatic_duration(face);
 			assert(policy.update(now + length - 1, true, false, 0, false, mode) == face);
 			now += length;
 			Expression next = policy.update(now, true, false, 0, false, mode);

@@ -37,7 +37,7 @@ static const Field fields[] = {
 	{"auto_rotate", Text::AutoRotate, 3, 0, 1, -1, nullptr, nullptr},
 	{"flipped", Text::ScreenFlip, 3, 0, 1, -1, nullptr, &CompanionSettings::flipped},
 	{"sound", Text::Sound, 4, 0, 1, -1, nullptr, &CompanionSettings::sound},
-#if defined(MOCHI_BOARD_AMOLED_18)
+#if MOCHI_HAS_SD_AUDIO
 	{"sound_sd", Text::SoundSd, 4, 0, 1, -1, nullptr, &CompanionSettings::sound_sd},
 #endif
 	{"sound_level", Text::Level, 4, 1, 30, -1, &CompanionSettings::sound_level, nullptr},

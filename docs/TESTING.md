@@ -2,6 +2,9 @@
 
 ## Native regression tests
 
+The runners require Python 3 (`python` on Windows, `python3` on Unix) for
+board profile contracts, including custom selection and rejected configurations.
+
 These tests use `g++` with C++17 and test doubles for the display, Chronos, I2C,
 FreeRTOS mutex, USB serial input, and preferences. They do **not** compile ESP32 firmware, open a serial port,
 or replace firmware on a connected device.
@@ -58,6 +61,42 @@ filled DRL with a fixed white rim across selected center colors. Web tests save 
 new styles and reject the count sentinel. Frozen fixtures retain their four-style
 indexing and are not regenerated for the new styles.
 The petting heart must remain pink independently of the eye color and erase without trails.
+`face_variation_test.cpp` checks stable entry seeds, blink-covered seed handoffs,
+bounded micro-motion, Calm behavior and timestamp rollover. Rhythm tests cover all
+faces, ensuring monotonic time within each unchanged cycle and exact entry/restore
+windows. Live seeded rendering checks dirty-versus-clean redraws for every face,
+all seven styles and six panel sizes, including transitions and two full cycles.
+Native checks do not measure on-device frame time or physical flicker.
+`face_interaction_test.cpp` checks random whole-loop holds, delayed rendered entry,
+safe handoff boundaries, timestamp rollover, live finger gaze on both panels and
+all seven styles, and release/Dizzy priority. Repeated identical random inputs
+must not make idle gestures block every scene boundary; Return must restore
+the base even after a scene longer than its idle interval. `touch_contact_test.cpp` links the
+real driver on both board profiles: repeated non-consuming contact reads,
+orientation mapping, release/error/out-of-bounds rejection and preserved tap,
+hold, pet and swipe events. The non-raster eye stub still advances the real
+expression clock so policy tests do not silently stall without pixels.
+
+`pickup_test.cpp` checks a stable 1.2-second rest, a moderate impulse, a changed
+pose settled for 200 ms within 1.5 seconds, and a six-second cooldown. It rejects
+disabled input, invalid samples, gaps, unchanged-pose bumps, slow tilts and strong
+impulses, including across timestamp rollover. The IMU suite also replays raw
+registers through the real driver in both orientations and verifies no flash
+writes. Interaction tests cover affection easing/release and pickup wake priority
+on both panel sizes and all seven styles. These synthetic traces do not establish
+pickup accuracy or safe rejection of every road movement.
+In the native LCD emulator, enable `set imu-face on` and press `u` to preview the
+visual wake gesture; this shortcut does not simulate accelerometer detection.
+
+The SDL emulator input checks (`tools/run-emulator.ps1 -TestInput`, with
+`-Size 240x280` or `-Size 368x448`) also exercise dummy-video renderer selection,
+invalid-window rejection and partial/full display cleanup. Dummy video selects
+software directly instead of probing GPU backends; interactive video keeps
+acceleration with software fallback. Texture, renderer and window are released
+before SDL shuts down, including renderer/texture creation failures.
+This isolates headless checks from unnecessary GPU initialization; it does not
+establish the cause of the two historical Windows shutdown crashes.
+
 The face catalog checks compile the documented C++17 per-eye preset example and
 validate all 145 IDs/names, parameter ranges, USB selection and settings round-trips.
 Two frozen pre-refactor raster fixtures check pixels and dirty bounds across six
@@ -294,8 +333,8 @@ If it is not in `PATH`, replace `arduino-cli` below with that full invocation.
 
 ```sh
 arduino-cli core update-index --additional-urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
-arduino-cli core install esp32:esp32@3.3.11 --additional-urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
-arduino-cli lib install "ESP32Time@2.0.6" "NimBLE-Arduino@2.5.1"
+arduino-cli core install esp32:esp32@3.3.12 --additional-urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
+arduino-cli lib install "ESP32Time@2.0.6" "NimBLE-Arduino@2.5.2"
 arduino-cli lib install --no-deps "ChronosESP32@1.9.1" "GFX Library for Arduino@1.6.9"
 arduino-cli board list
 arduino-cli compile --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=disabled,FlashSize=16M" --build-property "upload.maximum_size=6553600" --build-property "compiler.cpp.extra_flags=-DMOCHI_BOARD_LCD_169" OTA-bot-Mochi
@@ -351,8 +390,9 @@ and crashed in the shared I2C driver on 2026-10-13. The 8 MB onboard PSRAM
 therefore remains unused. Upload replaces existing firmware.
 On Linux, replace `COM3` with the port reported by `board list`, often `/dev/ttyACM0`.
 
-The pins above are the CI configuration. The v1.2.0 release run successfully
-built both profiles with them; see [CI evidence](CI.md). This does not establish
+The pins above are the current CI targets from `versions.ini`. The inspected
+v1.2.0 release used the previous core 3.3.11 and NimBLE-Arduino 2.5.1 pins;
+see [CI evidence](CI.md). This does not establish
 which firmware is installed on a device. No upload was performed during the
 2026-10-27 consolidation. Local verification uses PlatformIO; Arduino CLI remains
 the independent CI/reference path.
@@ -362,8 +402,8 @@ See [GitHub Actions workflow](CI.md) for cached builds and downloadable artifact
 
 `platformio.ini` at the repository root mirrors both Arduino CLI profiles with
 `src_dir = OTA-bot-Mochi`, the same library pins (ESP32Time 2.0.6,
-NimBLE-Arduino 2.5.1, ChronosESP32 1.9.1, GFX Library for Arduino 1.6.9), and
-`espressif32 @ 8.0.0` (Arduino core 3.3.12, close to the CI pin 3.3.11). The
+NimBLE-Arduino 2.5.2, ChronosESP32 1.9.1, GFX Library for Arduino 1.6.9), and
+`espressif32 @ 8.0.0` (Arduino core 3.3.12, matching the CI core pin). The
 default environment is `esp32s3-lcd`, so a bare `pio run` builds only the LCD
 profile; pass `-e` explicitly and build/upload only the environment matching
 the physical board. Uploading replaces the installed application, as with the
@@ -448,9 +488,10 @@ separately in TODO.
    IMU share one I2C bus at SDA=11/SCL=10 on LCD OLD, SDA=15/SCL=14 on AMOLED V2; if touch answers but `IMU unavailable`
    persists, suspect the sensor identity or wiring rather than the bus pins.
 2. Swipe through all screens and test repeated/edge gestures. Swipe down on Clock
-   to open Scrivania, down on Route to toggle the layout, down on Weather to
+   to open Scrivania, down again to open Games, down on Route to toggle the layout, down on Weather to
    request a sync, and down on Alerts or a desk tool to confirm the quick return
-   to Eyes; confirm upward swipes walk back through Scrivania to Clock, and
+   to Eyes (Games/Dice remain on-page); confirm upward swipes walk back from
+   Dice/Pong/Tris through Games, Scrivania and Clock, and
    vertical strokes still pet on Eyes and still scroll rows in Settings.
    Tap the top status strip on Clock, Route, Alerts, Weather, or a desk tool to
    toggle sound: unmuting must chirp once, the strip must do nothing on Eyes and
@@ -501,13 +542,17 @@ separately in TODO.
     same way with a battery connected. Do not treat the native conversion tests
     as physical validation.
 
-Also test a downward swipe on Clock into Scrivania and all seven tools. Verify
+Also test a downward swipe on Clock into Scrivania and again into Games.
+Verify all available tools and games, including the Android-only Phone tools tile.
+For Dice, exercise all seven types, ±1/±10 count controls and 1/100 limits,
+individual result paging, sums up to 10,000, unchanged results after repaint/page
+changes, and reset to 1D20 after reboot. Verify
 large clock legibility, timer continuation while viewing other pages,
 default-silent completion, Tris turns/win/draw/new-game behavior, and reboot reset.
 Confirm every hub card and timer
 button is an easy parked-use target, a downward swipe on Route toggles the
 layout, a downward swipe on Weather requests a sync, and upward swipes walk
-back from tools to Scrivania to Clock; other pages keep the downward-swipe
+back from games through Games to Scrivania to Clock; other pages keep the downward-swipe
 home to Eyes.
 Switch Route layout temporarily, SAVE a different setting, and reboot: the saved
 route default must win. Test `route default`, a Route hold, and SYSTEM → Route default.

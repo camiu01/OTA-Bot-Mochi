@@ -5,6 +5,17 @@
 Functional confirmations below are scoped to
 AMOLED V2 unless another board is explicitly recorded.
 
+- [ ] Compile and physically check the expanded robot gestures on LCD OLD/AMOLED V2: nine idle poses, emotional reopening without a duplicate blink, first-contact surprise, tilt excursion/rearm, Calm/dashboard/night, touch/pet/pickup/Dizzy priority and IMU opt-out. Native SDL captures and host checks do not prove physical sensitivity, smoothness or display cadence.
+- [ ] Compile and physically check the repaired symbols plus Devil/Halo/Angel on LCD OLD/AMOLED V2: colored interiors, two external Devil horns, Halo's aureole without wings, Angel's aureole and paired wings, retained configured bodies, hollow rings, palette restoration and no clipping during blink/gaze. Check Angel selection/SAVE and older allow-list migration. Native rasters do not prove physical display color or contrast.
+- [ ] Physically tune and validate affection easing and the pickup wake heuristic on LCD OLD/AMOLED V2: gentle strokes, return to rest, real lifts in both orientations, bumps/road motion, touch/Dizzy priority and IMU opt-out. Native traces and LCD captures do not establish physical pickup accuracy.
+- [ ] Compile and physically check random whole-cycle scheduling and live finger gaze on LCD OLD/AMOLED V2: no truncated performances, repeat variability, follow/release and flipped coordinates, unchanged tap/pet/swipe/Settings hold, and Shake recovery. Native checks and GIFs are not proof of physical timing or touch tracking.
+- [ ] Confirm the cause of two historical Windows LCD-emulator shutdown access violations. On 2026-11-05, 216 short and 16 long baseline runs did not reproduce them. Dummy-video sessions now bypass accelerated-driver probing, and partial/full SDL cleanup has regressions on both panels. This mitigates headless driver-lifetime exposure; the original crash cause remains unproven.
+
+- [ ] Compile and physically check seeded face variation on LCD OLD and AMOLED V2: all styles, Calm/Dasai/Playful, dashboard/night intensity, open Moon/Fire, backdrop handoffs, frame cadence and clean palette restoration. Native timing/raster checks and GIF previews do not establish physical flicker or frame speed.
+- [ ] Compile and physically check the Games layer below Scrivania and D&D dice on LCD OLD/AMOLED V2: type/count controls, maximum 100D100 legibility, result paging, navigation, phone-mode visibility and unchanged results after redraw. Native tests do not prove physical touch usability or random-source quality.
+- [ ] Physically validate manual microSD firmware updates on AMOLED V2: valid alternate-slot install and retained settings/calibration, audio-to-update ownership handoff, missing/wrong/corrupt files, cancellation, real SD read failures, progress responsiveness and controlled interruption with USB recovery ready. Both builds, the full native suite and a USB installation passed on 2026-11-03; these are not proof of SD installation or power-loss safety.
+- [ ] Compile and audition all 20 eye sound variants in each of the five families on LCD OLD and AMOLED V2; check numbered SD WAVs, legacy/generated fallbacks, mute and BLE/display coexistence. Native tests do not establish physical audibility or SD latency.
+- [ ] Physically verify all 20 charge-start and 20 unplug variants on AMOLED V2, including numbered SD WAVs, charge completion with VBUS present, real cable removal, noisy/failed PMU reads, independent cooldowns and Charging/master/night mute. USB previews do not prove physical edge detection.
 - [ ] Compile and physically check Anime, Kitsune and Headlight DRL on LCD OLD and AMOLED V2: frame cadence, gaze/blink clipping, mood transitions, display/web/USB selection and SAVE/reboot. Native rasters do not validate display speed.
 - [ ] Verify single-pass and back-and-forth vertical petting with lateral drift below 64 pixels on both touch controllers; small drifting taps must remain taps.
 - [x] Fix the eye-motion reference test by subtracting its same-time backdrop; the complete native runner reports all host tests passed (2026-10-28).
@@ -221,4 +232,35 @@ for behavior, board details, and reproducible checks.
   `OTA-bot-Mochi.ino` (435 lines) to stay under the 400-line guideline in
   `CONTRIBUTING.md`.
 
-- [ ] Validate enlarged LOVE/STAR, filled BOLT, CLOCK_EYES dial contrast, CALCULATING math symbols, QUESTION/MONEY/POWER/SWIRLY glyphs, and brighter DAYDREAM clouds on both physical panels. Native raster checks do not establish hardware readability.
+## Audit patch acceptance
+
+- [ ] Validate Android Clock > Desk > Phone tools on both physical panels:
+  find in both directions, timeout/stop, camera permissions/readiness, phone
+  battery, eight alarms/repeats, water/movement windows, quiet/sleep across
+  midnight, EN/IT ID association, hourly forecasts, sixteen-contact cache
+  and nine QR slots. Repeat disconnect/reconnect and mute/night scenarios.
+- [ ] Verify iPhone mode hides the Chronos-only tile/actions and replaces
+  Chronos clock/weather hints while retaining ANCS/AMS and Wi-Fi features.
+- [ ] Measure the new bounded companion cache and BLE/HTTPS/audio task stack
+  headroom on LCD (no PSRAM) and AMOLED; native tests are not RAM profiling.
+
+- [ ] Verify the battery-with-bolt icon appears/disappears on stable charge changes
+  without changing pages. Recheck AMOLED displayed 0%/100% against the reported
+  nominal 3% shutdown/92% full-charge endpoints and compare Android Chronos
+  percentage/charging status after connecting and reconnecting. Native raster
+  and setter fixtures do not prove phone delivery or battery calibration.
+
+- [ ] Compile both board profiles with the shared core 3.3.12 and NimBLE 2.5.2 pins;
+  inspect the new CI run, not a previous release run.
+- [ ] On both physical boards, verify a pending OTA image remains unconfirmed until
+  display/UI/BLE setup and fifteen seconds of healthy loop activity. Reset during
+  that window and confirm return to the previous valid slot with the installed
+  rollback-enabled bootloader; retain USB recovery.
+- [ ] Verify AP v1-to-v2 migration: unchanged SSID, new twelve-character password,
+  failed-write refusal, updated phone Wi-Fi credentials and scannable QR.
+- [ ] Measure internal largest-free-block and task stack headroom during Wi-Fi/BLE
+  coexistence and repeated HTTPS work; calibrate the conservative 45 KiB gate.
+- [ ] Track remaining trust changes separately: signed images, LAN transport/client
+  binding and physical approval, authenticated pairing and flash/NVS encryption.
+
+See `docs/AUDIT_REMEDIATION.md` for implemented findings and validation limits.

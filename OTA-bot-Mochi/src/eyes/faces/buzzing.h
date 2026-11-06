@@ -56,9 +56,9 @@ inline void scenery(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeLayout &lay
 	const EyeBox eyes[] = {layout.left, layout.right};
 	for (const EyeBox &b : eyes) { local_eye_performance_air(gfx, cfg, b, elapsed, a); }
 	float angle = (elapsed % 6000) * 0.0020943951f
-		+ (face_smooth_random(elapsed, 1400, 173u) - 0.5f) * 0.24f;
+		+ (face_smooth_random(elapsed, 1400, 173u, cfg.variationSeed) - 0.5f) * 0.24f;
 	int16_t r = eye_limit(int16_t(cfg.screenW / 45), 2, 10);
-	float drift = (face_smooth_random(elapsed, 1700, 947u) - 0.5f) * 0.025f;
+	float drift = (face_smooth_random(elapsed, 1700, 947u, cfg.variationSeed) - 0.5f) * 0.025f;
 	int16_t cx = eye_limit(int16_t(cfg.screenW / 2 + cosf(angle) * cfg.screenW * (0.40f + drift)),
 		3 * r, int16_t(cfg.screenW - 3 * r - 1));
 	int16_t cy = int16_t(cfg.screenH / 2 + sinf(angle) * cfg.screenH * (0.28f + drift));

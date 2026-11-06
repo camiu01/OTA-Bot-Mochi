@@ -7,7 +7,8 @@
  * so the UI can say "not measured" instead of showing a wrong percentage. The ADC
  * scale is the approximate uncalibrated 12-bit full scale at ~11 dB attenuation.
  * The AMOLED V2 has no divider: its AXP2101 PMU reports the cell voltage in
- * millivolts, and the same tracker curve turns that into a percentage.
+ * millivolts. Its displayed scale maps the user-observed nominal 3% shutdown
+ * and 92% full-charge endpoints to 0% and 100%; this is not charger calibration.
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "battery.h"
@@ -39,7 +40,8 @@ uint32_t last_sample = 0;
 uint8_t samples = 0;
 }
 
-uint8_t battery_percent_mv(uint16_t mv) {
+/** @brief Interpolate the nominal LiPo curve before board-specific display calibration. @param mv Millivolts. @return Nominal percent. */
+static uint8_t nominal_percent_mv(uint16_t mv) {
 	if (mv <= curve[0].mv) { return 0; }
 	for (uint8_t i = 1; i < CURVE_POINTS; ++i) {
 		if (mv <= curve[i].mv) {
@@ -49,6 +51,19 @@ uint8_t battery_percent_mv(uint16_t mv) {
 		}
 	}
 	return 100;
+}
+
+uint8_t battery_percent_mv(uint16_t mv) {
+	uint8_t nominal = nominal_percent_mv(mv);
+#if MOCHI_BATTERY_EMPTY_PERCENT != 0 || MOCHI_BATTERY_FULL_PERCENT != 100
+	constexpr uint8_t EMPTY_PERCENT = MOCHI_BATTERY_EMPTY_PERCENT, FULL_PERCENT = MOCHI_BATTERY_FULL_PERCENT;
+	if (nominal <= EMPTY_PERCENT) { return 0; }
+	if (nominal >= FULL_PERCENT) { return 100; }
+	constexpr uint8_t RANGE = FULL_PERCENT - EMPTY_PERCENT;
+	return uint8_t((uint16_t(nominal - EMPTY_PERCENT) * 100 + RANGE / 2) / RANGE);
+#else
+	return nominal;
+#endif
 }
 
 uint16_t battery_mv_raw(uint16_t raw) {
@@ -79,7 +94,7 @@ void battery_sample(uint32_t now) {
 	if (samples < 255) { ++samples; }
 #if BAT_ADC >= 0
 	tracker.update(uint16_t(analogRead(BAT_ADC)));
-#elif defined(MOCHI_BOARD_AMOLED_18)
+#elif MOCHI_HAS_AXP2101
 	// The AMOLED V2 has no divider; the AXP2101 reports millivolts directly.
 	uint16_t mv = 0;
 	tracker.update_mv(axp2101_battery_mv(mv) ? mv : 0);

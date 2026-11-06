@@ -91,8 +91,8 @@ enum Expression : uint8_t {
 	CRYING = 40,	/**< Sad lids above a falling tear. */
 	SWIRLY = 41,	/**< Spiral pupils, a dizzy-drunk look. */
 	CAT = 42,	/**< Vertical slit pupils. */
-	HALO = 43,	/**< A halo ring set into the upper eye. */
-	DEVIL = 44,	/**< Paired horns in the upper eye. */
+	HALO = 43,	/**< One external golden aureole above the eye pair, without wings. */
+	DEVIL = 44,	/**< Two external red horns above mischievous eyes. */
 	FIRE = 45,	/**< Continuously flickering orange/yellow flame eyes. */
 	MOON = 46,	/**< Continuously cycling lunar-phase eyes. */
 	SPARKLE = 47,	/**< Four-point sparkle pupils. */
@@ -192,12 +192,13 @@ enum Expression : uint8_t {
 	MECHA_PILOT = 141,	/**< Rounded pilot helmet with a green eye display. */
 	COMET = 142,	/**< Lowered eyes beneath shooting stars. */
 	YAKURA = 143,	/**< Round ember eyes beneath swept pale smoke brows. */
-	CHINESE_DRAGON = 144	/**< Red Chinese dragon with gold horns, whiskers and a coiling body. */
+	CHINESE_DRAGON = 144,	/**< Red Chinese dragon with gold horns, whiskers and a coiling body. */
+	ANGEL = 145	/**< Gentle eyes beneath an aureole, with two external feathered wings. */
 };
 
 /** @brief Number of defined expressions, bounding menus, parsers, and lookups. */
-constexpr uint8_t EXPRESSION_COUNT = uint8_t(CHINESE_DRAGON) + 1;
-static_assert(EXPRESSION_COUNT == 145,
+constexpr uint8_t EXPRESSION_COUNT = uint8_t(ANGEL) + 1;
+static_assert(EXPRESSION_COUNT == 146,
 	"Expression enum, names, i18n labels and documentation must be extended together");
 
 /**
@@ -230,7 +231,7 @@ inline const char *eyes_expression_name(Expression expr) {
 		"mistake", "encouragement", "adore", "laughing", "enraged",
 		"traffic", "neon", "wheels", "sakura", "samurai", "mecha",
 		"bamboo", "titan", "upside_down", "uwu", "yokai", "tic_tac_toe", "mecha_mask", "mecha_break",
-		"hollow_anger", "snickering", "hiccup", "retro_tv", "mecha_pilot", "comet", "yakura", "chinese_dragon"
+		"hollow_anger", "snickering", "hiccup", "retro_tv", "mecha_pilot", "comet", "yakura", "chinese_dragon", "angel"
 	};
 	static_assert(sizeof(names) / sizeof(names[0]) == EXPRESSION_COUNT,
 		"eyes_expression_name() entries must match Expression values one for one");
@@ -241,6 +242,7 @@ inline const char *eyes_expression_name(Expression expr) {
  * @brief Persistent configuration singleton.
  */
 struct EyeConfig {
+	uint32_t variationSeed = 0; /**< Render-only event seed; zero keeps the canonical drawing, never persisted. */
 	EyeStyle style;	/**< Active rendering style. */
 	Expression expression;	/**< Active emotional expression. */
 	uint16_t bgColor;	/**< Background clear color (RGB565). */
@@ -289,6 +291,9 @@ struct EyeState {
 	uint32_t blinkDurMs;	/**< Duration of current blink. */
 	uint32_t dizzyUntilMs;	/**< Expiry time of DIZZY override, 0 when inactive. */
 	uint32_t glanceUntilMs;	/**< Expiry of the tap-directed gaze hold, 0 when idle. */
+	bool tracking = false; /**< A live finger owns gaze, never persisted. */
+	uint32_t petUntilMs = 0; /**< Last recognized stroke's visual relaxation, RAM-only. */
+	uint32_t wakeUntilMs = 0; /**< Brief pickup wake gesture, RAM-only. */
 	uint32_t heartUntilMs;	/**< Expiry of the petting heart marker, 0 when idle. */
 	int16_t heartX;		/**< Center X of the petting heart marker. */
 	int16_t heartY;		/**< Top Y of the petting heart marker. */

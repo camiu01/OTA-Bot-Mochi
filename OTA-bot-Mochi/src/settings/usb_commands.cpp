@@ -157,6 +157,7 @@ void help() {
 	Serial.println("sound/sound-faces/sound-timer/sound-alerts/sound-ambient/sound-charging/sound-night-mute on/off");
 	Serial.println("weather: packet counters only; weather sync: request app synchronization");
 	Serial.println("sound: mute/PWM status; sound test: two bench tones (master/night mute respected)");
+	Serial.println("sound charging/unplugged: preview a power variant (category/mute/cooldown respected)");
 }
 /** @brief Execute a parsed command with explicit success/failure feedback. @param command Action. */
 void execute(const UsbCommand &command) {
@@ -203,6 +204,11 @@ void execute(const UsbCommand &command) {
 			}
 			break;
 		}
+		case UsbAction::ChargingTest:
+		case UsbAction::UnpluggedTest:
+			Serial.println(sound_request(command.action == UsbAction::ChargingTest ? SoundCue::Charging : SoundCue::Unplugged, millis())
+				? "Power sound requested" : "Power sound blocked: mute, category, cooldown, priority or backend");
+			break;
 		default: Serial.println("ERROR, invalid command; type help"); break;
 	}
 }
@@ -245,6 +251,10 @@ UsbCommand settings_parse(const char *input, const CompanionSettings &current) {
 		result.action = UsbAction::WeatherSync;
 	} else if (tokens == 2 && strcmp(verb, "sound") == 0 && strcmp(field, "test") == 0) {
 		result.action = UsbAction::SoundTest;
+	} else if (tokens == 2 && strcmp(verb, "sound") == 0 && strcmp(field, "charging") == 0) {
+		result.action = UsbAction::ChargingTest;
+	} else if (tokens == 2 && strcmp(verb, "sound") == 0 && strcmp(field, "unplugged") == 0) {
+		result.action = UsbAction::UnpluggedTest;
 	}
 	return result;
 }

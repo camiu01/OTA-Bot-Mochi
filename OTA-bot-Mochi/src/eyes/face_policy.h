@@ -81,7 +81,9 @@ class FacePolicy {
 		if (mode == FACE_CONTINUOUS) { variety.remember(value); }
 		sequence_index = uint8_t((index + 1) % pool_size);
 		if (chain_count < 5) { ++chain_count; }
-		duration = automatic_duration(value); random_delay = 12000 + choice % 18001;
+		// Continuous playback advances after one complete loop instead of replaying the same face.
+		duration = mode == FACE_CONTINUOUS ? cycle_duration(value) : automatic_duration(value, choice);
+		random_delay = 12000 + choice % 18001;
 		active = true; motion = false; manual = false; qualifying = false;
 		affection = false;
 	}
@@ -98,10 +100,11 @@ class FacePolicy {
 	}
 
 public:
-	/** @brief Hold automatic faces for at least six seconds, using whole animation loops. */
-	static uint32_t automatic_duration(Expression value) {
+	/** @brief Randomize dwell using whole loops, never shortening the complete animation. */
+	static uint32_t automatic_duration(Expression value, uint32_t choice = 0) {
 		uint32_t cycle = cycle_duration(value);
-		return cycle < 6000 ? cycle * 2 : cycle;
+		uint32_t extra = (choice / (EXPRESSION_COUNT - 2)) % (cycle >= 9600 ? 2 : 3);
+		return (cycle < 6000 ? cycle * 2 : cycle) + extra * cycle;
 	}
 	/** @brief Complete visible loop length. @param value Mood. @return Milliseconds. */
 	static uint32_t cycle_duration(Expression value) {
@@ -109,10 +112,22 @@ public:
 		if (value >= DANCING && uint8_t(value) < EXPRESSION_COUNT) { return 6000; }
 		if (value == GAUGE || value == PONG) { return 12000; }
 		if (value == GLOW) { return 9600; }
+		if (value == MOON || value == MUSIC || value == LOW_BATT || value == LOADING ||
+			value == SPARKLE || value == TARGET || value == GLITCH) { return 6000; }
 		return value == HEADLIGHTS ? 3600 : 3000;
+	}
+	/** @brief Accept the first two 33-ms frames after a complete rendered loop, not mid-scene. */
+	static bool cycle_complete(Expression value, uint32_t elapsed) {
+		uint32_t cycle = cycle_duration(value);
+		return elapsed >= cycle && elapsed % cycle <= 66;
 	}
 	/** @brief Distinguish an automatic reaction from base/manual restoration. @return Automatic reaction. */
 	bool automatic() const { return active && !manual; }
+	/** @brief A due handoff must not be postponed forever by newly started idle gestures. */
+	bool waiting(uint32_t now) const {
+		return active ? (!manual && !motion && uint32_t(now - started) >= duration) :
+			uint32_t(now - last_random) >= random_delay;
+	}
 	/** @brief Trigger a temporary face even with automation off. @param now Time. @param choice Random input. */
 	void tap(uint32_t now, uint32_t choice) { random_reaction(now, choice); }
 	/** @brief Trigger a playful double-tap face even with automation off. @param now Time. @param choice Random input. */
@@ -141,10 +156,11 @@ public:
 		return affection;
 	}
 	/** @brief Select a base mood and restart automatic timers. @param value Mood. @param now Timestamp. */
-	void reset(Expression value, uint32_t now) {
+	void reset(Expression value, uint32_t now, uint32_t choice = 0) {
 		*this = FacePolicy{};
 		base = face = previous = face_filter().resolve(value);
 		last_random = now;
+		random_delay = 12000 + choice % 18001;
 	}
 
 	/**
@@ -188,22 +204,28 @@ public:
 	 * @return Active mood, with IMU taking priority over random.
 	 * @param ready Selected mood has finished its visible cycle; does not cancel an active reaction.
 	 * @param mode Return, group of five, ordered sequence, or continuous random playback.
+	 * @param rendered_elapsed Current visible mood clock; zero while hidden/busy, UINT32_MAX without a renderer.
 	 */
 	Expression update(uint32_t now, bool random_enabled, bool imu_enabled, uint32_t choice,
-			bool ready = true, uint8_t mode = FACE_RETURN) {
+			bool ready = true, uint8_t mode = FACE_RETURN, uint32_t rendered_elapsed = UINT32_MAX) {
 		base = face_filter().resolve(base);
 		if (active && !face_filter().allows(face)) { active = false; chain_count = 0; }
 		bool expired = active && uint32_t(now - started) >= duration;
+		if (!manual && !motion && rendered_elapsed != UINT32_MAX) {
+			expired = expired && cycle_complete(face, rendered_elapsed);
+		}
 		// Continuous playback resumes after an IMU reaction instead of restarting its idle wait.
 		if (expired && !manual && (!motion || mode == FACE_CONTINUOUS) && random_enabled && mode != FACE_RETURN &&
 			(mode != FACE_GROUP5 || chain_count < 5)) {
 			automatic_face(now, choice, mode);
 			return face;
 		}
-		if (active && (uint32_t(now - started) >= duration || (motion ? !imu_enabled : (!random_enabled && !manual)))) {
+		if (active && (expired || (motion ? !imu_enabled : (!random_enabled && !manual)))) {
 			active = false;
 			chain_count = 0;
-			if (mode == FACE_GROUP5) { last_random = now; }
+			if (mode == FACE_GROUP5 || (mode == FACE_RETURN && expired && !manual && !motion)) {
+				last_random = now;
+			}
 		}
 		if (!random_enabled) { last_random = now; }
 		if (ready && !active && random_enabled && uint32_t(now - last_random) >= random_delay) {

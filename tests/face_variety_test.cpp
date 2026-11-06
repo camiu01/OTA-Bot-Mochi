@@ -24,10 +24,29 @@ static void continuous(uint32_t choice) {
 				assert(next != prior);
 				if (j < 2) { assert(face_family(next) != face_family(prior)); }
 			}
-			uint32_t length = FacePolicy::automatic_duration(next);
-			assert(length >= 6000 && length % FacePolicy::cycle_duration(next) == 0);
+			uint32_t length = FacePolicy::cycle_duration(next);
 			assert(p.update(now + length - 1, true, false, choice, false, FACE_CONTINUOUS) == next);
 			seen.push_back(next); now += length;
+		}
+	}
+}
+/** @brief Continuous playback changes after one visible loop, even when randomness requested extra loops. */
+static void single_visible_cycle() {
+	for (uint32_t start : {12000u, UINT32_MAX - 1000}) {
+		for (uint8_t id = 1; id < EXPRESSION_COUNT; ++id) {
+			if (id == DIZZY) { continue; }
+			Expression face = Expression(id);
+			uint32_t choice = (id < DIZZY ? id - 1 : id - 2) + 2 * (EXPRESSION_COUNT - 2);
+			uint32_t cycle = FacePolicy::cycle_duration(face);
+			FacePolicy policy; policy.reset(NEUTRAL, start - 12000);
+			assert(policy.update(start, true, false, choice, true, FACE_CONTINUOUS, 0) == face);
+			assert(!policy.waiting(start + cycle - 1));
+			assert(policy.waiting(start + cycle));
+			// The policy timer alone cannot cut the actual visible animation short.
+			assert(policy.update(start + cycle + 319, true, false, choice, false,
+				FACE_CONTINUOUS, cycle - 1) == face);
+			assert(policy.update(start + cycle + 320, true, false, choice, false,
+				FACE_CONTINUOUS, cycle) != face);
 		}
 	}
 }
@@ -59,6 +78,7 @@ static void sensor_handoff(uint32_t start) {
 	assert(p.update(start + 130000, false, false, 0, true, FACE_CONTINUOUS) == NEUTRAL);
 }
 int main() {
+	single_visible_cycle();
 	for (uint32_t choice : {0u, 1u, 6u, 73u, UINT32_MAX}) { continuous(choice); }
 	sequence();
 	sensor_handoff(0); sensor_handoff(UINT32_MAX - 1000);

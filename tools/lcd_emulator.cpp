@@ -21,6 +21,9 @@
 #include "../OTA-bot-Mochi/src/ui/ui_state.h"
 #include "../OTA-bot-Mochi/src/ui/ui_theme.h"
 #include "../OTA-bot-Mochi/src/ui/view_state.h"
+#include "../OTA-bot-Mochi/src/companion/companion_state.h"
+#include "../OTA-bot-Mochi/src/companion/companion_service.h"
+#include "../OTA-bot-Mochi/src/companion/companion_language.h"
 #include <cctype>
 #include <cstdio>
 #include <cstdlib>
@@ -51,13 +54,13 @@ std::string boot_command;
 
 const char *page_name(UiPage value) {
 	static const char *const names[] = {"Eyes", "Clock", "Music", "Route", "Alerts", "Weather",
-		"Settings", "Desk", "Big clock", "Overview", "Timer", "Device", "Pong", "Analog clock", "Tris"};
+		"Settings", "Desk", "Big clock", "Overview", "Timer", "Device", "Pong", "Analog clock", "Tris", "Phone tools"};
 	return uint8_t(value) < sizeof(names) / sizeof(names[0]) ? names[uint8_t(value)] : "?";
 }
 
 bool page_from_name(const std::string &name, UiPage &out) {
 	static const char *const keys[] = {"eyes", "clock", "music", "route", "alerts", "weather",
-		"settings", "desk", "bigclock", "overview", "timer", "device", "pong", "analogclock", "tris"};
+		"settings", "desk", "bigclock", "overview", "timer", "device", "pong", "analogclock", "tris", "phone"};
 	for (uint8_t i = 0; i < sizeof(keys) / sizeof(keys[0]); ++i) {
 		if (name == keys[i]) { out = UiPage(i); return true; }
 	}
@@ -166,6 +169,7 @@ void render_frame(SDL_Renderer *renderer, SDL_Texture *texture, SDL_Window *wind
 		ui_config(watch, CF_MUSIC, 0, watch.music.state);
 	}
 	settings_clock(clock_ready(), uint8_t(watch.getHour(true)));
+	companion_poll(watch, test_now, clock_ready());
 	bool changed = screens_draw(&gfx, watch, page, test_now);
 	if (page == UiPage::Eyes && !screens_calling()) {
 		if (changed) { eyes_state().dirtyInit = false; }
@@ -201,10 +205,12 @@ void boot_firmware() {
 	settings_init();
 	backlight_init(0);
 	ui_state_init();
+	companion_init(); companion_language_init();
 	eyes_init(&gfx);
 	settings_apply();
 	view_reset();
 	seed_demo_data();
+	companion_connection(ui_snapshot().connected);
 	eyes_faces_greet(0);
 	sound_init(0);
 	battery_sample(0);
@@ -267,7 +273,7 @@ void usage(const char *program) {
 	std::printf("  --command line   run one USB console command at startup\n");
 	std::printf("  --screenshot P   write the final canvas to a PPM image\n");
 	std::printf("Mouse: click tap, drag swipe/scroll, hold 1.2s settings, wheel pages\n");
-	std::printf("Keys:  0..7 pages/tools, n alert, r route, p snapshot, q/ESC quit\n");
+	std::printf("Keys:  0..7 pages/tools, n alert, r route, u pickup wake, p snapshot, q/ESC quit\n");
 	std::printf("Terminal: type a USB command and press Enter (try: mood names, mood glow, help)\n");
 	std::printf("Window: press Enter to type a command there instead; replies appear in the terminal\n");
 }
@@ -298,6 +304,28 @@ bool parse_args(int argc, char **argv) {
 	return true;
 }
 
+uint32_t emulator_renderer_flags(const char *video_driver) {
+	// Dummy windows cannot accelerate; probing GPU drivers adds needless host-driver lifetime risks.
+	return video_driver && std::string(video_driver) == "dummy" ? SDL_RENDERER_SOFTWARE : SDL_RENDERER_ACCELERATED;
+}
+
+SDL_Renderer *emulator_create_renderer(SDL_Window *window) {
+	uint32_t flags = emulator_renderer_flags(SDL_GetCurrentVideoDriver());
+	SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, flags);
+	if (!renderer && flags != SDL_RENDERER_SOFTWARE) {
+		renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
+	}
+	return renderer;
+}
+
+void emulator_close_display(SDL_Window *window, SDL_Renderer *renderer, SDL_Texture *texture) {
+	SDL_StopTextInput();
+	if (texture) { SDL_DestroyTexture(texture); }
+	if (renderer) { SDL_DestroyRenderer(renderer); }
+	if (window) { SDL_DestroyWindow(window); }
+	SDL_Quit();
+}
+
 #ifndef MOCHI_EMULATOR_INPUT_TEST
 int main(int argc, char **argv) {
 	if (!parse_args(argc, argv)) { usage(argv[0]); return 2; }
@@ -315,14 +343,19 @@ int main(int argc, char **argv) {
 		}
 	}
 	if (!window) { std::fprintf(stderr, "SDL_CreateWindow: %s\n", SDL_GetError()); SDL_Quit(); return 1; }
-	SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-	if (!renderer) { renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE); }
-	if (!renderer) { std::fprintf(stderr, "SDL_CreateRenderer: %s\n", SDL_GetError()); SDL_Quit(); return 1; }
+	SDL_Renderer *renderer = emulator_create_renderer(window);
+	if (!renderer) {
+		std::fprintf(stderr, "SDL_CreateRenderer: %s\n", SDL_GetError());
+		emulator_close_display(window, nullptr, nullptr); return 1;
+	}
 	SDL_RenderSetLogicalSize(renderer, LCD_W, LCD_H);
 	SDL_RenderSetIntegerScale(renderer, SDL_TRUE);
 	SDL_Texture *texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
 		SDL_TEXTUREACCESS_STREAMING, LCD_W, LCD_H);
-	if (!texture) { std::fprintf(stderr, "SDL_CreateTexture: %s\n", SDL_GetError()); SDL_Quit(); return 1; }
+	if (!texture) {
+		std::fprintf(stderr, "SDL_CreateTexture: %s\n", SDL_GetError());
+		emulator_close_display(window, renderer, nullptr); return 1;
+	}
 	boot_firmware();
 	if (!boot_command.empty()) { Serial.input += boot_command + "\n"; }
 	if (start_page != page) { switch_screen(start_page, 0); }
@@ -333,10 +366,7 @@ int main(int argc, char **argv) {
 		std::fprintf(stderr, "screenshot failed: %s\n", shot_path.c_str());
 		status = 1;
 	}
-	SDL_DestroyTexture(texture);
-	SDL_DestroyRenderer(renderer);
-	SDL_DestroyWindow(window);
-	SDL_Quit();
+	emulator_close_display(window, renderer, texture);
 	return status;
 }
 #endif

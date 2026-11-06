@@ -280,8 +280,11 @@ static void context_tests(Arduino_GFX &gfx, ChronosESP32 &watch) {
 	assert(screens_scroll(UiPage::Clock, -1) == UiPage::Desk);
 	assert(screens_scroll(UiPage::Clock, 1) == UiPage::Clock);
 	assert(screens_scroll(UiPage::Desk, 1) == UiPage::Clock);
+	assert(screens_scroll(UiPage::Desk, -1) == UiPage::Games);
+	assert(screens_scroll(UiPage::Games, 1) == UiPage::Desk);
+	const UiPage tools[] = {UiPage::BigClock, UiPage::Overview, UiPage::Timer, UiPage::Device, UiPage::AnalogClock, UiPage::Phone};
 	for (uint8_t i = 0; i < 6; ++i) {
-		UiPage page = static_cast<UiPage>(uint8_t(UiPage::BigClock) + i);
+		UiPage page = tools[i];
 		assert(screens_tap(UiPage::Desk, i % 2 ? 200 : 20, 60 + (i / 2) * 50, 0) == page);
 		assert(screens_parent(page) == UiPage::Clock);
 		assert(screens_swipe(page, 1) == UiPage::Music);

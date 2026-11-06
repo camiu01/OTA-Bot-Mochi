@@ -11,8 +11,8 @@ using namespace face_primitives;
 
 /** @brief ring glyph procedure. */
 inline bool glyph(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b, int16_t x, int16_t y, int16_t s, uint16_t color, uint16_t cut) {
-	(void)cfg; (void)b; (void)x; (void)y; (void)s; (void)cut;
-	annulus(gfx, x, y, s, color); return true;
+	(void)cfg; (void)b; (void)color; (void)cut;
+	annulus(gfx, x, y, s, eye_rgb(64, 212, 255)); return true;
 }
 
 /** @brief Immutable ring face; C++17 named-field initialization. */

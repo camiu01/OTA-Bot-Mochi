@@ -19,6 +19,7 @@ bool storage_ready = false;
 bool has_saved = false;
 uint32_t revision = 0;
 bool night_clock_valid = false;
+bool remote_night = false;
 uint8_t night_hour = 0;
 FaceFilter saved_faces;
 uint32_t faces_revision = 0;
@@ -28,6 +29,7 @@ uint32_t faces_revision = 0;
 bool settings_init() {
 	profile = CompanionSettings{};
 	night_clock_valid = false; night_hour = 0;
+	remote_night = false;
 	has_saved = false;
 	storage_ready = storage.begin("mochi", false);
 	face_filter() = FaceFilter{};
@@ -130,10 +132,18 @@ bool settings_faces_save() {
 }
 uint32_t settings_faces_revision() { return faces_revision; }
 
-/** @brief Resolve night mode without mutating or saving the user's manual preference. @return Effective mode. */
+/** @brief Combine local night policy with the session-only remote quiet/sleep window. @return Effective mode. */
 bool settings_night() {
-	return night_active(profile.night, profile.night_auto, profile.night_start,
+	return remote_night || night_active(profile.night, profile.night_auto, profile.night_start,
 		profile.night_end, night_hour, night_clock_valid);
+}
+
+void settings_remote_night(bool active) {
+	bool before = settings_night();
+	remote_night = active;
+	if (before == settings_night()) { return; }
+	backlight_configure(settings_night() ? profile.night_brightness : profile.brightness, profile.dim);
+	++revision;
 }
 
 /** @brief Apply schedule edges using the main task's synchronized local clock. @param valid Trusted time. @param hour Local 24-hour value. */

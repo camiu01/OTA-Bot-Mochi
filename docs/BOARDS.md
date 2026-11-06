@@ -1,7 +1,8 @@
 # Boards and panels
 
 One codebase drives two Waveshare boards. The build selects the profile through
-`pin_config.h`; the default keeps the current board byte-for-byte.
+`pin_config.h`. Existing CLI flags are unchanged; without a flag, Arduino IDE
+keeps its existing AMOLED V2 selection. Native runners explicitly select LCD.
 
 | Board | Profile | Panel | Interface |
 | :--- | :--- | :--- | :--- |
@@ -13,7 +14,7 @@ different touch wiring; it is not covered.
 
 ## What a profile changes
 
-- **`pin_config.h`** carries both boards: display, touch, I2C, buzzer, RTC, and
+- **`src/boards/*.h`**, selected by **`pin_config.h`**, carries each board's: display, touch, I2C, buzzer, RTC, and
   power pins plus the panel geometry. Absent hardware becomes a capability
   switch, not a guess: `TP_RST=-1` (no touch reset pad), `LCD_BL=-1` (no
   backlight pad), `BUZZER=-1` (no PWM buzzer, ES8311 codec instead), and
@@ -180,3 +181,39 @@ timer rollover. Physical charge transitions, voltage/current limits, the
 reported percentage and battery runtime remain unverified; earlier board
 confirmations do not validate these readers.
 See [Sound](SOUND.md#startup-charging-and-reaction-rules).
+
+## Adding a board with existing drivers
+
+1. Copy `src/boards/lcd-169.h` or `src/boards/amoled-18-v2.h` into a new
+   header under `OTA-bot-Mochi/src/boards/`. Use the schematic for the exact
+   revision, never a similar board's pinout.
+2. Set the profile name, pins, dimensions, panel offsets and capability switches.
+   Supported combinations reuse ST7789/SPI or CO5300/QSPI, PWM buzzer or ES8311,
+   and GPIO power latch or AXP2101 power key. Touch probing and QMI8658/RTC
+   support still require compatible devices on the one shared I2C bus.
+   `MOCHI_PANEL_EXPANDER` enables the existing TCA9554 reset sequence;
+   it is independent of the display driver. `BOOT_BUTTON=-1` disables page clicks.
+   ES8311 can be used without a card by setting `MOCHI_HAS_SD_AUDIO=0`.
+3. Give the board a unique `MOCHI_BOARD_ID`, OTA marker and firmware filename.
+   Keep the marker's layout identity correct. Never reuse another board's marker
+   just because its panel is similar. Assign an unused even calibration ID
+   (0 and 2 are reserved); the low bit stores orientation. Battery curve endpoints
+   are profile-specific, not implied by the presence of a PMU.
+4. Select the header with the quoted preprocessor definition
+   `MOCHI_BOARD_PROFILE="src/boards/my-board.h"`, without either legacy board flag.
+   The include path is relative to `pin_config.h`. In PlatformIO, add an environment
+   inheriting `env`, with `-DMOCHI_BOARD_PROFILE=\"src/boards/my-board.h\"`
+   in `build_flags` (plus the existing USB CDC flag).
+5. Set flash, PSRAM and partition options explicitly in that board's build
+   environment. Profiles do not configure the toolchain. LCD OLD must keep
+   PSRAM disabled; AMOLED V2 requires OPI PSRAM. The current OTA validator
+   supports ESP32-S3 application images and the 16 MB layout only.
+6. Add native profile coverage, then a firmware CI build and release packaging
+   entry when publishing this board. Existing release scripts and CI intentionally
+   package only the two supported production profiles. Follow
+   `HARDWARE_VALIDATION.md` before declaring a new board supported.
+
+`src/boards/validate.h` rejects conflicting drivers, split shared buses,
+incompatible audio/power combinations and invalid calibration IDs.
+It does not verify electrical safety, pin conflicts or correct PSRAM wiring.
+A new controller, sensor or power backend requires its own driver, not just a profile.

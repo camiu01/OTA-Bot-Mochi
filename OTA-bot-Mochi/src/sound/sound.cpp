@@ -4,20 +4,20 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "sound.h"
+#include "face_sounds.h"
+#include "power_sounds.h"
 #include "buzzer_output.h"
 #include "../settings/settings.h"
 #include "../../pin_config.h"
 #include <Arduino.h>
-#if defined(MOCHI_BOARD_AMOLED_18)
+#if MOCHI_HAS_ES8311
 #include "es8311_output.h"
 #endif
 
 namespace {
-#if defined(MOCHI_BOARD_AMOLED_18)
 using Note = SoundNote;
+#if MOCHI_HAS_ES8311
 bool playback_started = false, playback_sd = false;
-#else
-struct Note { uint16_t hz, ms; };
 #endif
 struct Sequence { const Note *notes; uint8_t count; };
 const Note tap[] = {{2200, 55}, {0, 25}, {2800, 65}};
@@ -28,20 +28,28 @@ const Note call[] = {{2200, 100}, {0, 80}, {2200, 100}};
 const Note rest[] = {{2400, 90}, {0, 45}, {2000, 110}};
 const Note done[] = {{1600, 90}, {0, 50}, {2000, 90}, {0, 50}, {2600, 140}};
 const Note startup[] = {{1400, 70}, {1800, 70}, {2400, 100}};
-const Note charging[] = {{1600, 70}, {0, 30}, {2200, 100}};
 const Note test[] = {{1800, 250}, {0, 80}, {2400, 250}};
 Note face_notes[3] = {{2400, 55}, {0, 25}, {2800, 70}};
 Note queued_face_notes[3] = {{2400, 55}, {0, 25}, {2800, 70}};
 uint8_t queued_face_file = uint8_t(SoundCue::Face), active_face_file = uint8_t(SoundCue::Face);
-/** @brief Tone bands per family: bright, warm, soft, bouncy, or flat. */
-const uint16_t tone_base[] = {2300, 1600, 1000, 2600, 800};
-const uint16_t tone_span[] = {700, 500, 300, 700, 250};
+uint8_t last_face_variant[uint8_t(FaceTone::Count)] = {};
+Note power_notes[3] = {}, queued_power_notes[3] = {};
+uint8_t queued_power_file = 255, active_power_file = 255, last_power_variant[2] = {};
 SoundCue queued = SoundCue::Count, active = SoundCue::Count;
 uint32_t queued_at = 0, started = 0, ambient_since = 0, ambient_delay = 60000;
 uint32_t last[uint8_t(SoundCue::Count)] = {};
 bool seen[uint8_t(SoundCue::Count)] = {}, attached = false, failed = false, last_rest = false, last_done = false;
 uint32_t notifications = 0, calls = 0;
 
+/** @brief Identify either event controlled by the Charging category. @param cue Cue. @return Power event. */
+bool power_cue(SoundCue cue) { return cue == SoundCue::Charging || cue == SoundCue::Unplugged; }
+/** @brief Pick a variant without an immediate repeat. @param previous Previous selection, or count. @param count Available variants. @return Selected index. */
+uint8_t choose_variant(uint8_t &previous, uint8_t count) {
+	uint8_t variant = uint8_t(random(long(count - (previous < count))));
+	if (variant >= previous) { ++variant; }
+	previous = variant;
+	return variant;
+}
 /** @brief Select immutable notes. @param cue Cue. @return Sequence. */
 Sequence sequence(SoundCue cue) {
 	switch (cue) {
@@ -55,7 +63,8 @@ Sequence sequence(SoundCue cue) {
 		case SoundCue::Done: return {done, 5};
 		case SoundCue::Test: return {test, 3};
 		case SoundCue::Startup: return {startup, 3};
-		case SoundCue::Charging: return {charging, 3};
+		case SoundCue::Charging:
+		case SoundCue::Unplugged: return {power_notes, 3};
 		default: return {nullptr, 0};
 	}
 }
@@ -64,7 +73,7 @@ bool allowed(SoundCue cue) {
 	const auto &p = settings_get();
 	if (!p.sound || (settings_night() && p.sound_night_mute)) { return false; }
 	if (cue == SoundCue::Test || cue == SoundCue::Startup) { return true; }
-	if (cue == SoundCue::Charging) { return p.sound_charging; }
+	if (power_cue(cue)) { return p.sound_charging; }
 	if (cue == SoundCue::Ambient) { return p.sound_ambient; }
 	if (cue == SoundCue::Tap || cue == SoundCue::Mood || cue == SoundCue::Face) { return p.sound_faces; }
 	if (cue == SoundCue::Notification || cue == SoundCue::Call) { return p.sound_alerts; }
@@ -73,7 +82,7 @@ bool allowed(SoundCue cue) {
 /** @brief Keep appended device cues below phone alerts and manual tests. @param cue Cue. @return Relative priority. */
 uint8_t priority(SoundCue cue) {
 	if (cue == SoundCue::Startup) { return 1; }
-	if (cue == SoundCue::Charging) { return 2; }
+	if (power_cue(cue)) { return 2; }
 	return uint8_t(cue);
 }
 /** @brief Clear queued/active notes and release output. */
@@ -81,7 +90,7 @@ void stop() { queued = active = SoundCue::Count; buzzer_end(); attached = false;
 /** @brief Submit a complete AMOLED cue, or service the LCD's current PWM note. @param now Time. */
 void play(uint32_t now) {
 	Sequence s = sequence(active);
-#if defined(MOCHI_BOARD_AMOLED_18)
+#if MOCHI_HAS_ES8311
 	(void)now;
 	if (!playback_started) {
 		if (!attached) { attached = buzzer_begin(); }
@@ -89,6 +98,7 @@ void play(uint32_t now) {
 		if (active == SoundCue::Ambient) { level = (level + 1) / 2; }
 		playback_sd = settings_get().sound_sd;
 		uint8_t file = active == SoundCue::Face ? active_face_file : uint8_t(active);
+		if (power_cue(active)) { file = active_power_file; }
 		if (!attached || !es8311_play(s.notes, s.count, level, playback_sd ? file : 255)) { failed = true; stop(); return; }
 		playback_started = true;
 	}
@@ -115,6 +125,8 @@ void play(uint32_t now) {
 void sound_init(uint32_t now) {
 	stop(); failed = false;
 	for (uint8_t i = 0; i < uint8_t(SoundCue::Count); ++i) { seen[i] = false; last[i] = 0; }
+	for (auto &variant : last_face_variant) { variant = SOUND_FACE_VARIANTS; }
+	for (auto &variant : last_power_variant) { variant = SOUND_POWER_VARIANTS; }
 	notifications = calls = 0; last_rest = last_done = false;
 	ambient_since = now; ambient_delay = 60000;
 }
@@ -125,26 +137,29 @@ bool sound_request(SoundCue cue, uint32_t now) {
 	uint32_t cooldown = 1500;
 	if (cue == SoundCue::Ambient) { cooldown = 60000; }
 	else if (cue == SoundCue::Tap) { cooldown = 250; }
-	else if (cue == SoundCue::Charging) { cooldown = 30000; }
+	else if (power_cue(cue)) { cooldown = 30000; }
 	else if (cue == SoundCue::Face) { cooldown = 300; }
 	if (seen[index] && uint32_t(now - last[index]) < cooldown) { return false; }
 	if ((active != SoundCue::Count && priority(cue) < priority(active)) || (queued != SoundCue::Count && priority(cue) < priority(queued))) { return false; }
 	seen[index] = true; last[index] = now;
 	queued = cue; queued_at = now;
 	if (cue == SoundCue::Face) { queued_face_file = uint8_t(SoundCue::Face); }
+	if (power_cue(cue)) {
+		bool connected = cue == SoundCue::Charging;
+		uint8_t variant = choose_variant(last_power_variant[connected ? 0 : 1], SOUND_POWER_VARIANTS);
+		power_sound_notes(connected, variant, queued_power_notes);
+		queued_power_file = power_sound_file(connected, variant);
+	}
 	return true;
 }
 
-/** @brief Queue a family-specific SD selection and random chirp without mutating an active reaction. @param tone Tone family. @param now Time. */
+/** @brief Queue matching WAV/chirp variants without consecutive repeats or active-note mutation. @param tone Tone family. @param now Time. */
 void sound_request_face(FaceTone tone, uint32_t now) {
 	if (!sound_request(SoundCue::Face, now)) { return; }
 	uint8_t family = uint8_t(tone) < uint8_t(FaceTone::Count) ? uint8_t(tone) : uint8_t(FaceTone::Bright);
-	uint16_t hz = tone_base[family] + uint16_t(random(long(tone_span[family])));
-	queued_face_notes[0] = {hz, uint16_t(family == uint8_t(FaceTone::Soft) ? 100 : 55)};
-	queued_face_notes[1] = {0, 25};
-	queued_face_notes[2] = {uint16_t(hz + (family == uint8_t(FaceTone::Flat) ? 0 : 400)),
-		uint16_t(family == uint8_t(FaceTone::Bounce) ? 50 : 70)};
-	queued_face_file = SOUND_SD_FACE_BASE + family;
+	uint8_t variant = choose_variant(last_face_variant[family], SOUND_FACE_VARIANTS);
+	face_sound_notes(FaceTone(family), variant, queued_face_notes);
+	queued_face_file = face_sound_file(FaceTone(family), variant);
 }
 /** @brief Service coherent events, keeping spontaneous sounds on idle eyes only. @param now Time. @param events Counters. @param eyesVisible Eyes context. @param resting Rest phase. @param done Timer end. */
 void sound_poll(uint32_t now, const UiPageEvents &events, bool eyesVisible, bool resting, bool done) {
@@ -156,7 +171,7 @@ void sound_poll(uint32_t now, const UiPageEvents &events, bool eyesVisible, bool
 	last_done = done; last_rest = resting;
 	const auto &p = settings_get();
 	if (!p.sound || (settings_night() && p.sound_night_mute)) { stop(); failed = false; ambient_since = now; return; }
-#if defined(MOCHI_BOARD_AMOLED_18)
+#if MOCHI_HAS_ES8311
 	if (playback_sd && !p.sound_sd) {
 		playback_sd = false;
 		active = SoundCue::Count; if (attached) { buzzer_write(0, 0); }
@@ -178,7 +193,11 @@ void sound_poll(uint32_t now, const UiPageEvents &events, bool eyesVisible, bool
 			for (uint8_t i = 0; i < 3; ++i) { face_notes[i] = queued_face_notes[i]; }
 			active_face_file = queued_face_file;
 		}
-#if defined(MOCHI_BOARD_AMOLED_18)
+		if (power_cue(active)) {
+			for (uint8_t i = 0; i < 3; ++i) { power_notes[i] = queued_power_notes[i]; }
+			active_power_file = queued_power_file;
+		}
+#if MOCHI_HAS_ES8311
 		playback_started = false;
 #endif
 	}
@@ -194,7 +213,7 @@ SoundStatus sound_status() {
 }
 
 const char *sound_status_name() {
-#if defined(MOCHI_BOARD_AMOLED_18)
+#if MOCHI_HAS_ES8311
 	static const char *names[] = {"off", "night-mute", "armed", "i2s-ready", "i2s-error"};
 #else
 	static const char *names[] = {"off", "night-mute", "armed", "pwm-ready", "pwm-error"};

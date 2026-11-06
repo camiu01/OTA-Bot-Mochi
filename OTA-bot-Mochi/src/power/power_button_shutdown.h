@@ -14,7 +14,7 @@
 
 /** @brief On LCD PWR release, mute and blank, drop battery hold, then reboot on USB wake. */
 inline void handle_power_button(ChronosESP32 &watch, Arduino_GFX *display, bool ready, uint32_t now) {
-#if MOCHI_BOARD_LCD_169
+#if MOCHI_POWER_LATCH
 	if (!power_button_poll(now)) { return; }
 	if (!power_button_prepare_sleep()) { Serial.println("PWR wake configuration failed"); return; }
 	buzzer_end();

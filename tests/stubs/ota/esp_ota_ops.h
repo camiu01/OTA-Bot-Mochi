@@ -6,6 +6,14 @@
 using esp_err_t = int;
 using esp_ota_handle_t = uint32_t;
 constexpr esp_err_t ESP_OK = 0;
+constexpr esp_err_t ESP_FAIL = -1;
+enum esp_ota_img_states_t { ESP_OTA_IMG_PENDING_VERIFY, ESP_OTA_IMG_VALID };
+inline esp_ota_img_states_t test_boot_state = ESP_OTA_IMG_PENDING_VERIFY;
+inline int test_confirmations = 0;
+inline esp_err_t esp_ota_get_state_partition(const void *, esp_ota_img_states_t *state) {
+	*state = test_boot_state; return ESP_OK;
+}
+inline esp_err_t esp_ota_mark_app_valid_cancel_rollback() { ++test_confirmations; return ESP_OK; }
 struct esp_partition_t { uint32_t address, size; };
 inline esp_partition_t test_running{0x10000, 0x640000}, test_target{0x650000, 0x640000};
 inline bool test_no_slot = false;

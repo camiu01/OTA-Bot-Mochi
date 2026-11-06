@@ -16,6 +16,9 @@
 #include "../settings/settings.h"
 #include "../settings/settings_menu.h"
 #include "../power/backlight.h"
+#include "../power/battery.h"
+#include "../power/charging.h"
+#include "../companion/companion_state.h"
 
 namespace {
 UiSnapshot cached;
@@ -27,7 +30,23 @@ bool overlay_active = false;
 uint32_t preferences_revision = UINT32_MAX;
 uint32_t presentation_revision = UINT32_MAX;
 uint8_t previous_brightness = 255;
+uint8_t previous_battery = BATTERY_UNAVAILABLE;
+bool previous_charging = false;
+uint32_t companion_revision = UINT32_MAX;
 UiPage previous_page = UiPage::Eyes;
+
+/** @brief Invalidate chrome when local power, brightness, presentation or phone tools change. */
+void invalidate_status() {
+	uint8_t battery = battery_percent();
+	bool charging = charging_active();
+	uint32_t phone_revision = companion_snapshot().revision;
+	if (battery != previous_battery || charging != previous_charging || phone_revision != companion_revision) {
+		previous_battery = battery; previous_charging = charging; companion_revision = phone_revision; invalidated = true;
+	}
+	if (view_revision() != presentation_revision || backlight_brightness() != previous_brightness) {
+		presentation_revision = view_revision(); previous_brightness = backlight_brightness(); invalidated = true;
+	}
+}
 
 /**
  * @brief Draw bounded wrapped text.
@@ -142,7 +161,7 @@ const char *weekday(int day) {
  */
 void weather_screen(Arduino_GFX *gfx, uint32_t now) {
 	if (!cached.has_weather) {
-		ui_empty(gfx, tr(Text::WeatherMissing), tr(Text::WeatherHint));
+		ui_empty(gfx, tr(Text::WeatherMissing), tr(settings_get().phone_ios ? Text::IosWeatherHint : Text::WeatherHint));
 		return;
 	}
 	const Weather &w = cached.weather[0];
@@ -197,7 +216,7 @@ bool screens_calling() { return overlay_active; }
 bool screens_keep_awake() { return overlay_active || cached.navigation.active; }
 
 /**
- * @brief Repaint on events, page changes, or time-dependent fields.
+ * @brief Repaint on events, battery/charging changes, page changes, or time-dependent fields.
  * @param gfx Canvas.
  * @param watch Chronos clock.
  * @param page Current utility page.
@@ -205,11 +224,9 @@ bool screens_keep_awake() { return overlay_active || cached.navigation.active; }
  * @return Whether a frame needs flushing.
  */
 bool screens_draw(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, uint32_t now) {
+	if (page == UiPage::Phone && settings_get().phone_ios) { page = UiPage::Desk; }
 	view_timer().tick(now);
-	if (view_revision() != presentation_revision || backlight_brightness() != previous_brightness) {
-		presentation_revision = view_revision();
-		previous_brightness = backlight_brightness(); invalidated = true;
-	}
+	invalidate_status();
 	if (uint8_t(page) >= uint8_t(UiPage::Count)) { page = UiPage::Eyes; }
 	uint32_t next_revision = ui_revision();
 	bool changed = next_revision != revision;
@@ -237,7 +254,9 @@ bool screens_draw(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, uint32_t n
 	if (!invalidated && !changed && !timer && page != UiPage::Clock) { return false; }
 	if (invalidated || changed || transition) {
 		static const Text titles[] = {Text::Eyes, Text::Clock, Text::Music, Text::Route, Text::Alerts, Text::Weather, Text::Settings,
-			Text::Desk, Text::BigClock, Text::Overview, Text::Timer, Text::Device, Text::Pong, Text::AnalogClock, Text::Tris};
+			Text::Desk, Text::BigClock, Text::Overview, Text::Timer, Text::Device, Text::Pong, Text::AnalogClock, Text::Tris, Text::CompanionTitle,
+			Text::Games, Text::Dice};
+		static_assert(sizeof(titles) / sizeof(titles[0]) == uint8_t(UiPage::Count), "Every page needs a title");
 		ui_chrome(gfx, tr(overlay_active ? Text::CallTitle : titles[uint8_t(page)]),
 			cached.connected, uint8_t(screens_parent(page)));
 		clock_invalidate();

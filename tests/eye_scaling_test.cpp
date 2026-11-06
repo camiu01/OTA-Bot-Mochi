@@ -28,7 +28,8 @@ static void render(Expression expression) {
 	eyes_set_expression(expression);
 	state.dirtyInit = false;
 	eyes_draw();
-	if (face_preset(Expression(expression))->normalCycle || expression == PONG || expression == GAUGE || expression == GLOW || expression == HEADLIGHTS || expression >= DANCING) {
+	if (face_preset(Expression(expression))->normalCycle || expression == HALO || expression == DEVIL || expression == PONG || expression == GAUGE || expression == GLOW || expression == HEADLIGHTS || expression >= DANCING) {
+		// Compare after accessory entry or scene morph, not the shared neutral starting pose.
 		state.lastMs = state.effectStartMs + 3000;
 		eyes_draw();
 	}

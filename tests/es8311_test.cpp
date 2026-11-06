@@ -7,6 +7,9 @@
 #include "../OTA-bot-Mochi/src/sound/pcm_tone.h"
 #include "../OTA-bot-Mochi/src/sound/es8311_output.h"
 #include "../OTA-bot-Mochi/src/sound/sound.h"
+#include "../OTA-bot-Mochi/src/sound/face_sounds.h"
+#include "../OTA-bot-Mochi/src/sound/power_sounds.h"
+#include "../OTA-bot-Mochi/src/bus/sd_owner.h"
 #include "../OTA-bot-Mochi/src/settings/settings.h"
 #include "../OTA-bot-Mochi/src/bus/i2c_bus.h"
 #include "../OTA-bot-Mochi/pin_config.h"
@@ -30,6 +33,35 @@ static void pump(int blocks = 1) {
 	try { test_audio_task(nullptr); } catch (const TestAudioYield &) {}
 }
 
+/** @brief The real worker selects each power bank and cancels either event when its category is disabled. */
+static void sd_power_tests() {
+	profile = CompanionSettings{}; profile.sound = profile.sound_sd = true;
+	UiPageEvents events;
+	for (bool connected : {true, false}) {
+		uint8_t previous = SOUND_POWER_VARIANTS;
+		test_now += 40000; sound_init(test_now);
+		for (unsigned step = 0; step < 80; ++step) {
+			std::srand(step);
+			uint8_t variant = uint8_t(random(long(SOUND_POWER_VARIANTS - (previous < SOUND_POWER_VARIANTS))));
+			if (variant >= previous) { ++variant; }
+			std::srand(step);
+			std::string number = (variant < 9 ? "0" : "") + std::to_string(variant + 1);
+			std::string path = std::string("/mochi/sounds/") + (connected ? "charging-" : "unplugged-") + number + ".wav";
+			SD_MMC.files[path] = wav_fixture();
+			test_now += 31000;
+			assert(sound_request(connected ? SoundCue::Charging : SoundCue::Unplugged, test_now));
+			sound_poll(test_now, events, false, false, false);
+			pump(3); assert(SD_MMC.last_path == path && es8311_playing());
+			previous = variant;
+		}
+		profile.sound_charging = false;
+		sound_poll(test_now, events, false, false, false);
+		assert(test_gpio_levels[AUDIO_PA] == LOW && !es8311_playing());
+		profile.sound_charging = true;
+	}
+	sound_init(test_now); pump();
+}
+
 /** @brief Exact sample lengths, copied notes, edges, and invalid sequence bounds. */
 static void sequence_tests() {
 	SoundNote notes[] = {{1800, 55}, {0, 25}, {2400, 65}};
@@ -45,6 +77,7 @@ static void sequence_tests() {
 	notes[0].hz = 0;
 	int16_t samples[4640];
 	sequence.render(samples, 2320);
+	for (int16_t sample : samples) { assert(std::abs(int(sample)) <= 3276); }
 	assert(!sequence.playing());
 	assert(samples[0] == 0 && samples[1758] == 0 && samples[4638] == 0);
 	assert(std::any_of(samples, samples + 1760, [](int16_t v) { return v != 0; }));
@@ -263,6 +296,21 @@ static void sd_family_tests() {
 		test_now += 2000; sound_init(test_now);
 		sound_request_face(FaceTone(i), test_now); sound_poll(test_now, events, false, false, false);
 		pump(3); assert(SD_MMC.last_path == path && es8311_playing());
+		uint8_t previous = SOUND_FACE_VARIANTS;
+		sound_init(test_now);
+		for (unsigned step = 0; step < 80; ++step) {
+			std::srand(step);
+			uint8_t variant = uint8_t(random(long(SOUND_FACE_VARIANTS - (previous < SOUND_FACE_VARIANTS))));
+			if (variant >= previous) { ++variant; }
+			std::srand(step);
+			std::string number = (variant < 9 ? "0" : "") + std::to_string(variant + 1);
+			std::string numbered = std::string("/mochi/sounds/") + names[i] + "-" + number + ".wav";
+			SD_MMC.files[numbered] = wav_fixture();
+			test_now += 2000;
+			sound_request_face(FaceTone(i), test_now); sound_poll(test_now, events, false, false, false);
+			pump(3); assert(SD_MMC.last_path == numbered && es8311_playing());
+			previous = variant;
+		}
 	}
 	for (SoundCue cue : {SoundCue::Startup, SoundCue::Charging}) {
 		std::string path = std::string("/mochi/sounds/") + (cue == SoundCue::Startup ? "startup.wav" : "charging.wav");
@@ -274,9 +322,33 @@ static void sd_family_tests() {
 	sound_init(test_now); pump();
 }
 
+/** @brief The actual audio worker acknowledges card release before maintenance may mount it. */
+static void sd_lease_tests() {
+	profile = CompanionSettings{}; profile.sound = profile.sound_sd = true;
+	UiPageEvents events;
+	SD_MMC.files["/mochi/sounds/test.wav"] = wav_fixture(1, 16000);
+	test_now += 40000; sound_init(test_now);
+	assert(sound_request(SoundCue::Test, test_now));
+	sound_poll(test_now, events, false, false, false); pump(3);
+	assert(sd_owner.load() == SdOwner::Audio && !sd_acquire(SdOwner::Update));
+	sound_init(test_now);
+	assert(!sd_acquire(SdOwner::Update));
+	pump();
+	assert(sd_acquire(SdOwner::Update));
+	unsigned mounts = SD_MMC.mounts, opens = SD_MMC.opens;
+	test_now += 2000;
+	assert(sound_request(SoundCue::Test, test_now));
+	sound_poll(test_now, events, false, false, false); pump(3);
+	assert(SD_MMC.mounts == mounts && SD_MMC.opens == opens);
+	assert(sd_owner.load() == SdOwner::Update);
+	sound_init(test_now); pump();
+	assert(sd_owner.load() == SdOwner::Update);
+	sd_release(SdOwner::Update);
+}
+
 /** @brief Run without physical audio output. @return Success. */
 int main() {
 	pcm_tests(); sequence_tests(); failure_tests(); playback_tests(); service_tests();
-	delayed_service_tests(); sequence_mute_tests(); sd_service_tests(); sd_family_tests();
+	delayed_service_tests(); sequence_mute_tests(); sd_service_tests(); sd_family_tests(); sd_power_tests(); sd_lease_tests();
 	std::cout << "ES8311 codec, PCM sequences, delayed rendering, DMA drain, mute, and failures passed\n";
 }

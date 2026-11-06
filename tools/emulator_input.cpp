@@ -10,6 +10,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "emulator.h"
+#include "../OTA-bot-Mochi/src/eyes/eyes_api.h"
 #include "../OTA-bot-Mochi/src/eyes/eyes_faces.h"
 #include "../OTA-bot-Mochi/src/settings/settings_menu.h"
 #include "../OTA-bot-Mochi/src/ui/ui_theme.h"
@@ -107,6 +108,7 @@ void handle_key(SDL_Keycode key, bool &running) {
 	if (key == SDLK_p) { write_ppm(shot_path); return; }
 	if (key == SDLK_n) { inject_notification(); return; }
 	if (key == SDLK_r) { toggle_route(); return; }
+	if (key == SDLK_u) { eyes_wake(test_now); return; }
 	static const UiPage jump[] = {UiPage::Eyes, UiPage::Clock, UiPage::Music, UiPage::Navigation,
 		UiPage::Notification, UiPage::Weather, UiPage::Settings, UiPage::Desk};
 	if (key >= SDLK_0 && key <= SDLK_7) { switch_screen(jump[key - SDLK_0], test_now); }
@@ -168,6 +170,7 @@ Gesture take_gesture() {
 }
 
 void handle_touch(uint32_t now) {
+	eyes_follow(finger_x, finger_y, finger && page == UiPage::Eyes && !screens_calling(), now);
 	const Gesture g = take_gesture();
 	if (g.tap && g.y < 50 && !screens_calling() && page != UiPage::Eyes && page != UiPage::Settings) {
 		toggle_quick_sound(now);

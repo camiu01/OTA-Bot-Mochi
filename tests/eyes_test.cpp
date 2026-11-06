@@ -91,8 +91,8 @@ static void distinct_expression_tests() {
 			st.dirtyInit = false;
 			eyes_draw();
 			if (expression == NEUTRAL) { baseline = gfx.pixels; continue; }
-			if (face_preset(Expression(expression))->normalCycle || expression == PONG || expression == GAUGE || expression == GLOW || expression == HEADLIGHTS || expression >= DANCING) {
-				// These moods intentionally start as eyes; compare their scene phase.
+			if (face_preset(Expression(expression))->normalCycle || expression == HALO || expression == DEVIL || expression == PONG || expression == GAUGE || expression == GLOW || expression == HEADLIGHTS || expression >= DANCING) {
+				// These moods start as eyes; compare after their accessory entry or scene morph.
 				st.lastMs += 3000;
 				eyes_draw();
 			}
@@ -143,6 +143,7 @@ static void random_tests() {
 	wide.reset(NEUTRAL, 0);
 	bool saw_dizzy = false, saw_neutral = false, saw_last = false;
 	for (uint32_t choice = 0; choice < uint32_t(EXPRESSION_COUNT) * 4; ++choice) {
+		wide.reset(NEUTRAL, choice * 30000);
 		Expression face = wide.update(12000 + choice * 30000, true, false, choice);
 		saw_dizzy = saw_dizzy || face == DIZZY;
 		saw_neutral = saw_neutral || face == NEUTRAL;
@@ -265,51 +266,55 @@ static void tone_tests() {
 
 /** @brief Test real automatic-face integration without changing style or saved mood. */
 static void integration_tests() {
-	eyes_init(nullptr);
+	test_now = 0;
+	Arduino_GFX gfx(240, 280);
+	eyes_init(&gfx);
 	CompanionSettings p = settings_get();
 	p.random_faces = true; p.imu_faces = false; p.mood = 0; p.style = MOCHI;
 	test_now = 0;
 	settings_update(p);
-	test_now = 12000;
-	eyes_update(test_now);
+	for (test_now = 0; test_now <= 30066 && eyes_config().expression == NEUTRAL; test_now += 33) {
+		eyes_update(test_now);
+	}
 	assert(eyes_config().expression != NEUTRAL && eyes_config().style == MOCHI);
 	assert(settings_get().mood == 0);
 	Expression automatic = eyes_config().expression;
-	test_now = 15000;
+	test_now += 3000;
 	eyes_update(test_now);
 	assert(eyes_config().expression == automatic);
 	p.random_faces = false;
 	settings_update(p);
 	assert(eyes_config().expression == NEUTRAL);
-	test_now = 16000;
+	const uint32_t tap_at = test_now + 1000;
+	test_now = tap_at;
 	eyes_faces_tap(test_now, 120, 140);
 	Expression tapped = eyes_config().expression;
 	assert(tapped != NEUTRAL && settings_get().mood == 0 && !settings_get().random_faces);
-	eyes_update(18999);
+	eyes_update(tap_at + 2999);
 	assert(eyes_config().expression == tapped);
-	eyes_update(19000);
+	eyes_update(tap_at + 3000);
 	assert(eyes_config().expression == NEUTRAL);
-	eyes_faces_tap(19001, 120, 140);
+	eyes_faces_tap(tap_at + 3001, 120, 140);
 	assert(eyes_config().expression != tapped);
-	eyes_faces_pet(19002, 120, 180);
+	eyes_faces_pet(tap_at + 3002, 120, 180);
 	Expression petted = eyes_config().expression;
 	assert(petted == HAPPY || petted == LOVE || petted == GLEE ||
 		petted == BEAMING || petted == MILD_HAPPY || petted == EXCITED);
 	assert(settings_get().mood == 0);
-	assert(eyes_state().heartUntilMs == 19902 && eyes_state().heartX == 120 && eyes_state().heartY == 180);
+	assert(eyes_state().heartUntilMs == tap_at + 3902 && eyes_state().heartX == 120 && eyes_state().heartY == 180);
 	// Continued stroking extends the affection face, and out-of-range points clamp on screen.
-	eyes_faces_pet(19002, 2, 2);
+	eyes_faces_pet(tap_at + 3002, 2, 2);
 	assert(eyes_config().expression == petted);
-	assert(eyes_state().heartUntilMs == 19902 && eyes_state().heartX == 7 && eyes_state().heartY == 20);
-	eyes_state().dizzyUntilMs = 21001;
+	assert(eyes_state().heartUntilMs == tap_at + 3902 && eyes_state().heartX == 7 && eyes_state().heartY == 20);
+	eyes_state().dizzyUntilMs = tap_at + 5001;
 	eyes_config().expression = DIZZY;
-	eyes_faces_tap(19002, 120, 140);
+	eyes_faces_tap(tap_at + 3002, 120, 140);
 	assert(eyes_config().expression == DIZZY);
 	eyes_state().dizzyUntilMs = 0;
 	// The heart marker survives until its expiry, then the dirty union drops it.
-	eyes_update(19901);
-	assert(eyes_state().heartUntilMs == 19902);
-	eyes_update(19902);
+	eyes_update(tap_at + 3901);
+	assert(eyes_state().heartUntilMs == tap_at + 3902);
+	eyes_update(tap_at + 3902);
 	assert(eyes_state().heartUntilMs == 0);
 }
 

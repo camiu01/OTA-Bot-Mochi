@@ -7,11 +7,32 @@ Seven position dots indicate the selected
 screen; the header shows a speaker icon (crossed out while sound is off or
 night-muted), Bluetooth state, and the battery percentage (`--%` until a
 plausible reading exists). While the PMU reports a stable charging state, the
-percentage uses the accent color and a charge bolt appears beside it. The
+percentage uses the accent color and a battery-with-bolt icon appears beside it.
+Stable charge start/stop and percentage changes invalidate the header immediately,
+without waiting for a phone packet or a page change. The
 configured backlight percentage is shown on the DEVICE STATUS page, not in the
 header.
 
+The AMOLED V2 display estimate is normalized using the user's observed nominal
+3% shutdown and 92% full-charge readings as 0% and 100%. Values outside that
+range are clamped, and intermediate values are rounded to the nearest percent.
+The LCD curve is unchanged. This adjusts the display only: it does not configure
+the PMU, change charge limits or alter the hardware shutdown voltage. Recheck
+both endpoints on the physical device; voltage-based state of charge remains approximate.
+
+Android Chronos mode publishes that same displayed percentage and the stable
+PMU charging flag through `ChronosESP32::setBattery` on the main task. Unknown
+readings are not sent as 255%; Chronos keeps its last valid cached value and
+handles change notifications and reconnect publication. Before the first valid
+sample the library's initial value may still be shown. ANCS mode is unaffected.
+
 ## Controls
+
+Android mode adds **Phone tools** as the sixth contextual desk tile. Find,
+camera, alarms, phone battery, reminders, app schedules, hourly forecasts,
+contacts, QR links and explicit app-language association are described in
+[Chronos integration](CHRONOS.md). The tile and Chronos-only actions are hidden
+in iPhone mode; the seven-page carousel remains unchanged.
 
 The Moon face animates new, waxing crescent, first quarter, waxing gibbous,
 full, waning gibbous, last quarter and waning crescent moons over its six-second
@@ -37,6 +58,53 @@ IDs 137–143 add `hollow_anger`, `snickering`, `hiccup`, `retro_tv`,
 style and palette at both endpoints. Comet paths, Sakura petals and hiccup
 bubbles have deterministic event-based variation, not per-frame randomness.
 
+All faces now receive session-only variation in Dasai and Playful modes:
+smooth micro-gaze, gentle stretch, and slight opening differences when asymmetry
+is enabled. Idle gestures last 700–1200 ms instead of a fixed beat. Special scenes
+retain their stable origin, but their active timing varies smoothly between cycles;
+the first/last 800 ms and complete loop durations stay unchanged so transitions
+and palette restoration remain predictable. Existing rain, petals, smoke, bubbles,
+comets, glitch bursts and stars use the visible face's entry seed. The star field
+also chooses a stable new arrangement on entry, not new positions every frame.
+No generic confetti, extra pupils or palette changes are added.
+Calm disables these additions; dashboard and night settings reduce micro-motion
+and rhythm variation. Seeds never enter the saved profile.
+
+Symbol interiors have explicit accents independently of the selected eye-body ink:
+Diamond/Ring/Question use cyan, Idea gold, Power green and Swirly violet.
+Diamond retains its silhouette around the colored inset; Swirly keeps its
+outlined spiral and Ring stays hollow. Solid-style pupil exclusions are unchanged.
+Devil (ID 44) now has two external red horns above sly eyes, with no internal
+horn glyph. Halo (ID 43) has only one hollow golden aureole above the original
+eyes, without wings. Angel (`angel`, ID 145) is a separate face with that aureole,
+gentle lower lids and two pale-blue feathered wings outside the eye pair.
+Their horns, aureoles and wings ease in over 1.2 seconds from the visible face's
+entry clock, rather than appearing instantly. The eye-body ink itself does not
+fade. All retain the configured eye-body ink and style, including during blinks
+and live gaze. They add no mouth/body, new settings record or renumbered IDs.
+Angel is selectable through the existing screen, USB and web catalogs; the
+older face allow-list keeps its exclusions and enables the appended ID.
+
+Continuous playback advances to another face after one complete visible loop,
+without replaying the same animation two or three times. Return, group-of-five
+and sequence modes retain randomized whole-loop dwell, not arbitrary
+mid-animation deadlines. The first idle wait is randomized too. Handoffs wait
+for the displayed loop to finish, including the entry blink and any idle gesture.
+Idle gestures have random initial and repeat delays rather than a fixed first beat.
+The nine spontaneous gestures include a double blink, wink, sideways peek,
+soft squint, stretch, single nod, double nod, searching glance and curious lean.
+Ordinary face handoffs use one blink: sad/tired eyes reopen more slowly within
+the same 320-ms handoff, surprised eyes open decisively and happy eyes gently
+stretch as they reopen. An overlapping automatic blink is consumed, not replayed.
+Scenes and symbols retain their dedicated animation instead of these gestures.
+In Dasai/Playful modes, first contact adds a 420-ms surprise stretch while gaze
+continues following the finger. With IMU faces enabled, a tilt excursion adds a
+700-ms curious lean; it rearms only after returning near center. These are visual
+poses, not new selected moods or saved settings. Petting, pickup feedback,
+face handoffs and Dizzy take priority; suppressed gestures are not queued.
+Calm disables the new gestures, while dashboard/night reduce their intensity.
+Tilt sensitivity and appearance still require physical-device validation.
+
 - Settings → SYSTEM → **Firmware update** opens a temporary Wi-Fi maintenance
   screen, outside the seven-page carousel. Its password and browser address are
   shown on the display; normal controls pause until exit, timeout or restart.
@@ -44,10 +112,12 @@ bubbles have deterministic event-based variation, not per-frame randomness.
 
 - Swipe left/right through Eyes, Clock, Music, Route, Alerts, Weather, and Settings.
 - Vertical swipes follow the contextual layers: swipe **down** on Clock to open
-  Scrivania (desk tools), swipe **up** on Scrivania to return to Clock, and
-  swipe **up** on any desk tool to return to Scrivania. Swipe **down** on Route
+  Scrivania (desk tools), then **down** again for **Games / Giochi** (D&D dice,
+  Pong and Tris). Swipe **up** from a game to Games, from Games or a desk tool
+  to Scrivania, and from Scrivania to Clock. Swipe **down** on Route
   toggles the large/details layout and swipe **down** on Weather requests a
-  phone sync and a configured Internet weather refresh. A downward swipe anywhere else still returns straight to Eyes.
+  phone sync and a configured Internet weather refresh. Downward swipes on Games
+  and Dice stay there; other utility pages retain the quick return to Eyes.
   Vertical strokes still pet Mochi on Eyes and still scroll rows inside
   Settings.
 - Tap the top status strip, above the page title, on Clock, Music, Route, Alerts,
@@ -56,11 +126,25 @@ bubbles have deterministic event-based variation, not per-frame randomness.
   reactions) and inside Settings. This edits the RAM profile like the SOUND
   section does, so a Settings SAVE persists it too.
 - A downward swipe on Clock opens Scrivania: large clock, overview, local
-  timer, device status, Pong and analog clock, without adding them to the primary swipe
+  timer, device status and analog clock, without adding them to the primary swipe
   carousel. See [Desk tools](DESK.md).
 - A short tap on Eyes requests a temporary random face and makes the eyes
   glance toward the touch point for a couple of seconds. It does not change
   saved preferences or require automatic random moods to be enabled.
+- While touching Eyes, the gaze smoothly follows the current finger position.
+  Live contact overrides random gaze, micro-gaze and IMU tilt, and defers
+  automatic face changes without requesting a face or sound each frame.
+  Full-screen scenes retain their stable origin to avoid clipping. Lifting the
+  finger resumes idle gaze after a short pause; released taps, vertical petting,
+  horizontal swipes and the stationary 1.2-second Settings hold keep their roles.
+- Recognized petting strokes also ease the eyelids into a relaxed pose. Repeated
+  strokes sustain it; after the last stroke, the gaze and lids return smoothly.
+  This visual feedback works in Calm too and never adds pupils or changes ink.
+- With IMU faces enabled, a quiet-to-motion-to-settled change of pose can request
+  a brief pickup wake gesture. It opens the eyes gently without selecting a new
+  expression, changing saved preferences or adding sound. Live contact,
+  affection and Dizzy take priority; full-screen scenes retain their origin.
+  This is a conservative motion heuristic, not proof that the robot was lifted.
 - Double-tap quickly on Eyes for a playful face from a separate excited/star
   pool, with the same glance toward your finger. Dizzy keeps priority.
 - Stroke vertically in either direction on Eyes to pet Mochi: a single
@@ -110,8 +194,10 @@ bubbles have deterministic event-based variation, not per-frame randomness.
   to be released, avoiding a page change underneath a settings tap.
 - Hold still for 1.2 seconds on the eyes screen to open Settings. A swipe or
   moving finger is not also treated as a tap or hold.
-- The desk hub presents seven 108x44-pixel cards in a two-column, four-row grid
-  (design coordinates), including playable Tris against Mochi. The
+- The desk hub presents six 108x44-pixel cards in Android mode, five in iPhone mode,
+  in a two-column, three-row grid (design coordinates). Games lives one layer below;
+  Dice supports 1–100 D4/D6/D8/D10/D12/D20/D100 with individual results and a total.
+  The
   local timer uses a full-width 50-pixel START/PAUSE accent button with
   48-pixel RESET and MODE buttons, so every desk control is a comfortable
   parked-use target.

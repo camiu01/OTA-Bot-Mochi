@@ -33,37 +33,45 @@
 #include "src/ui/boot_button.h"
 #include "src/power/backlight.h"
 #include "src/power/battery.h"
+#include "src/power/battery_chronos.h"
 #include "src/power/charging.h"
 #include "src/power/power_button_shutdown.h"
 #include "src/settings/settings.h"
 #include "src/settings/settings_menu.h"
 #include "src/settings/usb_commands.h"
 #include "src/update/ota_screen.h"
+#include "src/update/sd_update.h"
+#include "src/update/sd_update_screen.h"
 #include "src/update/ota_update.h"
+#include "src/update/ota_boot.h"
 #include "src/update/ntp_sync.h"
 #include "src/network/network_service.h"
 #include "src/bus/i2c_bus.h"
 #include "src/ancs/ancs_service.h"
+#include "src/companion/companion_state.h"
+#include "src/companion/companion_service.h"
+#include "src/companion/companion_language.h"
 #include "runtime_diagnostics.h"
 
 ChronosESP32 watch("OTA bot");
 bool ios_mode_boot = false;
-#if MOCHI_BOARD_LCD_169
+#if MOCHI_DISPLAY_ST7789
 Arduino_DataBus *bus = new Arduino_ESP32SPI(LCD_DC, LCD_CS, LCD_SCK, LCD_MOSI);
 Arduino_GFX *display = new Arduino_ST7789(bus, LCD_RST, 0, true,
-	LCD_WIDTH, LCD_HEIGHT, 0, 20, 0, 0);
+	LCD_WIDTH, LCD_HEIGHT, MOCHI_PANEL_OFFSET_X, MOCHI_PANEL_OFFSET_Y, 0, 0);
 #else
 Arduino_DataBus *bus = new Arduino_ESP32QSPI(
 	LCD_CS, LCD_SCLK, LCD_SDIO0, LCD_SDIO1, LCD_SDIO2, LCD_SDIO3);
 // CO5300: the visible area starts at RAM column 16; the panel reset is held by
 // the TCA9554 expander, which init_screen() releases before the first command.
-Arduino_CO5300 *display = new Arduino_CO5300(bus, -1, 0,
-	LCD_WIDTH, LCD_HEIGHT, 16, 0, 0, 0);
+Arduino_CO5300 *display = new Arduino_CO5300(bus, LCD_RST, 0,
+	LCD_WIDTH, LCD_HEIGHT, MOCHI_PANEL_OFFSET_X, MOCHI_PANEL_OFFSET_Y, 0, 0);
 #endif
 Arduino_GFX *gfx = new Arduino_Canvas(LCD_WIDTH, LCD_HEIGHT, display);
 UiPage current_screen = UiPage::Eyes;
 AutoPagePolicy auto_page;
 bool screen_ready = false;
+bool boot_ready = false;
 bool applied_flip = false;
 StartupAnimation startup;
 StartupAnimation shutdown_animation;
@@ -90,6 +98,7 @@ void ringer_callback(String caller, bool active) {
 /** @brief Cache connection changes. @param connected Bluetooth state. */
 void connection_callback(bool connected) {
 	ui_connection(connected);
+	companion_connection(connected);
 }
 
 /**
@@ -100,26 +109,28 @@ void connection_callback(bool connected) {
  */
 void config_callback(Config config, uint32_t a, uint32_t b) {
 	if (config == CF_TIME && a == 1) { clock_time_synced(); }
+	companion_config(watch, config, a, b);
 	ui_config(watch, config, a, b);
+}
+
+/** @brief Copy bounded hourly forecast packets missing from configuration events. @param data Packet bytes. @param length Packet size. */
+void companion_data_callback(uint8_t *data, int length) {
+	if (length > 0) { companion_data(data, size_t(length), watch.getDayofYear()); }
 }
 
 /** @brief Install callbacks after the UI lock is ready and start BLE. */
 void init_chronos() {
-#if MOCHI_BOARD_LCD_169
-	// Chronos 1.9.1 has no 240x280 preset; this is the nearest rectangular metadata profile.
-	watch.setScreen(CS_240x283_172_RTF);
-#else
-	// Chronos 1.9.1 has no 368x448 preset; nearest profile by aspect ratio and area.
-	watch.setScreen(CS_410x494_200_RTF);
-#endif
+	// Profile selects the nearest Chronos metadata preset.
+	watch.setScreen(MOCHI_CHRONOS_SCREEN);
 	watch.setConnectionCallback(connection_callback);
 	watch.setNotificationCallback(notification_callback);
 	watch.setConfigurationCallback(config_callback);
+	watch.setDataCallback(companion_data_callback);
 	watch.setRingerCallback(ringer_callback);
 	watch.begin();
 }
 
-#if !MOCHI_BOARD_LCD_169
+#if MOCHI_PANEL_EXPANDER
 /** @brief Read one TCA9554 register. @param wire Shared bus. @param reg Register. @param value Output value. @return Success. */
 bool expander_read(TwoWire &wire, uint8_t reg, uint8_t &value) {
 	wire.beginTransmission(IO_EXPANDER_ADDR);
@@ -169,6 +180,9 @@ void release_panel_reset() {
 	(void)expander_write(wire, 0x01, uint8_t(output | IO_EXPANDER_RESET_PINS));
 }
 
+#endif
+
+#if MOCHI_DISPLAY_CO5300
 /** @brief Route the shared brightness policy into the AMOLED controller. @param percent Brightness percentage. */
 void apply_display_brightness(uint8_t percent) {
 	display->setBrightness(uint8_t(uint32_t(percent) * 255 / 100));
@@ -177,8 +191,10 @@ void apply_display_brightness(uint8_t percent) {
 
 /** @brief Initialize the buffered canvas; never draw after an allocation failure. */
 void init_screen() {
-#if !MOCHI_BOARD_LCD_169
+#if MOCHI_PANEL_EXPANDER
 	release_panel_reset();
+#endif
+#if MOCHI_DISPLAY_CO5300
 	backlight_bind_display(apply_display_brightness);
 #endif
 	if (!gfx->begin()) {
@@ -239,6 +255,10 @@ void toggle_quick_sound(uint32_t now) {
  */
 void handle_touch(uint32_t now) {
 	int8_t step = touch_poll(now);
+	int16_t follow_x = 0, follow_y = 0;
+	bool following = touch_position(follow_x, follow_y) && current_screen == UiPage::Eyes &&
+		!starting && !shutting_down && !screens_calling();
+	eyes_follow(follow_x, follow_y, following, now);
 	bool hold = touch_take_hold();
 	int16_t x, y;
 	bool tap = touch_take_tap(x, y);
@@ -279,6 +299,7 @@ void handle_touch(uint32_t now) {
 	if (tap && current_screen == UiPage::Settings && !screens_calling()) {
 		MenuAction action = settings_menu_tap(x, y);
 		if (action == MenuAction::Update) { ota_screen_begin(gfx, now); return; }
+		else if (action == MenuAction::SdUpdate) { sd_update_screen_begin(gfx, now); return; }
 		else if (action == MenuAction::FacesWeb) { ota_screen_begin(gfx, now, true); return; }
 		else if (action == MenuAction::Exit) { switch_screen(UiPage::Eyes, now); }
 		else if (action == MenuAction::Changed) { screens_invalidate(); }
@@ -305,7 +326,7 @@ void handle_auto_page(uint32_t now) {
 	}
 }
 
-/** @brief Initialize display, snapshot lock, BLE, eyes, and touch. */
+/** @brief Initialize display, snapshot lock, BLE, eyes, and touch before opening the OTA health window. */
 void setup() {
 	bool power_ready = power_button_init();
 	boot_button.begin(millis());
@@ -313,14 +334,16 @@ void setup() {
 	if (!settings_init()) { Serial.println("Settings storage unavailable; using RAM defaults"); }
 	if (!power_ready) { Serial.println("PWR button configuration unavailable"); }
 	init_screen();
-	if (!ui_state_init()) {
+	if (!ui_state_init() || !companion_init()) {
 		Serial.println("UI state initialization failed; BLE not started");
 		screen_ready = false;
 		return;
 	}
 	ios_mode_boot = settings_get().phone_ios;
-	if (ios_mode_boot) { ancs_begin(); }
-	else { init_chronos(); }
+	companion_language_init();
+	bool ble_ready = false;
+	if (ios_mode_boot) { ble_ready = ancs_begin(); }
+	else { init_chronos(); ble_ready = watch.isRunning(); }
 	ntp_sync_bind([](const tm &t) {
 		watch.setTime(t.tm_sec, t.tm_min, t.tm_hour, t.tm_mday, t.tm_mon + 1, t.tm_year + 1900);
 		clock_time_synced(); screens_invalidate();
@@ -336,6 +359,7 @@ void setup() {
 	weather_bind_network([] { network_weather_now(millis()); });
 	startup.begin(millis());
 	last_frame_ms = millis() - FRAME_INTERVAL_MS;
+	boot_ready = ble_ready;
 	Serial.printf("UI ready, free heap: %lu bytes\n", static_cast<unsigned long>(ESP.getFreeHeap()));
 }
 
@@ -353,10 +377,20 @@ void update_backlight(uint32_t now) {
 	backlight_update(now, touch_pressed(), screens_keep_awake() || shutting_down);
 }
 
-/** @brief Service BLE and touch continuously, rendering only complete changed frames. */
+/** @brief Service BLE, battery telemetry and touch, observe OTA boot health, and render complete changed frames. */
 void loop() {
-	network_poll(millis(), !ota_status().active || ota_status().faces);
+	ota_boot_poll(millis(), boot_ready && screen_ready);
+	network_poll(millis(), !sd_update_status().active && (!ota_status().active || ota_status().faces));
 	settings_clock(clock_ready(), uint8_t(watch.getHour(true)));
+	if (sd_update_status().active) {
+		sd_update_screen_poll(millis());
+		if (!sd_update_status().active) {
+			sound_init(millis());
+			switch_screen(UiPage::Settings, millis());
+		}
+		delay(1);
+		return;
+	}
 	if (ota_status().active) {
 		// Automatic setup must not hide the existing trusted USB recovery terminal.
 		if (ota_status().faces) { settings_usb_poll(); }
@@ -372,6 +406,7 @@ void loop() {
 	settings_usb_poll();
 	if (!ios_mode_boot) {
 		watch.loop();
+		companion_poll(watch, millis(), clock_ready());
 		music_android_poll(watch);
 	}
 	delay(1);
@@ -388,7 +423,7 @@ void loop() {
 	runtime_diagnostics::poll(now);
 #endif
 	handle_touch(now);
-	if (ota_status().active) { return; }
+	if (ota_status().active || sd_update_status().active) { return; }
 	eyes_imu_poll(now);
 	bool flip = imu_orientation().target(settings_get().flipped);
 	if (!touch_pressed() && flip != applied_flip) {
@@ -398,6 +433,8 @@ void loop() {
 	if (!ios_mode_boot && weather_sync_due(now, watch.isConnected(), watch.isSubscribed())) { watch.syncRequest(); }
 	battery_sample(now);
 	if (charging_poll(now)) { sound_request(SoundCue::Charging, now); }
+	if (charging_disconnected()) { sound_request(SoundCue::Unplugged, now); }
+	if (!ios_mode_boot) { battery_chronos_poll(watch); }
 	view_timer().tick(now);
 	sound_poll(now, ui_page_events(), current_screen == UiPage::Eyes && !screens_calling(),
 		view_timer().resting, view_timer().finished);

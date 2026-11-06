@@ -6,6 +6,7 @@
 #include "eyes_faces.h"
 #include "face_policy.h"
 #include "eyes_api.h"
+#include "eye_life.h"
 #include "../settings/settings.h"
 #include "../../pin_config.h"
 #include <Arduino.h>
@@ -40,7 +41,17 @@ FaceTone eyes_face_tone(Expression expr) {
 }
 
 /** @brief Reset automatic reactions after an explicit mood change. @param base Mood. */
-void eyes_faces_base(Expression base) { policy.reset(base, millis()); }
+void eyes_faces_base(Expression base) { policy.reset(base, millis(), uint32_t(random(1000000L))); }
+
+bool eyes_faces_waiting(uint32_t now) { return settings_get().random_faces && policy.waiting(now); }
+
+/** @brief Use the displayed expression's clock, never the earlier policy-selection time. */
+static uint32_t visible_elapsed(uint32_t now) {
+	const EyeState &state = eyes_state();
+	if (!state.effectClockInit || state.effectExpression != eyes_config().expression ||
+		state.dizzyUntilMs || state.tracking || eyes_life_frame().busy) { return 0; }
+	return uint32_t(now - state.effectStartMs);
+}
 
 bool eyes_faces_automatic_ready(uint32_t now) {
 	Expression base = static_cast<Expression>(settings_get().mood);
@@ -87,6 +98,7 @@ void eyes_faces_pet(uint32_t now, int16_t x, int16_t y) {
 	if (fresh) { sound_request_face(eyes_face_tone(eyes_config().expression), now); }
 	EyeState &state = eyes_state();
 	int16_t w = eyes_config().screenW, h = eyes_config().screenH;
+	state.petUntilMs = now + 1200; state.wakeUntilMs = 0;
 	state.heartX = int16_t(x < 7 ? 7 : (x > w - 8 ? w - 8 : x));
 	state.heartY = int16_t(y < 20 ? 20 : (y > h - 14 ? h - 14 : y));
 	state.heartUntilMs = now + 900;
@@ -95,8 +107,11 @@ void eyes_faces_pet(uint32_t now, int16_t x, int16_t y) {
 /** @brief Select a temporary expression, leaving DIZZY in the foreground. @param now Timestamp. */
 void eyes_faces_step(uint32_t now) {
 	const CompanionSettings &p = settings_get();
+	uint32_t elapsed = visible_elapsed(now);
+	bool ready = eyes_faces_automatic_ready(now) && elapsed != 0 &&
+		(eyes_config().expression == NEUTRAL || FacePolicy::cycle_complete(eyes_config().expression, elapsed));
 	Expression face = policy.update(now, p.random_faces, p.imu_faces, uint32_t(random(1000000L)),
-		eyes_faces_automatic_ready(now), p.face_flow);
+		ready, p.face_flow, elapsed);
 	EyeState &state = eyes_state();
 	if (state.dizzyUntilMs != 0) { state.savedExpr = face; }
 	else {
@@ -109,7 +124,9 @@ void eyes_faces_step(uint32_t now) {
 
 /** @brief Pass bounded sensor data to the mood policy. @param x G. @param y G. @param z G. @param now Timestamp. */
 void eyes_faces_motion(float x, float y, float z, uint32_t now) {
-	policy.sample(x, y, z, now, settings_get().imu_faces && eyes_faces_automatic_ready(now));
+	bool ready = !eyes_state().tracking && eyes_faces_automatic_ready(now);
+	if (policy.automatic()) { ready = ready && FacePolicy::cycle_complete(eyes_config().expression, visible_elapsed(now)); }
+	policy.sample(x, y, z, now, settings_get().imu_faces && ready);
 }
 
 /** @brief Silent startup greeting face that preserves the selected mood. @param now Timestamp. */
