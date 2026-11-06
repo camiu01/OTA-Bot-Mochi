@@ -1,11 +1,12 @@
 /**
  * @file eye_life.h
- * @brief Soft blink-covered face transitions, damped gaze, and six bounded idle gestures.
+ * @brief Emotional face handoffs, damped gaze and bounded interactive gestures.
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #pragma once
 #include "eyes_types.h"
 #include "face_random.h"
+#include "face_presets.h"
 #include <math.h>
 
 struct EyeLifeFrame {
@@ -29,6 +30,42 @@ class EyeLife {
 	float fromL = 1, fromR = 1, gazeX = 0, gazeY = 0;
 	int8_t sign = 1;
 	float comfort = 0;
+	bool touching = false, tilted = false, reacting = false, touch_reaction = false;
+	uint32_t reaction_at = 0;
+	uint32_t covered_blink_at = 0;
+	bool covered_blink = false;
+	int8_t lean = 1;
+	/** @brief Scenes and symbols own their entry, opening and pose. */
+	static bool ordinary(Expression expression) {
+		const auto *p = face_preset(expression);
+		return expression != DIZZY && p && !p->fullScene && !p->normalCycle && !p->keepOpen && !p->wholeEye;
+	}
+	/** @brief React once per contact or tilt excursion; never queue behind higher-priority feedback. */
+	bool interact(const EyeState &st, uint32_t now, float amount, bool enabled, bool motion) {
+		bool contact = st.tracking && !touching;
+		int magnitude = abs(st.tiltX) + abs(st.tiltY);
+		bool excursion = motion && magnitude >= 7 && !tilted;
+		if (magnitude <= 3 || !motion) { tilted = false; }
+		else if (excursion) { tilted = true; }
+		touching = st.tracking;
+		if (!enabled || (reacting && !touch_reaction && !motion)) { reacting = false; return false; }
+		if (contact || (excursion && !st.tracking && !reacting)) {
+			reacting = true; touch_reaction = contact; reaction_at = now;
+			lean = st.tiltX < 0 ? -1 : 1;
+		}
+		if (!reacting) { return false; }
+		float p = float(uint32_t(now - reaction_at)) / (touch_reaction ? 420 : 700);
+		if (p >= 1 || (!touch_reaction && st.tracking)) { reacting = false; return false; }
+		float wave = sinf(3.14159265f * p) * amount;
+		frame.scaleY += wave * (touch_reaction ? 0.09f : 0.045f);
+		frame.scaleX -= wave * 0.025f;
+		if (!touch_reaction) {
+			frame.y -= int16_t(wave * 3);
+			if (lean > 0) { frame.openL *= 1 - wave * 0.18f; }
+			else { frame.openR *= 1 - wave * 0.18f; }
+		}
+		return true;
+	}
 	/** @brief Blend explicit affection and pickup feedback without replacing a face or palette. */
 	bool feedback(const EyeState &st, uint32_t now, uint32_t dt) {
 		if (st.dizzyUntilMs) { comfort = 0; return false; }
@@ -68,7 +105,17 @@ class EyeLife {
 			frame.openL = fromL * (1 - close); frame.openR = fromR * (1 - close);
 		} else {
 			reveal(now);
-			frame.openL = frame.openR = ease((p - 0.45f) / 0.55f);
+			float opening = ease((p - 0.45f) / 0.55f);
+			if (ordinary(target) && amount) {
+				if (target == SAD || target == SLEEPY || target == TIRED || target == SAD_DOWN || target == SLEEPY_EYES) {
+					opening *= opening; frame.y += int16_t(sinf(3.14159265f * opening) * 3 * amount);
+				} else if (target == SURPRISED || target == SHOCKED || target == AWE) {
+					opening = 1 - (1 - opening) * (1 - opening);
+				} else if (target == HAPPY || target == GLEE || target == EXCITED || target == LOVE) {
+					frame.scaleY += sinf(6.2831853f * opening) * 0.045f * amount;
+				}
+			}
+			frame.openL = frame.openR = opening;
 		}
 		float spring = sinf(3.14159265f * p);
 		frame.scaleX += spring * 0.06f * amount;
@@ -90,6 +137,17 @@ class EyeLife {
 			case 3: frame.openL *= 1 - wave * 0.25f; frame.y -= int16_t(wave * 3 * amount); break;
 			case 4: frame.scaleX -= wave * 0.07f * amount; frame.scaleY += wave * 0.12f * amount; frame.y -= int16_t(wave * 4 * amount); break;
 			case 5: frame.y += int16_t(sinf(p * 6.2831853f) * 4 * amount); break;
+			case 6:
+				frame.y += int16_t(sinf(p * 12.5663706f) * wave * 4 * amount);
+				frame.scaleY -= wave * 0.035f * amount; break;
+			case 7:
+				frame.x += int16_t(sinf(p * 6.2831853f) * wave * 8 * sign * amount);
+				frame.y -= int16_t(wave * 3 * amount); break;
+			case 8:
+				frame.x += int16_t(wave * 4 * sign * amount);
+				frame.y -= int16_t(wave * 2 * amount);
+				if (sign > 0) { frame.openR *= 1 - wave * 0.32f; }
+				else { frame.openL *= 1 - wave * 0.32f; } break;
 		}
 	}
 	/** @brief Smooth per-entry micro-movements; preserve Calm and the explicit symmetry setting. */
@@ -114,9 +172,9 @@ public:
 	void reset() { *this = EyeLife{}; }
 	/** @brief Access a read-only visual pose. @return Frame. */
 	const EyeLifeFrame &get() const { return frame; }
-	/** @brief Advance without drawing or I/O. @param cfg Target. @param st Raw gaze/blink. @param now Time. @param dt Bounded delta. @param mode Calm/Dasai/playful. @param amount Intensity. @param choice Random input. @param allow_idle Start new idle gestures unless a face handoff is due. */
+	/** @brief Advance without drawing or I/O. @param cfg Target. @param st Raw gaze/blink. @param now Time. @param dt Bounded delta. @param mode Calm/Dasai/playful. @param amount Intensity. @param choice Random input. @param allow_idle Start idle gestures unless a handoff is due. @param motion Enable tilt feedback. */
 	void step(const EyeConfig &cfg, const EyeState &st, uint32_t now, uint32_t dt,
-		uint8_t mode, float amount, uint32_t choice, bool allow_idle = true) {
+		uint8_t mode, float amount, uint32_t choice, bool allow_idle = true, bool motion = false) {
 		if (!frame.active || style != cfg.style) {
 			reset(); frame.active = true; style = cfg.style; frame.expression = target = cfg.expression; idle_at = now;
 			frame.variationSeed = choice ? choice : 1; variation_at = now;
@@ -135,15 +193,19 @@ public:
 		gazeY += (st.saccadeY + (st.tracking ? 0 : st.tiltY + st.floatY) - gazeY) * alpha;
 		frame.x = int16_t(gazeX); frame.y = int16_t(gazeY);
 		if (changing) { transition(now, mode ? amount : 0); }
-		if (st.blinking) {
+		if (!st.blinking || st.blinkStartMs != covered_blink_at) { covered_blink = false; }
+		if (changing && st.blinking) { covered_blink = true; covered_blink_at = st.blinkStartMs; }
+		if (st.blinking && !changing && !covered_blink) {
 			float p = float(uint32_t(now - st.blinkStartMs)) / (st.blinkDurMs ? st.blinkDurMs : 1);
 			float open = p < 1 ? 1 - sinf(3.14159265f * p) : 1;
 			frame.openL *= open; frame.openR *= open;
 		}
 		bool responding = feedback(st, now, dt);
-		if (!mode || st.tracking || responding) { gesturing = false; idle_at = now; }
-		if (mode && allow_idle && !st.tracking && !responding && !changing && !gesturing && uint32_t(now - idle_at) >= idle_delay) {
-			gesture = (gesture + 1 + choice % 5) % 6;
+		bool expressive = mode && !changing && !responding && !st.dizzyUntilMs && ordinary(frame.expression);
+		responding = interact(st, now, amount, expressive, motion) || responding;
+		if (!expressive || st.tracking || responding) { gesturing = false; idle_at = now; }
+		if (expressive && allow_idle && !st.tracking && !responding && !gesturing && uint32_t(now - idle_at) >= idle_delay) {
+			gesture = (gesture + 1 + choice % 8) % 9;
 			sign = choice & 1 ? 1 : -1; gesture_at = idle_at = now; gesturing = true;
 			gesture_duration = 700 + choice % 501;
 			idle_delay = (mode == 2 ? 4000 : 7000) + choice % 10001 + (amount < 0.8f ? 6000 : 0);

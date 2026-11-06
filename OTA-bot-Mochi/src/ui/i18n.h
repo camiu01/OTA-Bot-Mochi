@@ -225,7 +225,7 @@
 	X(ExprCrying, "crying", "piange") \
 	X(ExprSwirly, "swirly", "vortice") \
 	X(ExprCat, "cat", "gatto") \
-	X(ExprHalo, "halo", "alone") \
+	X(ExprHalo, "halo", "aureola") \
 	X(ExprDevil, "devil", "diavolo") \
 	X(ExprFire, "fire", "fuoco") \
 	X(ExprMoon, "moon", "luna") \
@@ -327,6 +327,7 @@
 	X(ExprComet, "comet", "cometa") \
 	X(ExprYakura, "yakura", "yakura") \
 	X(ExprChineseDragon, "red dragon", "drago rosso") \
+	X(ExprAngel, "angel", "angelo") \
 	X(Calm, "calm", "calmo") \
 	X(Dasai, "normal", "normale") \
 	X(Playful, "playful", "vivace") \

@@ -70,10 +70,36 @@ No generic confetti, extra pupils or palette changes are added.
 Calm disables these additions; dashboard and night settings reduce micro-motion
 and rhythm variation. Seeds never enter the saved profile.
 
+Symbol interiors have explicit accents independently of the selected eye-body ink:
+Diamond/Ring/Question use cyan, Idea gold, Power green and Swirly violet.
+Diamond retains its silhouette around the colored inset; Swirly keeps its
+outlined spiral and Ring stays hollow. Solid-style pupil exclusions are unchanged.
+Devil (ID 44) now has two external red horns above sly eyes, with no internal
+horn glyph. Halo (ID 43) has only one hollow golden aureole above the original
+eyes, without wings. Angel (`angel`, ID 145) is a separate face with that aureole,
+gentle lower lids and two pale-blue feathered wings outside the eye pair.
+All retain the configured eye-body ink and style, including during blinks and
+live gaze. They add no mouth/body, new settings record or renumbered IDs.
+Angel is selectable through the existing screen, USB and web catalogs; the
+older face allow-list keeps its exclusions and enables the appended ID.
+
 Automatic dwell varies by a random number of complete loops, not arbitrary
 mid-animation deadlines. The first idle wait is randomized too. Handoffs wait
 for the displayed loop to finish, including the entry blink and any idle gesture.
 Idle gestures have random initial and repeat delays rather than a fixed first beat.
+The nine spontaneous gestures include a double blink, wink, sideways peek,
+soft squint, stretch, single nod, double nod, searching glance and curious lean.
+Ordinary face handoffs use one blink: sad/tired eyes reopen more slowly within
+the same 320-ms handoff, surprised eyes open decisively and happy eyes gently
+stretch as they reopen. An overlapping automatic blink is consumed, not replayed.
+Scenes and symbols retain their dedicated animation instead of these gestures.
+In Dasai/Playful modes, first contact adds a 420-ms surprise stretch while gaze
+continues following the finger. With IMU faces enabled, a tilt excursion adds a
+700-ms curious lean; it rearms only after returning near center. These are visual
+poses, not new selected moods or saved settings. Petting, pickup feedback,
+face handoffs and Dizzy take priority; suppressed gestures are not queued.
+Calm disables the new gestures, while dashboard/night reduce their intensity.
+Tilt sensitivity and appearance still require physical-device validation.
 
 - Settings → SYSTEM → **Firmware update** opens a temporary Wi-Fi maintenance
   screen, outside the seven-page carousel. Its password and browser address are

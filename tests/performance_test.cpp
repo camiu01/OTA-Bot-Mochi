@@ -271,7 +271,8 @@ static void raster(int16_t width, int16_t height) {
 	for (uint8_t style = 0; style < 4; ++style) {
 		eyes_set_style(static_cast<EyeStyle>(style));
 		eyes_set_eye_colors(0, 0xFFFF, 0xF800, 0x07E0);
-		for (uint8_t value = DANCING; value < EXPRESSION_COUNT; ++value) {
+		// Angel is ordinary, not another six-second performance in this original scene range.
+		for (uint8_t value = DANCING; value <= CHINESE_DRAGON; ++value) {
 			Expression mood = static_cast<Expression>(value);
 			eyes_life_reset(); eyes_set_expression(mood);
 			EyeState &st = eyes_state();
@@ -350,14 +351,14 @@ static void banner_regressions() {
 static void appended_cycles() {
 	const int16_t panels[][2] = {{240,280}, {240,320}, {320,480}, {368,448}, {128,160}, {160,128}};
 	assert(TRAFFIC == 123 && YOKAI == 133 && TIC_TAC_TOE == 134 && MECHA_MASK == 135 && MECHA_BREAK == 136);
-	assert(HOLLOW_ANGER == 137 && COMET == 142 && YAKURA == 143 && CHINESE_DRAGON == 144 && EXPRESSION_COUNT == 145);
+	assert(HOLLOW_ANGER == 137 && COMET == 142 && YAKURA == 143 && CHINESE_DRAGON == 144 && ANGEL == 145 && EXPRESSION_COUNT == 146);
 	for (const auto &panel : panels) {
 		Arduino_GFX gfx(panel[0], panel[1]);
 		eyes_init(&gfx);
 		for (uint8_t style = 0; style < 4; ++style) {
 			eyes_set_style(EyeStyle(style));
 			eyes_set_eye_colors(0x0841, 0xFFFF, 0xF800, 0x07E0);
-			for (uint8_t id = TRAFFIC; id < EXPRESSION_COUNT; ++id) {
+			for (uint8_t id = TRAFFIC; id <= CHINESE_DRAGON; ++id) {
 				eyes_state() = EyeState{};
 				eyes_set_expression(Expression(id));
 				uint32_t entry = UINT32_MAX - 1000;
@@ -381,6 +382,7 @@ static void appended_cycles() {
 /** @brief Validate new moods without running device firmware or copying reference assets. @return Success. */
 int main() {
 	assert(settings_init());
+	assert(!eye_performance(ANGEL) && !face_preset(ANGEL)->normalCycle && !face_preset(ANGEL)->fullScene);
 	CompanionSettings saved = settings_get();
 	preferences(); automatic_guard(); colors(); banner_regressions();
 	raster(240, 280); raster(368, 448); raster(128, 160); raster(160, 128);
@@ -389,6 +391,6 @@ int main() {
 	upward_pupils();
 	appended_cycles();
 	assert(settings_update(saved));
-	std::cout << unsigned(EXPRESSION_COUNT - DANCING)
+	std::cout << unsigned(CHINESE_DRAGON + 1 - DANCING)
 		<< " colored performances, original scene regressions and appended scene cycles passed\n";
 }

@@ -31,6 +31,7 @@ inline Expression face_family(Expression face) {
 		case MUSIC: case DANCING: return DANCING;
 		case GLOW: case NEON: return GLOW;
 		case DEVIL: case YOKAI: return DEVIL;
+		case ANGEL: case HALO: return HALO;
 		default: return face;
 	}
 }

@@ -48,12 +48,12 @@ static void formats() {
 	assert(decoded.decode(prior, sizeof(prior)) && decoded.count() == EXPRESSION_COUNT - 137 + 1);
 	assert(decoded.allows(TIC_TAC_TOE) && !decoded.allows(MECHA_BREAK));
 	for (uint8_t id = HOLLOW_ANGER; id < EXPRESSION_COUNT; ++id) { assert(decoded.allows(Expression(id))); }
-	// ID 144 crosses a byte boundary; keep all old exclusions and enable only the appended ID.
+	// ID 144 crosses a byte boundary; keep old exclusions and enable appended IDs.
 	uint8_t last[21] = {1, 144};
 	last[2 + TIC_TAC_TOE / 8] = uint8_t(1U << (TIC_TAC_TOE % 8));
 	last[sizeof(last) - 1] = 0xA5;
 	for (size_t i = 0; i < sizeof(last) - 1; ++i) { last[sizeof(last) - 1] ^= last[i]; }
-	assert(decoded.decode(last, sizeof(last)) && decoded.count() == 2);
+	assert(decoded.decode(last, sizeof(last)) && decoded.count() == EXPRESSION_COUNT - 144 + 1);
 	assert(decoded.allows(TIC_TAC_TOE) && decoded.allows(CHINESE_DRAGON) && !decoded.allows(YAKURA));
 	assert(decoded.decode(record, sizeof(record)) && decoded == f);
 	record[2] ^= 1; assert(!decoded.decode(record, sizeof(record)) && decoded == f);
@@ -65,17 +65,28 @@ static void formats() {
 }
 /** @brief Reserved high bits are rejected before either hexadecimal or NVS state is assigned. */
 static void reserved_bits() {
-	static_assert(EXPRESSION_COUNT == 145 && FaceFilter::BYTES == 19 && FaceFilter::RECORD_BYTES == 22,
-		"The appended dragon owns only bit zero of the final mask byte");
+	static_assert(EXPRESSION_COUNT == 146 && FaceFilter::BYTES == 19 && FaceFilter::RECORD_BYTES == 22,
+		"Dragon and Angel own only the first two bits of the final mask byte");
 	FaceFilter f, decoded;
 	char hex[FaceFilter::BYTES * 2 + 1]; f.hex(hex);
-	assert(hex[FaceFilter::BYTES * 2 - 1] == '1');
-	hex[FaceFilter::BYTES * 2 - 1] = '3';
+	assert(hex[FaceFilter::BYTES * 2 - 1] == '3');
+	hex[FaceFilter::BYTES * 2 - 1] = '7';
 	assert(!decoded.parse_hex(hex) && decoded == f);
 	uint8_t record[FaceFilter::RECORD_BYTES]; f.encode(record);
-	record[FaceFilter::RECORD_BYTES - 2] |= 2;
-	record[FaceFilter::RECORD_BYTES - 1] ^= 2;
+	record[FaceFilter::RECORD_BYTES - 2] |= 4;
+	record[FaceFilter::RECORD_BYTES - 1] ^= 4;
 	assert(!decoded.decode(record, sizeof(record)) && decoded == f);
+}
+/** @brief The previous 145-face record keeps all exclusions and enables only the new Angel ID. */
+static void angel_migration() {
+	uint8_t previous[22] = {1, 145};
+	previous[2 + HALO / 8] = uint8_t(1U << (HALO % 8));
+	previous[sizeof(previous) - 1] = 0xA5;
+	for (size_t i = 0; i < sizeof(previous) - 1; ++i) { previous[sizeof(previous) - 1] ^= previous[i]; }
+	FaceFilter decoded;
+	assert(decoded.decode(previous, sizeof(previous)) && decoded.count() == 2);
+	assert(decoded.allows(HALO) && decoded.allows(ANGEL) && !decoded.allows(DEVIL));
+	assert(!decoded.allows(CHINESE_DRAGON));
 }
 /** @brief Every one-face library survives all modes, touches and sustained IMU samples. */
 static void pools() {
@@ -140,6 +151,6 @@ static void rendering() {
 	settings_defaults();
 }
 int main() {
-	formats(); reserved_bits(); pools(); persistence(); rendering();
+	formats(); reserved_bits(); angel_migration(); pools(); persistence(); rendering();
 	std::cout << "Face exclusions, one-face pools, NVS failure/migration, touch/IMU and raster guards passed\n";
 }

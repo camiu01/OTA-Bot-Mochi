@@ -11,8 +11,8 @@ using namespace face_primitives;
 
 /** @brief power glyph procedure. */
 inline bool glyph(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b, int16_t x, int16_t y, int16_t s, uint16_t color, uint16_t cut) {
-	(void)cfg; (void)b; (void)x; (void)y; (void)s; (void)cut;
-	power_sym(gfx, x, y, s, color); return true;
+	(void)cfg; (void)b; (void)color; (void)cut;
+	power_sym(gfx, x, y, s, eye_rgb(48, 224, 112)); return true;
 }
 
 /** @brief Immutable power face; C++17 named-field initialization. */

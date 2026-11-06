@@ -123,6 +123,7 @@ static void reaction_frame(Arduino_GFX &gfx, uint8_t style) {
 		assert(pixel == 0 || pixel == ink ||
 			(crying && crying_shade(pixel, ink, neutral)) ||
 			(eyes_config().expression == LOVE && pixel == eye_rgb(255, 92, 150)) ||
+			(eyes_config().expression == SWIRLY && pixel == eye_rgb(184, 96, 248)) ||
 			((style == NORMAL || style == BLOUB) && (pixel == 0xF800 || pixel == 0x07E0)));
 	}
 	assert(visible && eyes_config().fgColor == 0x07FF);

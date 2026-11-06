@@ -12,6 +12,95 @@
 #include <cassert>
 #include <iostream>
 
+/** @brief Contact is edge-triggered, tilt rearms only near center, and priority consumes rather than queues events. */
+static void interactive_gestures() {
+	for (uint32_t start : {0u, UINT32_MAX - 200}) {
+		EyeConfig cfg{}; cfg.expression = NEUTRAL;
+		EyeState st{}; EyeLife life, baseline;
+		auto step = [&](uint32_t t, bool motion = true) {
+			life.step(cfg, st, start + t, 33, 2, 1, 173, false, motion);
+			baseline.step(cfg, st, start + t, 33, 2, 1, 173, false, false);
+		};
+		step(0); st.tracking = true; step(33); step(243);
+		assert(life.get().busy && life.get().scaleY > 1.06f);
+		step(500); assert(!life.get().busy);
+		step(800); assert(!life.get().busy);
+		st.tracking = false; step(833);
+		st.tiltX = 8; step(866); step(1216);
+		assert(life.get().busy && !baseline.get().busy);
+		assert(life.get().openL < baseline.get().openL - 0.1f);
+		step(1600); assert(!life.get().busy);
+		step(2000); assert(!life.get().busy);
+		st.tiltX = 0; step(2033); st.tiltX = -8; step(2066); step(2416);
+		assert(life.get().openR < baseline.get().openR - 0.1f);
+		step(2449, false); assert(!life.get().busy);
+		st.tracking = true; st.petUntilMs = start + 4000; step(2482);
+		st.petUntilMs = 0;
+		for (uint32_t t = 2515; t <= 5000; t += 33) { step(t); }
+		assert(!life.get().busy);
+		st.tracking = false; step(5100);
+		st.dizzyUntilMs = start + 8000; st.tracking = true; step(5133);
+		assert(!life.get().busy);
+	}
+}
+
+/** @brief Emotion changes preserve a single closed handoff and differentiate the reopening. */
+static void emotional_handoffs() {
+	float opening[4] = {}, stretch[4] = {};
+	unsigned i = 0;
+	for (Expression expression : {SAD, NEUTRAL, SURPRISED, HAPPY}) {
+		EyeLife life; EyeState st{}; EyeConfig cfg{}; cfg.expression = ANGRY;
+		life.step(cfg, st, 0, 0, 1, 1, 173);
+		cfg.expression = expression;
+		st.blinking = true; st.blinkStartMs = 33; st.blinkDurMs = 800;
+		life.step(cfg, st, 33, 33, 1, 1, 173);
+		life.step(cfg, st, 153, 33, 1, 1, 173);
+		assert(life.get().expression == expression && life.get().openL < 0.01f);
+		life.step(cfg, st, 245, 33, 1, 1, 173);
+		stretch[i] = life.get().scaleY; opening[i++] = life.get().openL;
+		life.step(cfg, st, 353, 33, 1, 1, 173);
+		assert(!life.get().busy && life.get().openL > 0.95f);
+		st.blinkStartMs = 400;
+		life.step(cfg, st, 800, 33, 1, 1, 173, false);
+		assert(life.get().openL < 0.01f);
+	}
+	assert(opening[0] < opening[1] && opening[1] < opening[2]);
+	assert(stretch[3] > stretch[1] + 0.02f);
+	for (Expression face : {MOON, STAR, DIZZY}) {
+		EyeLife life; EyeConfig cfg{}; EyeState st{}; cfg.expression = face;
+		life.step(cfg, st, 0, 0, 2, 1, 173);
+		st.tracking = true; st.tiltX = 9;
+		life.step(cfg, st, 33, 33, 2, 1, 173, true, true);
+		assert(!life.get().busy);
+	}
+}
+
+/** @brief All nine spontaneous gestures run and finish; Calm and contact cancel them immediately. */
+static void spontaneous_gestures() {
+	for (uint32_t choice = 0; choice < 8; ++choice) {
+		EyeLife life; EyeConfig cfg{}; EyeState st{};
+		life.step(cfg, st, 0, 0, 2, 1, choice);
+		uint32_t first = 3000 + choice;
+		life.step(cfg, st, first, 33, 2, 1, choice);
+		assert(life.get().busy);
+		life.step(cfg, st, first + 350, 33, 2, 1, choice);
+		auto pose = life.get();
+		assert(pose.busy && pose.openL >= 0 && pose.openR >= 0);
+		assert(pose.scaleY > 0.8f && pose.scaleY < 1.3f);
+		life.step(cfg, st, first + 1300, 33, 2, 1, choice);
+		assert(!life.get().busy);
+		// Starting at gesture eight, choice zero wraps to the double blink.
+		life.step(cfg, st, first + 20000, 33, 2, 1, 0);
+		assert(life.get().busy);
+		st.tracking = true; st.petUntilMs = first + 22000;
+		life.step(cfg, st, first + 20033, 33, 2, 1, 0);
+		st.petUntilMs = 0; st.tracking = false;
+		life.reset(); life.step(cfg, st, 0, 0, 0, 1, choice);
+		life.step(cfg, st, 30000, 33, 0, 1, choice);
+		assert(!life.get().busy && life.get().scaleY == 1);
+	}
+}
+
 /** @brief All faces randomize whole loops; a late renderer, missing frame or rollover cannot cut them. */
 static void schedules() {
 	for (uint8_t id = 1; id < EXPRESSION_COUNT; ++id) {
@@ -87,6 +176,8 @@ static void following(int w, int h) {
 			for (unsigned i = 0; i < 25; ++i) {
 				test_now += 33;
 				eyes_follow(point.first, point.second, true, test_now); eyes_update(test_now);
+				auto pixels = gfx.pixels; eyes_state().dirtyInit = false; eyes_draw();
+				assert(pixels == gfx.pixels);
 				assert(eyes_state().tracking && eyes_config().expression == NEUTRAL);
 				assert(abs(eyes_state().saccadeX) <= 12 && abs(eyes_state().saccadeY) <= 8);
 			}
@@ -176,7 +267,7 @@ static void affection_and_wake(int w, int h) {
 
 int main() {
 	assert(settings_init());
-	schedules(); idle_waits(); idle_collision();
+	schedules(); idle_waits(); idle_collision(); interactive_gestures(); emotional_handoffs(); spontaneous_gestures();
 	for (const auto &panel : {std::pair<int, int>{240, 280}, {368, 448}}) {
 		following(panel.first, panel.second);
 		rendered(panel.first, panel.second);

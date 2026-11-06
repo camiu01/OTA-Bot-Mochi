@@ -144,6 +144,7 @@
 #include "faces/comet.h"
 #include "faces/yakura.h"
 #include "faces/chinese_dragon.h"
+#include "faces/angel.h"
 
 /** @brief Complete ID-ordered catalog; names remain checked against the public table. */
 constexpr FacePresetEntry FACE_PRESETS[EXPRESSION_COUNT] = {
@@ -292,6 +293,7 @@ constexpr FacePresetEntry FACE_PRESETS[EXPRESSION_COUNT] = {
 	{COMET, face_defs::comet_face::preset},
 	{YAKURA, face_defs::yakura_face::preset},
 	{CHINESE_DRAGON, face_defs::chinese_dragon_face::preset},
+	{ANGEL, face_defs::angel_face::preset},
 };
 static_assert(face_entries_valid(FACE_PRESETS), "Every expression requires one valid ID-ordered face");
 
