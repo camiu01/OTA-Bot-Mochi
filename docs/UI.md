@@ -78,12 +78,16 @@ Devil (ID 44) now has two external red horns above sly eyes, with no internal
 horn glyph. Halo (ID 43) has only one hollow golden aureole above the original
 eyes, without wings. Angel (`angel`, ID 145) is a separate face with that aureole,
 gentle lower lids and two pale-blue feathered wings outside the eye pair.
-All retain the configured eye-body ink and style, including during blinks and
-live gaze. They add no mouth/body, new settings record or renumbered IDs.
+Their horns, aureoles and wings ease in over 1.2 seconds from the visible face's
+entry clock, rather than appearing instantly. The eye-body ink itself does not
+fade. All retain the configured eye-body ink and style, including during blinks
+and live gaze. They add no mouth/body, new settings record or renumbered IDs.
 Angel is selectable through the existing screen, USB and web catalogs; the
 older face allow-list keeps its exclusions and enables the appended ID.
 
-Automatic dwell varies by a random number of complete loops, not arbitrary
+Continuous playback advances to another face after one complete visible loop,
+without replaying the same animation two or three times. Return, group-of-five
+and sequence modes retain randomized whole-loop dwell, not arbitrary
 mid-animation deadlines. The first idle wait is randomized too. Handoffs wait
 for the displayed loop to finish, including the entry blink and any idle gesture.
 Idle gestures have random initial and repeat delays rather than a fixed first beat.

@@ -7,6 +7,11 @@
 #include "face_support.h"
 
 namespace face_accessories {
+/** @brief Match the scenery's smooth entry, retaining the accessory's full final palette. */
+inline uint16_t ink(const EyeConfig &cfg, const EyeState &st, uint16_t color) {
+	float t = st.lastMs < 1200 ? st.lastMs / 1200.0f : 1.0f;
+	return eye_mix(color, cfg.bgColor, uint8_t(100 * t * t * (3 - 2 * t)));
+}
 /** @brief Anchor above the unclosed eye, retaining live pair translation. */
 inline int16_t top(const EyeConfig &cfg, const EyeBox &box) {
 	EyeLayout resting = eye_layout(cfg, EyeState{});
@@ -26,7 +31,7 @@ inline EyeLayout bounds(const EyeConfig &cfg, EyeLayout layout) {
 	return layout;
 }
 /** @brief Draw one open golden aureole above both eyes, not a pupil mark. */
-inline void aureole(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeLayout &layout) {
+inline void aureole(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeState &st, const EyeLayout &layout) {
 	int16_t scale = eye_scale(cfg);
 	int16_t rx = eye_limit(23 * scale / 100, 10, cfg.screenW / 5);
 	int16_t ry = eye_limit(7 * scale / 100, 4, 16);
@@ -35,7 +40,7 @@ inline void aureole(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeLayout &lay
 	int16_t cy = eye_limit((leftTop < rightTop ? leftTop : rightTop) - ry - 7 * scale / 100,
 		ry + 2, cfg.screenH - ry - 2);
 	int16_t stroke = eye_limit(2 * scale / 100, 1, 4);
-	gfx->fillEllipse(cx, cy, rx, ry, eye_rgb(255, 210, 48));
+	gfx->fillEllipse(cx, cy, rx, ry, ink(cfg, st, eye_rgb(255, 210, 48)));
 	gfx->fillEllipse(cx, cy, rx - stroke, ry - stroke, cfg.bgColor);
 }
 }

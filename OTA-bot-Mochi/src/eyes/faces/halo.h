@@ -7,8 +7,8 @@
 #include "../face_accessories.h"
 namespace face_defs { namespace halo_face {
 /** @brief Draw only the aureole; preserve the selected eyes and their normal pupils. */
-inline void background(Arduino_GFX *gfx, EyeConfig &cfg, const EyeState &, const EyeLayout &layout) {
-	face_accessories::aureole(gfx, cfg, layout);
+inline void background(Arduino_GFX *gfx, EyeConfig &cfg, const EyeState &st, const EyeLayout &layout) {
+	face_accessories::aureole(gfx, cfg, st, layout);
 }
 /** @brief Preserve Halo's public ID independently of the new Angel face. */
 inline constexpr FacePreset preset = [] {

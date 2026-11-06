@@ -14,7 +14,8 @@ static void accessory_shapes() {
 		const auto *p = face_preset(face);
 		assert(p && p->background && !p->glyph && p->bounds);
 		EyeLayout layout = eye_layout(cfg, EyeState{});
-		gfx.fillScreen(0); p->background(&gfx, cfg, EyeState{}, layout);
+		EyeState settled{}; settled.lastMs = 1200;
+		gfx.fillScreen(0); p->background(&gfx, cfg, settled, layout);
 		int16_t top = std::min(layout.left.y, layout.right.y);
 		unsigned left = 0, right = 0, upper = 0, lateral = 0;
 		for (int y = 0; y < gfx.height(); ++y) {
@@ -35,6 +36,40 @@ static void accessory_shapes() {
 		else { assert(!left && !right && !lateral); }
 	}
 }
+/** @brief Accessories fade smoothly over the same 1.2-second entry as scenery, without flashing full ink. */
+static void accessory_entry() {
+	for (Expression face : {DEVIL, HALO, ANGEL}) {
+		Arduino_GFX gfx(240, 280); eyes_init(&gfx); eyes_set_style(MOCHI);
+		EyeConfig cfg = eyes_config(); cfg.expression = face;
+		const auto *p = face_preset(face);
+		EyeLayout layout = eye_layout(cfg, EyeState{});
+		for (uint16_t bg : {uint16_t(0), uint16_t(0x0841)}) {
+			cfg.bgColor = bg;
+			auto draw = [&](uint32_t time) {
+				gfx.fillScreen(bg); EyeState state{}; state.lastMs = time;
+				p->background(&gfx, cfg, state, layout); return gfx.pixels;
+			};
+			auto first = draw(0), final = draw(1200);
+			assert(std::all_of(first.begin(), first.end(), [&](uint16_t c) { return c == bg; }));
+			assert(first != final && draw(600) != first && draw(600) != final);
+			auto previous = first;
+			for (uint32_t time = 33; time <= 1221; time += 33) {
+				auto frame = draw(time);
+				for (size_t i = 0; i < frame.size(); ++i) {
+					for (unsigned shift : {0u, 5u, 11u}) {
+						int mask = shift == 5 ? 63 : 31;
+						int before = (previous[i] >> shift) & mask, after = (frame[i] >> shift) & mask;
+						int target = (final[i] >> shift) & mask;
+						assert(std::abs(target - after) <= std::abs(target - before));
+						assert(std::abs(after - before) <= 4);
+					}
+				}
+				previous = frame;
+			}
+			assert(draw(6000) == final);
+		}
+	}
+}
 
 /** @brief Accessories remain in bounds through gaze/blink and clear completely when leaving. */
 static void accessory_redraw() {
@@ -47,10 +82,13 @@ static void accessory_redraw() {
 					for (int16_t gaze : {int16_t(-20), int16_t(20)}) {
 						eyes_state() = EyeState{}; eyes_state().blinking = blink;
 						eyes_state().saccadeX = gaze; eyes_state().saccadeY = gaze;
-						eyes_set_expression(face); eyes_draw();
-						auto dirty = gfx.pixels; eyes_state().dirtyInit = false; eyes_draw();
-						assert(dirty == gfx.pixels);
-						eyes_set_expression(NEUTRAL); eyes_draw(); dirty = gfx.pixels;
+							eyes_set_expression(face);
+							for (uint32_t time : {0u, 330u, 1200u, 1500u}) {
+								eyes_state().lastMs = time; eyes_draw();
+								auto frame = gfx.pixels; eyes_state().dirtyInit = false; eyes_draw();
+								assert(frame == gfx.pixels);
+							}
+							eyes_set_expression(NEUTRAL); eyes_draw(); auto dirty = gfx.pixels;
 						eyes_state().dirtyInit = false; eyes_draw(); assert(dirty == gfx.pixels);
 					}
 				}

@@ -20,8 +20,10 @@ static void repaired_symbol_colors() {
 					eyes_set_eye_colors(bg, ink, 0xF800, 0x07E0);
 					for (unsigned i = 0; i < 8; ++i) {
 						eyes_state() = EyeState{}; eyes_set_expression(faces[i]);
+							bool accessory = faces[i] == DEVIL || faces[i] == HALO;
+							if (accessory) { eyes_state().lastMs = 0; eyes_draw(); }
 						for (uint32_t time : {0u, 330u, 1500u, 3000u}) {
-							eyes_state().lastMs = time; eyes_draw();
+								eyes_state().lastMs = time + (accessory ? 1200 : 0); eyes_draw();
 							assert(std::count(gfx.pixels.begin(), gfx.pixels.end(), colors[i]) > 0);
 							assert(std::count(gfx.pixels.begin(), gfx.pixels.end(), ink) > 0);
 							auto dirty = gfx.pixels; eyes_state().dirtyInit = false; eyes_draw();

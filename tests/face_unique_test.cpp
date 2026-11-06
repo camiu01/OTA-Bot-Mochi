@@ -79,7 +79,7 @@ static bool style_uniqueness(Arduino_GFX &gfx, uint8_t style) {
 		eyes_set_expression(static_cast<Expression>(expression));
 		state.dirtyInit = false;
 		eyes_draw();
-		if (face_preset(Expression(expression))->normalCycle || expression == PONG || expression == GAUGE || expression == GLOW || expression == HEADLIGHTS || expression >= DANCING) {
+		if (face_preset(Expression(expression))->normalCycle || expression == HALO || expression == DEVIL || expression == PONG || expression == GAUGE || expression == GLOW || expression == HEADLIGHTS || expression >= DANCING) {
 			state.lastMs += 3000;
 			eyes_draw();
 		}

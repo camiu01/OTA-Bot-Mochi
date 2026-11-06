@@ -222,6 +222,9 @@ static void rendered(int w, int h) {
 		if (previous != NEUTRAL && next != previous) {
 			assert(visible == previous && !busy);
 			assert(FacePolicy::cycle_complete(previous, test_now - entry));
+				if (uint32_t(test_now - start) < 30000 || uint32_t(entry - start) > 45000) {
+					assert(uint32_t(test_now - entry) <= FacePolicy::cycle_duration(previous) + 66);
+				}
 			++changes;
 		}
 		previous = next;

@@ -372,7 +372,7 @@ int main() {
 	assert(settings_init());
 	symbol_tests();
 	repaired_symbol_colors(); symbol_negative_space();
-	accessory_shapes(); accessory_redraw();
+	accessory_entry(); accessory_shapes(); accessory_redraw();
 	lunar_phases();
 	moon_stays_open();
 	robot_masks();

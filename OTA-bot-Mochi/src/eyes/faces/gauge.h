@@ -46,15 +46,25 @@ inline void local_eye_gauge_draw(Arduino_GFX *gfx, const EyeConfig &cfg, uint32_
 	const uint16_t redline = eye_mix(eye_rgb(238, 65, 54), cfg.bgColor, opacity);
 	for (uint8_t i = 0; i <= 54; ++i) {
 		float angle = 2.3561945f + i * 0.08726646f;
-		int16_t outer = r, inner = r - (i % 6 ? 3 : 9);
+		int16_t outer = r, inner = r - (i % 6 ? r / 10 : r / 5);
+		int16_t half = r / (i % 6 ? 90 : 45) + 1;
 		uint16_t ink = i >= 42 ? redline : cfg.fgColor;
-		gfx->drawLine(int16_t(cx + cosf(angle) * inner), int16_t(cy + sinf(angle) * inner),
-			int16_t(cx + cosf(angle) * outer), int16_t(cy + sinf(angle) * outer), ink);
+		float dx = cosf(angle), dy = sinf(angle);
+		int16_t ax = cx + dx * inner - dy * half, ay = cy + dy * inner + dx * half;
+		int16_t bx = cx + dx * inner + dy * half, by = cy + dy * inner - dx * half;
+		int16_t ex = cx + dx * outer + dy * half, ey = cy + dy * outer - dx * half;
+		int16_t fx = cx + dx * outer - dy * half, fy = cy + dy * outer + dx * half;
+		gfx->fillTriangle(ax, ay, bx, by, ex, ey, ink);
+		gfx->fillTriangle(ax, ay, ex, ey, fx, fy, ink);
 	}
 	float sweep = local_eye_gauge_sweep(now);
 	float angle = 2.3561945f + sweep * 4.712389f;
-	gfx->drawLine(cx, cy, int16_t(cx + cosf(angle) * (r - 14)), int16_t(cy + sinf(angle) * (r - 14)), redline);
-	gfx->fillCircle(cx, cy, 3, cfg.fgColor);
+	float dx = cosf(angle), dy = sinf(angle);
+	int16_t half = r / 18 + 2;
+	gfx->fillTriangle(int16_t(cx - dy * half), int16_t(cy + dx * half),
+		int16_t(cx + dy * half), int16_t(cy - dx * half),
+		int16_t(cx + dx * (r - r / 10)), int16_t(cy + dy * (r - r / 10)), redline);
+	gfx->fillCircle(cx, cy, half + 1, cfg.fgColor);
 }
 
 /** @brief Spread dial hollowing across the morph and ease its edges to avoid a sudden large cutout. */

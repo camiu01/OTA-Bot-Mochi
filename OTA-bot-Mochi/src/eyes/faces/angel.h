@@ -11,8 +11,9 @@ inline void lids(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b) {
 	face_primitives::smile(gfx, cfg, b, b.h / 10, b.h / 8);
 }
 /** @brief Three rounded feathers on each outer side, never a mouth or body. */
-inline void background(Arduino_GFX *gfx, EyeConfig &cfg, const EyeState &, const EyeLayout &layout) {
-	face_accessories::aureole(gfx, cfg, layout);
+inline void background(Arduino_GFX *gfx, EyeConfig &cfg, const EyeState &st, const EyeLayout &layout) {
+	face_accessories::aureole(gfx, cfg, st, layout);
+	uint16_t featherInk = face_accessories::ink(cfg, st, eye_rgb(187, 221, 247));
 	int16_t scale = eye_scale(cfg);
 	for (const EyeBox &b : {layout.left, layout.right}) {
 		int16_t side = b.left ? -1 : 1;
@@ -27,8 +28,8 @@ inline void background(Arduino_GFX *gfx, EyeConfig &cfg, const EyeState &, const
 			int16_t x = edge + side * reach;
 			int16_t y = cy - (2 - i) * feather * 2;
 			gfx->fillTriangle(edge, cy + feather, x, y - feather, x, y + feather,
-				eye_rgb(187, 221, 247));
-			gfx->fillCircle(x, y, feather, eye_rgb(187, 221, 247));
+				featherInk);
+			gfx->fillCircle(x, y, feather, featherInk);
 		}
 	}
 }

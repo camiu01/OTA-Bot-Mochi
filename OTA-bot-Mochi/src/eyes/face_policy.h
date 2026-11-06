@@ -81,7 +81,9 @@ class FacePolicy {
 		if (mode == FACE_CONTINUOUS) { variety.remember(value); }
 		sequence_index = uint8_t((index + 1) % pool_size);
 		if (chain_count < 5) { ++chain_count; }
-		duration = automatic_duration(value, choice); random_delay = 12000 + choice % 18001;
+		// Continuous playback advances after one complete loop instead of replaying the same face.
+		duration = mode == FACE_CONTINUOUS ? cycle_duration(value) : automatic_duration(value, choice);
+		random_delay = 12000 + choice % 18001;
 		active = true; motion = false; manual = false; qualifying = false;
 		affection = false;
 	}

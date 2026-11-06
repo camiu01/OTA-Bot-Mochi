@@ -91,8 +91,8 @@ static void distinct_expression_tests() {
 			st.dirtyInit = false;
 			eyes_draw();
 			if (expression == NEUTRAL) { baseline = gfx.pixels; continue; }
-			if (face_preset(Expression(expression))->normalCycle || expression == PONG || expression == GAUGE || expression == GLOW || expression == HEADLIGHTS || expression >= DANCING) {
-				// These moods intentionally start as eyes; compare their scene phase.
+			if (face_preset(Expression(expression))->normalCycle || expression == HALO || expression == DEVIL || expression == PONG || expression == GAUGE || expression == GLOW || expression == HEADLIGHTS || expression >= DANCING) {
+				// These moods start as eyes; compare after their accessory entry or scene morph.
 				st.lastMs += 3000;
 				eyes_draw();
 			}
