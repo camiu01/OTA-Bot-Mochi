@@ -25,14 +25,14 @@ bool grid_open = false;
 bool filter_open = false, keep_one = false;
 uint8_t grid_first_row = 0;
 
-/** Expression grid geometry: three columns of large touch targets, five rows of full-pitch cells. */
-constexpr uint8_t GRID_COLS = 3;
-constexpr uint8_t GRID_ROWS = 5;
-constexpr uint8_t GRID_ROW_PX = 26;
+/** Fewer, finger-sized expressions per view instead of fifteen narrow cells. */
+constexpr uint8_t GRID_COLS = 2;
+constexpr uint8_t GRID_ROWS = 3;
+constexpr uint8_t GRID_ROW_PX = 44;
 constexpr int16_t GRID_X0 = 8;
-constexpr int16_t GRID_Y0 = 94;
-constexpr int16_t GRID_W = 72;
-constexpr int16_t GRID_H = 24;
+constexpr int16_t GRID_Y0 = 92;
+constexpr int16_t GRID_W = 108;
+constexpr int16_t GRID_H = 42;
 constexpr uint8_t GRID_ROWS_TOTAL = (EXPRESSION_COUNT + GRID_COLS - 1) / GRID_COLS;
 constexpr uint8_t GRID_MAX_FIRST = GRID_ROWS_TOTAL > GRID_ROWS ? GRID_ROWS_TOTAL - GRID_ROWS : 0;
 
@@ -78,7 +78,7 @@ void grid_close() { grid_open = filter_open = keep_one = false; grid_first_row =
 void row(Arduino_GFX *gfx, uint8_t index, const char *label, const String &value) {
 	if (index < first_row || index >= first_row + 3) { return; }
 	int16_t design_y = int16_t(90 + (index - first_row) * 44);
-	ui_card(gfx, design_y, 40);
+	ui_card(gfx, design_y, 44);
 	int16_t y = ui_s(design_y);
 	ui_label(gfx, label, ui_s(24), y + ui_s(5), ui_s(192), 1, UI_MUTED);
 	ui_label(gfx, value, ui_s(24), y + ui_s(23), ui_s(192), 1, UI_ACCENT);
@@ -256,11 +256,11 @@ void grid_entry(Arduino_GFX *gfx, uint8_t index, int16_t x, int16_t y) {
 	bool selected = !filter_open && allowed && index == settings_get().mood;
 	gfx->fillRoundRect(x, y, ui_s(GRID_W), ui_s(GRID_H), ui_s(6), selected ? UI_ACCENT : UI_CARD);
 	if (filter_open) {
-		gfx->drawRect(x + ui_s(3), y + ui_s(8), ui_s(8), ui_s(8), UI_TEXT);
-		if (allowed) { gfx->fillRect(x + ui_s(5), y + ui_s(10), ui_s(4), ui_s(4), UI_ACCENT); }
+		gfx->drawRect(x + ui_s(3), y + ui_s(17), ui_s(8), ui_s(8), UI_TEXT);
+		if (allowed) { gfx->fillRect(x + ui_s(5), y + ui_s(19), ui_s(4), ui_s(4), UI_ACCENT); }
 	}
 	int16_t pad = filter_open ? 14 : 3;
-	ui_label(gfx, tr_expression(index), x + ui_s(pad), y + ui_s(8), ui_s(GRID_W - pad - 3), 1,
+	ui_label(gfx, tr_expression(index), x + ui_s(pad), y + ui_s(17), ui_s(GRID_W - pad - 3), 1,
 		selected ? UI_BG : (allowed ? UI_TEXT : UI_MUTED));
 	if (!filter_open && !allowed) {
 		gfx->drawLine(x + ui_s(3), y + ui_s(4), x + ui_s(10), y + ui_s(20), UI_MUTED);
@@ -368,7 +368,7 @@ MenuAction settings_menu_tap(int16_t x, int16_t y) {
 		sound_options = false; first_row = 0;
 		return MenuAction::Changed;
 	}
-	if (y >= ui_s(222) && y < bottom_band_bottom()) {
+	if (y >= ui_s(224) && y < bottom_band_bottom()) {
 		if (x >= ui_s(120)) {
 			if (tab == 4 && sound_options) { sound_options = false; first_row = 0; return MenuAction::Changed; }
 			grid_close();
@@ -377,8 +377,10 @@ MenuAction settings_menu_tap(int16_t x, int16_t y) {
 		save_failed = !settings_save();
 		return MenuAction::Changed;
 	}
-	if (y >= ui_s(94) && y < ui_s(222)) {
-		uint8_t index = uint8_t(first_row + (y - ui_s(94)) / ui_s(44));
+	if (y >= ui_s(90) && y < ui_s(222)) {
+		uint8_t visible = 0;
+		while (visible < 2 && y >= ui_s(int16_t(90 + (visible + 1) * 44))) { ++visible; }
+		uint8_t index = uint8_t(first_row + visible);
 		uint8_t count = row_count();
 		if (tab == TAB_SYSTEM && HAS_SD_ROW && index == 7) { return MenuAction::SdUpdate; }
 			if (tab == TAB_SYSTEM && index == 4) { return MenuAction::Update; }

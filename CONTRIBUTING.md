@@ -36,7 +36,7 @@ application-only upload cannot migrate it.
 - `src/network/`: station reconnection, NTP and the bounded weather worker
 - `src/diagnostics/`: read-only device status values
 - `src/bus/`: the single shared I2C controller
-- `src/play/`: Pong and Tris logic
+- `src/play/`: Pong, Tris, polyhedral dice and Flappy Bird logic
 - `src/update/`: local Wi-Fi firmware maintenance, web settings/face editor, image validation and QR screen
 - `pin_config.h`: hardware profile selection
 - `src/boards/`: per-board pins, capabilities and compatibility identities; see [Adding a board](docs/BOARDS.md#adding-a-board-with-existing-drivers)

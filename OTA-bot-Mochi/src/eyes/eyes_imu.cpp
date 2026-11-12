@@ -31,6 +31,7 @@
 #include "face_filter.h"
 #include "../settings/settings.h"
 #include "../bus/i2c_bus.h"
+#include "../play/dice_input.h"
 #include "../../pin_config.h"
 #include <Arduino.h>
 #include <math.h>
@@ -212,11 +213,12 @@ void eyes_imu_poll(uint32_t nowMs) {
 		fy = -fy;
 	}
 	MotionSample sample = s_motion.update(fx, fy, fz, nowMs,
-		settings_get().shake && eyes_faces_automatic_ready(nowMs));
+		dice_input().active || (settings_get().shake && eyes_faces_automatic_ready(nowMs)));
 	eyes_imu_set_tilt(sample.x, sample.y);
 	if (s_pickup.update(fx, fy, fz, nowMs, settings_get().imu_faces)) { eyes_wake(nowMs); }
 	eyes_faces_motion(sample.delta_x, sample.delta_y, sample.delta_z, nowMs);
 	if (sample.shake) {
-		eyes_imu_trigger_shake(nowMs);
+		if (dice_input().active) { dice_input().pending = true; }
+		else { eyes_imu_trigger_shake(nowMs); }
 	}
 }

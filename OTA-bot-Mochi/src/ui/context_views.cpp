@@ -15,6 +15,7 @@
 #include "context_tris.h"
 #include "context_hubs.h"
 #include "context_dice.h"
+#include "context_flappy.h"
 #include "../sound/sound.h"
 #include "../clock/clock_ui.h"
 #include "../eyes/eyes_api.h"
@@ -131,6 +132,7 @@ void context_route(Arduino_GFX *gfx, const UiSnapshot &data) {
 void context_draw(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, const UiSnapshot &data, uint32_t now) {
 	if (page == UiPage::Desk || page == UiPage::Games) { context_hub_draw(gfx, page == UiPage::Games); }
 	if (page == UiPage::Dice) { desk_dice_draw(gfx); }
+	if (page == UiPage::FlappyBird) { desk_flappy_draw(gfx, now); }
 	if (page == UiPage::BigClock) { large_clock(gfx, watch); }
 	if (page == UiPage::Overview) { overview(gfx, watch, data, now); }
 	if (page == UiPage::Timer) { timer_screen(gfx); }
@@ -154,6 +156,7 @@ UiPage screens_tap(UiPage page, int16_t x, int16_t y, uint32_t now) {
 	if (page == UiPage::Music && !screens_calling()) { music_tap(x, y); }
 	if (page == UiPage::Desk || page == UiPage::Games) { return context_hub_tap(page == UiPage::Games, x, y); }
 	if (page == UiPage::Dice && desk_dice_tap(x, y)) { screens_invalidate(); }
+	if (page == UiPage::FlappyBird && desk_flappy_tap(x, y, now)) { screens_invalidate(); }
 	if (page == UiPage::Phone) { phone_view_tap(x, y); return page; }
 	if (page == UiPage::Tris) { desk_tris_tap(x, y, now); screens_invalidate(); }
 	if (page == UiPage::Pong) {
@@ -178,7 +181,8 @@ UiPage screens_scroll(UiPage page, int8_t scroll) {
 	if (!scroll) { return page; }
 	if (page == UiPage::Phone && phone_view_scroll(scroll)) { return page; }
 	if (scroll > 0) {
-		if (page == UiPage::Pong || page == UiPage::Tris || page == UiPage::Dice) { return UiPage::Games; }
+		if (page == UiPage::Pong || page == UiPage::Tris || page == UiPage::Dice ||
+			page == UiPage::FlappyBird) { return UiPage::Games; }
 		if (page == UiPage::Desk) { return UiPage::Clock; }
 		if (uint8_t(page) > uint8_t(UiPage::Desk)) { return UiPage::Desk; }
 		return page;

@@ -8,6 +8,7 @@
 #include "../OTA-bot-Mochi/src/bus/i2c_bus.h"
 #include "../OTA-bot-Mochi/src/eyes/imu_orientation.h"
 #include "../OTA-bot-Mochi/src/eyes/imu_calibration_store.h"
+#include "../OTA-bot-Mochi/src/play/dice_input.h"
 #include <Wire.h>
 #include <assert.h>
 #include <iostream>
@@ -169,6 +170,33 @@ static void pickup_driver_tests() {
 	}
 }
 
+/** @brief Dice shakes bypass mood opt-out/protection, retaining deliberate motion and cooldown. */
+static void dice_shake_driver_tests() {
+	test_now = 400000;
+	test_nvs.clear(); imu_orientation() = ImuOrientation{};
+	eyes_init(nullptr);
+	auto p = settings_get(); p.shake = p.random_faces = p.imu_faces = false; p.flipped = false;
+	assert(settings_update(p)); eyes_imu_init();
+	axis(0x35, 0); axis(0x37, 0); axis(0x39, 2048);
+	eyes_imu_poll(400050);
+	dice_input().active = true; dice_input().pending = false;
+	eyes_state().effectClockInit = true; eyes_state().effectStartMs = 400100;
+	for (uint32_t now = 400100; now <= 400250; now += 50) {
+		axis(0x35, ((now / 50) % 2) ? -6144 : 6144); eyes_imu_poll(now);
+	}
+	assert(dice_input().pending && !eyes_state().dizzyUntilMs);
+	dice_input().pending = false;
+	for (uint32_t now = 400300; now <= 400450; now += 50) {
+		axis(0x35, ((now / 50) % 2) ? -6144 : 6144); eyes_imu_poll(now);
+	}
+	assert(!dice_input().pending);
+	dice_input().active = false;
+	for (uint32_t now = 406000; now <= 406150; now += 50) {
+		axis(0x35, ((now / 50) % 2) ? -6144 : 6144); eyes_imu_poll(now);
+	}
+	assert(!dice_input().pending && !eyes_state().dizzyUntilMs);
+}
+
 /** @brief Test scale, road-noise handling, shake opt-in, and restoration. @return Success. */
 int main() {
 	assert(settings_init());
@@ -273,6 +301,7 @@ int main() {
 	test_save_fails = false;
 	continuous_shake_recovery();
 	pickup_driver_tests();
+	dice_shake_driver_tests();
 	std::cout << "IMU setup, mount-relative gaze, shake opt-in/cooldown, and restoration passed\n";
 	return 0;
 }

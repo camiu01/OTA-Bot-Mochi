@@ -19,6 +19,7 @@
 #include "face_scene_regressions.h"
 #include "symbol_color_regressions.h"
 #include "face_accessory_regressions.h"
+#include "glitch_burst_checks.h"
 
 /** @brief Accept only the explicit semantic accents owned by a symbol face. */
 static bool themed_pixel(Expression face, uint16_t pixel) {
@@ -318,11 +319,13 @@ static void cycle_case(Arduino_GFX &gfx, Expression face, uint32_t entry, uint16
 		eyes_draw();
 		auto dirty = gfx.pixels;
 		if (elapsed <= 600 || elapsed >= 5400) { assert(dirty == normal); }
-		if (elapsed == 3000) { assert(dirty != normal); }
+		// Glitch intentionally has intact holds between its brief corruptions.
+		if (elapsed == 3000 && face != GLITCH) { assert(dirty != normal); }
 		eyes_state().dirtyInit = false; eyes_draw();
 		assert(gfx.pixels == dirty);
 		assert(eyes_config().expression == face && eyes_config().fgColor == 0xFFFF);
 	}
+	if (face == GLITCH) { glitch_visible_burst(gfx); }
 }
 
 /** @brief Reversible symbol handoffs cover all styles, six panels, custom backgrounds and time rollover. */

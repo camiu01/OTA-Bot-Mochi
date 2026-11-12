@@ -38,9 +38,17 @@
 	X(Desk, "DESK TOOLS", "SCRIVANIA") \
 	X(Games, "GAMES", "GIOCHI") \
 	X(GamesHint, "SWIPE DOWN: GAMES", "SCENDI: GIOCHI") \
-	X(Dice, "DICE", "DADI") \
+	X(Dice, "POLYHEDRAL DICE", "DADI POLIEDRICI") \
+	X(DiceShakeRoll, "SHAKE OR TAP: ROLL", "SCUOTI O TOCCA: LANCIA") \
+	X(FlappyBird, "FLAPPY BIRD", "FLAPPY BIRD") \
+	X(FlappyStart, "TAP TO START", "TOCCA PER INIZIARE") \
+	X(FlappyTap, "TAP TO FLAP", "TOCCA PER VOLARE") \
+	X(FlappyRetry, "GAME OVER / TAP TO RETRY", "HAI PERSO / TOCCA: RIPROVA") \
 	X(DiceRoll, "ROLL", "LANCIA") \
 	X(DiceTotal, "TOTAL", "TOTALE") \
+	X(DiceFirst, "DIE 1", "DADO 1") \
+	X(DiceCritical, "CRITICAL", "CRITICO") \
+	X(DiceFumble, "FUMBLE", "FALLITO") \
 	X(BigClock, "BIG CLOCK", "OROLOGIO GRANDE") \
 	X(Overview, "DESK OVERVIEW", "RIEPILOGO") \
 	X(Timer, "FOCUS TIMER", "TIMER") \

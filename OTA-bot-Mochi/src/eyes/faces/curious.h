@@ -14,13 +14,23 @@ inline void lids(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b) {
 	strip(gfx, b, b.h / 6, false, cfg.bgColor);
 }
 
+/** @brief Lean toward an interesting detail, lift the eyes, then settle over three seconds. */
+inline void reactionMotion(bool, uint32_t phase, float a, float &, float &sy, float &dx, float &dy) {
+	float angle = phase * 0.0020943951f;
+	float lift = (1 - cosf(angle)) * 0.5f;
+	sy += a * 0.16f * lift; dx += a * 7 * sinf(angle); dy -= a * 4 * lift;
+}
+
 /** @brief Immutable curious face; C++17 named-field initialization. */
 inline constexpr FacePreset preset = [] {
 	FacePreset p;
 	p.name = "curious";
 	p.left.asym.offsetY = 0;
 	p.right.asym.offsetY = -6;
+	p.right.asym.heightScale = 1.18f;
+	p.left.asym.heightScale = 0.9f;
 	p.lids = lids;
+	p.reactionMotion = reactionMotion;
 	return p;
 }();
 static_assert(face_preset_valid(preset), "Invalid curious face parameters");

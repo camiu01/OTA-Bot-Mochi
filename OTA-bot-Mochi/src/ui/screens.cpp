@@ -11,6 +11,9 @@
 #include "view_state.h"
 #include "i18n.h"
 #include "context_play.h"
+#include "context_flappy.h"
+#include "context_dice.h"
+#include "../play/dice_input.h"
 #include "../clock/clock_ui.h"
 #include "../../pin_config.h"
 #include "../settings/settings.h"
@@ -237,10 +240,17 @@ bool screens_draw(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, uint32_t n
 		invalidated = true;
 	}
 	overlay_active = cached.calling && (!settings_get().dashboard || page == UiPage::Notification);
+	auto &input = dice_input();
+	input.active = page == UiPage::Dice && !overlay_active;
+	if (input.pending && input.active && previous_page == page && !previous_call) {
+		desk_dice().roll([](uint8_t limit) { return random(long(limit)); }); invalidated = true;
+	}
+	input.pending = false;
 	bool transition = page != previous_page || overlay_active != previous_call;
 	if (transition) {
 		gfx->fillScreen(UI_BG); screens_invalidate();
 		if (page == UiPage::Pong) { desk_pong().last = now; }
+		if (page == UiPage::FlappyBird) { desk_flappy().resume(now); }
 	}
 	previous_page = page;
 	previous_call = overlay_active;
@@ -250,12 +260,12 @@ bool screens_draw(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, uint32_t n
 		return frame;
 	}
 	bool timer = (uint32_t)(now - last_refresh) >=
-		((page == UiPage::Pong || page == UiPage::Tris) && !overlay_active ? 33U : 1000U);
+		((page == UiPage::Pong || page == UiPage::Tris || page == UiPage::FlappyBird) && !overlay_active ? 33U : 1000U);
 	if (!invalidated && !changed && !timer && page != UiPage::Clock) { return false; }
 	if (invalidated || changed || transition) {
 		static const Text titles[] = {Text::Eyes, Text::Clock, Text::Music, Text::Route, Text::Alerts, Text::Weather, Text::Settings,
 			Text::Desk, Text::BigClock, Text::Overview, Text::Timer, Text::Device, Text::Pong, Text::AnalogClock, Text::Tris, Text::CompanionTitle,
-			Text::Games, Text::Dice};
+			Text::Games, Text::Dice, Text::FlappyBird};
 		static_assert(sizeof(titles) / sizeof(titles[0]) == uint8_t(UiPage::Count), "Every page needs a title");
 		ui_chrome(gfx, tr(overlay_active ? Text::CallTitle : titles[uint8_t(page)]),
 			cached.connected, uint8_t(screens_parent(page)));

@@ -13,6 +13,31 @@ Tap a face to enable/exclude it; checked cells are enabled. Swipe vertically
 through the list. SAVE persists the changes; BACK returns without undoing them.
 The usual LOOK → Mood grid only selects enabled faces.
 
+## Refined everyday animations
+
+Existing IDs and saved choices remain unchanged. Sleepy slowly nods closed,
+briefly wakes, then settles; Curious lifts and leans toward a detail; Suspicious
+narrows while checking both sides. Shy averts its gaze and briefly shows blush
+hatches inside the lower lids. Love has a double heartbeat followed by a pause.
+Glitch interrupts intact eyes with brief bounded chromatic tears, then fully
+recovers between bursts. These use bounded frame-local drawing and never write
+preferences. MOCHI and TRAPEZ remain pupil-free.
+Shared micro-motion also varies smoothly across the rest of the catalog:
+per-entry and per-face rhythms alternate quiet holds with livelier beats.
+Repeated drawing of one frame is deterministic, finger tracking suppresses
+random gaze drift, and Calm disables this extra variation. Randomness never
+changes the selected expression, stored colors, controls or dice outcomes.
+
+The dice page independently shows star/sad mini-eyes for a single D20's natural
+20/1, without replacing the configured expression or hiding the die.
+
+Mecha Break assembles the familiar alloy mask, cracks it with a localized impact,
+then scatters rotating forehead, copper-optic, cheek and chin fragments. A short
+shock ring and sparks accompany the explosion; there is no full-screen flash.
+The configured eyes remain beneath the fragments and return cleanly.
+Samurai's inclined eyes paint only their visible silhouette, preserving the
+red sun behind the slanted upper edge instead of cutting a black triangle into it.
+
 ## From a browser
 
 Tap **Wi-Fi** in the library. With saved Wi-Fi connected, scan the web QR from

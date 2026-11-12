@@ -21,8 +21,8 @@
 #include <string>
 
 /** @brief Mirrors of the Settings expression grid layout, so adding expressions never needs a test edit. */
-constexpr uint8_t GRID_COLS_HINT = 3;
-constexpr uint8_t GRID_PAGE_ROWS_HINT = 5;
+constexpr uint8_t GRID_COLS_HINT = 2;
+constexpr uint8_t GRID_PAGE_ROWS_HINT = 3;
 
 /** @brief Test explicit persistence, malformed blobs, and unavailable storage. */
 static void persistence_tests() {
@@ -350,11 +350,11 @@ static void menu_tests() {
 	settings_menu_draw(&gfx);
 	assert(std::find(gfx.text.begin(), gfx.text.end(), "neutro") != gfx.text.end());
 	// Column gutters and out-of-range columns stay inert.
-	assert(settings_menu_tap(81, 103) == MenuAction::None);
+	assert(settings_menu_tap(118, 103) == MenuAction::None);
 	assert(settings_menu_tap(238, 100) == MenuAction::None);
 	// A real cell selects and applies the expression without writing flash.
 	unsigned int grid_writes = test_flash_writes;
-	assert(settings_menu_tap(196, 103) == MenuAction::Changed);
+	assert(settings_menu_tap(44, 150) == MenuAction::Changed);
 	assert(settings_get().mood == SAD && eyes_config().expression == SAD);
 	assert(test_flash_writes == grid_writes);
 	// Scrolling is bounded and the final page still reaches the last expression.
@@ -364,20 +364,21 @@ static void menu_tests() {
 	// Empty tail cells on the final page stay inert.
 	uint8_t last_column = uint8_t((EXPRESSION_COUNT - 1) % GRID_COLS_HINT);
 	for (uint8_t column = last_column + 1; column < GRID_COLS_HINT; ++column) {
-		assert(settings_menu_tap(44 + column * 78, 208) == MenuAction::None);
+		assert(settings_menu_tap(44 + column * 112, 208) == MenuAction::None);
 	}
 	// The header reports real cell indices, not page numbers, and clamps to the final face.
 	settings_menu_draw(&gfx);
 	std::string range = std::to_string(uint16_t(max_first * GRID_COLS_HINT + 1)) + "-" +
 		std::to_string(EXPRESSION_COUNT) + "/" + std::to_string(EXPRESSION_COUNT);
 	assert(std::find(gfx.text.begin(), gfx.text.end(), range) != gfx.text.end());
-	assert(settings_menu_tap(44 + last_column * 78, 208) == MenuAction::Changed);
+	assert(settings_menu_tap(44 + last_column * 112, 208) == MenuAction::Changed);
 	assert(settings_get().mood == EXPRESSION_COUNT - 1 && eyes_config().expression == EXPRESSION_COUNT - 1);
 	assert(settings_menu_scroll(-1));
 	// BACK closes the grid and restores the tab rows.
 	assert(settings_menu_tap(160, 240) == MenuAction::Changed);
 	assert(!settings_menu_grid_open());
-	assert(settings_menu_tap(20, 222) == MenuAction::Changed);
+	assert(settings_menu_tap(20, 222) == MenuAction::None);
+	assert(settings_menu_tap(20, 224) == MenuAction::Changed);
 	assert(settings_menu_tap(239, 257) == MenuAction::Exit);
 	assert(settings_menu_tap(239, 258) == MenuAction::Exit);
 	assert(settings_menu_tap(120, 279) == MenuAction::Exit);

@@ -13,34 +13,42 @@ inline void games_navigation_checks() {
 	assert(screens_scroll(UiPage::Games, 1) == UiPage::Desk);
 	assert(screens_scroll(UiPage::Desk, 1) == UiPage::Clock);
 	assert(screens_scroll(UiPage::Games, -1) == UiPage::Games);
-	const UiPage games[] = {UiPage::Dice, UiPage::Pong, UiPage::Tris};
-	for (uint8_t i = 0; i < 3; ++i) {
+	const UiPage games[] = {UiPage::Dice, UiPage::Pong, UiPage::Tris, UiPage::FlappyBird};
+	for (uint8_t i = 0; i < 4; ++i) {
 		assert(screens_tap(UiPage::Games, ui_s(i % 2 ? 200 : 20), ui_s(70 + i / 2 * 50), 0) == games[i]);
 		assert(screens_scroll(games[i], 1) == UiPage::Games);
 		assert(screens_parent(games[i]) == UiPage::Clock);
 		assert(screens_swipe(games[i], 1) == UiPage::Music);
 		assert(screens_swipe(games[i], -1) == UiPage::Eyes);
 	}
-	for (auto point : {std::pair<int, int>{120, 70}, {20, 104}, {200, 120}, {20, 240}}) {
+	for (auto point : {std::pair<int, int>{120, 70}, {20, 104}, {200, 170}, {20, 240}}) {
 		assert(screens_tap(UiPage::Games, ui_s(point.first), ui_s(point.second), 0) == UiPage::Games);
 	}
 }
 /** @brief Check the drawn controls, count/type changes and non-interactive gaps. */
 inline void dice_control_checks() {
 	desk_dice() = DicePool{};
+	desk_dice_details() = false;
 	assert(!desk_dice_tap(ui_s(120), ui_s(74)));
 	assert(!desk_dice_tap(ui_s(120), ui_s(120)));
 	assert(!desk_dice_tap(ui_s(52), ui_s(120)));
 	assert(!desk_dice_tap(ui_s(20), ui_s(216)));
-	assert(!desk_dice_tap(-1, ui_s(240)) && !desk_dice_tap(ui_s(234), ui_s(240)));
+	assert(!desk_dice_tap(-1, ui_s(240)) && !desk_dice_tap(ui_s(238), ui_s(240)));
 	assert(desk_dice_tap(ui_s(210), ui_s(74)) && desk_dice().sides() == 100);
 	assert(desk_dice_tap(ui_s(20), ui_s(74)) && desk_dice().sides() == 20);
+	assert(desk_dice_tap(ui_s(180), ui_s(240)) && desk_dice_details());
 	assert(desk_dice_tap(ui_s(210), ui_s(120)) && desk_dice().count() == 11);
 	assert(desk_dice_tap(ui_s(70), ui_s(120)) && desk_dice().count() == 10);
 	assert(desk_dice_tap(ui_s(170), ui_s(120)) && desk_dice().count() == 11);
 	assert(desk_dice_tap(ui_s(20), ui_s(120)) && desk_dice().count() == 1);
-	assert(screens_tap(UiPage::Dice, ui_s(120), ui_s(240), 0) == UiPage::Dice);
+	assert(screens_tap(UiPage::Dice, ui_s(180), ui_s(240), 0) == UiPage::Dice);
 	assert(desk_dice().rolled() && desk_dice().total() >= 1 && desk_dice().total() <= 20);
+	auto total = desk_dice().total();
+	assert(desk_dice_tap(ui_s(60), ui_s(240)) && !desk_dice_details());
+	assert(!desk_dice_tap(ui_s(120), ui_s(240))); // Footer seam is not an action.
+	assert(!desk_dice_tap(ui_s(200), ui_s(180))); // The solid is not pagination.
+	assert(desk_dice_tap(ui_s(180), ui_s(240)) && desk_dice_details());
+	assert(desk_dice().total() == total);
 }
 /** @brief Max pool/results and every type fit both locales without random draws or preference writes. */
 inline void dice_panel_checks(Arduino_GFX &gfx, ChronosESP32 &watch) {
@@ -51,8 +59,11 @@ inline void dice_panel_checks(Arduino_GFX &gfx, ChronosESP32 &watch) {
 		uint32_t revision = settings_revision(); unsigned writes = test_flash_writes;
 		bool dirty = settings_dirty();
 		desk_dice() = DicePool{}; desk_dice().adjust_count(99);
+		desk_dice_details() = true;
 		for (uint8_t type = 0; type < 7; ++type) {
 			desk_dice().roll([](uint8_t limit) { return limit - 1; });
+			desk_dice_details() = false; desk_dice_draw(&gfx);
+			desk_dice_details() = true;
 			for (uint8_t page = 0; page < desk_dice().pages(); ++page) {
 				gfx.text.clear(); screens_invalidate();
 				assert(screens_draw(&gfx, watch, UiPage::Dice, 100000 + type * 100 + page));
@@ -71,5 +82,5 @@ inline void dice_panel_checks(Arduino_GFX &gfx, ChronosESP32 &watch) {
 		assert(desk_dice().total() == pool.total() && desk_dice().value(99) == pool.value(99));
 		assert(settings_revision() == revision && test_flash_writes == writes && settings_dirty() == dirty);
 	}
-	assert(settings_update(original)); desk_dice() = DicePool{};
+	assert(settings_update(original)); desk_dice() = DicePool{}; desk_dice_details() = false;
 }

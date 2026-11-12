@@ -8,8 +8,28 @@
 #include "../OTA-bot-Mochi/src/eyes/eye_life.h"
 #include "../OTA-bot-Mochi/src/settings/settings.h"
 #include <cassert>
+#include <algorithm>
 #include <iostream>
 namespace samurai = face_defs::samurai_face;
+
+/** @brief Inclining the eye must leave the existing backdrop intact, not carve an opaque triangle. */
+static void no_sun_cutouts(const EyeConfig &cfg) {
+	Arduino_GFX gfx(cfg.screenW, cfg.screenH);
+	constexpr uint16_t sun = 0x780F;
+	for (float amount : {0.1f, 0.25f, 0.5f, 0.75f, 1.0f}) {
+		EyeLayout pair = eye_layout(cfg, EyeState{});
+		samurai::layout(cfg, pair.left, 3000, amount); samurai::layout(cfg, pair.right, 3000, amount);
+		gfx.fillScreen(sun);
+		for (const auto &box : {pair.left, pair.right}) {
+			samurai::slanted_body(&gfx, cfg, box, amount);
+			if (int16_t(box.h * 0.55f * amount) > 0) {
+				assert(gfx.pixels[box.y * cfg.screenW + box.x] == sun);
+			}
+		}
+		assert(std::count(gfx.pixels.begin(), gfx.pixels.end(), cfg.bgColor) == 0);
+		assert(std::count(gfx.pixels.begin(), gfx.pixels.end(), cfg.fgColor) > 0);
+	}
+}
 
 /** @brief The fading blade must never erase any part of either eye during entry or return. */
 static void no_blade_cuts(const EyeConfig &cfg) {
@@ -34,6 +54,7 @@ static void check(int16_t width, int16_t height, EyeStyle style) {
 	eyes_set_eye_colors(0x0841, 0xFFFF, 0xF800, 0x07E0);
 	eyes_set_expression(SAMURAI);
 	EyeConfig cfg = eyes_config();
+	no_sun_cutouts(cfg);
 	no_blade_cuts(cfg);
 	EyeLayout pair = eye_layout(cfg, EyeState{});
 	samurai::layout(cfg, pair.left, 3000, 1); samurai::layout(cfg, pair.right, 3000, 1);
