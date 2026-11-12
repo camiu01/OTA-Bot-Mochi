@@ -7,6 +7,7 @@
 #include "eyes_types.h"
 #include "face_random.h"
 #include "face_presets.h"
+#include "eye_play.h"
 #include <math.h>
 
 struct EyeLifeFrame {
@@ -17,10 +18,12 @@ struct EyeLifeFrame {
 	Expression expression = NEUTRAL;
 	float openL = 1, openR = 1, scaleX = 1, scaleY = 1;
 	int16_t x = 0, y = 0;
+	EyePlayPose play;
 };
 
 class EyeLife {
 	EyeLifeFrame frame;
+	EyePlay play;
 	Expression target = NEUTRAL;
 	EyeStyle style = NORMAL;
 	bool changing = false, gesturing = false;
@@ -208,8 +211,11 @@ public:
 			frame.openL *= open; frame.openR *= open;
 		}
 		bool responding = feedback(st, now, dt);
-		bool expressive = mode && !changing && !responding && !st.dizzyUntilMs && ordinary(frame.expression);
+		bool playful = mode && !responding && !st.dizzyUntilMs && ordinary(frame.expression) && ordinary(cfg.expression);
+		bool expressive = playful && !changing;
 		responding = interact(st, now, amount, expressive, motion) || responding;
+		frame.play = play.step(st, now, amount, playful, allow_idle && !changing && !gesturing && !responding, choice);
+		responding = responding || frame.play.busy;
 		if (!expressive || st.tracking || responding) { gesturing = false; idle_at = now; }
 		if (expressive && allow_idle && !st.tracking && !responding && !gesturing && uint32_t(now - idle_at) >= idle_delay) {
 			gesture = (gesture + 1 + choice % 8) % 9;
@@ -219,6 +225,8 @@ public:
 		}
 		if (gesturing && !changing) { pose(now, amount); }
 		vary(now, cfg.asym != 0, st.tracking);
+		frame.x += frame.play.x; frame.y += frame.play.y;
+		frame.openL *= frame.play.openL; frame.openR *= frame.play.openR;
 		frame.busy = changing || gesturing || responding;
 	}
 };

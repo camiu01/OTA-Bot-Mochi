@@ -11,6 +11,7 @@
 #include <array>
 #include <cassert>
 #include <iostream>
+#include "cinematic_face_checks.h"
 
 /** @brief Sample the actual registered motion without idle motion or blink interference. */
 static std::array<float, 4> motion(Expression expression, uint32_t time, float amount = 1) {
@@ -170,6 +171,6 @@ static void redraw() {
 
 int main() {
 	assert(settings_init());
-	gestures(); glitch_recovery(); blush(); shared_variety(); exploding_mask(); redraw();
+	gestures(); glitch_recovery(); blush(); shared_variety(); exploding_mask(); redraw(); cinematic_face_checks();
 	std::cout << "Emotions, mask explosion, intact recovery, blush and seven-style clean redraw passed\n";
 }

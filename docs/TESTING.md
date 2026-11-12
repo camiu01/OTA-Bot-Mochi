@@ -45,10 +45,10 @@ and `MOCHI_BOARD_AMOLED_18` for AMOLED checks, so an Arduino IDE selection in
 An explicit LCD CLI build can likewise use
 `--build-property "compiler.cpp.extra_flags=-DMOCHI_BOARD_LCD_169"`.
 The real eye renderer also runs against a native raster substitute: all seven
-styles, all 145 expressions/animated moods, and both blink states (2030 combinations)
+styles, all 172 expressions/animated moods, and both blink states (2408 combinations)
 check dirty-region erasure. The four original styles additionally prove
 that every expression renders differently from NEUTRAL and that no
-two names draw the same pixels (pairwise uniqueness, 41760
+two names draw the same pixels (pairwise uniqueness, 58824
 comparisons), solid-style pupil/highlight exclusion, trapezoid symmetry, IMU
 gaze/roll bounds, radius limits, and dirty-region erasure are checked. The
 configured palette has its own suite: resting emotions and symbols must keep
@@ -77,6 +77,16 @@ orientation mapping, release/error/out-of-bounds rejection and preserved tap,
 hold, pet and swipe events. The non-raster eye stub still advances the real
 expression clock so policy tests do not silently stall without pixels.
 
+`eye_play_checks.h` adds all three rare gags, 45–90-second cooldowns, 1100-ms
+deadlines, handoff reservation, rollover, edge-triggered tickle/dodge/sulk and
+actual released-tap/pet priority. Production updates check the fly's dirty/full
+redraw and disappearance on both panel sizes and all seven styles.
+`favorites_checks.h` covers empty/full stars, invalid IDs/records, old-catalog
+migration, no implicit new stars, explicit independent saves, failed writes,
+defaults and reboot. `favorites_panel_checks.h` runs the empty picker, star
+editor, exclusions, compact ID mapping, last-page scrolling and SAVE failure/retry
+in both languages on all three UI test geometries.
+
 `pickup_test.cpp` checks a stable 1.2-second rest, a moderate impulse, a changed
 pose settled for 200 ms within 1.5 seconds, and a six-second cooldown. It rejects
 disabled input, invalid samples, gaps, unchanged-pose bumps, slow tilts and strong
@@ -98,7 +108,7 @@ This isolates headless checks from unnecessary GPU initialization; it does not
 establish the cause of the two historical Windows shutdown crashes.
 
 The face catalog checks compile the documented C++17 per-eye preset example and
-validate all 145 IDs/names, parameter ranges, USB selection and settings round-trips.
+validate all 172 IDs/names, parameter ranges, USB selection and settings round-trips.
 Two frozen pre-refactor raster fixtures check pixels and dirty bounds across six
 panels and four styles; the expanded fixture samples 47,232 frames across all
 123-expression legacy catalog. See [Editing and adding a face](ADDING_A_FACE.md) for scope and

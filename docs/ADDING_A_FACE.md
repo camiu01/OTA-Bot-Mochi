@@ -1,7 +1,7 @@
 # Editing and adding a face
 
 Every existing expression has one file in `OTA-bot-Mochi/src/eyes/faces/`:
-145 files, named after the canonical USB names. Each file owns an immutable
+172 files, named after the canonical USB names. Each file owns an immutable
 `FacePreset` and its expression-specific drawing and animation procedures.
 For example, edit `faces/curious.h` for CURIOUS or `faces/crying.h` for CRYING.
 

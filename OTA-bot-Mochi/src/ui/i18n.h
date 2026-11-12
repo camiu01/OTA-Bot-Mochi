@@ -155,6 +155,9 @@
 	X(Open, "open", "apri") \
 	X(Faces, "Faces", "Facce") \
 	X(FaceLibrary, "Face library", "Libreria facce") \
+	X(Favorites, "Favorites", "Preferite") \
+	X(EditFavorites, "Edit favorites", "Modifica preferite") \
+	X(NoFavorites, "No favorites enabled", "Nessuna preferita attiva") \
 	X(KeepOneFace, "Keep one face", "Tieni una faccia") \
 	X(Enabled, "enabled", "attive") \
 	X(FacesWifi, "Wi-Fi settings", "Impostazioni Wi-Fi") \
@@ -336,6 +339,32 @@
 	X(ExprYakura, "yakura", "yakura") \
 	X(ExprChineseDragon, "red dragon", "drago rosso") \
 	X(ExprAngel, "angel", "angelo") \
+	X(ExprHacker, "hacker", "hacker") \
+	X(ExprBerserk, "berserk", "furia") \
+	X(ExprPortal, "portal", "portale") \
+	X(ExprOrigami, "origami", "origami") \
+	X(ExprGhost, "ghost", "fantasma") \
+	X(ExprEclipse, "eclipse", "eclissi") \
+	X(ExprDetective, "detective", "detective") \
+	X(ExprPixelCrash, "pixel crash", "pixel crash") \
+	X(ExprPowerUp, "power up", "potenziamento") \
+	X(ExprNinja, "ninja", "ninja") \
+	X(ExprAlchemist, "alchemist", "alchimista") \
+	X(ExprMagicalGirl, "magical girl", "maghetta") \
+	X(ExprMechaLock, "mecha lock", "mecha aggancio") \
+	X(ExprSpiritSeal, "spirit seal", "sigillo") \
+	X(ExprSweatDrop, "sweat drop", "goccia sudore") \
+	X(ExprAnimeVein, "anime vein", "vena rabbia") \
+	X(ExprChibiPanic, "chibi panic", "panico chibi") \
+	X(ExprTsundere, "tsundere", "tsundere") \
+	X(ExprMangaShock, "manga shock", "shock manga") \
+	X(ExprChibiJoy, "chibi joy", "gioia chibi") \
+	X(ExprRubberBand, "rubber band", "elastico") \
+	X(ExprPeekaboo, "peekaboo", "cucu") \
+	X(ExprPopcorn, "popcorn", "popcorn") \
+	X(ExprSpringEyes, "spring eyes", "occhi a molla") \
+	X(ExprComicGlasses, "comic glasses", "occhiali buffi") \
+	X(ExprBalloonEyes, "balloon eyes", "palloncini") \
 	X(Calm, "calm", "calmo") \
 	X(Dasai, "normal", "normale") \
 	X(Playful, "playful", "vivace") \

@@ -22,6 +22,7 @@ bool night_clock_valid = false;
 bool remote_night = false;
 uint8_t night_hour = 0;
 FaceFilter saved_faces;
+FaceFavorites favorites, saved_favorites;
 uint32_t faces_revision = 0;
 }
 
@@ -39,6 +40,13 @@ bool settings_init() {
 		face_filter().decode(faces, faces_length);
 	}
 	saved_faces = face_filter();
+	favorites = FaceFavorites{};
+	uint8_t stars[FaceFavorites::RECORD_BYTES] = {};
+	size_t stars_length = storage_ready ? storage.getBytesLength("favorites") : 0;
+	if (stars_length && stars_length <= sizeof(stars) && storage.getBytes("favorites", stars, stars_length) == stars_length) {
+		favorites.decode(stars, stars_length);
+	}
+	saved_favorites = favorites;
 	++faces_revision;
 	uint8_t bytes[SETTINGS_BYTES] = {};
 	size_t length = storage_ready ? storage.getBytesLength("profile") : 0;
@@ -86,7 +94,7 @@ bool settings_update(const CompanionSettings &value) {
 bool settings_dirty() {
 	uint8_t bytes[SETTINGS_BYTES];
 	settings_encode(profile, bytes);
-	return !has_saved || memcmp(bytes, saved, sizeof(bytes)) != 0 || settings_faces_dirty();
+	return !has_saved || memcmp(bytes, saved, sizeof(bytes)) != 0 || settings_faces_dirty() || settings_favorites_dirty();
 }
 
 /** @brief Persist a complete profile only on explicit request. @return Successful save. */
@@ -98,7 +106,7 @@ bool settings_save() {
 		if (storage.putBytes("profile", bytes, sizeof(bytes)) != sizeof(bytes)) { return false; }
 		memcpy(saved, bytes, sizeof(saved)); has_saved = true; ++revision;
 	}
-	return settings_faces_save();
+	return settings_faces_save() && settings_favorites_save();
 }
 
 /** @brief Report preferences changes to the renderer. @return Revision counter. */
@@ -107,6 +115,7 @@ uint32_t settings_revision() { return revision; }
 /** @brief Restore defaults without silently overwriting the saved profile. */
 void settings_defaults() {
 	settings_faces_update(FaceFilter{});
+	settings_favorites_update(FaceFavorites{});
 	settings_update(CompanionSettings{});
 }
 
@@ -131,6 +140,20 @@ bool settings_faces_save() {
 	return true;
 }
 uint32_t settings_faces_revision() { return faces_revision; }
+
+const FaceFavorites &settings_favorites() { return favorites; }
+void settings_favorites_update(const FaceFavorites &value) {
+	if (favorites == value) { return; }
+	favorites = value; ++revision;
+}
+bool settings_favorites_dirty() { return !(favorites == saved_favorites); }
+bool settings_favorites_save() {
+	if (!storage_ready) { return false; }
+	if (!settings_favorites_dirty()) { return true; }
+	uint8_t bytes[FaceFavorites::RECORD_BYTES]; favorites.encode(bytes);
+	if (storage.putBytes("favorites", bytes, sizeof(bytes)) != sizeof(bytes)) { return false; }
+	saved_favorites = favorites; ++revision; return true;
+}
 
 /** @brief Combine local night policy with the session-only remote quiet/sleep window. @return Effective mode. */
 bool settings_night() {

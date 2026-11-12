@@ -58,10 +58,17 @@ static const Text expressions[EXPRESSION_COUNT] = {
 	Text::ExprEnraged, Text::ExprTraffic, Text::ExprNeon, Text::ExprWheels,
 	Text::ExprSakura, Text::ExprSamurai, Text::ExprMecha, Text::ExprBamboo,
 	Text::ExprTitan, Text::ExprUpsideDown, Text::ExprUwu, Text::ExprYokai, Text::ExprTicTacToe, Text::ExprMechaMask, Text::ExprMechaBreak,
-	Text::ExprHollowAnger, Text::ExprSnickering, Text::ExprHiccup, Text::ExprRetroTv, Text::ExprMechaPilot, Text::ExprComet, Text::ExprYakura, Text::ExprChineseDragon, Text::ExprAngel
+	Text::ExprHollowAnger, Text::ExprSnickering, Text::ExprHiccup, Text::ExprRetroTv, Text::ExprMechaPilot, Text::ExprComet, Text::ExprYakura, Text::ExprChineseDragon, Text::ExprAngel,
+	Text::ExprHacker, Text::ExprBerserk, Text::ExprPortal, Text::ExprOrigami,
+	Text::ExprGhost, Text::ExprEclipse, Text::ExprDetective, Text::ExprPixelCrash,
+	Text::ExprPowerUp, Text::ExprNinja, Text::ExprAlchemist, Text::ExprMagicalGirl,
+	Text::ExprMechaLock, Text::ExprSpiritSeal, Text::ExprSweatDrop, Text::ExprAnimeVein,
+	Text::ExprChibiPanic, Text::ExprTsundere, Text::ExprMangaShock, Text::ExprChibiJoy,
+	Text::ExprRubberBand, Text::ExprPeekaboo, Text::ExprPopcorn,
+	Text::ExprSpringEyes, Text::ExprComicGlasses, Text::ExprBalloonEyes
 };
 
-static_assert(uint16_t(Text::ExprNeutral) + EXPRESSION_COUNT - 1 == uint16_t(Text::ExprAngel),
+static_assert(uint16_t(Text::ExprNeutral) + EXPRESSION_COUNT - 1 == uint16_t(Text::ExprBalloonEyes),
 	"Expression labels must stay contiguous to match Expression values");
 static_assert(uint16_t(Text::Count) < 65535, "Text keys must stay below the reserved invalid key");
 

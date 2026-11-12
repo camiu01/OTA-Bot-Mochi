@@ -193,12 +193,38 @@ enum Expression : uint8_t {
 	COMET = 142,	/**< Lowered eyes beneath shooting stars. */
 	YAKURA = 143,	/**< Round ember eyes beneath swept pale smoke brows. */
 	CHINESE_DRAGON = 144,	/**< Red Chinese dragon with gold horns, whiskers and a coiling body. */
-	ANGEL = 145	/**< Gentle eyes beneath an aureole, with two external feathered wings. */
+	ANGEL = 145,	/**< Gentle eyes beneath an aureole, with two external feathered wings. */
+	HACKER = 146,	/**< Scrolling eye terminals and access-granted scan. */
+	BERSERK = 147,	/**< Trembling narrowed eyes with a jagged energy discharge. */
+	PORTAL = 148,	/**< Twin apertures swallow and release the eyes. */
+	ORIGAMI = 149,	/**< Eyes fold into creased paper kites and unfold. */
+	GHOST = 150,	/**< Spectral eyes fade, drift and rematerialize. */
+	ECLIPSE = 151,	/**< Moving lunar discs leave two solar coronas. */
+	DETECTIVE = 152,	/**< A magnifying glass searches and locks onto a detail. */
+	PIXEL_CRASH = 153,	/**< Individual eye tiles scatter and rebuild. */
+	POWER_UP = 154,	/**< Determined eyes charge a rising golden aura. */
+	NINJA = 155,	/**< Headband, narrowed eyes and dash afterimages. */
+	ALCHEMIST = 156,	/**< Rotating transmutation circles around cyan eyes. */
+	MAGICAL_GIRL = 157,	/**< Pink transformation ribbons and a tiara. */
+	MECHA_LOCK = 158,	/**< Tracking brackets converge around scanning amber eyes. */
+	SPIRIT_SEAL = 159,	/**< Floating paper charms above violet eyes. */
+	SWEAT_DROP = 160,	/**< Awkward squint with an oversized temple droplet. */
+	ANIME_VEIN = 161,	/**< Pulsing four-pronged anger mark over tense eyes. */
+	CHIBI_PANIC = 162,	/**< Small trembling eyes under a blue gloom comb. */
+	TSUNDERE = 163,	/**< Stubborn sidelong squint softens into a blushing wink. */
+	MANGA_SHOCK = 164,	/**< Tall monochrome eyes inside radial impact lines. */
+	CHIBI_JOY = 165,	/**< Bouncing smiling chevrons with pastel confetti. */
+	RUBBER_BAND = 166,	/**< Elastic eyes pull apart and rebound. */
+	PEEKABOO = 167,	/**< Tiny roller blinds lower, then lift for a peek. */
+	POPCORN = 168,	/**< Buttery kernels pop above squashed eyes. */
+	SPRING_EYES = 169,	/**< Eyes hop on visible accordion springs. */
+	COMIC_GLASSES = 170,	/**< Oversized purple glasses slip and wobble. */
+	BALLOON_EYES = 171	/**< Pastel eye balloons inflate above curved strings. */
 };
 
 /** @brief Number of defined expressions, bounding menus, parsers, and lookups. */
-constexpr uint8_t EXPRESSION_COUNT = uint8_t(ANGEL) + 1;
-static_assert(EXPRESSION_COUNT == 146,
+constexpr uint8_t EXPRESSION_COUNT = uint8_t(BALLOON_EYES) + 1;
+static_assert(EXPRESSION_COUNT == 172,
 	"Expression enum, names, i18n labels and documentation must be extended together");
 
 /**
@@ -231,7 +257,11 @@ inline const char *eyes_expression_name(Expression expr) {
 		"mistake", "encouragement", "adore", "laughing", "enraged",
 		"traffic", "neon", "wheels", "sakura", "samurai", "mecha",
 		"bamboo", "titan", "upside_down", "uwu", "yokai", "tic_tac_toe", "mecha_mask", "mecha_break",
-		"hollow_anger", "snickering", "hiccup", "retro_tv", "mecha_pilot", "comet", "yakura", "chinese_dragon", "angel"
+		"hollow_anger", "snickering", "hiccup", "retro_tv", "mecha_pilot", "comet", "yakura", "chinese_dragon", "angel",
+		"hacker", "berserk", "portal", "origami", "ghost", "eclipse", "detective", "pixel_crash",
+		"power_up", "ninja", "alchemist", "magical_girl", "mecha_lock", "spirit_seal",
+		"sweat_drop", "anime_vein", "chibi_panic", "tsundere", "manga_shock", "chibi_joy",
+		"rubber_band", "peekaboo", "popcorn", "spring_eyes", "comic_glasses", "balloon_eyes"
 	};
 	static_assert(sizeof(names) / sizeof(names[0]) == EXPRESSION_COUNT,
 		"eyes_expression_name() entries must match Expression values one for one");

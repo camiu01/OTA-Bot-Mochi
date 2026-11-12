@@ -2,6 +2,14 @@
 
 ## Acceptance and local OTA
 
+- [ ] Physically validate rare peek/slipping-eye/fly gags, center tickle/edge dodge/repeated-touch sulk, unchanged tap/pet/hold/swipe actions, Calm/dashboard/night, and favorites edit/select/SAVE/reboot on LCD OLD and AMOLED V2. Built and uploaded to AMOLED V2 on COM6 on 2026-11-12; hashes verified and post-boot USB `show` returned the retained saved settings. Native checks passed after correcting the new LCD footer-boundary assertion and rerunning the UI/audio remainder; 84 native previews cover seven styles and both physical panel sizes. LCD firmware build/upload and physical touch/display acceptance remain unverified.
+
+- [ ] Physically inspect Rubber Band, Peekaboo, Popcorn, Spring Eyes, Comic Glasses and Balloon Eyes on LCD OLD/AMOLED V2: seven styles, complete gags, retained old exclusions, palette recovery, Calm and frame cadence. Native previews/tests do not prove physical smoothness or contrast. The 172-face batch was built and uploaded to AMOLED V2 on COM6; LCD build/upload and physical acceptance remain unverified.
+
+- [ ] Physically inspect the twelve anime-inspired faces (Power Up through Chibi Joy) and gentle seeded scene breathing/drift on both displays: seven styles, complete cycles, Calm/dashboard/night, finger-tracking priority, clean redraw, and retained exclusions after migrating a 154-face SAVE. Native tests and GIFs do not prove physical cadence, contrast or touch response. The subsequent 172-face batch was uploaded to AMOLED V2; LCD build/upload and physical acceptance remain unverified.
+
+- [ ] Physically inspect Hacker, Berserk, Portal, Origami, Ghost, Eclipse, Detective and Pixel Crash on both displays: all styles, complete cycles, palette restoration, Calm/playback scheduling and retained old face exclusions after SAVE/reboot. Native GIFs do not prove physical cadence or display colors.
+
 - [ ] Physically inspect the Mecha Break mask explosion and Samurai's unbroken sun backdrop on both panels, all styles and custom palettes. Native GIFs do not establish display cadence or physical contrast.
 
 - [ ] Physically verify larger Settings face-picker/count controls and Dice ROLL/DETAILS lower-strip taps on LCD OLD and AMOLED V2, including edges, finger drift, swipes, and return navigation. Native hit-boundary fixtures do not establish real touch comfort.

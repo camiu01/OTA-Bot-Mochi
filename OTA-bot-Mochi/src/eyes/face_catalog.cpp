@@ -145,6 +145,32 @@
 #include "faces/yakura.h"
 #include "faces/chinese_dragon.h"
 #include "faces/angel.h"
+#include "faces/hacker.h"
+#include "faces/berserk.h"
+#include "faces/portal.h"
+#include "faces/origami.h"
+#include "faces/ghost.h"
+#include "faces/eclipse.h"
+#include "faces/detective.h"
+#include "faces/pixel_crash.h"
+#include "faces/power_up.h"
+#include "faces/ninja.h"
+#include "faces/alchemist.h"
+#include "faces/magical_girl.h"
+#include "faces/mecha_lock.h"
+#include "faces/spirit_seal.h"
+#include "faces/sweat_drop.h"
+#include "faces/anime_vein.h"
+#include "faces/chibi_panic.h"
+#include "faces/tsundere.h"
+#include "faces/manga_shock.h"
+#include "faces/chibi_joy.h"
+#include "faces/rubber_band.h"
+#include "faces/peekaboo.h"
+#include "faces/popcorn.h"
+#include "faces/spring_eyes.h"
+#include "faces/comic_glasses.h"
+#include "faces/balloon_eyes.h"
 
 /** @brief Complete ID-ordered catalog; names remain checked against the public table. */
 constexpr FacePresetEntry FACE_PRESETS[EXPRESSION_COUNT] = {
@@ -294,6 +320,32 @@ constexpr FacePresetEntry FACE_PRESETS[EXPRESSION_COUNT] = {
 	{YAKURA, face_defs::yakura_face::preset},
 	{CHINESE_DRAGON, face_defs::chinese_dragon_face::preset},
 	{ANGEL, face_defs::angel_face::preset},
+	{HACKER, face_defs::hacker_face::preset},
+	{BERSERK, face_defs::berserk_face::preset},
+	{PORTAL, face_defs::portal_face::preset},
+	{ORIGAMI, face_defs::origami_face::preset},
+	{GHOST, face_defs::ghost_face::preset},
+	{ECLIPSE, face_defs::eclipse_face::preset},
+	{DETECTIVE, face_defs::detective_face::preset},
+	{PIXEL_CRASH, face_defs::pixel_crash_face::preset},
+	{POWER_UP, face_defs::power_up_face::preset},
+	{NINJA, face_defs::ninja_face::preset},
+	{ALCHEMIST, face_defs::alchemist_face::preset},
+	{MAGICAL_GIRL, face_defs::magical_girl_face::preset},
+	{MECHA_LOCK, face_defs::mecha_lock_face::preset},
+	{SPIRIT_SEAL, face_defs::spirit_seal_face::preset},
+	{SWEAT_DROP, face_defs::sweat_drop_face::preset},
+	{ANIME_VEIN, face_defs::anime_vein_face::preset},
+	{CHIBI_PANIC, face_defs::chibi_panic_face::preset},
+	{TSUNDERE, face_defs::tsundere_face::preset},
+	{MANGA_SHOCK, face_defs::manga_shock_face::preset},
+	{CHIBI_JOY, face_defs::chibi_joy_face::preset},
+	{RUBBER_BAND, face_defs::rubber_band_face::preset},
+	{PEEKABOO, face_defs::peekaboo_face::preset},
+	{POPCORN, face_defs::popcorn_face::preset},
+	{SPRING_EYES, face_defs::spring_eyes_face::preset},
+	{COMIC_GLASSES, face_defs::comic_glasses_face::preset},
+	{BALLOON_EYES, face_defs::balloon_eyes_face::preset},
 };
 static_assert(face_entries_valid(FACE_PRESETS), "Every expression requires one valid ID-ordered face");
 

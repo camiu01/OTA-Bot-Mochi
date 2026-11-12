@@ -6,6 +6,7 @@
 #pragma once
 #include "settings_model.h"
 #include "../eyes/face_filter.h"
+#include "../eyes/face_favorites.h"
 
 /** @brief Load a validated profile or defaults. @return Flash storage available. */
 bool settings_init();
@@ -31,6 +32,14 @@ bool settings_faces_save();
 bool settings_faces_dirty();
 /** @brief Read the allow-list revision for optimistic browser updates. */
 uint32_t settings_faces_revision();
+/** @brief Read starred faces; exclusions still govern selection and automatic playback. */
+const FaceFavorites &settings_favorites();
+/** @brief Replace favorites in RAM, including an empty list; never writes preferences. */
+void settings_favorites_update(const FaceFavorites &value);
+/** @brief Detect unsaved stars independently of the profile and allow-list. */
+bool settings_favorites_dirty();
+/** @brief Save only favorites on explicit request, preserving unrelated pending settings. */
+bool settings_favorites_save();
 
 /** @brief Resolve manual night and the synchronized schedule. @return Effective night mode. */
 bool settings_night();
