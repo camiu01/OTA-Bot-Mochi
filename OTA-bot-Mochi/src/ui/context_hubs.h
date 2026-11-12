@@ -20,9 +20,10 @@ inline ContextHub context_hub(bool games) {
 		{UiPage::AnalogClock, Text::AnalogClock}, {UiPage::Phone, Text::CompanionTitle}
 	};
 	static constexpr ContextTile play[] = {
-		{UiPage::Dice, Text::Dice}, {UiPage::Pong, Text::Pong}, {UiPage::Tris, Text::Tris}
+		{UiPage::Dice, Text::Dice}, {UiPage::Pong, Text::Pong}, {UiPage::Tris, Text::Tris},
+		{UiPage::FlappyBird, Text::FlappyBird}
 	};
-	return games ? ContextHub{play, 3} : ContextHub{desk, uint8_t(settings_get().phone_ios ? 5 : 6)};
+	return games ? ContextHub{play, 4} : ContextHub{desk, uint8_t(settings_get().phone_ios ? 5 : 6)};
 }
 /** @brief Render scaled tiles and the adjacent layer's navigation hint. @param gfx Canvas. @param games Game hub. */
 inline void context_hub_draw(Arduino_GFX *gfx, bool games) {

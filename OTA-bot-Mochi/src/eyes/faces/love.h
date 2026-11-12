@@ -19,10 +19,11 @@ inline bool glyph(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b, int16
 
 /** @brief love reactionMotion procedure. */
 inline void reactionMotion(bool left, uint32_t phase, float a, float &sx, float &sy, float &dx, float &dy) {
-	(void)left; (void)phase; (void)a; (void)sx; (void)sy; (void)dx; (void)dy;
-	constexpr Expression expr = LOVE; (void)expr;
-	float wave = sinf(phase * 0.0062831853f); (void)wave;
-	sx += a * 0.12f * wave; sy += a * 0.12f * wave;
+	(void)left; (void)dx;
+	uint32_t beat = phase % 1500;
+	float pulse = beat < 240 ? sinf(beat * 0.0130899694f) :
+		(beat >= 320 && beat < 560 ? 0.6f * sinf((beat - 320) * 0.0130899694f) : 0);
+	sx += a * 0.13f * pulse; sy += a * 0.18f * pulse; dy -= a * 2 * pulse;
 }
 
 /** @brief Immutable love face; C++17 named-field initialization. */

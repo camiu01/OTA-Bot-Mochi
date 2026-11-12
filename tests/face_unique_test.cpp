@@ -20,6 +20,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include "glitch_burst_checks.h"
 
 /** @brief Render a stationary face as an occupied-pixel mask, ignoring all color differences. @param gfx Canvas. @param expression Mood. @return Silhouette. */
 static std::vector<bool> silhouette(Arduino_GFX &gfx, Expression expression) {
@@ -83,6 +84,7 @@ static bool style_uniqueness(Arduino_GFX &gfx, uint8_t style) {
 			state.lastMs += 3000;
 			eyes_draw();
 		}
+		if (expression == GLITCH) { glitch_visible_burst(gfx); }
 		auto placed = seen.emplace(gfx.pixels, expression);
 		if (placed.second) { continue; }
 		collisions += settings_mood_name(placed.first->second);

@@ -155,7 +155,14 @@ class EyeLife {
 		float a = frame.variationAmount;
 		if (!a) { return; }
 		uint32_t elapsed = now - variation_at, seed = frame.variationSeed;
-		auto sample = [&](uint32_t salt) { return face_smooth_random(elapsed, 1700 + salt % 900, salt, seed); };
+		auto sample = [&](uint32_t salt) {
+			salt += uint32_t(frame.expression) * 1597u;
+			uint32_t period = 1400 + uint32_t(face_random(0, salt, seed) * 2800);
+			return face_smooth_random(elapsed, period, salt, seed);
+		};
+		// Alternate quiet holds and livelier beats; never draw new random values on repaint.
+		float activity = 0.3f + 0.7f * ease((sample(823) - 0.25f) / 0.5f);
+		a = (a > 1.2f ? 1.2f : a) * activity;
 		if (!tracking) {
 			frame.x += int16_t((sample(173) - 0.5f) * 8 * a);
 			frame.y += int16_t((sample(947) - 0.5f) * 6 * a);

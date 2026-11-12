@@ -15,7 +15,7 @@ rows. Changes are live in RAM and do not write flash while browsing.
 | --- | --- | --- |
 | LOOK | Eyes | normal, mochi, bloub, trapez, anime, kitsune, headlight DRL |
 | LOOK | Color | white, mint, cyan, amber, pink, blue |
-| LOOK | Mood | opens a 3-column grid of all 145 expressions/animated moods, five rows visible at a time (49 rows total); tap a cell, swipe to scroll |
+| LOOK | Mood | opens a 2-column grid of all expressions/animated moods, three rows visible at a time; tap a cell, swipe to scroll |
 | DISPLAY | Day level | 5, 10, 20, 30, 50, 70, 90% |
 | DISPLAY | Manual night | off / on; ON overrides the automatic schedule |
 | DISPLAY | Night level | 1, 3, 5, 8, 12, 20% |
@@ -56,6 +56,10 @@ Scrolling does not edit or save preferences. Horizontal swipes still change the
 main page. Each row card is one unambiguous 44-pixel target aligned to its
 visible bounds, so the bottom of a card never activates the next row; grid rows
 are contiguous full-height targets with only the thin column gutters inert.
+The face picker uses six 108×44-pixel touch targets instead of fifteen 72×26
+targets. More scrolling leaves room for a finger and longer face names. Row hit
+boundaries use the same scaled coordinates as drawing, including the top edge;
+rounding on the AMOLED panel cannot shift a tap into the next option.
 
 The selected eye color also drives the entire UI palette immediately: text,
 icons, active buttons, and tinted cards. SAVE persists this through the same color

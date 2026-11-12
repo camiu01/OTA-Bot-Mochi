@@ -42,15 +42,34 @@ Swipe **down again from Scrivania** to open **GAMES / GIOCHI**. It groups:
 
 | Game | Content |
 | --- | --- |
-| DICE / DADI | Roll 1–100 dice of one selected type: D4, D6, D8, D10, D12, D20 or D100 |
+| POLYHEDRAL DICE / DADI POLIEDRICI | Roll 1–100 dice of one selected type: D4, D6, D8, D10, D12, D20 or D100 |
 | PONG | Play against an automatic right paddle; tap the court at the desired height to move the left paddle, RESET starts a new game |
 | TIC TAC TOE / TRIS | You play X against Mochi O; tap an empty cell, NEW GAME clears the board |
+| FLAPPY BIRD | Tap the court to start, flap through the pipes, or retry after a collision |
 
 Dice starts at **1D20**. Use the top `<` / `>` buttons to change die type.
-The next row adjusts the count by **−10, −1, +1 or +10**, clamped to 1–100.
-Tap **ROLL / LANCIA** for a new roll. Each die is drawn once using Arduino's
+The main view shows a large projection of the actual solid: tetrahedron,
+cube, octahedron, pentagonal trapezohedron, dodecahedron or icosahedron.
+Its number is the first die's result, not the pool total, which appears below.
+D100 uses two D10s for tens (00–90) and units (0–9); **00 + 0 means 100**.
+A single D20 shows Mochi's star eyes on a natural **20** and sad eyes on a
+natural **1**, beside the solid. These badges do not navigate away, change the
+selected face or palette, reroll, or write preferences. Other results and
+multi-die pools have no critical badge.
+Open **details / dettagli** to adjust the count by **−10, −1, +1 or +10**,
+clamped to 1–100. This separate panel contains the sum and individual results;
+**BACK / INDIETRO** returns to the solid without rerolling.
+The four count actions are 48×44 design pixels. ROLL and DETAILS/BACK use
+116-pixel-wide buttons from design row 224 to four physical pixels above the
+panel bottom. This replaces the tiny lower strip and carousel dots on the dice
+page with taller touch targets; the gutter between the two buttons stays inert.
+Tap **ROLL / LANCIA** or shake for a new roll. Shake works only while the dice
+page is visible, independently of the **Shake dizzy** face setting. It uses the
+existing deliberate multi-reversal gesture and five-second cooldown; no IMU
+means touch-only rolls. Shaking on that page does not trigger Dizzy.
+Each die is drawn once using Arduino's
 bounded random source; repainting, waiting or returning to the page never rerolls.
-The result shows the sum and twelve individual values per page. Tap the
+Details show the sum and twelve individual values per page. Tap the
 left/right half of the result card to browse pages, indicated by `<1/9>` for
 a 100-die pool. D100 results are 1–100, not 0–99. Changing count/type clears
 the old result. The selection, last roll and page remain in RAM across navigation;
@@ -73,8 +92,14 @@ Occupied cells and taps during Mochi's turn are ignored. A finished board stays
 visible until NEW GAME. Leaving the tool preserves the RAM-only match; reboot
 clears it. The `tic_tac_toe` Mood is a separate decorative demo.
 
+Flappy Bird uses an original small bird drawing, two scrolling pipes and
+10 ms physics steps with at most 100 ms catch-up. Tap to start/flap; a pipe,
+ceiling or floor collision ends the game. Tap again to retry. The display shows
+score / session best, kept only in RAM. Leaving the page or showing a call
+overlay pauses physics without simulating time away on return.
+
 Swipe up from a desk tool to return to Scrivania. From Dice, Pong or Tris,
-swipe up to Games, then up to Scrivania, then up to Clock. Swiping down on Games
+or Flappy Bird, swipe up to Games, then up to Scrivania, then up to Clock. Swiping down on Games
 or Dice stays on the same page. A horizontal swipe from a tool goes to the previous/next primary page
 relative to Clock, so the carousel still has only seven destinations. The Clock
 position dot stays selected in these tools.
@@ -122,3 +147,7 @@ Dice fixtures exhaust every face of all seven types, 1/100-die bounds, the
 10,000 maximum sum, count/type edits, pagination, inert touch gaps, navigation,
 EN/IT labels and result persistence on LCD, taller LCD and AMOLED layouts.
 They do not establish hardware random-source quality or physical touch usability.
+Flappy Bird checks cover timing, collisions, scoring, restart, wrap and page/call
+pause restoration. The real IMU-driver fixture covers shake routing with face
+shake disabled, cooldown and off-page isolation. Both new features retain the
+existing large hub tiles and seven-page carousel.

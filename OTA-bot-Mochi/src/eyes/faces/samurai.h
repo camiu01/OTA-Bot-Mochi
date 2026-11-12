@@ -39,12 +39,34 @@ inline void blade(Arduino_GFX *gfx, const EyeConfig &cfg, uint32_t elapsed, floa
 	gfx->drawLine(x, blade_top(cfg, x) + 1, x + cfg.screenW / 60,
 		blade_top(cfg, x) + thick - 1, glint);
 }
+/** @brief Clip foreground spans to the inclined lid without erasing the sun behind it. */
+inline void slanted_body(Arduino_GFX *gfx, EyeConfig cfg, const EyeBox &b, float a) {
+	if (a <= 0) { eye_scene_body(gfx, cfg, b, a); return; }
+	cfg.slant = int8_t(cfg.slant * (1 - a));
+	EyeConfig target = cfg; target.style = MOCHI;
+	int16_t depth = int16_t(b.h * 0.55f * a);
+	for (int16_t row = 0; row < b.h; ++row) {
+		int16_t left, right, end_left, end_right;
+		eye_body_span(cfg, b, row, left, right);
+		eye_body_span(target, b, row, end_left, end_right);
+		left = int16_t(lroundf(left + (end_left - left) * a));
+		right = int16_t(lroundf(right + (end_right - right) * a));
+		if (depth > 0 && row <= depth) {
+			int16_t cut = int16_t(int32_t(b.w - 1) * (depth - row) / depth + 1);
+			if (left < cut) { left = cut; }
+		}
+		if (right >= left) { gfx->fillRect(b.x + left, b.y + row, right - left + 1, 1, cfg.fgColor); }
+	}
+	if (a < 0.3f) {
+		cfg.pupilColor = eye_mix(cfg.fgColor, cfg.pupilColor, uint8_t(a * 333));
+		cfg.highlightColor = eye_mix(cfg.fgColor, cfg.highlightColor, uint8_t(a * 333));
+		eye_pupils(gfx, cfg, EyeState{}, b);
+	}
+}
 /** @brief Paint one complete inclined eye and its upward wisps. */
 inline void eye(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b, uint32_t elapsed, float a) {
 	EyeConfig ink = cfg; ink.fgColor = eye_performance_ink(cfg, b.left, elapsed);
-	eye_scene_body(gfx, ink, b, a);
-	int16_t depth = int16_t(b.h * 0.55f * a);
-	gfx->fillTriangle(b.x, b.y, b.x + b.w - 1, b.y, b.x, b.y + depth, cfg.bgColor);
+	slanted_body(gfx, ink, b, a);
 	uint16_t wisp = eye_mix(eye_rgb(115, 170, 205), cfg.bgColor, uint8_t(a * 70));
 	int16_t cx = b.x + b.w / 2, top = b.y - cfg.screenH / 45;
 	for (int16_t i = -1; i <= 1; ++i) {

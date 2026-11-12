@@ -2,6 +2,12 @@
 
 ## Acceptance and local OTA
 
+- [ ] Physically inspect the Mecha Break mask explosion and Samurai's unbroken sun backdrop on both panels, all styles and custom palettes. Native GIFs do not establish display cadence or physical contrast.
+
+- [ ] Physically verify larger Settings face-picker/count controls and Dice ROLL/DETAILS lower-strip taps on LCD OLD and AMOLED V2, including edges, finger drift, swipes, and return navigation. Native hit-boundary fixtures do not establish real touch comfort.
+- [ ] Physically inspect Sleepy/Curious/Shy/Suspicious/Love/Glitch refinements, single-D20 critical badges and quieter per-face randomized motion: all styles, Calm, tracking, palette restoration and clean display cadence. GIFs and native rasters are software previews only.
+- [ ] Physically check dice shake/cooldown with face shake disabled and Flappy Bird tap/collision/page-call pause behavior on LCD OLD and AMOLED V2. Host fixtures do not establish touch response, real shake sensitivity or display cadence.
+
 Functional confirmations below are scoped to
 AMOLED V2 unless another board is explicitly recorded.
 

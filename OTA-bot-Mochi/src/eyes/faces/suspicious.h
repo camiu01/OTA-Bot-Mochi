@@ -14,6 +14,13 @@ inline void lids(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b) {
 	strip(gfx, b, b.h * (b.left ? 15 : 35) / 100, false, cfg.bgColor);
 }
 
+/** @brief Narrow the eyes while slowly checking both sides, without introducing pupils. */
+inline void reactionMotion(bool, uint32_t phase, float a, float &, float &sy, float &dx, float &) {
+	float angle = phase * 0.0020943951f;
+	dx += a * 9 * sinf(angle);
+	sy -= a * 0.18f * sinf(angle) * sinf(angle);
+}
+
 /** @brief Immutable suspicious face; C++17 named-field initialization. */
 inline constexpr FacePreset preset = [] {
 	FacePreset p;
@@ -21,6 +28,7 @@ inline constexpr FacePreset preset = [] {
 	p.left.asym.offsetY = -5;
 	p.right.asym.offsetY = 5;
 	p.lids = lids;
+	p.reactionMotion = reactionMotion;
 	return p;
 }();
 static_assert(face_preset_valid(preset), "Invalid suspicious face parameters");

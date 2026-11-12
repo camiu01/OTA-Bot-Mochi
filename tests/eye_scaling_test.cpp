@@ -19,6 +19,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include "glitch_burst_checks.h"
 
 /** @brief Render one expression with gaze, bobbing, and blink held still. @param expression Expression. */
 static void render(Expression expression) {
@@ -71,6 +72,7 @@ static bool unique_checks(Arduino_GFX &gfx, uint8_t style) {
 	std::string collisions;
 	for (uint8_t value = 0; value < EXPRESSION_COUNT; ++value) {
 		render(static_cast<Expression>(value));
+		if (value == GLITCH) { glitch_visible_burst(gfx); }
 		auto placed = seen.emplace(gfx.pixels, value);
 		if (placed.second) { continue; }
 		collisions += settings_mood_name(placed.first->second);

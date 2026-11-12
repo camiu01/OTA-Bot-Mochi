@@ -31,6 +31,8 @@
 #include "music_panel_checks.h"
 #include "diagnostics_panel_checks.h"
 #include "dice_panel_checks.h"
+#include "dice_shape_panel_checks.h"
+#include "flappy_panel_checks.h"
 #include <string>
 
 /** @brief Speaker mouth faces right; mute cross and sound waves stay inside the badge. */
@@ -144,7 +146,20 @@ static void menu_checks() {
 	assert(settings_menu_tap(ui_s(30), ui_s(70)) == MenuAction::Changed);
 	assert(settings_menu_tap(ui_s(200), ui_s(70)) == MenuAction::Changed);
 	assert(settings_menu_tap(ui_s(120), ui_s(70)) == MenuAction::None);
-	assert(settings_menu_tap(ui_s(120), ui_s(93)) == MenuAction::None);
+	auto original = settings_get();
+	for (int16_t y : {int16_t(90), int16_t(133)}) {
+		auto before = settings_get();
+		assert(settings_menu_tap(ui_s(120), ui_s(y)) == MenuAction::Changed);
+		assert(settings_get().style != before.style && settings_get().color == before.color);
+	}
+	for (int16_t y : {int16_t(134), int16_t(177)}) {
+		auto before = settings_get();
+		assert(settings_menu_tap(ui_s(120), ui_s(y)) == MenuAction::Changed);
+		assert(settings_get().style == before.style && settings_get().color != before.color);
+	}
+	assert(settings_menu_tap(ui_s(120), ui_s(222)) == MenuAction::None);
+	assert(settings_update(original));
+	assert(settings_menu_tap(ui_s(120), ui_s(93)) == MenuAction::Changed);
 	CompanionSettings before = settings_get();
 	assert(settings_menu_tap(ui_s(120), ui_s(110)) == MenuAction::Changed);
 	assert(settings_get().style != before.style);
@@ -162,11 +177,15 @@ static void grid_checks() {
 	settings_update(p);
 	assert(settings_menu_tap(ui_s(120), ui_s(200)) == MenuAction::Changed);
 	assert(settings_menu_grid_open());
+	assert(settings_menu_tap(ui_s(8), ui_s(92)) == MenuAction::Changed);
+	assert(settings_menu_tap(ui_s(115), ui_s(135)) == MenuAction::Changed);
+	assert(settings_get().mood == 0);
+	assert(settings_menu_tap(ui_s(118), ui_s(110)) == MenuAction::None);
 	assert(settings_menu_tap(ui_s(120), ui_s(107)) == MenuAction::Changed);
 	assert(settings_get().mood == 1);
 	assert(settings_menu_scroll(1));
 	assert(settings_menu_tap(ui_s(120), ui_s(107)) == MenuAction::Changed);
-	assert(settings_get().mood == 4);
+	assert(settings_get().mood == 3);
 	assert(settings_menu_tap(ui_s(180), ui_s(250)) == MenuAction::Changed);
 	assert(!settings_menu_grid_open());
 	assert(!settings_menu_scroll(1) && !settings_menu_scroll(-1));
@@ -359,6 +378,9 @@ int main() {
 	play_checks(gfx, watch);
 	tris_checks(gfx, watch);
 	dice_panel_checks(gfx, watch);
+	flappy_panel_checks(gfx, watch);
+	dice_shake_panel_checks(gfx, watch);
+	dice_shape_panel_checks(gfx, watch);
 	std::cout << "Pages and menu layout passed on " << LCD_WIDTH << "x" << LCD_HEIGHT << "\n";
 	return 0;
 }

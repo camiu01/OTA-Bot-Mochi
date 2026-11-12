@@ -14,6 +14,7 @@
 #include <iostream>
 #include "petting_policy_regressions.h"
 #include "eye_style_regressions.h"
+#include "glitch_burst_checks.h"
 
 /** @brief Check solid versus pupilled style rendering, not just preset dimensions. */
 static void style_tests() {
@@ -96,6 +97,7 @@ static void distinct_expression_tests() {
 				st.lastMs += 3000;
 				eyes_draw();
 			}
+			if (expression == GLITCH) { glitch_visible_burst(gfx); }
 			assert(!baseline.empty() && gfx.pixels != baseline);
 		}
 	}

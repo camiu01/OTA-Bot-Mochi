@@ -13,10 +13,13 @@ inline void local_eye_reaction_rest(Arduino_GFX *gfx, const EyeConfig &cfg, cons
 
 /** @brief sleepy reactionMotion procedure. */
 inline void reactionMotion(bool left, uint32_t phase, float a, float &sx, float &sy, float &dx, float &dy) {
-	(void)left; (void)phase; (void)a; (void)sx; (void)sy; (void)dx; (void)dy;
-	constexpr Expression expr = SLEEPY; (void)expr;
-	float wave = sinf(phase * 0.0062831853f); (void)wave;
-	dy = a * (4 + 2 * wave);
+	(void)left; (void)sx; (void)dx;
+	float nod = (1 - cosf(phase * 0.0020943951f)) * 0.5f;
+	sy -= a * 0.45f * nod; dy += a * 7 * nod;
+	if (phase > 2200 && phase < 2700) {
+		float wake = sinf((phase - 2200) * 0.0062831853f);
+		sy += a * 0.6f * wake; dy -= a * 5 * wake;
+	}
 }
 
 /** @brief sleepy local_eye_reaction_rest implementation. */
@@ -33,7 +36,8 @@ inline void local_eye_reaction_rest(Arduino_GFX *gfx, const EyeConfig &cfg, cons
 /** @brief sleepy reactionBody procedure. */
 inline bool reactionBody(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeState &st, const EyeBox &b, uint32_t elapsed, uint16_t neutral) {
 	(void)st; (void)neutral;
-	if (eye_reaction_amount(elapsed) < 0.8f) { return false; }
+	uint32_t phase = elapsed % 3000;
+	if (eye_reaction_amount(elapsed) < 0.8f || phase < 1300 || phase > 1800) { return false; }
 	local_eye_reaction_rest(gfx, cfg, b); return true;
 }
 

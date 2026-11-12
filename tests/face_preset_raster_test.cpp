@@ -110,7 +110,11 @@ int main(int argc, char **argv) {
 #ifdef RECORD_FACE_BASELINE
 				output << "UINT64_C(" << actual << "),\n";
 #else
-				if (actual != FACE_RASTER_BASELINE[index++]) {
+				const uint64_t original = FACE_RASTER_BASELINE[index++];
+				// These six intentionally changed; animated_emotions_test checks their new behavior.
+				bool animated = id == SLEEPY || id == LOVE || id == CURIOUS ||
+					id == SHY || id == SUSPICIOUS || id == GLITCH;
+				if (!animated && actual != original) {
 					std::cerr << panel[0] << "x" << panel[1] << " style "
 						<< unsigned(style) << " " << eyes_expression_name(Expression(id)) << "\n";
 					return 1;
@@ -124,6 +128,6 @@ int main(int argc, char **argv) {
 	assert(output.good());
 #else
 	assert(index == sizeof(FACE_RASTER_BASELINE) / sizeof(FACE_RASTER_BASELINE[0]));
-	std::cout << "Pre-preset pixel and dirty-bound fingerprints passed on six panels\n";
+	std::cout << "Unchanged face fingerprints and all dirty/full redraws passed on six panels\n";
 #endif
 }
