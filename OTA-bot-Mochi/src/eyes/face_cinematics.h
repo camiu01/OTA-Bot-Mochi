@@ -19,6 +19,18 @@ inline void body(Arduino_GFX *gfx, EyeConfig cfg, EyeBox box, float a,
 	box.radius = eye_limit(box.radius, 0, (w < h ? w : h) / 2);
 	eye_scene_body(gfx, cfg, box, a);
 }
+/** @brief Fade a temporary prop color in from the background with the scene envelope. */
+inline uint16_t tint(const EyeConfig &cfg, uint16_t color, float a) {
+	return eye_mix(color, cfg.bgColor, uint8_t(a * 100));
+}
+/** @brief Draw both eyes with one shared offset, scale and temporary tint; offsets must already include `a`. */
+inline void pair_body(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeLayout &pair, float a,
+	int16_t dx, int16_t dy, float sx, float sy, uint16_t color) {
+	for (auto b : {pair.left, pair.right}) {
+		b.x += dx; b.y += dy;
+		body(gfx, cfg, b, a, sx, sy, color);
+	}
+}
 /** @brief Register a complete performance without changing persistent geometry or adding a backdrop. */
 constexpr FacePreset preset(const char *name, FaceScene scene) {
 	FacePreset p; p.name = name; p.performance = p.fullScene = true;

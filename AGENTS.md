@@ -134,6 +134,8 @@ Follow `CONTRIBUTING.md`: tabs, functions under 50 executable lines, cohesive
 files under 400 lines, English documentation and Doxygen API comments.
 Do not add `delay()` or `Serial` inside `src/eyes`; use non-blocking timestamps.
 Commit titles and PR text use English Conventional Commits.
+Do not add AI co-author trailers (`Co-Authored-By`), session links or
+"generated with" attributions to commits or pull requests.
 
 UI/settings/audio behavior is documented in `docs/UI.md`, `docs/SETTINGS.md`,
 `docs/DESK.md`, and `docs/SOUND.md`. Track unverified hardware/CI work in `TODO.md`;

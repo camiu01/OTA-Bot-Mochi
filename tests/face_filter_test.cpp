@@ -66,16 +66,16 @@ static void formats() {
 }
 /** @brief Reserved high bits are rejected before either hexadecimal or NVS state is assigned. */
 static void reserved_bits() {
-	static_assert(EXPRESSION_COUNT == 172 && FaceFilter::BYTES == 22 && FaceFilter::RECORD_BYTES == 25,
-		"The four final comedy faces own only the low four bits of the final mask byte");
+	static_assert(EXPRESSION_COUNT == 254 && FaceFilter::BYTES == 32 && FaceFilter::RECORD_BYTES == 35,
+		"The final six faces own only the low six bits of the final mask byte");
 	FaceFilter f, decoded;
 	char hex[FaceFilter::BYTES * 2 + 1]; f.hex(hex);
-	assert(hex[FaceFilter::BYTES * 2 - 2] == '0');
-	hex[FaceFilter::BYTES * 2 - 2] = '1';
+	assert(hex[FaceFilter::BYTES * 2 - 2] == '3' && hex[FaceFilter::BYTES * 2 - 1] == 'f');
+	hex[FaceFilter::BYTES * 2 - 2] = '7';
 	assert(!decoded.parse_hex(hex) && decoded == f);
 	uint8_t record[FaceFilter::RECORD_BYTES]; f.encode(record);
-	record[FaceFilter::RECORD_BYTES - 2] |= 16;
-	record[FaceFilter::RECORD_BYTES - 1] ^= 16;
+	record[FaceFilter::RECORD_BYTES - 2] |= 64;
+	record[FaceFilter::RECORD_BYTES - 1] ^= 64;
 	assert(!decoded.decode(record, sizeof(record)) && decoded == f);
 }
 /** @brief A 145-face record keeps exclusions and enables Angel and all subsequently appended IDs. */
@@ -123,9 +123,48 @@ static void comedy_migration() {
 	previous[23] = 0xA5;
 	for (size_t i = 0; i < 23; ++i) { previous[23] ^= previous[i]; }
 	FaceFilter decoded;
-	assert(decoded.decode(previous, sizeof(previous)) && decoded.count() == 7);
+	assert(decoded.decode(previous, sizeof(previous)) && decoded.count() == EXPRESSION_COUNT - 166 + 1);
 	for (uint8_t id = 0; id < 166; ++id) { assert(decoded.allows(Expression(id)) == (id == CHIBI_JOY)); }
 	for (uint8_t id = RUBBER_BAND; id < EXPRESSION_COUNT; ++id) { assert(decoded.allows(Expression(id))); }
+	uint8_t record[FaceFilter::RECORD_BYTES]; decoded.encode(record);
+	FaceFilter restored; assert(restored.decode(record, sizeof(record)) && restored == decoded);
+}
+/** @brief The installed 172-face record gains a mask byte, keeping exclusions and enabling the car faces. */
+static void car_migration() {
+	uint8_t previous[25] = {1, 172};
+	previous[2 + BALLOON_EYES / 8] = uint8_t(1U << (BALLOON_EYES % 8));
+	previous[24] = 0xA5;
+	for (size_t i = 0; i < 24; ++i) { previous[24] ^= previous[i]; }
+	FaceFilter decoded;
+	assert(decoded.decode(previous, sizeof(previous)) && decoded.count() == EXPRESSION_COUNT - 172 + 1);
+	for (uint8_t id = 0; id < 172; ++id) { assert(decoded.allows(Expression(id)) == (id == BALLOON_EYES)); }
+	for (uint8_t id = WIPERS; id < EXPRESSION_COUNT; ++id) { assert(decoded.allows(Expression(id))); }
+	uint8_t record[FaceFilter::RECORD_BYTES]; decoded.encode(record);
+	FaceFilter restored; assert(restored.decode(record, sizeof(record)) && restored == decoded);
+}
+/** @brief A 181-face record gains a mask byte, keeping exclusions and enabling the five anime additions. */
+static void yandere_migration() {
+	uint8_t previous[26] = {1, 181};
+	previous[2 + CHECK_ENGINE / 8] = uint8_t(1U << (CHECK_ENGINE % 8));
+	previous[25] = 0xA5;
+	for (size_t i = 0; i < 25; ++i) { previous[25] ^= previous[i]; }
+	FaceFilter decoded;
+	assert(decoded.decode(previous, sizeof(previous)) && decoded.count() == EXPRESSION_COUNT - 181 + 1);
+	for (uint8_t id = 0; id < 181; ++id) { assert(decoded.allows(Expression(id)) == (id == CHECK_ENGINE)); }
+	for (uint8_t id = YANDERE; id < EXPRESSION_COUNT; ++id) { assert(decoded.allows(Expression(id))); }
+	uint8_t record[FaceFilter::RECORD_BYTES]; decoded.encode(record);
+	FaceFilter restored; assert(restored.decode(record, sizeof(record)) && restored == decoded);
+}
+/** @brief A 186-face record grows to the full catalog, keeping exclusions and enabling the 68 additions. */
+static void full_catalog_migration() {
+	uint8_t previous[27] = {1, 186};
+	previous[2 + STEAM_BLUSH / 8] = uint8_t(1U << (STEAM_BLUSH % 8));
+	previous[26] = 0xA5;
+	for (size_t i = 0; i < 26; ++i) { previous[26] ^= previous[i]; }
+	FaceFilter decoded;
+	assert(decoded.decode(previous, sizeof(previous)) && decoded.count() == EXPRESSION_COUNT - 186 + 1);
+	for (uint8_t id = 0; id < 186; ++id) { assert(decoded.allows(Expression(id)) == (id == STEAM_BLUSH)); }
+	for (uint8_t id = SNOWFALL; id < EXPRESSION_COUNT; ++id) { assert(decoded.allows(Expression(id))); }
 	uint8_t record[FaceFilter::RECORD_BYTES]; decoded.encode(record);
 	FaceFilter restored; assert(restored.decode(record, sizeof(record)) && restored == decoded);
 }
@@ -192,7 +231,8 @@ static void rendering() {
 	settings_defaults();
 }
 int main() {
-	formats(); reserved_bits(); angel_migration(); cinematic_migration(); anime_migration(); comedy_migration();
+	formats(); reserved_bits(); angel_migration(); cinematic_migration(); anime_migration(); comedy_migration(); car_migration();
+	yandere_migration(); full_catalog_migration();
 	pools(); persistence(); rendering(); favorites_formats(); favorites_persistence();
 	std::cout << "Face exclusions, one-face pools, NVS failure/migration, touch/IMU and raster guards passed\n";
 }

@@ -13,7 +13,7 @@ static void favorites_formats() {
 	uint8_t record[FaceFavorites::RECORD_BYTES]; stars.encode(record);
 	assert(decoded.decode(record, sizeof(record)) && decoded == stars);
 	assert(!decoded.decode(nullptr, sizeof(record)) && !decoded.decode(record, sizeof(record) - 1));
-	record[sizeof(record) - 2] |= 16; record[sizeof(record) - 1] ^= 16;
+	record[sizeof(record) - 2] |= 64; record[sizeof(record) - 1] ^= 64;
 	assert(!decoded.decode(record, sizeof(record)) && decoded == stars);
 	stars.encode(record); record[2] ^= 1;
 	assert(!decoded.decode(record, sizeof(record)) && decoded == stars);

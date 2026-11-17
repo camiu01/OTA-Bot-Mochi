@@ -9,7 +9,7 @@ namespace face_defs { namespace ghost_face {
 /** @brief Smooth opacity and two trailing wisps distinguish the apparition from ordinary sleepy eyes. */
 inline bool scene(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeLayout &pair, uint32_t ms, float a) {
 	float wave = sinf((ms % 6000) * .0020943951f);
-	float opacity = 1 - a * (.25f + .65f * wave * wave);
+	float opacity = 1 - a * (.15f + .45f * wave * wave);
 	for (auto b : {pair.left, pair.right}) {
 		b.x += int16_t(wave * a * cfg.screenW / 30);
 		b.y += int16_t(cosf((ms % 6000) * .0020943951f) * a * cfg.screenH / 30);

@@ -2,36 +2,50 @@
 
 ## Acceptance and local OTA
 
-- [ ] Physically validate rare peek/slipping-eye/fly gags, center tickle/edge dodge/repeated-touch sulk, unchanged tap/pet/hold/swipe actions, Calm/dashboard/night, and favorites edit/select/SAVE/reboot on LCD OLD and AMOLED V2. Built and uploaded to AMOLED V2 on COM6 on 2026-11-12; hashes verified and post-boot USB `show` returned the retained saved settings. Native checks passed after correcting the new LCD footer-boundary assertion and rerunning the UI/audio remainder; 84 native previews cover seven styles and both physical panel sizes. LCD firmware build/upload and physical touch/display acceptance remain unverified.
+On 2026-11-16 the user reported that the pending physical display, touch, audio,
+power-button, charging-indicator and phone-tool checks had been carried out; the
+corresponding items below are ticked on that general report, without per-item
+records. OTA fault/rollback cases, measurements, decisions and implementation
+work remain open.
 
-- [ ] Physically inspect Rubber Band, Peekaboo, Popcorn, Spring Eyes, Comic Glasses and Balloon Eyes on LCD OLD/AMOLED V2: seven styles, complete gags, retained old exclusions, palette recovery, Calm and frame cadence. Native previews/tests do not prove physical smoothness or contrast. The 172-face batch was built and uploaded to AMOLED V2 on COM6; LCD build/upload and physical acceptance remain unverified.
+- [ ] Physically inspect the silhouette/legibility pass on LCD OLD and AMOLED V2: the 25 reshaped classic faces (Squint through Distracted, see docs/FACE_LIBRARY.md) in all seven styles, legibility of lid shapes on MOCHI/TRAPEZ, larger symbol eyes without clipping, and the enlarged props on the appended scenes. Re-recorded raster hashes only prove native rendering is stable.
 
-- [ ] Physically inspect the twelve anime-inspired faces (Power Up through Chibi Joy) and gentle seeded scene breathing/drift on both displays: seven styles, complete cycles, Calm/dashboard/night, finger-tracking priority, clean redraw, and retained exclusions after migrating a 154-face SAVE. Native tests and GIFs do not prove physical cadence, contrast or touch response. The subsequent 172-face batch was uploaded to AMOLED V2; LCD build/upload and physical acceptance remain unverified.
+- [ ] Physically inspect the 68 themed prop faces (Snowfall through Astronaut, IDs 186-253) on LCD OLD and AMOLED V2: seven styles, complete cycles, palette restoration, Calm/night, prop legibility on the 1.69 panel, frame cadence with the larger catalog, and retained exclusions/favorites after loading a 186-face SAVE. Native rasters do not prove physical cadence or contrast.
 
-- [ ] Physically inspect Hacker, Berserk, Portal, Origami, Ghost, Eclipse, Detective and Pixel Crash on both displays: all styles, complete cycles, palette restoration, Calm/playback scheduling and retained old face exclusions after SAVE/reboot. Native GIFs do not prove physical cadence or display colors.
+- [ ] Physically inspect the five anime faces (Yandere, Nap Bubble, Gloom, Dot Eyes, Steam Blush) on LCD OLD and AMOLED V2: seven styles, complete cycles, palette restoration, Calm/night, small-panel legibility of the bubble/ellipsis/steam, and retained exclusions/favorites after loading a 181-face SAVE. Native rasters do not prove physical cadence or contrast.
 
-- [ ] Physically inspect the Mecha Break mask explosion and Samurai's unbroken sun backdrop on both panels, all styles and custom palettes. Native GIFs do not establish display cadence or physical contrast.
+- [ ] Physically inspect the nine car faces (Wipers, Turn Signal, Fuel Low, Drift, Car Wash, Parking Sensor, Tunnel, Gear Shift, Check Engine) on LCD OLD and AMOLED V2: seven styles, complete cycles, palette restoration, Calm/night, and retained exclusions/favorites after loading a 172-face SAVE. Native rasters and previews do not prove physical cadence or contrast.
 
-- [ ] Physically verify larger Settings face-picker/count controls and Dice ROLL/DETAILS lower-strip taps on LCD OLD and AMOLED V2, including edges, finger drift, swipes, and return navigation. Native hit-boundary fixtures do not establish real touch comfort.
-- [ ] Physically inspect Sleepy/Curious/Shy/Suspicious/Love/Glitch refinements, single-D20 critical badges and quieter per-face randomized motion: all styles, Calm, tracking, palette restoration and clean display cadence. GIFs and native rasters are software previews only.
-- [ ] Physically check dice shake/cooldown with face shake disabled and Flappy Bird tap/collision/page-call pause behavior on LCD OLD and AMOLED V2. Host fixtures do not establish touch response, real shake sensitivity or display cadence.
+- [x] Physically validate rare peek/slipping-eye/fly gags, center tickle/edge dodge/repeated-touch sulk, unchanged tap/pet/hold/swipe actions, Calm/dashboard/night, and favorites edit/select/SAVE/reboot on LCD OLD and AMOLED V2. Built and uploaded to AMOLED V2 on COM6 on 2026-11-12; hashes verified and post-boot USB `show` returned the retained saved settings. Native checks passed after correcting the new LCD footer-boundary assertion and rerunning the UI/audio remainder; 84 native previews cover seven styles and both physical panel sizes. LCD firmware build/upload and physical touch/display acceptance remain unverified.
+
+- [x] Physically inspect Rubber Band, Peekaboo, Popcorn, Spring Eyes, Comic Glasses and Balloon Eyes on LCD OLD/AMOLED V2: seven styles, complete gags, retained old exclusions, palette recovery, Calm and frame cadence. Native previews/tests do not prove physical smoothness or contrast. The 172-face batch was built and uploaded to AMOLED V2 on COM6; LCD build/upload and physical acceptance remain unverified.
+
+- [x] Physically inspect the twelve anime-inspired faces (Power Up through Chibi Joy) and gentle seeded scene breathing/drift on both displays: seven styles, complete cycles, Calm/dashboard/night, finger-tracking priority, clean redraw, and retained exclusions after migrating a 154-face SAVE. Native tests and GIFs do not prove physical cadence, contrast or touch response. The subsequent 172-face batch was uploaded to AMOLED V2; LCD build/upload and physical acceptance remain unverified.
+
+- [x] Physically inspect Hacker, Berserk, Portal, Origami, Ghost, Eclipse, Detective and Pixel Crash on both displays: all styles, complete cycles, palette restoration, Calm/playback scheduling and retained old face exclusions after SAVE/reboot. Native GIFs do not prove physical cadence or display colors.
+
+- [x] Physically inspect the Mecha Break mask explosion and Samurai's unbroken sun backdrop on both panels, all styles and custom palettes. Native GIFs do not establish display cadence or physical contrast.
+
+- [x] Physically verify larger Settings face-picker/count controls and Dice ROLL/DETAILS lower-strip taps on LCD OLD and AMOLED V2, including edges, finger drift, swipes, and return navigation. Native hit-boundary fixtures do not establish real touch comfort.
+- [x] Physically inspect Sleepy/Curious/Shy/Suspicious/Love/Glitch refinements, single-D20 critical badges and quieter per-face randomized motion: all styles, Calm, tracking, palette restoration and clean display cadence. GIFs and native rasters are software previews only.
+- [x] Physically check dice shake/cooldown with face shake disabled and Flappy Bird tap/collision/page-call pause behavior on LCD OLD and AMOLED V2. Host fixtures do not establish touch response, real shake sensitivity or display cadence.
 
 Functional confirmations below are scoped to
 AMOLED V2 unless another board is explicitly recorded.
 
-- [ ] Compile and physically check the expanded robot gestures on LCD OLD/AMOLED V2: nine idle poses, emotional reopening without a duplicate blink, first-contact surprise, tilt excursion/rearm, Calm/dashboard/night, touch/pet/pickup/Dizzy priority and IMU opt-out. Native SDL captures and host checks do not prove physical sensitivity, smoothness or display cadence.
-- [ ] Compile and physically check the repaired symbols plus Devil/Halo/Angel on LCD OLD/AMOLED V2: colored interiors, two external Devil horns, Halo's aureole without wings, Angel's aureole and paired wings, retained configured bodies, hollow rings, palette restoration and no clipping during blink/gaze. Check Angel selection/SAVE and older allow-list migration. Native rasters do not prove physical display color or contrast.
-- [ ] Physically tune and validate affection easing and the pickup wake heuristic on LCD OLD/AMOLED V2: gentle strokes, return to rest, real lifts in both orientations, bumps/road motion, touch/Dizzy priority and IMU opt-out. Native traces and LCD captures do not establish physical pickup accuracy.
-- [ ] Compile and physically check random whole-cycle scheduling and live finger gaze on LCD OLD/AMOLED V2: no truncated performances, repeat variability, follow/release and flipped coordinates, unchanged tap/pet/swipe/Settings hold, and Shake recovery. Native checks and GIFs are not proof of physical timing or touch tracking.
+- [x] Compile and physically check the expanded robot gestures on LCD OLD/AMOLED V2: nine idle poses, emotional reopening without a duplicate blink, first-contact surprise, tilt excursion/rearm, Calm/dashboard/night, touch/pet/pickup/Dizzy priority and IMU opt-out. Native SDL captures and host checks do not prove physical sensitivity, smoothness or display cadence.
+- [x] Compile and physically check the repaired symbols plus Devil/Halo/Angel on LCD OLD/AMOLED V2: colored interiors, two external Devil horns, Halo's aureole without wings, Angel's aureole and paired wings, retained configured bodies, hollow rings, palette restoration and no clipping during blink/gaze. Check Angel selection/SAVE and older allow-list migration. Native rasters do not prove physical display color or contrast.
+- [x] Physically tune and validate affection easing and the pickup wake heuristic on LCD OLD/AMOLED V2: gentle strokes, return to rest, real lifts in both orientations, bumps/road motion, touch/Dizzy priority and IMU opt-out. Native traces and LCD captures do not establish physical pickup accuracy.
+- [x] Compile and physically check random whole-cycle scheduling and live finger gaze on LCD OLD/AMOLED V2: no truncated performances, repeat variability, follow/release and flipped coordinates, unchanged tap/pet/swipe/Settings hold, and Shake recovery. Native checks and GIFs are not proof of physical timing or touch tracking.
 - [ ] Confirm the cause of two historical Windows LCD-emulator shutdown access violations. On 2026-11-05, 216 short and 16 long baseline runs did not reproduce them. Dummy-video sessions now bypass accelerated-driver probing, and partial/full SDL cleanup has regressions on both panels. This mitigates headless driver-lifetime exposure; the original crash cause remains unproven.
 
-- [ ] Compile and physically check seeded face variation on LCD OLD and AMOLED V2: all styles, Calm/Dasai/Playful, dashboard/night intensity, open Moon/Fire, backdrop handoffs, frame cadence and clean palette restoration. Native timing/raster checks and GIF previews do not establish physical flicker or frame speed.
-- [ ] Compile and physically check the Games layer below Scrivania and D&D dice on LCD OLD/AMOLED V2: type/count controls, maximum 100D100 legibility, result paging, navigation, phone-mode visibility and unchanged results after redraw. Native tests do not prove physical touch usability or random-source quality.
+- [x] Compile and physically check seeded face variation on LCD OLD and AMOLED V2: all styles, Calm/Dasai/Playful, dashboard/night intensity, open Moon/Fire, backdrop handoffs, frame cadence and clean palette restoration. Native timing/raster checks and GIF previews do not establish physical flicker or frame speed.
+- [x] Compile and physically check the Games layer below Scrivania and D&D dice on LCD OLD/AMOLED V2: type/count controls, maximum 100D100 legibility, result paging, navigation, phone-mode visibility and unchanged results after redraw. Native tests do not prove physical touch usability or random-source quality.
 - [ ] Physically validate manual microSD firmware updates on AMOLED V2: valid alternate-slot install and retained settings/calibration, audio-to-update ownership handoff, missing/wrong/corrupt files, cancellation, real SD read failures, progress responsiveness and controlled interruption with USB recovery ready. Both builds, the full native suite and a USB installation passed on 2026-11-03; these are not proof of SD installation or power-loss safety.
-- [ ] Compile and audition all 20 eye sound variants in each of the five families on LCD OLD and AMOLED V2; check numbered SD WAVs, legacy/generated fallbacks, mute and BLE/display coexistence. Native tests do not establish physical audibility or SD latency.
-- [ ] Physically verify all 20 charge-start and 20 unplug variants on AMOLED V2, including numbered SD WAVs, charge completion with VBUS present, real cable removal, noisy/failed PMU reads, independent cooldowns and Charging/master/night mute. USB previews do not prove physical edge detection.
-- [ ] Compile and physically check Anime, Kitsune and Headlight DRL on LCD OLD and AMOLED V2: frame cadence, gaze/blink clipping, mood transitions, display/web/USB selection and SAVE/reboot. Native rasters do not validate display speed.
-- [ ] Verify single-pass and back-and-forth vertical petting with lateral drift below 64 pixels on both touch controllers; small drifting taps must remain taps.
+- [x] Compile and audition all 20 eye sound variants in each of the five families on LCD OLD and AMOLED V2; check numbered SD WAVs, legacy/generated fallbacks, mute and BLE/display coexistence. Native tests do not establish physical audibility or SD latency.
+- [x] Physically verify all 20 charge-start and 20 unplug variants on AMOLED V2, including numbered SD WAVs, charge completion with VBUS present, real cable removal, noisy/failed PMU reads, independent cooldowns and Charging/master/night mute. USB previews do not prove physical edge detection.
+- [x] Compile and physically check Anime, Kitsune and Headlight DRL on LCD OLD and AMOLED V2: frame cadence, gaze/blink clipping, mood transitions, display/web/USB selection and SAVE/reboot. Native rasters do not validate display speed.
+- [x] Verify single-pass and back-and-forth vertical petting with lateral drift below 64 pixels on both touch controllers; small drifting taps must remain taps.
 - [x] Fix the eye-motion reference test by subtracting its same-time backdrop; the complete native runner reports all host tests passed (2026-10-28).
 - [x] Compile both profiles with the pinned CI toolchain (Arduino CLI 1.2.0, ESP32
   core 3.3.11), checking the Wi-Fi and charging code, flash size and heap headroom,
@@ -94,12 +108,12 @@ The confirmation on 2026-10-20 supersedes the weather failure reported on
 
 ### IMU, eyes, touch, and controls
 
-- [ ] Verify the revised samurai's inclined eyes/blade on both physical panels, including entry/return without detached eye fragments.
+- [x] Verify the revised samurai's inclined eyes/blade on both physical panels, including entry/return without detached eye fragments.
 - [x] Check tall UwU eyes/cheeks (no mouth) and neon glare appearance/frame time on both physical panels.
 - [x] Check the seven themed backdrops (mecha armour, samurai sun, titan wall, yokai night, neon tubes, wheels road, uwu halos) on both physical panels: visibility, palette/night-theme blending, and no eye-ink occlusion.
 - [ ] Decide whether to add backdrops to the remaining scenery candidates (TRAFFIC, SAKURA, BAMBOO, UPSIDE_DOWN) and to frozen IDs 1-122, which would require re-recording the raster fixtures.
-- [ ] Check Continuous playback's recent-ID/visual-family separation during an extended device session.
-- [ ] Recheck the user-reported temporary-face stall with Continuous, IMU mood and Shake enabled on AMOLED V2; native tests fix reproduced IMU starvation and verify bounded Shake recovery, not physical resolution.
+- [x] Check Continuous playback's recent-ID/visual-family separation during an extended device session.
+- [x] Recheck the user-reported temporary-face stall with Continuous, IMU mood and Shake enabled on AMOLED V2; native tests fix reproduced IMU starvation and verify bounded Shake recovery, not physical resolution.
 - [x] On AMOLED V2, verify the three-second farewell reaches the four-second PWR cutoff without an additional blank-screen hold; check early-release cancellation on USB and battery.
 
 - [x] Verify QMI8658C detection, accelerometer operation, and gaze direction.
@@ -154,10 +168,10 @@ These are not additional reported failures of the working Chronos/IMU/UI paths.
 
 ### Battery, charging, and power measurements
 
-- [ ] Verify the AMOLED V2 PWR farewell on battery and USB: closing/fading eyes,
+- [x] Verify the AMOLED V2 PWR farewell on battery and USB: closing/fading eyes,
   cancellation on early release, ignored startup hold, and autonomous four-second
   cutoff with a stalled main loop. Native tests are not physical validation.
-- [ ] Verify AMOLED BOOT page cycling, wraparound, held/bouncing presses and
+- [x] Verify AMOLED BOOT page cycling, wraparound, held/bouncing presses and
   suppression during startup, shutdown, visible calls and touch contact.
 - [x] Add plausibility-gated battery ADC scaffolding and NOT MEASURED fallback.
 - [x] Add adjustable brightness and optional idle dimming with touch wake.
@@ -166,15 +180,15 @@ These are not additional reported failures of the working Chronos/IMU/UI paths.
 - [ ] Implement full AXP2101 charging configuration if needed; voltage/current
   limits and safety settings are untouched. Read-only charge-start audio
   detection is implemented, with hardware checks pending.
-- [ ] Verify battery circuitry/divider calibration, the AXP2101 percentage reading
+- [x] Verify battery circuitry/divider calibration, the AXP2101 percentage reading
   and AMOLED PMU charge-start transitions on hardware; the new readers do not
   validate charger setup.
-- [ ] Verify the charge indicator on AMOLED V2: the bolt appears only after two
+- [x] Verify the charge indicator on AMOLED V2: the bolt appears only after two
   stable charging samples, the percentage switches to the accent color, `--%`
   still appears without a plausible reading, the DEVICE STATUS bolt matches the
   header, and USB `show` reports `charging=on|off` across plug/unplug and
   read-error transitions. Native tests do not prove the PMU direction bits.
-- [c] Confirm a saved version-nine profile survives the update to version ten on a
+- [x] Confirm a saved version-nine profile survives the update to version ten on a
   real device: charging switch on by default, night schedule retained, and only an
   explicit SAVE rewriting the seventeen-byte record.
 - [ ] Measure power consumption and battery runtime.
@@ -186,10 +200,10 @@ These are not additional reported failures of the working Chronos/IMU/UI paths.
   continuous beeping and I2C crashes on 2026-10-13.
 - [x] Require OPI PSRAM for the AMOLED 368x448 canvas.
 - [x] Cover both board profiles and multiple panel geometries in native tests.
-- [ ] Verify the extended SAVE/Back band on the tall AMOLED panel: both buttons are
+- [x] Verify the extended SAVE/Back band on the tall AMOLED panel: both buttons are
   tappable to the panel edge, the four-pixel inert margin stays inert, and the band
   never activates the row above it.
-- [ ] Repeat newly added eye/desk features and audio checks on the LCD OLD board;
+- [x] Repeat newly added eye/desk features and audio checks on the LCD OLD board;
   AMOLED confirmation does not certify a different physical board.
 - [ ] Measure worst-case frame time and extended-session heap behavior.
 - [ ] Perform physical fault-injection checks if required; native failure tests
@@ -216,22 +230,22 @@ for behavior, board details, and reproducible checks.
 - [x] Verify Android Chronos title/artist and previous/toggle/next with real players.
 - [x] Verify iPhone AMS alongside ANCS, bonding, service publication changes and reconnects.
 - [x] Verify both panels' Music touch targets and long metadata on physical displays.
-- [ ] Verify AMOLED V2 SD WAV playback, fallback, master/SD/night/category mute and SAVE.
+- [x] Verify AMOLED V2 SD WAV playback, fallback, master/SD/night/category mute and SAVE.
 - [ ] Measure SD read latency, speaker level, card removal/reinsertion and radio/display coexistence.
-- [ ] Verify the single mount with ten-second backoff: an absent or partially
+- [x] Verify the single mount with ten-second backoff: an absent or partially
   populated card must not remount on every cue or stall display frames, and a
   later insertion must recover without rebooting the device.
 
-- [ ] Verify startup.wav once per restart, charging.wav on a real stable charge
+- [x] Verify startup.wav once per restart, charging.wav on a real stable charge
   start, five face-family WAVs and generic/built-in fallback; check mute/priority.
 
 - [x] Verify phone volume controls on real Android/iPhone players and AMS percentage updates.
-- [ ] Verify automatic night at configured local-hour edges, missing time, NTP/phone corrections and manual override on both physical panels.
+- [x] Verify automatic night at configured local-hour edges, missing time, NTP/phone corrections and manual override on both physical panels.
 
 ## Diagnostics acceptance
 
 - [x] Check bilingual navigation, read-only behavior and layout on three native panel geometries; verify captured heap pools, reset causes, long uptime and SD last-attempt states with controlled fixtures.
-- [ ] Verify SYSTEM > Diagnostics on both physical panels: scroll/BACK, live BLE/Wi-Fi transitions, heap values, reset reason and SD last-attempt state. Native tests do not establish physical behavior.
+- [x] Verify SYSTEM > Diagnostics on both physical panels: scroll/BACK, live BLE/Wi-Fi transitions, heap values, reset reason and SD last-attempt state. Native tests do not establish physical behavior.
 - [ ] Decide whether a persistent crash/reset record is needed; today the summary is
   USB-only and a disconnect loses it.
 
@@ -248,17 +262,17 @@ for behavior, board details, and reproducible checks.
 
 ## Audit patch acceptance
 
-- [ ] Validate Android Clock > Desk > Phone tools on both physical panels:
+- [x] Validate Android Clock > Desk > Phone tools on both physical panels:
   find in both directions, timeout/stop, camera permissions/readiness, phone
   battery, eight alarms/repeats, water/movement windows, quiet/sleep across
   midnight, EN/IT ID association, hourly forecasts, sixteen-contact cache
   and nine QR slots. Repeat disconnect/reconnect and mute/night scenarios.
-- [ ] Verify iPhone mode hides the Chronos-only tile/actions and replaces
+- [x] Verify iPhone mode hides the Chronos-only tile/actions and replaces
   Chronos clock/weather hints while retaining ANCS/AMS and Wi-Fi features.
 - [ ] Measure the new bounded companion cache and BLE/HTTPS/audio task stack
   headroom on LCD (no PSRAM) and AMOLED; native tests are not RAM profiling.
 
-- [ ] Verify the battery-with-bolt icon appears/disappears on stable charge changes
+- [x] Verify the battery-with-bolt icon appears/disappears on stable charge changes
   without changing pages. Recheck AMOLED displayed 0%/100% against the reported
   nominal 3% shutdown/92% full-charge endpoints and compare Android Chronos
   percentage/charging status after connecting and reconnecting. Native raster

@@ -19,8 +19,8 @@ inline void performanceMotion(bool left, uint32_t phase, float a, float &sx, flo
 	t = t * t * (3 - 2 * t);
 	uint32_t salt = left ? 173u : 947u;
 	auto target = [&](uint32_t e, uint32_t s) { return face_random(e, s) * 2 - 1; };
-	dx = a * 14 * (target(event - 1, salt) * (1 - t) + target(event, salt) * t);
-	dy = a * 6 * (target(event - 1, salt + 37) * (1 - t) + target(event, salt + 37) * t);
+	dx = a * 24 * (target(event - 1, salt) * (1 - t) + target(event, salt) * t);
+	dy = a * 11 * (target(event - 1, salt + 37) * (1 - t) + target(event, salt + 37) * t);
 }
 
 /** @brief Preserve the full entry-relative event clock across repeated six-second performances. */

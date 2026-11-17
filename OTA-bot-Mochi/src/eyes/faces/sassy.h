@@ -9,16 +9,15 @@
 namespace face_defs { namespace sassy_face {
 using namespace face_primitives;
 
-/** @brief sassy lids procedure. */
+/** @brief A half-lidded, outward-tilted left eye beside a raised, wide-open right eye. */
 inline void lids(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b) {
-	strip(gfx, b, b.h * (b.left ? 35 : 12) / 100, false, cfg.bgColor);
+	if (b.left) { slope(gfx, cfg, b, false, b.h / 2); strip(gfx, b, b.h * 3 / 10, false, cfg.bgColor); }
+	else { strip(gfx, b, b.h / 12, false, cfg.bgColor); }
 }
 
 /** @brief sassy reactionMotion procedure. */
 inline void reactionMotion(bool left, uint32_t phase, float a, float &sx, float &sy, float &dx, float &dy) {
-	(void)left; (void)phase; (void)a; (void)sx; (void)sy; (void)dx; (void)dy;
-	constexpr Expression expr = SASSY; (void)expr;
-	float wave = sinf(phase * 0.0062831853f); (void)wave;
+	(void)phase; (void)sx; (void)dx;
 	sy -= a * (left ? 0.1f : 0.5f); dy = a * (left ? -4 : 3);
 }
 
@@ -26,6 +25,7 @@ inline void reactionMotion(bool left, uint32_t phase, float a, float &sx, float 
 inline constexpr FacePreset preset = [] {
 	FacePreset p;
 	p.name = "sassy";
+	p.right.heightScale = 1.12f;
 	p.left.asym.offsetY = -5;
 	p.right.asym.offsetY = 1;
 	p.lids = lids;

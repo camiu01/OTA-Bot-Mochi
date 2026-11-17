@@ -9,16 +9,17 @@
 namespace face_defs { namespace wondering_face {
 using namespace face_primitives;
 
-/** @brief wondering lids procedure. */
+/** @brief Raised, curved upper lids as the gaze drifts up and aside. */
 inline void lids(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b) {
-	strip(gfx, b, b.h / 6, false, cfg.bgColor);
-			strip(gfx, b, b.h / 10, true, cfg.bgColor);
+	arch(gfx, cfg, b, b.h / 10, -(b.h / 6));
 }
 
 /** @brief Immutable wondering face; C++17 named-field initialization. */
 inline constexpr FacePreset preset = [] {
 	FacePreset p;
 	p.name = "wondering";
+	p.gazeX = 0.35f;
+	p.gazeY = -0.6f;
 	p.left.asym.offsetY = 0;
 	p.right.asym.offsetY = -5;
 	p.lids = lids;

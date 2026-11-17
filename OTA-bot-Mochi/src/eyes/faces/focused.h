@@ -9,10 +9,10 @@
 namespace face_defs { namespace focused_face {
 using namespace face_primitives;
 
-/** @brief focused lids procedure. */
+/** @brief One eye aims through a narrower slit; both keep flat target lines. */
 inline void lids(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b) {
-	strip(gfx, b, b.h / 5, false, cfg.bgColor);
-	strip(gfx, b, b.h / 5, true, cfg.bgColor);
+	strip(gfx, b, b.h * (b.left ? 34 : 20) / 100, false, cfg.bgColor);
+	strip(gfx, b, b.h * (b.left ? 30 : 20) / 100, true, cfg.bgColor);
 }
 
 /** @brief Immutable focused face; C++17 named-field initialization. */

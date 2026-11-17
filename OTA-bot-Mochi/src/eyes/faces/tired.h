@@ -9,9 +9,10 @@
 namespace face_defs { namespace tired_face {
 using namespace face_primitives;
 
-/** @brief tired lids procedure. */
+/** @brief Outer corners droop under heavy lids above a flat lower cut. */
 inline void lids(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b) {
-	strip(gfx, b, b.h / 3, false, cfg.bgColor);
+	slope(gfx, cfg, b, false, b.h / 2);
+	strip(gfx, b, b.h / 5, false, cfg.bgColor);
 	strip(gfx, b, b.h / 4, true, cfg.bgColor);
 }
 

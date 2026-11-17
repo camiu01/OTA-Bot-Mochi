@@ -38,6 +38,9 @@ inline void comedy_intent(Arduino_GFX &gfx, const EyeConfig &cfg, const EyeLayou
 		}
 	}
 	gfx.fillScreen(cfg.bgColor); assert(scene(&gfx, cfg, pair, 2200, 1));
+	if (gfx.pixels == active) {
+		std::cerr << eyes_expression_name(cfg.expression) << " holds still at " << cfg.screenW << "x" << cfg.screenH << "\n";
+	}
 	assert(gfx.pixels != active);
 }
 
@@ -75,6 +78,11 @@ inline void cinematic_face_checks() {
 				if (id == SWEAT_DROP || id == ANIME_VEIN || id == SPIRIT_SEAL) {
 					uint16_t marker = id == SWEAT_DROP ? eye_rgb(75,185,255) :
 						(id == ANIME_VEIN ? eye_rgb(255,65,90) : eye_rgb(255,237,193));
+					assert(std::count(active.begin(), active.end(), marker) > 0);
+				}
+				if (id >= YANDERE && id <= STEAM_BLUSH && id != DOT_EYES) {
+					uint16_t marker = id == YANDERE ? eye_rgb(115,40,150) : (id == NAP_BUBBLE ? eye_rgb(150,215,255) :
+						(id == GLOOM ? eye_rgb(120,130,150) : eye_rgb(255,120,150)));
 					assert(std::count(active.begin(), active.end(), marker) > 0);
 				}
 				gfx.fillScreen(cfg.bgColor); assert(scene(&gfx, cfg, pair, 6000, 0));

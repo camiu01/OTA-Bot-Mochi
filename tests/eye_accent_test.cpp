@@ -25,6 +25,7 @@
 static bool themed_pixel(Expression face, uint16_t pixel) {
 	switch (face) {
 		case LOVE: return pixel == eye_rgb(255, 92, 150);
+		case KISS: return pixel == eye_rgb(255, 110, 150);
 		case MONEY: case POWER: return pixel == eye_rgb(48, 224, 112);
 		case STAR: case BOLT: case SPARKLE: case HALO: case IDEA: return pixel == eye_rgb(255, 210, 48);
 		case TARGET: case LOW_BATT: case DEVIL: return pixel == eye_rgb(255, 88, 96);

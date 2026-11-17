@@ -53,7 +53,7 @@ inline constexpr FacePreset preset = [] {
 	p.name = "moon";
 	p.keepOpen = true;
 	p.drawing = drawing;
-	p.left.widthDelta = p.right.widthDelta = 12;
+	p.left.widthDelta = p.right.widthDelta = 28;
 	p.left.heightFromWidth = p.right.heightFromWidth = true;
 	p.wholeEye = p.replacesSolid = true;
 	p.background = background;

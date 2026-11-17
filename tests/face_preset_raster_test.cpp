@@ -111,10 +111,8 @@ int main(int argc, char **argv) {
 				output << "UINT64_C(" << actual << "),\n";
 #else
 				const uint64_t original = FACE_RASTER_BASELINE[index++];
-				// These six intentionally changed; animated_emotions_test checks their new behavior.
-				bool animated = id == SLEEPY || id == LOVE || id == CURIOUS ||
-					id == SHY || id == SUSPICIOUS || id == GLITCH;
-				if (!animated && actual != original) {
+				// Every original ID is frozen; deliberate changes update hashes and the fixture history note.
+				if (actual != original) {
 					std::cerr << panel[0] << "x" << panel[1] << " style "
 						<< unsigned(style) << " " << eyes_expression_name(Expression(id)) << "\n";
 					return 1;

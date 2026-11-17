@@ -41,7 +41,8 @@ static void favorites_panel_checks(Arduino_GFX &gfx) {
 		assert(scrolled == ((EXPRESSION_COUNT - 1 + 1) / 2 - 3));
 		settings_menu_draw(&gfx);
 		assert(settings_menu_tap(ui_s(20), ui_s(200)) == MenuAction::Changed);
-		assert(settings_get().mood == BALLOON_EYES && settings_menu_tap(ui_s(120), ui_s(200)) == MenuAction::None);
+		static_assert(EXPRESSION_COUNT % 2 == 0, "Without NEUTRAL, the final favorites row holds one face");
+		assert(settings_get().mood == ASTRONAUT && settings_menu_tap(ui_s(120), ui_s(200)) == MenuAction::None);
 		settings_favorites_update(two); // External updates also clamp the old scroll position before a tap.
 		assert(settings_menu_tap(ui_s(20), ui_s(106)) == MenuAction::Changed && settings_get().mood == ANGRY);
 		test_save_fails = true; settings_menu_tap(ui_s(40), ui_s(250)); assert(settings_favorites_dirty());

@@ -28,6 +28,16 @@ void smile(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b, int16_t dept
 	}
 }
 
+/** @brief Cut the upper lid along a parabola; positive sag lowers the centre, negative raises it. */
+void arch(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b, int16_t depth, int16_t sag) {
+	for (int16_t i = 0; i < b.w; ++i) {
+		int32_t t = 2 * i - b.w + 1;
+		int16_t cut = depth + sag - int16_t(t * t * sag / (int32_t(b.w) * b.w));
+		cut = eye_limit(cut, 0, b.h - 2);
+		if (cut) { gfx->fillRect(b.x + i, b.y, 1, cut, cfg.bgColor); }
+	}
+}
+
 /** @brief Shared heart drawing primitive. */
 void heart(Arduino_GFX *gfx, int16_t x, int16_t y, int16_t s, uint16_t color) {
 	gfx->fillCircle(x - s / 2, y - s / 4, s / 2, color);

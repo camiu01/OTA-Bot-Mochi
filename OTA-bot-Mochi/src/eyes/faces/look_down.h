@@ -14,7 +14,7 @@ inline void performanceMotion(bool left, uint32_t phase, float a, float &sx, flo
 	(void)left; (void)phase; (void)a; (void)sx; (void)sy; (void)dx; (void)dy;
 	constexpr Expression expr = LOOK_DOWN; (void)expr;
 	float wave = sinf(phase * 0.0062831853f); (void)wave;
-	dy = a * 16; sy -= a * 0.15f;
+	dy = a * 28; sy -= a * 0.3f;
 }
 
 /** @brief Immutable look_down face; C++17 named-field initialization. */

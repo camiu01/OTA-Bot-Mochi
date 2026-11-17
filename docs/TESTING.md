@@ -45,7 +45,7 @@ and `MOCHI_BOARD_AMOLED_18` for AMOLED checks, so an Arduino IDE selection in
 An explicit LCD CLI build can likewise use
 `--build-property "compiler.cpp.extra_flags=-DMOCHI_BOARD_LCD_169"`.
 The real eye renderer also runs against a native raster substitute: all seven
-styles, all 172 expressions/animated moods, and both blink states (2408 combinations)
+styles, all 254 expressions/animated moods, and both blink states (3556 combinations)
 check dirty-region erasure. The four original styles additionally prove
 that every expression renders differently from NEUTRAL and that no
 two names draw the same pixels (pairwise uniqueness, 58824
@@ -108,7 +108,7 @@ This isolates headless checks from unnecessary GPU initialization; it does not
 establish the cause of the two historical Windows shutdown crashes.
 
 The face catalog checks compile the documented C++17 per-eye preset example and
-validate all 172 IDs/names, parameter ranges, USB selection and settings round-trips.
+validate all 254 IDs/names, parameter ranges, USB selection and settings round-trips.
 Two frozen pre-refactor raster fixtures check pixels and dirty bounds across six
 panels and four styles; the expanded fixture samples 47,232 frames across all
 123-expression legacy catalog. See [Editing and adding a face](ADDING_A_FACE.md) for scope and

@@ -219,12 +219,94 @@ enum Expression : uint8_t {
 	POPCORN = 168,	/**< Buttery kernels pop above squashed eyes. */
 	SPRING_EYES = 169,	/**< Eyes hop on visible accordion springs. */
 	COMIC_GLASSES = 170,	/**< Oversized purple glasses slip and wobble. */
-	BALLOON_EYES = 171	/**< Pastel eye balloons inflate above curved strings. */
+	BALLOON_EYES = 171,	/**< Pastel eye balloons inflate above curved strings. */
+	WIPERS = 172,	/**< Wiper arms sweep rain while the eyes follow. */
+	TURN_SIGNAL = 173,	/**< Sideways glance beside sequential amber arrows. */
+	FUEL_LOW = 174,	/**< Drooping eyes, blinking fuel pump and draining gauge. */
+	DRIFT = 175,	/**< Counter-steering eyes over tyre smoke and skid marks. */
+	CAR_WASH = 176,	/**< Striped roller brush crosses squeezed eyes among foam. */
+	PARKING_SENSOR = 177,	/**< Distance bars close in to flashing red as eyes tense. */
+	TUNNEL = 178,	/**< Relaxed eyes warmed by passing amber tunnel lamps. */
+	GEAR_SHIFT = 179,	/**< Knob works a five-speed gate while the eyes nod. */
+	CHECK_ENGINE = 180,	/**< Worried eyes glance up at a blinking engine lamp. */
+	YANDERE = 181,	/**< Sweet squint snaps wide open under violet shadow lines. */
+	NAP_BUBBLE = 182,	/**< Closed nodding eyes with a swelling anime snot bubble. */
+	GLOOM = 183,	/**< Drooping eyes under a drifting personal raincloud. */
+	DOT_EYES = 184,	/**< Speechless dot eyes while an ellipsis types out. */
+	STEAM_BLUSH = 185,	/**< Squeezed flustered eyes, full blush and rising steam. */
+	SNOWFALL = 186,	/**< Calm eyes under drifting crossed snowflakes. */
+	HEATWAVE = 187,	/**< Wilting eyes under a rotating sun and heat shimmer. */
+	RAINBOW = 188,	/**< Smiling eyes while a five-band rainbow draws itself. */
+	THUNDERSTORM = 189,	/**< Eyes flinch at a lightning bolt under a drifting cloud. */
+	FOGGY = 190,	/**< Squinting eyes peer through drifting fog bands. */
+	WINDY = 191,	/**< Eyes squint into gusts while a leaf tumbles past. */
+	HAIL = 192,	/**< Eyes wince under a red umbrella as hail pellets fall. */
+	SUNRISE = 193,	/**< Sleepy eyes open as the sun rises over the horizon. */
+	TORNADO = 194,	/**< Wobbling eyes are tugged toward a swaying funnel. */
+	FROSTY = 195,	/**< Shivering icy eyes grow hanging icicles. */
+	RAMEN = 196,	/**< Happy eyes over a steaming bowl and lifted noodles. */
+	ICE_CREAM = 197,	/**< Eyes follow a melting strawberry cone. */
+	COFFEE = 198,	/**< Drowsy eyes snap awake after a steaming mug. */
+	PIZZA = 199,	/**< Hopping eyes over a slice with stretching cheese. */
+	BUBBLE_TEA = 200,	/**< Sipping eyes over a cup of bouncing tapioca pearls. */
+	DONUT = 201,	/**< Eyes track a sprinkled donut gliding back and forth. */
+	ONIGIRI = 202,	/**< Bouncing happy squint beside a hopping rice ball. */
+	COOKIE = 203,	/**< Munching eyes as bites vanish from a chocolate-chip cookie. */
+	BUNNY = 204,	/**< Twitching rabbit ears rise above soft eyes. */
+	FROG = 205,	/**< Bobbing eyes on green mounds with a flicking tongue. */
+	OWL = 206,	/**< Feathered rings, tufts and a beak; one eye slow-blinks. */
+	PENGUIN = 207,	/**< Waddling eyes with flapping flippers and orange feet. */
+	BEE = 208,	/**< Eyes track a striped bee flying a figure eight. */
+	FISH_BOWL = 209,	/**< Eyes inside a glass bowl with a swimming goldfish. */
+	PUPPY = 210,	/**< Wide eyes with floppy ears and a panting tongue. */
+	BUTTERFLY = 211,	/**< A butterfly flutters in and lands on one eye. */
+	SHOUJO_STARS = 212,	/**< Enlarged dreamy eyes among twinkling shoujo stars. */
+	CHIBI_CRY = 213,	/**< Squeezed eyes spray fountain arcs of tears. */
+	DETERMINED = 214,	/**< Narrowed eyes with set brows over streaming speed lines. */
+	FAINT = 215,	/**< Eyes droop shut as a little soul floats away. */
+	KAWAII_WINK = 216,	/**< A blushing wink launches a bouncing star. */
+	SNEAKY = 217,	/**< Low narrow eyes creep sideways leaving tiptoe prints. */
+	HYPNOTIZED = 218,	/**< Eyes sway with a pendulum inside spreading rings. */
+	BRAIN_FREEZE = 219,	/**< Icy squeezed eyes shudder under pulsing ice crystals. */
+	DJ = 220,	/**< Eyes nod to the beat under headphones and equalizer bars. */
+	KARAOKE = 221,	/**< Closed singing eyes sway behind a microphone and notes. */
+	DISCO = 222,	/**< Bouncing eyes under a mirror ball and roaming lights. */
+	DRUM_ROLL = 223,	/**< Jittering eyes above a snare and alternating sticks. */
+	PARTY_POPPER = 224,	/**< Wide eyes as a popper sprays curling streamers. */
+	BIRTHDAY = 225,	/**< Smiling eyes over a cake with three flickering candles. */
+	FIREWORKS = 226,	/**< Upturned eyes watch staggered radial firework bursts. */
+	MARACAS = 227,	/**< Eyes bounce alternately as two maracas shake. */
+	WIFI_SEARCH = 228,	/**< Searching eyes under Wi-Fi arcs that fill in turn. */
+	DOWNLOAD = 229,	/**< Eyes watch a progress bar fill, then smile. */
+	PAIRING = 230,	/**< Eyes take turns dimming while dots link two devices. */
+	CURSOR = 231,	/**< A pointer glides in and clicks one eye. */
+	ERROR_SIGN = 232,	/**< Shaky wide eyes under a pulsing warning triangle. */
+	SYNC_SPIN = 233,	/**< Eyes circle with two chasing sync arrows. */
+	CHARGING = 234,	/**< Eyes open wider as a battery fills segment by segment. */
+	TYPING = 235,	/**< Lowered eyes watch keys light up on a keyboard. */
+	SOCCER = 236,	/**< Eyes track a patched ball bouncing across the bottom. */
+	BASKETBALL = 237,	/**< Eyes follow a ball arcing into a netted hoop. */
+	BOWLING = 238,	/**< Eyes follow a ball rolling into three toppling pins. */
+	DICE_ROLL = 239,	/**< Bouncing eyes watch a tumbling die change faces. */
+	FISHING = 240,	/**< Staring eyes widen when the bobber dips on a bite. */
+	YOYO = 241,	/**< Eyes ride up and down with a spinning yo-yo. */
+	JUGGLING = 242,	/**< Eyes sway under three juggled balls in a cascade. */
+	TENNIS = 243,	/**< Eyes snap left and right after a ball over a net. */
+	UFO = 244,	/**< A hovering saucer's beam lifts the eyes. */
+	ROCKET = 245,	/**< Eyes look up as a rocket launches on its flame. */
+	PLANET_RING = 246,	/**< A ringed planet orbits in front of and behind the eyes. */
+	BLACK_HOLE = 247,	/**< Stretched eyes are pulled toward a spinning accretion swirl. */
+	CRYSTAL_BALL = 248,	/**< Violet-lit eyes gaze into a swirling crystal ball. */
+	WIZARD = 249,	/**< Eyes under a starry pointed hat beside a sparkling wand. */
+	DRAGON_EGG = 250,	/**< Curious eyes watch a speckled egg wobble and crack. */
+	VAMPIRE = 251,	/**< Red-tinted narrowed eyes, high collar and a circling bat. */
+	PUMPKIN = 252,	/**< Candle-lit eyes inside a ribbed pumpkin outline. */
+	ASTRONAUT = 253	/**< Floating eyes inside a helmet ring among drifting stars. */
 };
 
 /** @brief Number of defined expressions, bounding menus, parsers, and lookups. */
-constexpr uint8_t EXPRESSION_COUNT = uint8_t(BALLOON_EYES) + 1;
-static_assert(EXPRESSION_COUNT == 172,
+constexpr uint8_t EXPRESSION_COUNT = uint8_t(ASTRONAUT) + 1;
+static_assert(EXPRESSION_COUNT == 254,
 	"Expression enum, names, i18n labels and documentation must be extended together");
 
 /**
@@ -261,7 +343,18 @@ inline const char *eyes_expression_name(Expression expr) {
 		"hacker", "berserk", "portal", "origami", "ghost", "eclipse", "detective", "pixel_crash",
 		"power_up", "ninja", "alchemist", "magical_girl", "mecha_lock", "spirit_seal",
 		"sweat_drop", "anime_vein", "chibi_panic", "tsundere", "manga_shock", "chibi_joy",
-		"rubber_band", "peekaboo", "popcorn", "spring_eyes", "comic_glasses", "balloon_eyes"
+		"rubber_band", "peekaboo", "popcorn", "spring_eyes", "comic_glasses", "balloon_eyes",
+		"wipers", "turn_signal", "fuel_low", "drift", "car_wash", "parking_sensor", "tunnel",
+		"gear_shift", "check_engine", "yandere", "nap_bubble", "gloom", "dot_eyes", "steam_blush",
+		"snowfall", "heatwave", "rainbow", "thunderstorm", "foggy", "windy", "hail", "sunrise",
+		"tornado", "frosty", "ramen", "ice_cream", "coffee", "pizza", "bubble_tea", "donut",
+		"onigiri", "cookie", "bunny", "frog", "owl", "penguin", "bee", "fish_bowl", "puppy",
+		"butterfly", "shoujo_stars", "chibi_cry", "determined", "faint", "kawaii_wink", "sneaky",
+		"hypnotized", "brain_freeze", "dj", "karaoke", "disco", "drum_roll", "party_popper",
+		"birthday", "fireworks", "maracas", "wifi_search", "download", "pairing", "cursor",
+		"error_sign", "sync_spin", "charging", "typing", "soccer", "basketball", "bowling",
+		"dice_roll", "fishing", "yoyo", "juggling", "tennis", "ufo", "rocket", "planet_ring",
+		"black_hole", "crystal_ball", "wizard", "dragon_egg", "vampire", "pumpkin", "astronaut"
 	};
 	static_assert(sizeof(names) / sizeof(names[0]) == EXPRESSION_COUNT,
 		"eyes_expression_name() entries must match Expression values one for one");
