@@ -33,6 +33,7 @@
 #include "dice_panel_checks.h"
 #include "dice_shape_panel_checks.h"
 #include "flappy_panel_checks.h"
+#include "favorites_panel_checks.h"
 #include <string>
 
 /** @brief Speaker mouth faces right; mute cross and sound waves stay inside the badge. */
@@ -221,7 +222,7 @@ static void library_checks(Arduino_GFX &gfx) {
 		auto p = settings_get(); p.language = language; assert(settings_update(p));
 		assert(settings_menu_tap(ui_s(200), ui_s(70)) == MenuAction::Changed);
 		assert(settings_menu_tap(ui_s(200), ui_s(70)) == MenuAction::Changed);
-		assert(settings_menu_scroll(1) && !settings_menu_scroll(1));
+		assert(settings_menu_scroll(1));
 		assert(settings_menu_tap(ui_s(120), ui_s(200)) == MenuAction::Changed);
 		assert(settings_menu_grid_open());
 		settings_menu_draw(&gfx);
@@ -373,6 +374,7 @@ int main() {
 	grid_checks();
 	flow_menu_checks(gfx);
 	library_checks(gfx);
+	favorites_panel_checks(gfx);
 	diagnostics_panel_checks(gfx);
 	desk_checks();
 	play_checks(gfx, watch);

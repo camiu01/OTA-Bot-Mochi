@@ -10,10 +10,9 @@
 namespace face_defs { namespace zen_face {
 using namespace face_primitives;
 
-/** @brief zen lids procedure. */
+/** @brief Closed, peaceful downward arcs: a deep curved lid leaves a calm lower bowl. */
 inline void lids(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b) {
-	strip(gfx, b, b.h * 40 / 100, false, cfg.bgColor);
-			strip(gfx, b, b.h * 40 / 100, true, cfg.bgColor);
+	arch(gfx, cfg, b, b.h * 20 / 100, b.h * 50 / 100);
 }
 
 /** @brief Immutable zen face; C++17 named-field initialization. */
@@ -24,8 +23,8 @@ inline constexpr FacePreset preset = [] {
 	p.bounds = face_backgrounds::full_bounds;
 	p.left.widthDelta = 8;
 	p.right.widthDelta = 8;
-	p.left.heightScale = 0.38f;
-	p.right.heightScale = 0.38f;
+	p.left.heightScale = 0.5f;
+	p.right.heightScale = 0.5f;
 	p.lids = lids;
 	return p;
 }();

@@ -43,6 +43,48 @@ static void timing() {
 	assert(face_random(5, 173, 1) != face_random(5, 173, 2));
 }
 
+/** @brief Scene drift stays deterministic, small, on-panel and absent at rest or during Calm. */
+static void scene_variation() {
+	for (const auto &size : {std::pair<int,int>{128,160}, {160,128}, {240,280}, {368,448}, {320,480}}) {
+		EyeConfig cfg{}; cfg.screenW = size.first; cfg.screenH = size.second;
+		for (uint8_t id = 0; id < EXPRESSION_COUNT; ++id) {
+			cfg.expression = Expression(id); cfg.variationSeed = 173;
+			auto original = eye_layout(cfg, EyeState{});
+			auto same = [](const EyeBox &a, const EyeBox &b) {
+				return a.x == b.x && a.y == b.y && a.w == b.w && a.h == b.h && a.radius == b.radius;
+			};
+			bool changed = false;
+			uint32_t duration = FacePolicy::cycle_duration(cfg.expression);
+			for (uint32_t ms = 0; ms < duration * 2; ms += 33) {
+				auto a = original, b = original, calm = original;
+				face_variation_layout(cfg, a, ms, 1.2f);
+				face_variation_layout(cfg, b, ms, 1.2f);
+				face_variation_layout(cfg, calm, ms, 0);
+				assert(same(a.left, b.left) && same(a.right, b.right));
+				assert(same(calm.left, original.left) && same(calm.right, original.right));
+				const EyeBox current[] = {a.left, a.right}, source[] = {original.left, original.right};
+				for (unsigned i = 0; i < 2; ++i) {
+					const auto &box = current[i];
+					assert(box.x >= 0 && box.y >= 0 && box.x + box.w <= cfg.screenW && box.y + box.h <= cfg.screenH);
+					assert(abs(box.w - source[i].w) <= 4 && abs(box.h - source[i].h) <= 5);
+				}
+				if (ms % duration <= 800 || ms % duration >= duration - 800) {
+					assert(same(a.left, original.left) && same(a.right, original.right));
+				}
+				changed |= !same(a.left, original.left) || !same(a.right, original.right);
+			}
+			if (face_preset(cfg.expression)->fullScene && cfg.expression != DIZZY) { assert(changed); }
+			else { assert(!changed); }
+			auto a = original, b = original;
+			face_variation_layout(cfg, a, 3000, 1, true);
+			assert(a.left.x == original.left.x + (original.left.w - a.left.w) / 2);
+			assert(a.left.y == original.left.y + (original.left.h - a.left.h) / 2);
+			cfg.variationSeed = 0; face_variation_layout(cfg, b, 3000, 1);
+			assert(same(b.left, original.left) && same(b.right, original.right));
+		}
+	}
+}
+
 /** @brief Entry seeds remain stable, switch behind the blink and survive timestamp rollover. */
 static void motion() {
 	EyeLife life;
@@ -115,6 +157,6 @@ static void raster() {
 /** @brief Run deterministic policies and the real raster, without building firmware. */
 int main() {
 	assert(settings_init());
-	timing(); motion(); raster();
+	timing(); scene_variation(); motion(); raster();
 	std::cout << "Seeded face motion, monotonic timing and all-face live redraw passed (7 styles, 6 panels)\n";
 }

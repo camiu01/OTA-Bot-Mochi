@@ -35,7 +35,7 @@ inline bool referenceBody(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeState
 inline constexpr FacePreset preset = [] {
 	FacePreset p;
 	p.name = "clock_eyes";
-	p.left.widthDelta = p.right.widthDelta = 12;
+	p.left.widthDelta = p.right.widthDelta = 28;
 	p.left.heightFromWidth = p.right.heightFromWidth = true;
 	p.referenceBody = referenceBody;
 	return p;

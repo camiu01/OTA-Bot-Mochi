@@ -15,6 +15,8 @@ inline constexpr FacePreset preset = [] {
 	p.name = "deadpan";
 	p.left.height = 12;
 	p.right.height = 12;
+	p.left.widthDelta = 14;
+	p.right.widthDelta = 14;
 	return p;
 }();
 static_assert(face_preset_valid(preset), "Invalid deadpan face parameters");

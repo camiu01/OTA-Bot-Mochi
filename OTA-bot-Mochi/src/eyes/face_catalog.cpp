@@ -145,6 +145,114 @@
 #include "faces/yakura.h"
 #include "faces/chinese_dragon.h"
 #include "faces/angel.h"
+#include "faces/hacker.h"
+#include "faces/berserk.h"
+#include "faces/portal.h"
+#include "faces/origami.h"
+#include "faces/ghost.h"
+#include "faces/eclipse.h"
+#include "faces/detective.h"
+#include "faces/pixel_crash.h"
+#include "faces/power_up.h"
+#include "faces/ninja.h"
+#include "faces/alchemist.h"
+#include "faces/magical_girl.h"
+#include "faces/mecha_lock.h"
+#include "faces/spirit_seal.h"
+#include "faces/sweat_drop.h"
+#include "faces/anime_vein.h"
+#include "faces/chibi_panic.h"
+#include "faces/tsundere.h"
+#include "faces/manga_shock.h"
+#include "faces/chibi_joy.h"
+#include "faces/rubber_band.h"
+#include "faces/peekaboo.h"
+#include "faces/popcorn.h"
+#include "faces/spring_eyes.h"
+#include "faces/comic_glasses.h"
+#include "faces/balloon_eyes.h"
+#include "faces/wipers.h"
+#include "faces/turn_signal.h"
+#include "faces/fuel_low.h"
+#include "faces/drift.h"
+#include "faces/car_wash.h"
+#include "faces/parking_sensor.h"
+#include "faces/tunnel.h"
+#include "faces/gear_shift.h"
+#include "faces/check_engine.h"
+#include "faces/yandere.h"
+#include "faces/nap_bubble.h"
+#include "faces/gloom.h"
+#include "faces/dot_eyes.h"
+#include "faces/steam_blush.h"
+#include "faces/snowfall.h"
+#include "faces/heatwave.h"
+#include "faces/rainbow.h"
+#include "faces/thunderstorm.h"
+#include "faces/foggy.h"
+#include "faces/windy.h"
+#include "faces/hail.h"
+#include "faces/sunrise.h"
+#include "faces/tornado.h"
+#include "faces/frosty.h"
+#include "faces/ramen.h"
+#include "faces/ice_cream.h"
+#include "faces/coffee.h"
+#include "faces/pizza.h"
+#include "faces/bubble_tea.h"
+#include "faces/donut.h"
+#include "faces/onigiri.h"
+#include "faces/cookie.h"
+#include "faces/bunny.h"
+#include "faces/frog.h"
+#include "faces/owl.h"
+#include "faces/penguin.h"
+#include "faces/bee.h"
+#include "faces/fish_bowl.h"
+#include "faces/puppy.h"
+#include "faces/butterfly.h"
+#include "faces/shoujo_stars.h"
+#include "faces/chibi_cry.h"
+#include "faces/determined.h"
+#include "faces/faint.h"
+#include "faces/kawaii_wink.h"
+#include "faces/sneaky.h"
+#include "faces/hypnotized.h"
+#include "faces/brain_freeze.h"
+#include "faces/dj.h"
+#include "faces/karaoke.h"
+#include "faces/disco.h"
+#include "faces/drum_roll.h"
+#include "faces/party_popper.h"
+#include "faces/birthday.h"
+#include "faces/fireworks.h"
+#include "faces/maracas.h"
+#include "faces/wifi_search.h"
+#include "faces/download.h"
+#include "faces/pairing.h"
+#include "faces/cursor.h"
+#include "faces/error_sign.h"
+#include "faces/sync_spin.h"
+#include "faces/charging.h"
+#include "faces/typing.h"
+#include "faces/soccer.h"
+#include "faces/basketball.h"
+#include "faces/bowling.h"
+#include "faces/dice_roll.h"
+#include "faces/fishing.h"
+#include "faces/yoyo.h"
+#include "faces/juggling.h"
+#include "faces/tennis.h"
+#include "faces/ufo.h"
+#include "faces/rocket.h"
+#include "faces/planet_ring.h"
+#include "faces/black_hole.h"
+#include "faces/crystal_ball.h"
+#include "faces/wizard.h"
+#include "faces/dragon_egg.h"
+#include "faces/vampire.h"
+#include "faces/pumpkin.h"
+#include "faces/astronaut.h"
 
 /** @brief Complete ID-ordered catalog; names remain checked against the public table. */
 constexpr FacePresetEntry FACE_PRESETS[EXPRESSION_COUNT] = {
@@ -294,6 +402,114 @@ constexpr FacePresetEntry FACE_PRESETS[EXPRESSION_COUNT] = {
 	{YAKURA, face_defs::yakura_face::preset},
 	{CHINESE_DRAGON, face_defs::chinese_dragon_face::preset},
 	{ANGEL, face_defs::angel_face::preset},
+	{HACKER, face_defs::hacker_face::preset},
+	{BERSERK, face_defs::berserk_face::preset},
+	{PORTAL, face_defs::portal_face::preset},
+	{ORIGAMI, face_defs::origami_face::preset},
+	{GHOST, face_defs::ghost_face::preset},
+	{ECLIPSE, face_defs::eclipse_face::preset},
+	{DETECTIVE, face_defs::detective_face::preset},
+	{PIXEL_CRASH, face_defs::pixel_crash_face::preset},
+	{POWER_UP, face_defs::power_up_face::preset},
+	{NINJA, face_defs::ninja_face::preset},
+	{ALCHEMIST, face_defs::alchemist_face::preset},
+	{MAGICAL_GIRL, face_defs::magical_girl_face::preset},
+	{MECHA_LOCK, face_defs::mecha_lock_face::preset},
+	{SPIRIT_SEAL, face_defs::spirit_seal_face::preset},
+	{SWEAT_DROP, face_defs::sweat_drop_face::preset},
+	{ANIME_VEIN, face_defs::anime_vein_face::preset},
+	{CHIBI_PANIC, face_defs::chibi_panic_face::preset},
+	{TSUNDERE, face_defs::tsundere_face::preset},
+	{MANGA_SHOCK, face_defs::manga_shock_face::preset},
+	{CHIBI_JOY, face_defs::chibi_joy_face::preset},
+	{RUBBER_BAND, face_defs::rubber_band_face::preset},
+	{PEEKABOO, face_defs::peekaboo_face::preset},
+	{POPCORN, face_defs::popcorn_face::preset},
+	{SPRING_EYES, face_defs::spring_eyes_face::preset},
+	{COMIC_GLASSES, face_defs::comic_glasses_face::preset},
+	{BALLOON_EYES, face_defs::balloon_eyes_face::preset},
+	{WIPERS, face_defs::wipers_face::preset},
+	{TURN_SIGNAL, face_defs::turn_signal_face::preset},
+	{FUEL_LOW, face_defs::fuel_low_face::preset},
+	{DRIFT, face_defs::drift_face::preset},
+	{CAR_WASH, face_defs::car_wash_face::preset},
+	{PARKING_SENSOR, face_defs::parking_sensor_face::preset},
+	{TUNNEL, face_defs::tunnel_face::preset},
+	{GEAR_SHIFT, face_defs::gear_shift_face::preset},
+	{CHECK_ENGINE, face_defs::check_engine_face::preset},
+	{YANDERE, face_defs::yandere_face::preset},
+	{NAP_BUBBLE, face_defs::nap_bubble_face::preset},
+	{GLOOM, face_defs::gloom_face::preset},
+	{DOT_EYES, face_defs::dot_eyes_face::preset},
+	{STEAM_BLUSH, face_defs::steam_blush_face::preset},
+	{SNOWFALL, face_defs::snowfall_face::preset},
+	{HEATWAVE, face_defs::heatwave_face::preset},
+	{RAINBOW, face_defs::rainbow_face::preset},
+	{THUNDERSTORM, face_defs::thunderstorm_face::preset},
+	{FOGGY, face_defs::foggy_face::preset},
+	{WINDY, face_defs::windy_face::preset},
+	{HAIL, face_defs::hail_face::preset},
+	{SUNRISE, face_defs::sunrise_face::preset},
+	{TORNADO, face_defs::tornado_face::preset},
+	{FROSTY, face_defs::frosty_face::preset},
+	{RAMEN, face_defs::ramen_face::preset},
+	{ICE_CREAM, face_defs::ice_cream_face::preset},
+	{COFFEE, face_defs::coffee_face::preset},
+	{PIZZA, face_defs::pizza_face::preset},
+	{BUBBLE_TEA, face_defs::bubble_tea_face::preset},
+	{DONUT, face_defs::donut_face::preset},
+	{ONIGIRI, face_defs::onigiri_face::preset},
+	{COOKIE, face_defs::cookie_face::preset},
+	{BUNNY, face_defs::bunny_face::preset},
+	{FROG, face_defs::frog_face::preset},
+	{OWL, face_defs::owl_face::preset},
+	{PENGUIN, face_defs::penguin_face::preset},
+	{BEE, face_defs::bee_face::preset},
+	{FISH_BOWL, face_defs::fish_bowl_face::preset},
+	{PUPPY, face_defs::puppy_face::preset},
+	{BUTTERFLY, face_defs::butterfly_face::preset},
+	{SHOUJO_STARS, face_defs::shoujo_stars_face::preset},
+	{CHIBI_CRY, face_defs::chibi_cry_face::preset},
+	{DETERMINED, face_defs::determined_face::preset},
+	{FAINT, face_defs::faint_face::preset},
+	{KAWAII_WINK, face_defs::kawaii_wink_face::preset},
+	{SNEAKY, face_defs::sneaky_face::preset},
+	{HYPNOTIZED, face_defs::hypnotized_face::preset},
+	{BRAIN_FREEZE, face_defs::brain_freeze_face::preset},
+	{DJ, face_defs::dj_face::preset},
+	{KARAOKE, face_defs::karaoke_face::preset},
+	{DISCO, face_defs::disco_face::preset},
+	{DRUM_ROLL, face_defs::drum_roll_face::preset},
+	{PARTY_POPPER, face_defs::party_popper_face::preset},
+	{BIRTHDAY, face_defs::birthday_face::preset},
+	{FIREWORKS, face_defs::fireworks_face::preset},
+	{MARACAS, face_defs::maracas_face::preset},
+	{WIFI_SEARCH, face_defs::wifi_search_face::preset},
+	{DOWNLOAD, face_defs::download_face::preset},
+	{PAIRING, face_defs::pairing_face::preset},
+	{CURSOR, face_defs::cursor_face::preset},
+	{ERROR_SIGN, face_defs::error_sign_face::preset},
+	{SYNC_SPIN, face_defs::sync_spin_face::preset},
+	{CHARGING, face_defs::charging_face::preset},
+	{TYPING, face_defs::typing_face::preset},
+	{SOCCER, face_defs::soccer_face::preset},
+	{BASKETBALL, face_defs::basketball_face::preset},
+	{BOWLING, face_defs::bowling_face::preset},
+	{DICE_ROLL, face_defs::dice_roll_face::preset},
+	{FISHING, face_defs::fishing_face::preset},
+	{YOYO, face_defs::yoyo_face::preset},
+	{JUGGLING, face_defs::juggling_face::preset},
+	{TENNIS, face_defs::tennis_face::preset},
+	{UFO, face_defs::ufo_face::preset},
+	{ROCKET, face_defs::rocket_face::preset},
+	{PLANET_RING, face_defs::planet_ring_face::preset},
+	{BLACK_HOLE, face_defs::black_hole_face::preset},
+	{CRYSTAL_BALL, face_defs::crystal_ball_face::preset},
+	{WIZARD, face_defs::wizard_face::preset},
+	{DRAGON_EGG, face_defs::dragon_egg_face::preset},
+	{VAMPIRE, face_defs::vampire_face::preset},
+	{PUMPKIN, face_defs::pumpkin_face::preset},
+	{ASTRONAUT, face_defs::astronaut_face::preset},
 };
 static_assert(face_entries_valid(FACE_PRESETS), "Every expression requires one valid ID-ordered face");
 

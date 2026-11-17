@@ -27,6 +27,8 @@ rows. Changes are live in RAM and do not write flash while browsing.
 | FACES | Random mood | off / on |
 | FACES | Face flow | return / group of 5 / sequence / continuous |
 | FACES | Face library | enable/exclude faces globally on display or in a temporary local Wi-Fi browser session; see [Face library](FACE_LIBRARY.md) |
+| FACES | Favorites | compact picker containing starred, enabled faces |
+| FACES | Edit favorites | tap cells to toggle `*` stars; an empty list is allowed |
 | SENSORS | IMU mood | off / on |
 | SENSORS | Shake dizzy | off / on |
 | SENSORS | IMU zero | calibrate / keep still / SAVED / FAILED |
@@ -51,7 +53,7 @@ Use previous/next arrows to cycle the six sections. Three 44-pixel row targets a
 remaining rows; SOUND's test is the final row. Section arrows and bottom actions stay fixed.
 Each row places its label above its value, giving both the full text width.
 The six sections have localized titles; FACES keeps playback controls visible
-together; scroll down one row for the Face library.
+together; scroll down for Face library, Favorites and Edit favorites.
 Scrolling does not edit or save preferences. Horizontal swipes still change the
 main page. Each row card is one unambiguous 44-pixel target aligned to its
 visible bounds, so the bottom of a card never activates the next row; grid rows

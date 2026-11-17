@@ -26,10 +26,10 @@ inline bool reactionBody(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeState 
 	if (st.blinking || b.h < 12) { return false; }
 	eye_body(gfx, cfg, b); eye_pupils(gfx, cfg, st, b); lids(gfx, cfg, b);
 	float blush = sinf((elapsed % 3000) * 0.0010471976f);
-	uint16_t ink = eye_mix(eye_rgb(255, 112, 157), cfg.bgColor, uint8_t(blush * 80));
-	int16_t length = eye_limit(b.h / 8, 1, 5), y = b.y + b.h - length - 1;
-	for (uint8_t i = 0; i < 3; ++i) {
-		int16_t x = b.x + b.w * (i + 2) / 6;
+	uint16_t ink = eye_mix(eye_rgb(255, 112, 157), cfg.bgColor, uint8_t(blush * 100));
+	int16_t length = eye_limit(b.h / 5, 2, 9), y = b.y + b.h - length - 1;
+	for (uint8_t i = 0; i < 4; ++i) {
+		int16_t x = b.x + b.w * (i + 1) / 6;
 		gfx->drawLine(x, y + length - 1, x + length - 1, y, ink);
 	}
 	return true;

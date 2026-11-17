@@ -351,7 +351,13 @@ static void banner_regressions() {
 static void appended_cycles() {
 	const int16_t panels[][2] = {{240,280}, {240,320}, {320,480}, {368,448}, {128,160}, {160,128}};
 	assert(TRAFFIC == 123 && YOKAI == 133 && TIC_TAC_TOE == 134 && MECHA_MASK == 135 && MECHA_BREAK == 136);
-	assert(HOLLOW_ANGER == 137 && COMET == 142 && YAKURA == 143 && CHINESE_DRAGON == 144 && ANGEL == 145 && EXPRESSION_COUNT == 146);
+	assert(HOLLOW_ANGER == 137 && COMET == 142 && YAKURA == 143 && CHINESE_DRAGON == 144 && ANGEL == 145);
+	assert(HACKER == 146 && PIXEL_CRASH == 153);
+	assert(POWER_UP == 154 && CHIBI_JOY == 165);
+	assert(RUBBER_BAND == 166 && BALLOON_EYES == 171);
+	assert(WIPERS == 172 && CHECK_ENGINE == 180);
+	assert(YANDERE == 181 && STEAM_BLUSH == 185);
+	assert(SNOWFALL == 186 && ASTRONAUT == 253 && EXPRESSION_COUNT == 254);
 	for (const auto &panel : panels) {
 		Arduino_GFX gfx(panel[0], panel[1]);
 		eyes_init(&gfx);

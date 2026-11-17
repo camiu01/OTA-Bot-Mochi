@@ -35,7 +35,7 @@ inline bool referenceBody(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeState
 	uint32_t seed = b.left ? 173u : 947u;
 	for (uint8_t tongue = 0; tongue < 3; ++tongue) {
 		float height = flicker(st.lastMs, seed + tongue * 101u);
-		int16_t radius = int16_t(s * (0.48f + height * 0.28f));
+		int16_t radius = int16_t(s * (0.68f + height * 0.26f));
 		int16_t dx = int16_t((flicker(st.lastMs, seed + tongue * 227u + 19u) - 0.5f) * s * 0.4f);
 		int16_t dy = int16_t(s - radius);
 		flame(gfx, x + dx, y + dy, radius, eye_rgb(255, 112, 32));
@@ -55,7 +55,7 @@ inline constexpr FacePreset preset = [] {
 	p.name = "fire";
 	p.keepOpen = true;
 	p.drawing = drawing;
-	p.left.widthDelta = p.right.widthDelta = 12;
+	p.left.widthDelta = p.right.widthDelta = 28;
 	p.left.heightFromWidth = p.right.heightFromWidth = true;
 	p.wholeEye = p.replacesSolid = true;
 	p.referenceBody = referenceBody;

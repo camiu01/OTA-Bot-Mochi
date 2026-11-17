@@ -155,6 +155,9 @@
 	X(Open, "open", "apri") \
 	X(Faces, "Faces", "Facce") \
 	X(FaceLibrary, "Face library", "Libreria facce") \
+	X(Favorites, "Favorites", "Preferite") \
+	X(EditFavorites, "Edit favorites", "Modifica preferite") \
+	X(NoFavorites, "No favorites enabled", "Nessuna preferita attiva") \
 	X(KeepOneFace, "Keep one face", "Tieni una faccia") \
 	X(Enabled, "enabled", "attive") \
 	X(FacesWifi, "Wi-Fi settings", "Impostazioni Wi-Fi") \
@@ -336,6 +339,114 @@
 	X(ExprYakura, "yakura", "yakura") \
 	X(ExprChineseDragon, "red dragon", "drago rosso") \
 	X(ExprAngel, "angel", "angelo") \
+	X(ExprHacker, "hacker", "hacker") \
+	X(ExprBerserk, "berserk", "furia") \
+	X(ExprPortal, "portal", "portale") \
+	X(ExprOrigami, "origami", "origami") \
+	X(ExprGhost, "ghost", "fantasma") \
+	X(ExprEclipse, "eclipse", "eclissi") \
+	X(ExprDetective, "detective", "detective") \
+	X(ExprPixelCrash, "pixel crash", "pixel crash") \
+	X(ExprPowerUp, "power up", "potenziamento") \
+	X(ExprNinja, "ninja", "ninja") \
+	X(ExprAlchemist, "alchemist", "alchimista") \
+	X(ExprMagicalGirl, "magical girl", "maghetta") \
+	X(ExprMechaLock, "mecha lock", "mecha aggancio") \
+	X(ExprSpiritSeal, "spirit seal", "sigillo") \
+	X(ExprSweatDrop, "sweat drop", "goccia sudore") \
+	X(ExprAnimeVein, "anime vein", "vena rabbia") \
+	X(ExprChibiPanic, "chibi panic", "panico chibi") \
+	X(ExprTsundere, "tsundere", "tsundere") \
+	X(ExprMangaShock, "manga shock", "shock manga") \
+	X(ExprChibiJoy, "chibi joy", "gioia chibi") \
+	X(ExprRubberBand, "rubber band", "elastico") \
+	X(ExprPeekaboo, "peekaboo", "cucu") \
+	X(ExprPopcorn, "popcorn", "popcorn") \
+	X(ExprSpringEyes, "spring eyes", "occhi a molla") \
+	X(ExprComicGlasses, "comic glasses", "occhiali buffi") \
+	X(ExprBalloonEyes, "balloon eyes", "palloncini") \
+	X(ExprWipers, "wipers", "tergicristalli") \
+	X(ExprTurnSignal, "turn signal", "freccia") \
+	X(ExprFuelLow, "fuel low", "riserva") \
+	X(ExprDrift, "drift", "derapata") \
+	X(ExprCarWash, "car wash", "autolavaggio") \
+	X(ExprParkingSensor, "parking", "parcheggio") \
+	X(ExprTunnel, "tunnel", "galleria") \
+	X(ExprGearShift, "gear shift", "cambio marcia") \
+	X(ExprCheckEngine, "check engine", "spia motore") \
+	X(ExprYandere, "yandere", "yandere") \
+	X(ExprNapBubble, "nap bubble", "bolla pisolino") \
+	X(ExprGloom, "gloom", "nuvoletta") \
+	X(ExprDotEyes, "dot eyes", "occhi a punto") \
+	X(ExprSteamBlush, "steam blush", "vapore rosso") \
+	X(ExprSnowfall, "snowfall", "nevicata") \
+	X(ExprHeatwave, "heatwave", "afa") \
+	X(ExprRainbow, "rainbow", "arcobaleno") \
+	X(ExprThunderstorm, "thunderstorm", "temporale") \
+	X(ExprFoggy, "foggy", "nebbia") \
+	X(ExprWindy, "windy", "vento") \
+	X(ExprHail, "hail", "grandine") \
+	X(ExprSunrise, "sunrise", "alba") \
+	X(ExprTornado, "tornado", "tornado") \
+	X(ExprFrosty, "frosty", "gelo") \
+	X(ExprRamen, "ramen", "ramen") \
+	X(ExprIceCream, "ice cream", "gelato") \
+	X(ExprCoffee, "coffee", "caffe") \
+	X(ExprPizza, "pizza", "pizza") \
+	X(ExprBubbleTea, "bubble tea", "bubble tea") \
+	X(ExprDonut, "donut", "ciambella") \
+	X(ExprOnigiri, "onigiri", "onigiri") \
+	X(ExprCookie, "cookie", "biscotto") \
+	X(ExprBunny, "bunny", "coniglio") \
+	X(ExprFrog, "frog", "rana") \
+	X(ExprOwl, "owl", "gufo") \
+	X(ExprPenguin, "penguin", "pinguino") \
+	X(ExprBee, "bee", "ape") \
+	X(ExprFishBowl, "fish bowl", "acquario") \
+	X(ExprPuppy, "puppy", "cucciolo") \
+	X(ExprButterfly, "butterfly", "farfalla") \
+	X(ExprShoujoStars, "shoujo stars", "stelline") \
+	X(ExprChibiCry, "chibi cry", "pianto chibi") \
+	X(ExprDetermined, "determined", "determinato") \
+	X(ExprFaint, "faint", "svenuto") \
+	X(ExprKawaiiWink, "kawaii wink", "occhiolino") \
+	X(ExprSneaky, "sneaky", "furtivo") \
+	X(ExprHypnotized, "hypnotized", "ipnotizzato") \
+	X(ExprBrainFreeze, "brain freeze", "gelo testa") \
+	X(ExprDj, "dj", "dj") \
+	X(ExprKaraoke, "karaoke", "karaoke") \
+	X(ExprDisco, "disco", "discoteca") \
+	X(ExprDrumRoll, "drum roll", "rullo tamburi") \
+	X(ExprPartyPopper, "party popper", "coriandoli") \
+	X(ExprBirthday, "birthday", "compleanno") \
+	X(ExprFireworks, "fireworks", "fuochi") \
+	X(ExprMaracas, "maracas", "maracas") \
+	X(ExprWifiSearch, "wifi search", "cerca wifi") \
+	X(ExprDownload, "download", "download") \
+	X(ExprPairing, "pairing", "abbinamento") \
+	X(ExprCursor, "cursor", "cursore") \
+	X(ExprErrorSign, "error sign", "errore") \
+	X(ExprSyncSpin, "sync spin", "sincronia") \
+	X(ExprCharging, "charging", "ricarica") \
+	X(ExprTyping, "typing", "digitazione") \
+	X(ExprSoccer, "soccer", "calcio") \
+	X(ExprBasketball, "basketball", "basket") \
+	X(ExprBowling, "bowling", "bowling") \
+	X(ExprDiceRoll, "dice roll", "dadi") \
+	X(ExprFishing, "fishing", "pesca") \
+	X(ExprYoyo, "yoyo", "yo-yo") \
+	X(ExprJuggling, "juggling", "giocoliere") \
+	X(ExprTennis, "tennis", "tennis") \
+	X(ExprUfo, "ufo", "ufo") \
+	X(ExprRocket, "rocket", "razzo") \
+	X(ExprPlanetRing, "planet ring", "pianeta") \
+	X(ExprBlackHole, "black hole", "buco nero") \
+	X(ExprCrystalBall, "crystal ball", "sfera") \
+	X(ExprWizard, "wizard", "mago") \
+	X(ExprDragonEgg, "dragon egg", "uovo drago") \
+	X(ExprVampire, "vampire", "vampiro") \
+	X(ExprPumpkin, "pumpkin", "zucca") \
+	X(ExprAstronaut, "astronaut", "astronauta") \
 	X(Calm, "calm", "calmo") \
 	X(Dasai, "normal", "normale") \
 	X(Playful, "playful", "vivace") \

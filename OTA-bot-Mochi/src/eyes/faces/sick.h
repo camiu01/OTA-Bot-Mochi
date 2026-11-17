@@ -24,14 +24,14 @@ inline void performanceMotion(bool left, uint32_t phase, float a, float &sx, flo
 inline void local_eye_performance_air(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b,
 		uint32_t elapsed, float a) {
 	int16_t cx = b.x + b.w / 2, cy = b.y + b.h / 2, scale = eye_scale(cfg);
-	uint16_t ink = eye_mix(eye_performance_ink(cfg, b.left, elapsed), cfg.bgColor, uint8_t(a * 45));
+	uint16_t ink = eye_mix(eye_performance_ink(cfg, b.left, elapsed), cfg.bgColor, uint8_t(a * (cfg.expression == SICK ? 85 : 45)));
 	if (cfg.expression == SWINGING) {
 		gfx->drawLine(cfg.screenW * (b.left ? 1 : 3) / 4,
 			eye_limit(b.y - cfg.screenH / 6, 0, cfg.screenH - 1), cx, b.y, ink);
 	} else if (cfg.expression == SMOKE || cfg.expression == SICK) {
 		for (uint8_t i = 0; i < 3; ++i) {
 			float t = ((elapsed % 6000 + i * 500) % 1500) / 1500.0f;
-			int16_t r = int16_t((cfg.expression == SICK ? 3 : 5 + 5 * t) * scale / 100);
+			int16_t r = int16_t((cfg.expression == SICK ? 5 + 2 * t : 5 + 5 * t) * scale / 100);
 			if (r < 1) { r = 1; }
 			int16_t x = eye_limit(int16_t(cx + sinf(t * 6.2831853f + i) * b.w / 3), r, cfg.screenW - r - 1);
 			int16_t y = eye_limit(int16_t(b.y - t * cfg.screenH / 7), r, cfg.screenH - r - 1);

@@ -58,10 +58,35 @@ static const Text expressions[EXPRESSION_COUNT] = {
 	Text::ExprEnraged, Text::ExprTraffic, Text::ExprNeon, Text::ExprWheels,
 	Text::ExprSakura, Text::ExprSamurai, Text::ExprMecha, Text::ExprBamboo,
 	Text::ExprTitan, Text::ExprUpsideDown, Text::ExprUwu, Text::ExprYokai, Text::ExprTicTacToe, Text::ExprMechaMask, Text::ExprMechaBreak,
-	Text::ExprHollowAnger, Text::ExprSnickering, Text::ExprHiccup, Text::ExprRetroTv, Text::ExprMechaPilot, Text::ExprComet, Text::ExprYakura, Text::ExprChineseDragon, Text::ExprAngel
+	Text::ExprHollowAnger, Text::ExprSnickering, Text::ExprHiccup, Text::ExprRetroTv, Text::ExprMechaPilot, Text::ExprComet, Text::ExprYakura, Text::ExprChineseDragon, Text::ExprAngel,
+	Text::ExprHacker, Text::ExprBerserk, Text::ExprPortal, Text::ExprOrigami,
+	Text::ExprGhost, Text::ExprEclipse, Text::ExprDetective, Text::ExprPixelCrash,
+	Text::ExprPowerUp, Text::ExprNinja, Text::ExprAlchemist, Text::ExprMagicalGirl,
+	Text::ExprMechaLock, Text::ExprSpiritSeal, Text::ExprSweatDrop, Text::ExprAnimeVein,
+	Text::ExprChibiPanic, Text::ExprTsundere, Text::ExprMangaShock, Text::ExprChibiJoy,
+	Text::ExprRubberBand, Text::ExprPeekaboo, Text::ExprPopcorn,
+	Text::ExprSpringEyes, Text::ExprComicGlasses, Text::ExprBalloonEyes,
+	Text::ExprWipers, Text::ExprTurnSignal, Text::ExprFuelLow, Text::ExprDrift, Text::ExprCarWash,
+	Text::ExprParkingSensor, Text::ExprTunnel, Text::ExprGearShift, Text::ExprCheckEngine,
+	Text::ExprYandere, Text::ExprNapBubble, Text::ExprGloom, Text::ExprDotEyes, Text::ExprSteamBlush,
+	Text::ExprSnowfall, Text::ExprHeatwave, Text::ExprRainbow, Text::ExprThunderstorm,
+	Text::ExprFoggy, Text::ExprWindy, Text::ExprHail, Text::ExprSunrise, Text::ExprTornado,
+	Text::ExprFrosty, Text::ExprRamen, Text::ExprIceCream, Text::ExprCoffee, Text::ExprPizza,
+	Text::ExprBubbleTea, Text::ExprDonut, Text::ExprOnigiri, Text::ExprCookie, Text::ExprBunny,
+	Text::ExprFrog, Text::ExprOwl, Text::ExprPenguin, Text::ExprBee, Text::ExprFishBowl,
+	Text::ExprPuppy, Text::ExprButterfly, Text::ExprShoujoStars, Text::ExprChibiCry,
+	Text::ExprDetermined, Text::ExprFaint, Text::ExprKawaiiWink, Text::ExprSneaky,
+	Text::ExprHypnotized, Text::ExprBrainFreeze, Text::ExprDj, Text::ExprKaraoke, Text::ExprDisco,
+	Text::ExprDrumRoll, Text::ExprPartyPopper, Text::ExprBirthday, Text::ExprFireworks,
+	Text::ExprMaracas, Text::ExprWifiSearch, Text::ExprDownload, Text::ExprPairing, Text::ExprCursor,
+	Text::ExprErrorSign, Text::ExprSyncSpin, Text::ExprCharging, Text::ExprTyping, Text::ExprSoccer,
+	Text::ExprBasketball, Text::ExprBowling, Text::ExprDiceRoll, Text::ExprFishing, Text::ExprYoyo,
+	Text::ExprJuggling, Text::ExprTennis, Text::ExprUfo, Text::ExprRocket, Text::ExprPlanetRing,
+	Text::ExprBlackHole, Text::ExprCrystalBall, Text::ExprWizard, Text::ExprDragonEgg,
+	Text::ExprVampire, Text::ExprPumpkin, Text::ExprAstronaut
 };
 
-static_assert(uint16_t(Text::ExprNeutral) + EXPRESSION_COUNT - 1 == uint16_t(Text::ExprAngel),
+static_assert(uint16_t(Text::ExprNeutral) + EXPRESSION_COUNT - 1 == uint16_t(Text::ExprAstronaut),
 	"Expression labels must stay contiguous to match Expression values");
 static_assert(uint16_t(Text::Count) < 65535, "Text keys must stay below the reserved invalid key");
 

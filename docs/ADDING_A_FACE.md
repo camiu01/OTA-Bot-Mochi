@@ -1,7 +1,7 @@
 # Editing and adding a face
 
 Every existing expression has one file in `OTA-bot-Mochi/src/eyes/faces/`:
-145 files, named after the canonical USB names. Each file owns an immutable
+254 files, named after the canonical USB names. Each file owns an immutable
 `FacePreset` and its expression-specific drawing and animation procedures.
 For example, edit `faces/curious.h` for CURIOUS or `faces/crying.h` for CRYING.
 
@@ -86,8 +86,10 @@ framebuffer. Preserve the existing clocks and transient-palette restoration.
 Set `keepOpen` for a symbol that must ignore eyelid closure, including live-pose
 blinks. Moon and Fire also omit `normalCycle` so their artwork remains visible.
 
-For example, TIRED's exact one-third top and one-quarter bottom lid cuts remain
-in `faces/tired.h`, instead of approximating them with percentage cuts.
+For example, TIRED's drooping outer-corner slope and flat top/bottom lid cuts
+live in `faces/tired.h`. Lid procedures cut only inside the eye box with the
+shared `strip`, `slope`, `smile` and curved `arch` primitives, so dirty-region
+redraws stay exact; similar moods differ by silhouette, not by height alone.
 CRYING owns its water/lid procedures; GAUGE and PONG own their scene procedures.
 The old effect headers are compatibility includes, not places to add face code.
 
@@ -159,6 +161,13 @@ toolchain, or physical panel. Test new custom dimensions separately.
 
 `RECORD_FACE_BASELINE` exists only for deliberate captures from an independently
 preserved pre-change renderer. Normal test runners compare, never rewrite fixtures.
+
+An approved visual change to an original face follows the same discipline:
+first exempt only the changed IDs and prove every other hash still matches,
+then capture, replace only the changed IDs' hashes and record them in the
+fixture's history note. The 2026-11-17 silhouette/legibility pass did this
+for 25 faces and refroze the five previously exempt animated moods, so the
+raster test now compares every original ID without exceptions.
 
 ## Commands
 

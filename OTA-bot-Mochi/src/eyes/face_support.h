@@ -11,6 +11,8 @@ void strip(Arduino_GFX *gfx, const EyeBox &b, int16_t height, bool bottom, uint1
 void slope(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b, bool angry, int16_t depth);
 /** @brief Shared smile drawing primitive. */
 void smile(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b, int16_t depth, int16_t rise);
+/** @brief Curved upper-lid cut: positive sag lowers the centre (heavy lid), negative raises it. */
+void arch(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b, int16_t depth, int16_t sag);
 /** @brief Shared heart drawing primitive. */
 void heart(Arduino_GFX *gfx, int16_t x, int16_t y, int16_t s, uint16_t color);
 /** @brief Shared cross drawing primitive. */

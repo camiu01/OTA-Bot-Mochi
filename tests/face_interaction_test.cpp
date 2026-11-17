@@ -11,6 +11,8 @@
 #include "../OTA-bot-Mochi/src/settings/settings.h"
 #include <cassert>
 #include <iostream>
+#include <Preferences.h>
+#include "eye_play_checks.h"
 
 /** @brief Contact is edge-triggered, tilt rearms only near center, and priority consumes rather than queues events. */
 static void interactive_gestures() {
@@ -270,11 +272,14 @@ static void affection_and_wake(int w, int h) {
 
 int main() {
 	assert(settings_init());
+	rare_play_checks(); touch_play_checks();
 	schedules(); idle_waits(); idle_collision(); interactive_gestures(); emotional_handoffs(); spontaneous_gestures();
 	for (const auto &panel : {std::pair<int, int>{240, 280}, {368, 448}}) {
 		following(panel.first, panel.second);
 		rendered(panel.first, panel.second);
 		affection_and_wake(panel.first, panel.second);
+		rendered_play_checks(panel.first, panel.second);
+		released_tap_play_checks(panel.first, panel.second);
 	}
 	std::cout << "Random complete loops, delayed visible handoff, rollover and live finger gaze passed\n";
 }

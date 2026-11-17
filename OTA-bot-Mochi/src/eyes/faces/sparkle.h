@@ -23,7 +23,7 @@ inline constexpr FacePreset preset = [] {
 	FacePreset p;
 	p.name = "sparkle";
 	p.normalCycle = true;
-	p.left.widthDelta = p.right.widthDelta = 12;
+	p.left.widthDelta = p.right.widthDelta = 28;
 	p.left.heightFromWidth = p.right.heightFromWidth = true;
 	p.wholeEye = p.replacesSolid = true;
 	p.glyph = glyph;

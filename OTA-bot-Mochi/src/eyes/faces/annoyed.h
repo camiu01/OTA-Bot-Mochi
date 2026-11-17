@@ -9,15 +9,17 @@
 namespace face_defs { namespace annoyed_face {
 using namespace face_primitives;
 
-/** @brief annoyed lids procedure. */
+/** @brief Flat lids pressed low with a slight inward tilt. */
 inline void lids(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b) {
-	strip(gfx, b, b.h * (b.left ? 25 : 35) / 100, false, cfg.bgColor);
+	strip(gfx, b, b.h * 38 / 100, false, cfg.bgColor);
+	slope(gfx, cfg, b, true, b.h * 58 / 100);
 }
 
 /** @brief Immutable annoyed face; C++17 named-field initialization. */
 inline constexpr FacePreset preset = [] {
 	FacePreset p;
 	p.name = "annoyed";
+	p.gazeX = 0.25f;
 	p.lids = lids;
 	return p;
 }();

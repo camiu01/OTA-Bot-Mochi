@@ -81,11 +81,23 @@ static void paint(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeState &st, co
 /** @brief Apply soft opening/stretch while keeping the full silhouette on screen. @param box Eye. @param pose Motion. */
 static void animate_box(EyeBox &box, const EyeLifeFrame &pose, const EyeConfig &cfg) {
 	int16_t cx = box.x + box.w / 2, cy = box.y + box.h / 2;
+	cy += int16_t((box.left ? pose.play.leftY : pose.play.rightY) * cfg.screenW / 240);
 	box.w = eye_limit(int16_t(box.w * pose.scaleX), 20, 100);
 	box.h = eye_limit(int16_t(box.h * pose.scaleY * (box.left ? pose.openL : pose.openR)), 6, 138);
 	box.x = eye_limit(cx - box.w / 2, 0, cfg.screenW - box.w);
 	box.y = eye_limit(cy - box.h / 2, 0, cfg.screenH - box.h);
 	box.radius = eye_limit(box.radius, 0, (box.w < box.h ? box.w : box.h) / 2);
+}
+
+/** @brief Tiny monochrome fly, included in the next frame's full-screen dirty region. */
+static void paint_fly(Arduino_GFX *gfx, const EyeConfig &cfg, const EyePlayPose &pose) {
+	if (!pose.fly) { return; }
+	int16_t s = cfg.screenW >= 320 ? 2 : 1;
+	int16_t x = cfg.screenW / 2 + pose.flyX * cfg.screenW / 240;
+	int16_t y = cfg.screenH / 2 + pose.flyY * cfg.screenW / 240;
+	gfx->fillCircle(x, y, s + 1, cfg.fgColor);
+	gfx->drawLine(x - 3 * s, y - 3 * s, x + 3 * s, y + 3 * s, cfg.fgColor);
+	gfx->drawLine(x - 3 * s, y + 3 * s, x + 3 * s, y - 3 * s, cfg.fgColor);
 }
 
 /** @brief Ease the live pose into a stable scene origin before its morph. @param layout Centered eyes. @param cfg Mood. @param drawing Live gaze. @param pose Live opening. @param elapsed Entry time. */
@@ -157,6 +169,7 @@ void eyes_draw() {
 	if (pose.active && !scene) { animate_box(layout.left, pose, cfg); animate_box(layout.right, pose, cfg); }
 	if (!drawing.blinking && !scene) { eye_reaction_layout(cfg, layout, elapsed); }
 	eye_performance_layout(cfg, layout, elapsed);
+	face_variation_layout(cfg, layout, elapsed, pose.variationAmount, st.tracking);
 	if (preset && preset->drawing) { preset->drawing(drawing, layout, elapsed); }
 	cfg.fgColor = eye_reaction_ink(cfg, elapsed);
 	wipe(gfx, cfg, st);
@@ -172,8 +185,11 @@ void eyes_draw() {
 	if (st.heartUntilMs != 0) {
 		paint_heart(gfx, eye_rgb(255, 112, 157), st.heartX, st.heartY);
 	}
+	paint_fly(gfx, cfg, pose.play);
 	store_union(st, eye_effect_bounds(cfg, layout), cfg);
 	// Particles and reversible morphs travel beyond the ordinary pair's rectangle.
-	if (backdropLeaving || eye_performance(cfg.expression)) { st.prevX = st.prevY = 0; st.prevW = cfg.screenW; st.prevH = cfg.screenH; }
+	if (backdropLeaving || pose.play.fly || eye_performance(cfg.expression)) {
+		st.prevX = st.prevY = 0; st.prevW = cfg.screenW; st.prevH = cfg.screenH;
+	}
 	if (st.heartUntilMs != 0) { extend_heart(st); }
 }

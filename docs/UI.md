@@ -101,9 +101,24 @@ In Dasai/Playful modes, first contact adds a 420-ms surprise stretch while gaze
 continues following the finger. With IMU faces enabled, a tilt excursion adds a
 700-ms curious lean; it rearms only after returning near center. These are visual
 poses, not new selected moods or saved settings. Petting, pickup feedback,
-face handoffs and Dizzy take priority; suppressed gestures are not queued.
+scene handoffs and Dizzy take priority; suppressed gestures are not queued.
 Calm disables the new gestures, while dashboard/night reduce their intensity.
 Tilt sensitivity and appearance still require physical-device validation.
+
+Ordinary eyes also have three rare, 1100-ms visual gags: a sideways peek, one
+eye slipping down and recovering, and a tiny monochrome fly tracked by the gaze.
+The initial/repeat wait is randomized between 45 and 90 seconds; actual starts
+wait for an eligible ordinary face and a free handoff window. Full scenes and
+symbols are not overlaid. Touch, petting, pickup, Dizzy and scene entries interrupt
+them. No gag changes the selected face, palette or sound settings.
+
+Center contact adds a brief ticklish squint/wiggle; off-center contact dodges
+slightly away from the finger. Three eligible contacts within 2.5 seconds of
+each other produce a 900-ms sulk. Holding a finger does not count as repeated
+taps. Ordinary tap-face handoffs preserve this short reaction, while petting and
+special scenes supersede it. These visual additions do not consume touch events:
+released taps, double taps, pet strokes, holds and swipes keep their existing
+actions. Calm disables them; dashboard/night reduce their intensity.
 
 - Settings → SYSTEM → **Firmware update** opens a temporary Wi-Fi maintenance
   screen, outside the seven-page carousel. Its password and browser address are

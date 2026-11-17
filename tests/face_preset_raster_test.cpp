@@ -18,6 +18,22 @@
 #endif
 #endif
 
+/** @brief Preserve the frozen raster's separate rounding, not a mathematically exact ellipse boundary. */
+static void raster_rounding() {
+	Arduino_GFX gfx(40, 40);
+	volatile int radius = 13;
+	gfx.fillCircle(20, 20, radius, 0xFFFF);
+	assert(gfx.pixels[20 * 40 + 33] == 0xFFFF);
+	assert(gfx.pixels[25 * 40 + 31] == 0xFFFF);
+	// FMA rounds (12/13)^2 + (5/13)^2 down to 1, adding an asymmetric boundary pixel.
+	for (int sign_x : {-1, 1}) {
+		for (int sign_y : {-1, 1}) {
+			assert(gfx.pixels[(20 + sign_y * 5) * 40 + 20 + sign_x * 12] == 0);
+			assert(gfx.pixels[(20 + sign_y * 12) * 40 + 20 + sign_x * 5] == 0);
+		}
+	}
+}
+
 /** @brief Battery glyphs keep valid dimensions while a blink shrinks the charge interior away. */
 static void low_battery_sizes() {
 	Arduino_GFX gfx(40, 40);
@@ -86,6 +102,7 @@ static uint64_t fingerprint(Arduino_GFX &gfx, Expression expression) {
 int main(int argc, char **argv) {
 	assert(settings_init());
 	low_battery_sizes();
+	raster_rounding();
 #ifdef RECORD_FACE_BASELINE
 	assert(argc == 2);
 	std::ofstream output(argv[1]);
@@ -111,12 +128,11 @@ int main(int argc, char **argv) {
 				output << "UINT64_C(" << actual << "),\n";
 #else
 				const uint64_t original = FACE_RASTER_BASELINE[index++];
-				// These six intentionally changed; animated_emotions_test checks their new behavior.
-				bool animated = id == SLEEPY || id == LOVE || id == CURIOUS ||
-					id == SHY || id == SUSPICIOUS || id == GLITCH;
-				if (!animated && actual != original) {
+				// Every original ID is frozen; deliberate changes update hashes and the fixture history note.
+				if (actual != original) {
 					std::cerr << panel[0] << "x" << panel[1] << " style "
-						<< unsigned(style) << " " << eyes_expression_name(Expression(id)) << "\n";
+						<< unsigned(style) << " " << eyes_expression_name(Expression(id))
+						<< " expected " << original << " actual " << actual << "\n";
 					return 1;
 				}
 #endif

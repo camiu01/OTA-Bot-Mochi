@@ -10,7 +10,8 @@ function Invoke-HostTest([string] $Name, [string[]] $Sources, [string[]] $Flags 
 	if ($Sources -contains "$root\OTA-bot-Mochi\src\companion\companion_service.cpp") { $Sources += "$root\tests\stubs\backlight_activity.cpp" }
 	# An IDE-local AMOLED selection must not change the LCD baseline fixtures.
 	if ($Flags -notcontains '-DMOCHI_BOARD_AMOLED_18') { $Flags += '-DMOCHI_BOARD_LCD_169' }
-	& g++ -std=c++17 -Wall -Wextra -Werror @Flags -I "$root\tests\stubs" @Sources -o "$output\$Name.exe"
+	# Frozen native rasters require separate multiply/add rounding even on FMA hosts.
+	& g++ -std=c++17 -Wall -Wextra -Werror -ffp-contract=off @Flags -I "$root\tests\stubs" @Sources -o "$output\$Name.exe"
 	if ($LASTEXITCODE -ne 0) { throw "$Name test build failed" }
 	& "$output\$Name.exe"
 	if ($LASTEXITCODE -ne 0) { throw "$Name tests failed" }
