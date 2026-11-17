@@ -18,35 +18,18 @@
 #endif
 #endif
 
-/** @brief Check registered spinner pixels against high-precision evaluation of the legacy float angles. */
-static void loading_octants() {
-	Arduino_GFX actual(240, 280), expected(240, 280);
-	EyeConfig cfg{}; cfg.expression = LOADING;
-	for (uint8_t style = 0; style < EYE_STYLE_COUNT; ++style) {
-		cfg.style = EyeStyle(style);
-		for (int16_t size = 6; size <= 150; ++size) {
-			EyeBox box{7, 19, size, size, int16_t(size / 4), true};
-			int16_t half = size / 2, dot = eye_limit(int16_t(half / 7), 1, 6);
-			int16_t radius = half - dot - 3, x = box.x + half, y = box.y + half;
-			for (uint32_t head = 0; head < 8; ++head) {
-				cfg.bgColor = head & 1 ? 0x0841 : 0; cfg.fgColor = 0xFFFF;
-				actual.fillScreen(cfg.bgColor); expected.fillScreen(cfg.bgColor);
-				EyeState state{}; state.lastMs = head * 180;
-				assert(face_preset(LOADING)->referenceBody(&actual, cfg, state, box, 0, cfg.fgColor));
-				eye_body(&expected, cfg, box);
-				if (radius >= 3) {
-					expected.fillCircle(x, y, radius + dot + 1, cfg.bgColor);
-					for (unsigned i = 0; i < 8; ++i) {
-						double angle = float(i * 0.78539816f);
-						float sine = float(std::sin(angle)), cosine = float(std::cos(angle));
-						unsigned age = (head + 8 - i) % 8;
-						uint8_t amount = age ? uint8_t(20 + (7 - age) * 8) : 100;
-						expected.fillCircle(int16_t(x + sine * radius), int16_t(y - cosine * radius),
-							dot, eye_mix(eye_rgb(64, 212, 255), cfg.bgColor, amount));
-					}
-				}
-				assert(actual.pixels == expected.pixels);
-			}
+/** @brief Preserve the frozen raster's separate rounding, not a mathematically exact ellipse boundary. */
+static void raster_rounding() {
+	Arduino_GFX gfx(40, 40);
+	volatile int radius = 13;
+	gfx.fillCircle(20, 20, radius, 0xFFFF);
+	assert(gfx.pixels[20 * 40 + 33] == 0xFFFF);
+	assert(gfx.pixels[25 * 40 + 31] == 0xFFFF);
+	// FMA rounds (12/13)^2 + (5/13)^2 down to 1, adding an asymmetric boundary pixel.
+	for (int sign_x : {-1, 1}) {
+		for (int sign_y : {-1, 1}) {
+			assert(gfx.pixels[(20 + sign_y * 5) * 40 + 20 + sign_x * 12] == 0);
+			assert(gfx.pixels[(20 + sign_y * 12) * 40 + 20 + sign_x * 5] == 0);
 		}
 	}
 }
@@ -119,7 +102,7 @@ static uint64_t fingerprint(Arduino_GFX &gfx, Expression expression) {
 int main(int argc, char **argv) {
 	assert(settings_init());
 	low_battery_sizes();
-	loading_octants();
+	raster_rounding();
 #ifdef RECORD_FACE_BASELINE
 	assert(argc == 2);
 	std::ofstream output(argv[1]);

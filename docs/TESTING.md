@@ -42,6 +42,10 @@ Neither fixture proves real DHCP, TLS, QR scanning or Wi-Fi/BLE coexistence.
 The native runners explicitly select `MOCHI_BOARD_LCD_169` for baseline fixtures
 and `MOCHI_BOARD_AMOLED_18` for AMOLED checks, so an Arduino IDE selection in
 `pin_config.h` cannot silently change the test board. Defining both is rejected.
+Native test executables use `-ffp-contract=off` to preserve the separate
+multiply/add rounding captured in frozen raster fixtures. FMA-enabled hosts
+otherwise change ellipse-boundary pixels, including Loading's circular inset.
+This is a native-test reproducibility setting, not a firmware compiler change.
 An explicit LCD CLI build can likewise use
 `--build-property "compiler.cpp.extra_flags=-DMOCHI_BOARD_LCD_169"`.
 The real eye renderer also runs against a native raster substitute: all seven

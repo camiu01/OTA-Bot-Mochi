@@ -52,7 +52,8 @@ build_test() {
 	if [[ ${#companion[@]} -gt 0 || " $* " == *"/src/companion/companion_service.cpp"* ]]; then
 		companion+=("$root/tests/stubs/backlight_activity.cpp")
 	fi
-	g++ -std=c++17 -Wall -Wextra -Werror -I "$root/tests/stubs" "${board[@]}" "$@" "${network[@]}" "${companion[@]}" -o "$output/$name"
+	# Frozen native rasters require separate multiply/add rounding even on FMA hosts.
+	g++ -std=c++17 -Wall -Wextra -Werror -ffp-contract=off -I "$root/tests/stubs" "${board[@]}" "$@" "${network[@]}" "${companion[@]}" -o "$output/$name"
 	"$output/$name"
 }
 python3 "$root/tests/board_profiles_test.py"
