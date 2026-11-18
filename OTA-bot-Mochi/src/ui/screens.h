@@ -8,18 +8,26 @@
 #include <Arduino_GFX_Library.h>
 
 enum class UiPage : uint8_t {
-	Eyes, Clock, Music, Navigation, Notification, Weather, Settings,
-	Desk, BigClock, Overview, Timer, Device, Pong, AnalogClock, Tris, Phone, Games, Dice, FlappyBird, Count
+	Eyes, Clock, Music, Navigation, Notification, Weather, Drive, Settings,
+	Desk, BigClock, Overview, Timer, Device, Pong, AnalogClock, Tris, Phone, Games, Dice, FlappyBird,
+	DriveHub, DriveLean, DriveG, DriveGraph, DriveTrip, DriveObd, Count
 };
 
-/** @brief Find the primary carousel parent. @param page Page. @return One of seven main pages. */
+/** @brief Drive page or one of its contextual tools. @param page Page. @return Drive family. */
+inline bool screens_drive(UiPage page) {
+	return page == UiPage::Drive || (uint8_t(page) >= uint8_t(UiPage::DriveHub) && uint8_t(page) <= uint8_t(UiPage::DriveObd));
+}
+/** @brief Number of horizontally swiped main pages; contextual tools follow them. */
+constexpr uint8_t SCREENS_PRIMARY = uint8_t(UiPage::Desk);
+/** @brief Find the primary carousel parent. @param page Page. @return One of the main pages. */
 inline UiPage screens_parent(UiPage page) {
+	if (screens_drive(page)) { return UiPage::Drive; }
 	return uint8_t(page) >= uint8_t(UiPage::Desk) ? UiPage::Clock : page;
 }
-/** @brief Swipe the seven-page carousel, not all contextual tools. @param page Page. @param step Direction. @return Page. */
+/** @brief Swipe the main carousel, not all contextual tools. @param page Page. @param step Direction. @return Page. */
 inline UiPage screens_swipe(UiPage page, int8_t step) {
 	if (!step) { return page; }
-	return static_cast<UiPage>((int(screens_parent(page)) + (step > 0 ? 1 : -1) + 7) % 7);
+	return static_cast<UiPage>((int(screens_parent(page)) + (step > 0 ? 1 : -1) + SCREENS_PRIMARY) % SCREENS_PRIMARY);
 }
 /** @brief Dispatch short parked-use utility taps. @param page Page. @param x X. @param y Y. @param now Time. @return Target. */
 UiPage screens_tap(UiPage page, int16_t x, int16_t y, uint32_t now);

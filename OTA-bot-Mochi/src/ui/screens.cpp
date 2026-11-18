@@ -13,7 +13,10 @@
 #include "context_play.h"
 #include "context_flappy.h"
 #include "context_dice.h"
+#include "context_drive.h"
+#include "context_hubs.h"
 #include "../play/dice_input.h"
+#include "../play/drive_meter.h"
 #include "../clock/clock_ui.h"
 #include "../../pin_config.h"
 #include "../settings/settings.h"
@@ -197,6 +200,9 @@ void content(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, uint32_t now) {
 	else if (page == UiPage::Weather) { weather_screen(gfx, now); }
 	else if (page == UiPage::Music) { music_draw(gfx, cached, now); }
 	else if (page == UiPage::Settings) { settings_menu_draw(gfx); }
+	else if (page == UiPage::Drive) { drive_home_draw(gfx, now); }
+	else if (page == UiPage::DriveHub) { context_hub_draw(gfx, page); }
+	else if (screens_drive(page)) { drive_tool_draw(gfx, watch, cached, page, now); }
 	else if (uint8_t(page) >= uint8_t(UiPage::Desk)) { context_draw(gfx, watch, page, cached, now); }
 }
 }
@@ -215,8 +221,8 @@ void screens_alert_action(int8_t action) {
 /** @brief Expose the cached call flag to the eyes dispatcher. @return Call active. */
 bool screens_calling() { return overlay_active; }
 
-/** @brief Inhibit dimming during routes and calls. @return Active critical data. */
-bool screens_keep_awake() { return overlay_active || cached.navigation.active; }
+/** @brief Inhibit dimming during routes, calls and the drive dashboard. @return Active critical data. */
+bool screens_keep_awake() { return overlay_active || cached.navigation.active || drive_meter().active; }
 
 /**
  * @brief Repaint on events, battery/charging changes, page changes, or time-dependent fields.
@@ -246,6 +252,9 @@ bool screens_draw(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, uint32_t n
 		desk_dice().roll([](uint8_t limit) { return random(long(limit)); }); invalidated = true;
 	}
 	input.pending = false;
+	bool drive = screens_drive(page);
+	drive_meter().active = drive && !overlay_active;
+	obd_want(drive);
 	bool transition = page != previous_page || overlay_active != previous_call;
 	if (transition) {
 		gfx->fillScreen(UI_BG); screens_invalidate();
@@ -260,12 +269,14 @@ bool screens_draw(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, uint32_t n
 		return frame;
 	}
 	bool timer = (uint32_t)(now - last_refresh) >=
-		((page == UiPage::Pong || page == UiPage::Tris || page == UiPage::FlappyBird) && !overlay_active ? 33U : 1000U);
+		((page == UiPage::Pong || page == UiPage::Tris || page == UiPage::FlappyBird) && !overlay_active ? 33U :
+		(drive && !overlay_active ? 100U : 1000U));
 	if (!invalidated && !changed && !timer && page != UiPage::Clock) { return false; }
 	if (invalidated || changed || transition) {
-		static const Text titles[] = {Text::Eyes, Text::Clock, Text::Music, Text::Route, Text::Alerts, Text::Weather, Text::Settings,
+		static const Text titles[] = {Text::Eyes, Text::Clock, Text::Music, Text::Route, Text::Alerts, Text::Weather, Text::Drive, Text::Settings,
 			Text::Desk, Text::BigClock, Text::Overview, Text::Timer, Text::Device, Text::Pong, Text::AnalogClock, Text::Tris, Text::CompanionTitle,
-			Text::Games, Text::Dice, Text::FlappyBird};
+			Text::Games, Text::Dice, Text::FlappyBird,
+			Text::DriveHubTitle, Text::DriveBigLean, Text::DriveGMeter, Text::DriveGraphTitle, Text::DriveTrip, Text::DriveObd};
 		static_assert(sizeof(titles) / sizeof(titles[0]) == uint8_t(UiPage::Count), "Every page needs a title");
 		ui_chrome(gfx, tr(overlay_active ? Text::CallTitle : titles[uint8_t(page)]),
 			cached.connected, uint8_t(screens_parent(page)));

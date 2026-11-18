@@ -130,7 +130,7 @@ write preferences. A short press is not assigned a new firmware action.
 Native tests verify registers and error paths, not physical switching or standby
 current. Verify PWR off/on on battery and USB on the actual V2 board.
 
-At runtime **BOOT (GPIO0, active low)** advances the seven-page carousel once on
+At runtime **BOOT (GPIO0, active low)** advances the eight-page carousel once on
 release, with 30 ms debounce and no repeat while held. The input uses a pull-up;
 it is never driven as an output and its reset-time download-mode role is unchanged.
 Startup/shutdown, visible call overlays and touch contact suppress the shortcut.

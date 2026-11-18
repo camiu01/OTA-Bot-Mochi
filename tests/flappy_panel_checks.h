@@ -34,7 +34,7 @@ inline void flappy_panel_checks(Arduino_GFX &gfx, ChronosESP32 &watch) {
 	assert(desk_flappy().y == y);
 	for (uint8_t language = 0; language < 2; ++language) {
 		p.language = language; assert(settings_update(p));
-		context_hub_draw(&gfx, true);
+		context_hub_draw(&gfx, UiPage::Games);
 		for (uint8_t state = 0; state < 3; ++state) {
 			desk_flappy().running = state == 1; desk_flappy().dead = state == 2;
 			desk_flappy_draw(&gfx, 360000);

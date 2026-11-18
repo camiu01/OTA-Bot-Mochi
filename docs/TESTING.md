@@ -32,6 +32,13 @@ ANCS parser tests cover fragmented attributes, bounded lengths, wrong notificati
 IDs and disconnect/reset behavior. They do not exercise iOS permissions or the
 NimBLE worker/radio. User-confirmed AMOLED delivery is recorded separately in
 [Hardware validation](HARDWARE_VALIDATION.md).
+Drive meter tests cover mount-relative tare in flat, upright and side poses,
+rejection of moving or impact references, G and tilt signs, gyro-fused lean in
+left/right coordinated turns, roll-rate response, bias capture, trip peaks and
+the graph ring. ELM327 tests cover prompt framing and overflow, PID formulas,
+the init/probe/poll order, ATRV while the ECU sleeps, skipping unsupported PIDs
+and ignition-off recovery. They do not exercise the QMI8658 gyro registers, the
+NimBLE central, real dongles or vehicle buses.
 Saved-network tests cover independent record corruption/truncation, atomic
 storage failures, reconnect and refresh intervals with timestamp rollover,
 shared NTP preserving station ownership, weather caching and old-generation
@@ -555,6 +562,8 @@ separately in TODO.
     the percentage comes from the AXP2101 battery-voltage ADC, so compare it the
     same way with a battery connected. Do not treat the native conversion tests
     as physical validation.
+
+Run H14 for the Drive page and an optional BLE ELM327 dongle.
 
 Also test a downward swipe on Clock into Scrivania and again into Games.
 Verify all available tools and games, including the Android-only Phone tools tile.

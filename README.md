@@ -74,6 +74,7 @@ testing on both boards. See the validation limits below.
 | Digital and analog clocks | Display Chronos- or NTP-synchronized time; continue offline, resynchronize after reboot |
 | Desk tools | Large clock, time/weather overview, device status, playable Pong and Tris, local timers, and [Android phone tools](docs/CHRONOS.md) |
 | Timer / Pomodoro | 5-minute or 15-minute timer, or one 25-minute work / 5-minute rest pair; keeps running when viewing another page |
+| Drive dashboard | Car/moto page: gyro-fused lean, G-ball, 10 s graph, trip peaks and timer, phone next turn; optional BLE ELM327 OBD-II speed, RPM, coolant, throttle, fuel and battery ([details](docs/DESK.md#drive-dashboard)) |
 | Phone navigation | Displays received turn instructions, icon, distance, ETA, and speed when supplied |
 | Alerts and calls | Keeps eight local alerts with browsing, dismissal and message pagination; displays incoming caller information; calls must be handled on the phone |
 | Weather display | Phone weather or optional saved Wi-Fi/Open-Meteo, with three forecasts and missing/stale states |
@@ -355,7 +356,7 @@ different PSRAM configurations (see [Wiring and board configuration](#wiring-and
 
 ## Controls and everyday use
 
-The primary carousel is: `Eyes → Clock → Music → Route → Alerts → Weather → Settings → Eyes`. Desk tools are children
+The primary carousel is: `Eyes → Clock → Music → Route → Alerts → Weather → Drive → Settings → Eyes`. Desk tools are children
 of Clock, not additional carousel pages.
 
 | Action | Result |
@@ -368,6 +369,7 @@ of Clock, not additional carousel pages.
 | Swipe up from a tool / desk menu | Return to the desk menu / Clock |
 | Tap the court in desk Pong | Move the left paddle to that height; RESET starts a new game |
 | Swipe down on Route | Toggle large/details layout; holding Route restores the configured default |
+| Swipe down on Drive | Open DRIVE TOOLS: big lean, G-meter, lean graph, trip and OBD tiles; ZERO on motion tools takes a new upright reference and clears peaks; swipe up to return |
 | Swipe down on Weather | Request configured Internet weather and, in Android mode, a rate-limited phone sync |
 | Tap the top status strip on a utility page | Toggle sound for the session; inactive on Eyes and Settings |
 | Tap SAVE in Settings | Persist the active preferences |

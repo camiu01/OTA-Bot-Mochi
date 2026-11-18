@@ -92,6 +92,8 @@ build_test tic-tac-toe "$root/tests/tic_tac_toe_test.cpp"
 build_test dice "$root/tests/dice_test.cpp"
 build_test dice-geometry "$root/tests/dice_geometry_test.cpp"
 build_test flappy "$root/tests/flappy_test.cpp"
+build_test drive-meter "$root/tests/drive_meter_test.cpp"
+build_test elm327 "$root/tests/elm327_test.cpp"
 ota=("${runtime[@]}" "$root/tests/ota_test.cpp" "$root/OTA-bot-Mochi/src/update/ota_update.cpp" "$root/OTA-bot-Mochi/src/update/ntp_sync.cpp" "$root/tests/stubs/imu_noop.cpp")
 build_test ota-lcd -I "$root/tests/stubs/ota" "${ota[@]}"
 build_test ota-amoled -I "$root/tests/stubs/ota" -DMOCHI_BOARD_AMOLED_18 "${ota[@]}"

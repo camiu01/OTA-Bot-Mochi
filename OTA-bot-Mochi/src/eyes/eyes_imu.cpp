@@ -32,6 +32,7 @@
 #include "../settings/settings.h"
 #include "../bus/i2c_bus.h"
 #include "../play/dice_input.h"
+#include "../play/drive_meter.h"
 #include "../../pin_config.h"
 #include <Arduino.h>
 #include <math.h>
@@ -39,6 +40,7 @@
 #define QMI_REG_WHOAMI 0x00	/**< Chip ID register. */
 #define QMI_REG_CTRL1 0x02	/**< Interface control register. */
 #define QMI_REG_CTRL2 0x03	/**< Accelerometer range and sample rate. */
+#define QMI_REG_CTRL3 0x04	/**< Gyroscope range and sample rate. */
 #define QMI_REG_CTRL7 0x08	/**< Sensor enable register. */
 #define QMI_REG_AX_L 0x35	/**< First accelerometer data register. */
 #define QMI_POLL_MS 50	/**< Minimum interval between IMU reads. */
@@ -47,6 +49,7 @@ static bool s_imuOk = false;
 static uint8_t s_address = 0x6B;
 static uint32_t s_lastPoll = 0;
 static bool s_flipped = false;
+static bool s_gyro = false;	/**< Gyroscope powered, only while the drive dashboard is visible. */
 static MotionFilter s_motion;
 static PickupPolicy s_pickup;
 
@@ -65,32 +68,32 @@ static bool imu_write(uint8_t reg, uint8_t val) {
 }
 
 /**
- * @brief Read raw accelerometer axes from the sensor.
- * @param ax Output raw X axis value.
- * @param ay Output raw Y axis value.
- * @param az Output raw Z axis value.
- * @return True on successful 6-byte read, false on I2C error.
+ * @brief Read raw accelerometer, then optionally gyroscope, axes in one burst.
+ * @param raw Output axes: accel X/Y/Z, then gyro X/Y/Z when count is 6.
+ * @param count Three (accelerometer) or six (accelerometer and gyroscope).
+ * @return True on a complete read, false on I2C error.
  */
-static bool imu_read_acc(int16_t *ax, int16_t *ay, int16_t *az) {
+static bool imu_read(int16_t *raw, uint8_t count) {
 	TwoWire &bus = i2c_bus();
 	bus.beginTransmission(s_address);
 	bus.write((uint8_t)QMI_REG_AX_L);
 	if (bus.endTransmission(false) != 0) {
 		return false;
 	}
-	if (bus.requestFrom(s_address, (uint8_t)6) != 6) {
+	if (bus.requestFrom(s_address, uint8_t(count * 2)) != count * 2) {
 		return false;
 	}
-	uint8_t xl = bus.read();
-	uint8_t xh = bus.read();
-	uint8_t yl = bus.read();
-	uint8_t yh = bus.read();
-	uint8_t zl = bus.read();
-	uint8_t zh = bus.read();
-	*ax = (int16_t)((xh << 8) | xl);
-	*ay = (int16_t)((yh << 8) | yl);
-	*az = (int16_t)((zh << 8) | zl);
+	for (uint8_t i = 0; i < count; ++i) {
+		uint8_t low = bus.read();
+		raw[i] = (int16_t)((bus.read() << 8) | low);
+	}
 	return true;
+}
+
+/** @brief Power the gyroscope only for the drive dashboard. @param on Wanted. @return Gyro readings usable. */
+static bool imu_gyro(bool on) {
+	if (on != s_gyro && imu_write(QMI_REG_CTRL7, on ? 0x03 : 0x01)) { s_gyro = on; }
+	return s_gyro;
 }
 
 /**
@@ -109,9 +112,11 @@ void eyes_imu_init() {
 		bus.write((uint8_t)QMI_REG_WHOAMI);
 		if (bus.endTransmission(false) != 0) { continue; }
 		if (bus.requestFrom(s_address, (uint8_t)1) != 1 || bus.read() != 0x05) { continue; }
-		// Auto-increment, +/-16g at 125 Hz (2048 LSB/g), accelerometer only.
-		s_imuOk = imu_write(QMI_REG_CTRL1, 0x40) &&
-			imu_write(QMI_REG_CTRL2, 0x36) && imu_write(QMI_REG_CTRL7, 0x01);
+		// Auto-increment, +/-16g at 125 Hz (2048 LSB/g); gyro +/-512 dps (64 LSB/dps)
+		// is configured but stays off until the drive dashboard enables it.
+		s_imuOk = imu_write(QMI_REG_CTRL1, 0x40) && imu_write(QMI_REG_CTRL2, 0x36) &&
+			imu_write(QMI_REG_CTRL3, 0x56) && imu_write(QMI_REG_CTRL7, 0x01);
+		s_gyro = false;
 		break;
 	}
 	s_lastPoll = millis();
@@ -175,15 +180,14 @@ void eyes_imu_poll(uint32_t nowMs) {
 		return;
 	}
 	s_lastPoll = nowMs;
-	int16_t ax = 0;
-	int16_t ay = 0;
-	int16_t az = 0;
-	if (!imu_read_acc(&ax, &ay, &az)) {
+	int16_t raw[6] = {};
+	bool gyro = imu_gyro(drive_meter().active);
+	if (!imu_read(raw, gyro ? 6 : 3)) {
 		return;
 	}
-	float fx = (float)ax / 2048.0f;
-	float fy = (float)ay / 2048.0f;
-	float fz = (float)az / 2048.0f;
+	float fx = (float)raw[0] / 2048.0f;
+	float fy = (float)raw[1] / 2048.0f;
+	float fz = (float)raw[2] / 2048.0f;
 	auto &orientation = imu_orientation();
 	orientation.target(settings_get().flipped);
 	bool calibrated = orientation.sample(fx, fy, fz, nowMs);
@@ -211,6 +215,11 @@ void eyes_imu_poll(uint32_t nowMs) {
 	if (flipped) {
 		fx = -fx;
 		fy = -fy;
+	}
+	if (drive_meter().active) {
+		const float rad = 3.14159265f / 180.0f / 64.0f, sign = flipped ? -1.0f : 1.0f;
+		const float a[3] = {fx, fy, fz}, w[3] = {sign * raw[3] * rad, sign * raw[4] * rad, raw[5] * rad};
+		drive_meter().sample(a, w, nowMs);
 	}
 	MotionSample sample = s_motion.update(fx, fy, fz, nowMs,
 		dice_input().active || (settings_get().shake && eyes_faces_automatic_ready(nowMs)));

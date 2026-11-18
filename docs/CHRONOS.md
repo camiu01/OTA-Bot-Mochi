@@ -1,8 +1,8 @@
 # Chronos phone tools
 
 Android mode exposes **Clock → swipe down → Phone tools**, the eighth desk
-tile. These are contextual tools, not an eighth carousel destination. Horizontal
-swipes still navigate the original seven main pages. Swipe up inside a tool to
+tile. These are contextual tools, not a carousel destination. Horizontal
+swipes navigate the eight main pages. Swipe up inside a tool to
 return to Phone tools, then up again to return to Desk.
 
 ## Android features
