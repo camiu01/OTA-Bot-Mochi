@@ -54,7 +54,26 @@ inline void music_panel_checks(Arduino_GFX &gfx, ChronosESP32 &watch) {
 	assert(screens_swipe(UiPage::Clock, 1) == UiPage::Music);
 	assert(screens_swipe(UiPage::Music, 1) == UiPage::Navigation);
 	assert(screens_swipe(UiPage::Music, -1) == UiPage::Clock);
+	assert(screens_swipe(UiPage::Weather, 1) == UiPage::Drive);
+	assert(screens_swipe(UiPage::Drive, 1) == UiPage::Settings);
 	assert(screens_swipe(UiPage::Settings, 1) == UiPage::Eyes);
+	assert(screens_swipe(UiPage::Eyes, -1) == UiPage::Settings);
+	assert(screens_parent(UiPage::Drive) == UiPage::Drive);
+	assert(screens_scroll(UiPage::Drive, -1) == UiPage::DriveHub);
+	assert(screens_scroll(UiPage::Drive, 1) == UiPage::Drive);
+	assert(screens_scroll(UiPage::DriveHub, 1) == UiPage::Drive);
+	assert(screens_scroll(UiPage::DriveHub, -1) == UiPage::DriveHub);
+	const UiPage drive_tools[] = {UiPage::DriveLean, UiPage::DriveG, UiPage::DriveGraph, UiPage::DriveTrip, UiPage::DriveObd};
+	for (uint8_t i = 0; i < 5; ++i) {
+		UiPage tool = drive_tools[i];
+		assert(screens_tap(UiPage::DriveHub, ui_s(i % 2 ? 200 : 20), ui_s(70 + i / 2 * 50), 0) == tool);
+		assert(screens_scroll(tool, 1) == UiPage::DriveHub && screens_scroll(tool, -1) == tool);
+		assert(screens_parent(tool) == UiPage::Drive);
+		assert(screens_swipe(tool, 1) == UiPage::Settings && screens_swipe(tool, -1) == UiPage::Weather);
+		assert(screens_draw(&gfx, watch, tool, 30000000 + i * 1000));
+	}
+	assert(screens_tap(UiPage::DriveHub, ui_s(200), ui_s(170), 0) == UiPage::DriveHub);	// Empty sixth slot.
+	assert(screens_draw(&gfx, watch, UiPage::DriveHub, 30010000));
 	CompanionSettings original = settings_get();
 	for (uint8_t language = 0; language < 2; ++language) {
 		auto value = original; value.language = language; assert(settings_update(value));

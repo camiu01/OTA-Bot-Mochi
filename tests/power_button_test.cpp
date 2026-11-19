@@ -32,12 +32,12 @@ static void boot_button_tests() {
 	assert(poll(LOW, 5000) == UiPage::Eyes);
 	assert(poll(HIGH, 5010) == UiPage::Eyes && poll(HIGH, 5040) == UiPage::Clock);
 	assert(poll(HIGH, 5070, UiPage::Clock) == UiPage::Clock);
-	for (uint8_t i = 0; i < 7; ++i) {
+	for (uint8_t i = 0; i < SCREENS_PRIMARY; ++i) {
 		uint32_t now = 6000 + i * 200;
 		UiPage page = static_cast<UiPage>(i);
 		assert(poll(LOW, now, page) == page && poll(LOW, now + 30, page) == page);
 		assert(poll(HIGH, now + 60, page) == page);
-		assert(poll(HIGH, now + 90, page) == static_cast<UiPage>((i + 1) % 7));
+		assert(poll(HIGH, now + 90, page) == static_cast<UiPage>((i + 1) % SCREENS_PRIMARY));
 	}
 	assert(poll(LOW, 8000) == UiPage::Eyes && poll(LOW, 8030) == UiPage::Eyes);
 	assert(poll(LOW, 8040, UiPage::Eyes, true) == UiPage::Eyes);

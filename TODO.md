@@ -40,6 +40,8 @@ AMOLED V2 unless another board is explicitly recorded.
 - [ ] Confirm the cause of two historical Windows LCD-emulator shutdown access violations. On 2026-11-05, 216 short and 16 long baseline runs did not reproduce them. Dummy-video sessions now bypass accelerated-driver probing, and partial/full SDL cleanup has regressions on both panels. This mitigates headless driver-lifetime exposure; the original crash cause remains unproven.
 
 - [x] Compile and physically check seeded face variation on LCD OLD and AMOLED V2: all styles, Calm/Dasai/Playful, dashboard/night intensity, open Moon/Fire, backdrop handoffs, frame cadence and clean palette restoration. Native timing/raster checks and GIF previews do not establish physical flicker or frame speed.
+- [ ] Validate the BLE ELM327 client with a real dongle on AMOLED V2 and LCD OLD: discovery by name/service, connect while Chronos (Android) and ANCS (iOS) are linked, init and 0100 search time, PID values against a phone OBD app, ignition-off/ATRV fallback, reconnection after dongle power loss, one-minute hidden disconnect, display cadence during scans and heap/stack headroom. Native tests cover only framing, PID formulas and sequencing; obd_ble.cpp has no host build and NimBLE central/peripheral coexistence is unmeasured.
+- [ ] Physically check the Drive page on LCD OLD and AMOLED V2 (AMOLED lean/pitch signs, ZERO and return to zero user-confirmed 2026-11-18): auto-zero in flat, upright and handlebar mounts, lateral/forward signs against real motion, gyro power toggling and lean in real turns (compare against a phone lean app), 100 ms cadence, clock-style home legibility at a glance, Drive → DRIVE TOOLS → tool swipes and tile taps, ZERO taps, carousel position between Weather and Settings, trip view with an active route, call overlay, keep-awake and the eight-dot carousel. Native fixtures only cover math on synthetic vectors; QMI8658 gyro register settings are datasheet-based and unmeasured.
 - [x] Compile and physically check the Games layer below Scrivania and D&D dice on LCD OLD/AMOLED V2: type/count controls, maximum 100D100 legibility, result paging, navigation, phone-mode visibility and unchanged results after redraw. Native tests do not prove physical touch usability or random-source quality.
 - [ ] Physically validate manual microSD firmware updates on AMOLED V2: valid alternate-slot install and retained settings/calibration, audio-to-update ownership handoff, missing/wrong/corrupt files, cancellation, real SD read failures, progress responsiveness and controlled interruption with USB recovery ready. Both builds, the full native suite and a USB installation passed on 2026-11-03; these are not proof of SD installation or power-loss safety.
 - [x] Compile and audition all 20 eye sound variants in each of the five families on LCD OLD and AMOLED V2; check numbered SD WAVs, legacy/generated fallbacks, mute and BLE/display coexistence. Native tests do not establish physical audibility or SD latency.
@@ -165,6 +167,51 @@ functional complaint; the agent did not listen to or test physical audio.
 ## Remaining capabilities and engineering work
 
 These are not additional reported failures of the working Chronos/IMU/UI paths.
+
+### Drive dashboard and OBD (added 2026-11-18)
+
+State: native suite and `git diff --check` passed; PlatformIO `esp32s3-amoled`
+compiled (flash 40.9%) and was installed on AMOLED V2 over USB on 2026-11-18.
+Nothing has been checked on screen, in a vehicle or with a dongle yet. Physical
+acceptance items are listed under "Acceptance and local OTA" (Drive page, BLE
+ELM327) and as H14 in `docs/HARDWARE_VALIDATION.md`.
+
+Builds and delivery
+- [ ] Compile and install the Drive/OBD build on LCD OLD (only AMOLED V2 was built and flashed).
+- [ ] Confirm the pinned Arduino CLI CI jobs for this change; only a local PlatformIO build ran.
+- [ ] Commit the Drive, gyro, carousel and OBD changes; the working tree is uncommitted.
+- [ ] Give `obd_ble.cpp` a host syntax check by extending the NimBLE stub; today only the firmware build compiles it.
+
+Gyro and lean
+- User report, 2026-11-18, AMOLED V2: gyro-fused lean works, ZERO works and lean returns to zero after tilting. A later report of mirrored L/R and forward/back was withdrawn after rechecking; the screen-X mapping stays. Mount, angles and whether this was a bench or vehicle check were not recorded; measurement and tuning items stay open.
+- [x] Functionally check QMI8658 gyro settings (CTRL3 0x56: ±512 dps, 64 LSB/dps, CTRL7 0x03 only while Drive is visible) on AMOLED V2: user-confirmed 2026-11-18.
+- [ ] Measure gyro scale against a known rotation and the first samples after power-on; LCD OLD is unchecked.
+- [ ] Measure gyro noise, bias drift with temperature and the extra current while Drive is open.
+- [ ] Tune fusion constants on real rides: complementary weight 0.98 (about 2.5 s), turn threshold 0.15 rad/s, tare stillness 0.1 rad/s, G smoothing 0.35, pitch smoothing 0.25.
+- [x] Confirm lean and pitch signs on AMOLED V2: L/R and FWD/BACK follow the tilt with screen X as "right" (user-confirmed 2026-11-18).
+- [ ] Check lean/pitch signs on LCD OLD; its IMU placement may differ.
+- [ ] Confirm FWD/AVANTI appears when the front tips down and BACK/INDIETRO when it rises, and that "ahead" matches the vehicle's forward direction and the G-ball direction under real acceleration/braking.
+- [ ] Check behavior under handlebar vibration, potholes and long sweeping turns; decide whether a vibration filter or a higher gyro rate is needed.
+- [ ] Decide whether a ZERO is needed after remounting, or whether to remember the reference per session.
+
+BLE ELM327 client
+- [ ] Test with at least two dongle brands (e.g. OBDLink CX, Vgate iCar Pro BLE, vLinker BLE) and record names, service UUIDs and init/search times.
+- [ ] Measure Chronos (Android) and ANCS (iOS) stability while Mochi is also a BLE central; check heap, worker stack (6 KiB) and display cadence during 4 s scans.
+- [ ] Replace "first matching device" with a remembered dongle address or a picker; nearby unrelated devices with OBD-like names could be chosen.
+- [ ] Support dongles that require pairing or a PIN (no security is configured for the client).
+- [ ] Add a setting to disable OBD scanning; today it scans whenever Drive is visible and no dongle is linked.
+- [ ] Check that the one-minute hidden disconnect lets the dongle sleep and does not drain the car battery.
+- [ ] Verify PID values against a phone OBD app on petrol, diesel and hybrid cars; some ECUs answer from several modules or need ATSH/protocol hints.
+
+Possible extensions (not implemented)
+- [ ] Read and show trouble codes (mode 03), read-only; never clear codes without an explicit design.
+- [ ] Use OBD speed: cross-check lateral G with speed × yaw rate, and a speed-based lean estimate.
+- [ ] Wi-Fi ELM327 dongles (TCP 192.168.0.10:35000): would replace home Wi-Fi and Internet weather while connected.
+- [ ] Direct CAN via the ESP32-S3 TWAI controller with an SN65HVD230-class transceiver on OBD pins 6/14, 12 V regulation and protection; hardware design needed.
+- [ ] Motorcycle support: many bikes lack OBD-II; identify the partner's bike connector/protocol (K-line or proprietary) first.
+- [ ] Trip log persistence or export; trip time, peaks and graph are RAM-only today.
+- [ ] Fall/crash detection: deliberately not implemented; it needs design, field data and validation before any safety claim.
+- [ ] Handlebar/dash mount and case: answer whether the case model is open, then test vibration, sun legibility and water exposure. Touch controls are for parked use only.
 
 ### Battery, charging, and power measurements
 

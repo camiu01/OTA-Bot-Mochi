@@ -16,6 +16,7 @@
 #include "context_hubs.h"
 #include "context_dice.h"
 #include "context_flappy.h"
+#include "context_drive.h"
 #include "../sound/sound.h"
 #include "../clock/clock_ui.h"
 #include "../eyes/eyes_api.h"
@@ -130,7 +131,7 @@ void context_route(Arduino_GFX *gfx, const UiSnapshot &data) {
 
 /** @brief Draw local desk tools or the Android-only phone tools. @param gfx Canvas. @param watch Clock. @param page Tool. @param data Snapshot. @param now Time. */
 void context_draw(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, const UiSnapshot &data, uint32_t now) {
-	if (page == UiPage::Desk || page == UiPage::Games) { context_hub_draw(gfx, page == UiPage::Games); }
+	if (page == UiPage::Desk || page == UiPage::Games) { context_hub_draw(gfx, page); }
 	if (page == UiPage::Dice) { desk_dice_draw(gfx); }
 	if (page == UiPage::FlappyBird) { desk_flappy_draw(gfx, now); }
 	if (page == UiPage::BigClock) { large_clock(gfx, watch); }
@@ -154,9 +155,10 @@ UiPage screens_tap(UiPage page, int16_t x, int16_t y, uint32_t now) {
 		}
 	}
 	if (page == UiPage::Music && !screens_calling()) { music_tap(x, y); }
-	if (page == UiPage::Desk || page == UiPage::Games) { return context_hub_tap(page == UiPage::Games, x, y); }
+	if (page == UiPage::Desk || page == UiPage::Games || page == UiPage::DriveHub) { return context_hub_tap(page, x, y); }
 	if (page == UiPage::Dice && desk_dice_tap(x, y)) { screens_invalidate(); }
 	if (page == UiPage::FlappyBird && desk_flappy_tap(x, y, now)) { screens_invalidate(); }
+	if (screens_drive(page) && drive_tap(page, x, y)) { screens_invalidate(); }
 	if (page == UiPage::Phone) { phone_view_tap(x, y); return page; }
 	if (page == UiPage::Tris) { desk_tris_tap(x, y, now); screens_invalidate(); }
 	if (page == UiPage::Pong) {
@@ -179,6 +181,11 @@ UiPage screens_tap(UiPage page, int16_t x, int16_t y, uint32_t now) {
 /** @brief Dispatch vertical gestures without persisting session choices. @param page Page. @param scroll +1 up, -1 down. @return Target. */
 UiPage screens_scroll(UiPage page, int8_t scroll) {
 	if (!scroll) { return page; }
+	if (screens_drive(page)) {
+		if (page == UiPage::Drive) { return scroll < 0 ? UiPage::DriveHub : page; }
+		if (page == UiPage::DriveHub) { return scroll > 0 ? UiPage::Drive : page; }
+		return scroll > 0 ? UiPage::DriveHub : page;
+	}
 	if (page == UiPage::Phone && phone_view_scroll(scroll)) { return page; }
 	if (scroll > 0) {
 		if (page == UiPage::Pong || page == UiPage::Tris || page == UiPage::Dice ||

@@ -54,13 +54,13 @@ std::string boot_command;
 
 const char *page_name(UiPage value) {
 	static const char *const names[] = {"Eyes", "Clock", "Music", "Route", "Alerts", "Weather",
-		"Settings", "Desk", "Big clock", "Overview", "Timer", "Device", "Pong", "Analog clock", "Tris", "Phone tools"};
+		"Drive", "Settings", "Desk", "Big clock", "Overview", "Timer", "Device", "Pong", "Analog clock", "Tris", "Phone tools"};
 	return uint8_t(value) < sizeof(names) / sizeof(names[0]) ? names[uint8_t(value)] : "?";
 }
 
 bool page_from_name(const std::string &name, UiPage &out) {
 	static const char *const keys[] = {"eyes", "clock", "music", "route", "alerts", "weather",
-		"settings", "desk", "bigclock", "overview", "timer", "device", "pong", "analogclock", "tris", "phone"};
+		"drive", "settings", "desk", "bigclock", "overview", "timer", "device", "pong", "analogclock", "tris", "phone"};
 	for (uint8_t i = 0; i < sizeof(keys) / sizeof(keys[0]); ++i) {
 		if (name == keys[i]) { out = UiPage(i); return true; }
 	}

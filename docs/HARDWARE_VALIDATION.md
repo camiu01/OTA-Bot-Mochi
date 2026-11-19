@@ -52,7 +52,7 @@ Do not include notification text, callers or location in logs/screenshots.
 | ID | Procedure | Expected |
 | --- | --- | --- |
 | H1 | Three cold starts, then USB `reboot`; record startup diagnostics | UI/touch/IMU ready or explicit missing-device status; greeting returns to selected eyes; no unexpected resets |
-| H2 | Swipe all seven pages; tap corners and settings rows; flip manually; hold a finger during automatic turnover | Touch follows orientation, rotation waits for release; swipes do not edit rows |
+| H2 | Swipe all eight pages; tap corners and settings rows; flip manually; hold a finger during automatic turnover | Touch follows orientation, rotation waits for release; swipes do not edit rows |
 | H3 | Hold still, use SENSORS → IMU zero; reboot; tilt gently; recalibrate in a different supported mounting | SAVED reference restores at boot; second successful calibration replaces it; gaze and automatic 180° rotation follow mounting |
 | H4 | Pair Chronos, sync time, disconnect/reconnect three times, reboot and resync | Connection state follows link; clock continues offline, waits after reboot until synced |
 | H5 | Send synthetic short/long alerts; browse/dismiss eight entries; deliver a ninth | Newest opens Alerts; pagination readable, oldest bounded entry drops; no phone payload logging |
@@ -63,6 +63,7 @@ Do not include notification text, callers or location in logs/screenshots.
 | H11 | Save iPhone mode, restart, pair and allow notifications; send a synthetic alert; toggle Bluetooth and reboot; switch back to Android with SAVE/restart | ANCS alerts delivered and reconnects recover; Android Chronos still works; no iPhone call/navigation claim |
 | H12 | Save Wi-Fi, reboot, briefly remove router availability, then restore it; open settings manually, check LAN QR, close with BACK and repeat with expiry | Background reconnection without forced screen changes; authorized session closes while managed station remains connected |
 | H13 | Search/select/save weather city; refresh, lose network, restore it | NTP/weather update; cached weather survives failures; no phone dependency in Internet mode |
+| H14 | Open Drive parked and still; ZERO; tilt left/right and pitch by hand; open every DRIVE TOOLS tile and return with upward swipes; with a BLE ELM327 dongle, ignition off then on; leave the page for over a minute | Lean/G signs match motion, peaks/trip reset on ZERO; dongle found, IGNITION OFF shows battery voltage, live values match a phone OBD app; link drops after a minute hidden; no frame stalls during scans |
 | H10 | At least **two uninterrupted hours**, phone linked, alternating eyes/scenes and pages; synthetic alerts/weather/routes and sound every 10 minutes; reconnect every 30 minutes | No crash, spontaneous reset, stuck audio/UI or progressive failure; record elapsed time and diagnostic heap/timing trends, not just “works” |
 
 For H3, sampling/storage failures have native coverage, not physical fault

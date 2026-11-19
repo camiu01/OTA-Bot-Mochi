@@ -44,6 +44,31 @@
 	X(FlappyStart, "TAP TO START", "TOCCA PER INIZIARE") \
 	X(FlappyTap, "TAP TO FLAP", "TOCCA PER VOLARE") \
 	X(FlappyRetry, "GAME OVER / TAP TO RETRY", "HAI PERSO / TOCCA: RIPROVA") \
+	X(Drive, "DRIVE", "CRUSCOTTO") \
+	X(DriveLean, "LEAN", "PIEGA") \
+	X(DriveTrip, "TRIP", "VIAGGIO") \
+	X(DriveHubTitle, "DRIVE TOOLS", "STRUMENTI GUIDA") \
+	X(DriveBigLean, "BIG LEAN", "PIEGA GRANDE") \
+	X(DriveGMeter, "G-METER", "G-METER") \
+	X(DriveGraphTitle, "LEAN GRAPH", "GRAFICO PIEGA") \
+	X(DriveMore, "SWIPE DOWN: DRIVE TOOLS", "SCENDI: STRUMENTI GUIDA") \
+	X(DriveBack2, "SWIPE UP: DRIVE", "SALI: CRUSCOTTO") \
+	X(DriveForward, "FWD", "AVANTI") \
+	X(DriveBack, "BACK", "INDIETRO") \
+	X(DriveObd, "OBD", "OBD") \
+	X(ObdIdle, "OBD: IDLE", "OBD: INATTIVO") \
+	X(ObdScanning, "SEARCHING BLE OBD DONGLE", "CERCO DONGLE OBD BLE") \
+	X(ObdConnecting, "CONNECTING TO DONGLE", "CONNESSIONE AL DONGLE") \
+	X(ObdStarting, "STARTING ELM327", "AVVIO ELM327") \
+	X(ObdLive, "OBD LIVE", "OBD ATTIVO") \
+	X(ObdNoEcu, "IGNITION OFF / NO ECU", "QUADRO SPENTO / NO ECU") \
+	X(ObdWater, "H2O ", "ACQUA ") \
+	X(ObdThrottle, "GAS ", "GAS ") \
+	X(ObdFuel, "FUEL ", "BENZ. ") \
+	X(ObdBattery, "BAT ", "BAT ") \
+	X(DriveLegend, "LEAN / LATERAL G", "PIEGA / G LATERALE") \
+	X(DriveHint, "HOLD STILL TO ZERO", "TIENI FERMO PER AZZERARE") \
+	X(DriveZero, "ZERO", "AZZERA") \
 	X(DiceRoll, "ROLL", "LANCIA") \
 	X(DiceTotal, "TOTAL", "TOTALE") \
 	X(DiceFirst, "DIE 1", "DADO 1") \

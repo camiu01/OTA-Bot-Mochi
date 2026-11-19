@@ -1,9 +1,77 @@
 # Contextual views
 
-The primary carousel contains seven pages: Eyes, Clock, Music, Route, Alerts,
-Weather, and Settings. Extra tools are grouped under Clock, not added as more
+The primary carousel contains eight pages: Eyes, Clock, Music, Route, Alerts,
+Weather, Settings and Drive. Extra tools are grouped under Clock, not added as more
 swipe destinations. The device does not infer whether it is in a car or on a desk.
 Use touch controls only while parked.
+
+## Drive dashboard
+
+**DRIVE / CRUSCOTTO** is a primary page between Weather and Settings (two swipes
+right from Eyes, or BOOT after Weather). It is meant for a dash or handlebar
+mount; operate it only while stopped.
+
+Drive uses the Clock layout with lean in place of the time: a large L/R value,
+then total G with FWD/AVANTI or BACK/INDIETRO pitch, session lean maxima, and
+live OBD speed/RPM when a dongle reports them. Like Clock → Scrivania, **swipe
+down** for **DRIVE TOOLS / STRUMENTI GUIDA**, a tile menu:
+
+| Tile | Content |
+| --- | --- |
+| BIG LEAN / PIEGA GRANDE | Huge L/R lean, pitch and session lean maxima |
+| G-METER | Large friction circle (acceleration, not felt force; 0.5 g / 1 g rings), total G, max acceleration/braking/total |
+| LEAN GRAPH / GRAFICO PIEGA | Ten seconds of lean (accent, ±60°) and lateral G (warm, ±1.2 g) |
+| TRIP / VIAGGIO | Synchronized clock, trip time since zero, lean/acceleration/braking/total peaks, phone next turn when a route is active |
+| OBD | Engine data from a BLE ELM327 dongle (see below) |
+
+Tap a tile to open it; swipe up from a tool to DRIVE TOOLS and from DRIVE TOOLS
+to Drive. Swiping down on a tool or on the menu stays there; horizontal swipes
+move relative to Drive. Every motion tool has a **ZERO / AZZERA** button that
+resets the reference, trip time, peaks and graph. Values are RAM-only.
+
+The first stable reading after the page opens or after ZERO defines "up" and
+the gyroscope bias (the device must be still: under about 6°/s). Screen X
+projected on the horizontal plane is "right" and "ahead" completes the frame,
+so any mount works without settings. Lean is positive when the right side goes
+down; pitch shows FWD/AVANTI when the front is lower than at ZERO. Zero it with
+the vehicle upright and stopped.
+
+Lean fuses the QMI8658 gyroscope with the accelerometer: the roll rate is
+integrated and pulled (about 2.5 s time constant) toward a reference. While
+turning faster than about 9°/s the reference is the ratio of the body-right to
+body-up yaw-rate components, which equals tan(lean) in a coordinated turn and
+needs no speed; on straights it is accelerometer tilt. A car's body roll is
+small, so in a car the G-ball is the useful part. The gyroscope is powered only
+while this page is visible and the accelerometer keeps its usual 50 ms poll; the
+page redraws every 100 ms and keeps the backlight from idle-dimming. No GPS
+speed is read.
+
+### BLE OBD dongle
+
+Mochi can read a **BLE** ELM327 OBD-II dongle (for example OBDLink CX, Vgate
+iCar Pro BLE, vLinker BLE). Classic-Bluetooth-only dongles cannot connect: the
+ESP32-S3 has BLE only. Wi-Fi dongles are not supported.
+
+While the Drive page is visible a priority-1 worker scans for four seconds every
+ten seconds and connects to the first device whose name contains OBD, ELM,
+VLINK, VGATE, ICAR, VEEPEAK, KONNWEI or OBDLINK, or that advertises the serial
+services FFF0, FFE0, 18F0 or E7810A71-…. It subscribes to the first notify
+characteristic and writes to the first write characteristic of that service. No
+pairing is configured. The Chronos/ANCS phone link stays as is; Mochi is central
+and peripheral at once.
+
+The session sends ATZ, ATE0, ATL0, ATS0, ATH0, ATSP0, probes 0100, then polls
+RPM (010C) and speed (010D) every round plus one of coolant (0105), throttle
+(0111), fuel level (012F) or adapter voltage (ATRV). A PID unsupported three
+times is skipped until the next probe. Three empty engine replies mean ignition
+off: the view shows IGNITION OFF / QUADRO SPENTO and keeps reporting battery
+voltage while it re-probes. Values older than three seconds turn grey; missing
+ones show `--`.
+
+Leaving the page stops polling; the link is dropped after one minute hidden so
+the dongle can sleep. Nothing is stored. Only ELM327 text commands are sent; no
+DTC clearing or writes to the vehicle are implemented. Motorcycles often lack
+standard OBD-II; check the bike's connector and protocol first.
 
 ## Navigation
 
@@ -98,10 +166,10 @@ ceiling or floor collision ends the game. Tap again to retry. The display shows
 score / session best, kept only in RAM. Leaving the page or showing a call
 overlay pauses physics without simulating time away on return.
 
-Swipe up from a desk tool to return to Scrivania. From Dice, Pong or Tris,
+Swipe up from a desk tool to return to Scrivania. From Dice, Pong, Tris
 or Flappy Bird, swipe up to Games, then up to Scrivania, then up to Clock. Swiping down on Games
 or Dice stays on the same page. A horizontal swipe from a tool goes to the previous/next primary page
-relative to Clock, so the carousel still has only seven destinations. The Clock
+relative to Clock, so the carousel still has only eight destinations. The Clock
 position dot stays selected in these tools.
 
 Time requires a Chronos sync after boot and then continues while disconnected.
@@ -150,4 +218,4 @@ They do not establish hardware random-source quality or physical touch usability
 Flappy Bird checks cover timing, collisions, scoring, restart, wrap and page/call
 pause restoration. The real IMU-driver fixture covers shake routing with face
 shake disabled, cooldown and off-page isolation. Both new features retain the
-existing large hub tiles and seven-page carousel.
+existing large hub tiles and the primary carousel.

@@ -48,6 +48,7 @@
 #include "src/network/network_service.h"
 #include "src/bus/i2c_bus.h"
 #include "src/ancs/ancs_service.h"
+#include "src/vehicle/obd_ble.h"
 #include "src/companion/companion_state.h"
 #include "src/companion/companion_service.h"
 #include "src/companion/companion_language.h"
@@ -344,6 +345,7 @@ void setup() {
 	bool ble_ready = false;
 	if (ios_mode_boot) { ble_ready = ancs_begin(); }
 	else { init_chronos(); ble_ready = watch.isRunning(); }
+	if (ble_ready && !obd_begin()) { Serial.println("OBD worker unavailable"); }
 	ntp_sync_bind([](const tm &t) {
 		watch.setTime(t.tm_sec, t.tm_min, t.tm_hour, t.tm_mday, t.tm_mon + 1, t.tm_year + 1900);
 		clock_time_synced(); screens_invalidate();

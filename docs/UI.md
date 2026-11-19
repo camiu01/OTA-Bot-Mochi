@@ -3,7 +3,7 @@
 The living eyes remain the default screen. Utility screens use a black background,
 rounded tinted cards, eye-colored text and icons, and dimmer secondary labels.
 The eye color is the shared primary color, including controls, calls, and weather.
-Seven position dots indicate the selected
+Eight position dots indicate the selected
 screen; the header shows a speaker icon (crossed out while sound is off or
 night-muted), Bluetooth state, and the battery percentage (`--%` until a
 plausible reading exists). While the PMU reports a stable charging state, the
@@ -32,7 +32,7 @@ Android mode adds **Phone tools** as the sixth contextual desk tile. Find,
 camera, alarms, phone battery, reminders, app schedules, hourly forecasts,
 contacts, QR links and explicit app-language association are described in
 [Chronos integration](CHRONOS.md). The tile and Chronos-only actions are hidden
-in iPhone mode; the seven-page carousel remains unchanged.
+in iPhone mode; the primary carousel remains unchanged.
 
 The Moon face animates new, waxing crescent, first quarter, waxing gibbous,
 full, waning gibbous, last quarter and waning crescent moons over its six-second
@@ -121,11 +121,13 @@ released taps, double taps, pet strokes, holds and swipes keep their existing
 actions. Calm disables them; dashboard/night reduce their intensity.
 
 - Settings → SYSTEM → **Firmware update** opens a temporary Wi-Fi maintenance
-  screen, outside the seven-page carousel. Its password and browser address are
+  screen, outside the primary carousel. Its password and browser address are
   shown on the display; normal controls pause until exit, timeout or restart.
   See [OTA](OTA.md) for first-install requirements and safety limits.
 
-- Swipe left/right through Eyes, Clock, Music, Route, Alerts, Weather, and Settings.
+- Swipe left/right through Eyes, Clock, Music, Route, Alerts, Weather, Drive and
+  Settings; swipe down on Drive for the DRIVE TOOLS menu. See
+  [Drive dashboard](DESK.md#drive-dashboard).
 - Vertical swipes follow the contextual layers: swipe **down** on Clock to open
   Scrivania (desk tools), then **down** again for **Games / Giochi** (D&D dice,
   Pong and Tris). Swipe **up** from a game to Games, from Games or a desk tool

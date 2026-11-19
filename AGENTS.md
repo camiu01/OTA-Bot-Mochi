@@ -89,8 +89,8 @@ on native tests and provides downloadable binaries, not automatic OTA deployment
 - Chronos callbacks feed bounded, mutex-protected snapshots/event counters in
   `src/ui/ui_state.*`. Do not draw, play sound, write preferences, or issue app
   sync from a BLE callback. Main-task policies consume those events.
-- `screens.*` dispatches seven swipe destinations: Eyes, Clock, Music, Route, Alerts,
-  Weather, Settings. Desk tools are contextual children of Clock, not additional
+- `screens.*` dispatches eight swipe destinations: Eyes, Clock, Music, Route, Alerts,
+  Weather, Settings, Drive. Desk tools are contextual children of Clock, not additional
   carousel entries. New alerts/navigation starts may auto-select a page; ordinary
   updates preserve manual selection, and switching defers while touch is held.
 - The eye engine separates configured expression/style from temporary face
@@ -120,6 +120,10 @@ on native tests and provides downloadable binaries, not automatic OTA deployment
   after the intro, respecting master/night mute. AMOLED charge-start audio reads
   PMU state on the existing bus; it does not configure charging. SD reaction
   family WAVs fall back to face.wav and then the generated chirp.
+- `src/vehicle` owns the optional BLE ELM327 client: a priority-1 worker scans,
+  connects and polls only while the Drive page is visible; notify callbacks only
+  queue bytes. `elm327.h` (framing/PIDs/sequence) is host-tested, `obd_ble.cpp`
+  is device-only.
 - Weather retains phone-pushed data and optionally uses saved Wi-Fi/Open-Meteo.
   `src/network` owns station reconnection, shared main-task NTP and a bounded
   low-priority HTTPS worker; never do HTTP or draw from BLE/worker callbacks.

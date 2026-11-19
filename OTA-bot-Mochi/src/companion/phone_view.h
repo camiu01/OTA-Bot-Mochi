@@ -1,4 +1,4 @@
-/** @file phone_view.h @brief Contextual Android-only phone tools; the carousel retains seven destinations. */
+/** @file phone_view.h @brief Contextual Android-only phone tools; they are not carousel destinations. */
 #pragma once
 #include <Arduino_GFX_Library.h>
 /** @brief Render one phone tool from owned snapshots. @param gfx Canvas. @param day Local day of year. */

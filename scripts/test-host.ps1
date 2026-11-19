@@ -97,6 +97,8 @@ try {
 	Invoke-HostTest 'dice' @("$root\tests\dice_test.cpp")
 	Invoke-HostTest 'dice-geometry' @("$root\tests\dice_geometry_test.cpp")
 	Invoke-HostTest 'flappy' @("$root\tests\flappy_test.cpp")
+	Invoke-HostTest 'drive-meter' @("$root\tests\drive_meter_test.cpp")
+	Invoke-HostTest 'elm327' @("$root\tests\elm327_test.cpp")
 	$ota = $runtime + @("$root\tests\ota_test.cpp", "$root\OTA-bot-Mochi\src\update\ota_update.cpp", "$root\OTA-bot-Mochi\src\update\ntp_sync.cpp", "$root\tests\stubs\imu_noop.cpp")
 	Invoke-HostTest 'ota-lcd' $ota @('-I', "$root\tests\stubs\ota")
 	Invoke-HostTest 'ota-amoled' $ota @('-I', "$root\tests\stubs\ota", '-DMOCHI_BOARD_AMOLED_18')
