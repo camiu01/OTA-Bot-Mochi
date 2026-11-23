@@ -1,5 +1,7 @@
 # Saved Wi-Fi, automatic time and Internet weather
 
+[← README](../README.md) · [Docs index](README.md)
+
 The ESP32 joins a user-saved 2.4 GHz network at startup using router DHCP
 (HTTP port 80, not port forwarding). Connection attempts continue in the
 background with a bounded backoff. Startup, missing configuration and connection

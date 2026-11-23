@@ -1,5 +1,7 @@
 # Contextual views
 
+[← README](../README.md) · [Docs index](README.md)
+
 The primary carousel contains eight pages: Eyes, Clock, Music, Route, Alerts,
 Weather, Settings and Drive. Extra tools are grouped under Clock, not added as more
 swipe destinations. The device does not infer whether it is in a car or on a desk.

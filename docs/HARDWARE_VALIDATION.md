@@ -1,5 +1,7 @@
 # Repeatable hardware validation
 
+[← README](../README.md) · [Docs index](README.md)
+
 ## Evidence boundaries
 
 - **Implemented:** source contains the behavior.

@@ -1,5 +1,7 @@
 # Chronos phone tools
 
+[← README](../README.md) · [Docs index](README.md)
+
 Android mode exposes **Clock → swipe down → Phone tools**, the eighth desk
 tile. These are contextual tools, not a carousel destination. Horizontal
 swipes navigate the eight main pages. Swipe up inside a tool to

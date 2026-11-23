@@ -1,63 +1,25 @@
+<div align="center">
+
 # OTA-Bot-Mochi
+### ESP32-S3 desk companion with 254 animated expressions
+
+[![License GPLv3](https://img.shields.io/badge/License_GPLv3-blue)](LICENSE)
+![C++](https://img.shields.io/badge/C++-00599C?logo=cplusplus&logoColor=white)
+![ESP32-S3](https://img.shields.io/badge/ESP32--S3-E7352C?logo=espressif&logoColor=white)
+[![Firmware and host checks](https://github.com/camiu01/OTA-Bot-Mochi/actions/workflows/checks.yml/badge.svg)](https://github.com/camiu01/OTA-Bot-Mochi/actions/workflows/checks.yml)
+
+<img src="docs/images/dashboard-demo-1.gif" alt="Mochi running on a car dashboard at night" width="200" />
+<img src="docs/images/dashboard-demo-2.gif" alt="Mochi changing expressions on a car dashboard at night" width="200" />
+
+[Releases](https://github.com/camiu01/OTA-Bot-Mochi/releases) · [What it does](#what-it-does) · [Getting started](#getting-started) · [Usage](#usage) · [Configuration](#configuration) · [How it works](#how-it-works) · [Limitations](#limitations) · [Development](#development) · [License](#license)
+
+</div>
 
 OTA-Bot-Mochi is a desk robot companion that blinks, reacts to touch and tilt, and displays information
-received from a phone.
+received from a phone. It ships with **254 animated expressions**.
 
 The firmware targets the Waveshare **ESP32-S3-Touch-LCD-1.69 OLD** and, through a separate build profile, the
 **ESP32-S3-Touch-AMOLED-1.8 V2**. It is an Arduino C++ project, not a general-purpose ESP32 display firmware.
-
-[![License: GPLv3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
-[![Firmware and host checks](https://github.com/camiu01/OTA-Bot-Mochi/actions/workflows/checks.yml/badge.svg)](https://github.com/camiu01/OTA-Bot-Mochi/actions/workflows/checks.yml)
-
-[Hardware](#hardware) · [Build and flash](#build-and-flash) · [Controls](#controls-and-everyday-use) · [Configuration](#configuration) · [Known limits](#limitations-and-troubleshooting)
-
-## Start here
-
-- **Without a phone:** animated eyes, touch/motion reactions, Pong, Tris and local timers.
-- **With iPhone:** ANCS notifications without Chronos; select iPhone mode, SAVE,
-  restart and authorize notification access in iOS Bluetooth settings.
-- **With Wi-Fi:** saved 2.4 GHz connection, automatic NTP and city-based weather;
-  [configuration](docs/NETWORK.md) opens only when requested from Settings.
-- **With Chronos:** time synchronization, notifications/calls, weather and navigation.
-  Clocks keep time while disconnected, but need synchronization after reboot.
-- **Board:** use exactly LCD **1.69 OLD** (PSRAM disabled) or AMOLED **1.8 V2**
-  (OPI PSRAM). Other revisions are not interchangeable.
-- **Install:** download a [release](https://github.com/camiu01/OTA-Bot-Mochi/releases)
-  and follow [first installation versus update](docs/INSTALLING.md).
-  Source builds are described below.
-- **Evidence:** the user confirmed Wi-Fi, settings changes and ANCS notifications
-  working on AMOLED V2. These are functional reports, not a two-board or endurance certificate. See
-  [validation records](docs/HARDWARE_VALIDATION.md) and [release evidence](docs/CI.md).
-- **Wireless updates:** after the first OTA-capable USB installation, upload
-  your board's release `*-app.bin` through the [local OTA screen](docs/OTA.md).
-  Hardware validation of this new updater is still pending.
-- **microSD updates (AMOLED V2):** use SYSTEM → Firmware from SD with the matching
-  release application in `/mochi/update/`, then confirm on screen.
-  See [microSD installation and validation limits](docs/OTA.md#update-from-microsd-amoled-v2).
-- **Limits:** no verified battery runtime; charging configuration is unimplemented.
-
-## See it in action
-
-![Emulator views of the desk menu, playable Pong, and analog clock](docs/images/desk-tools.png)
-
-These are existing **native emulator screenshots**, not photos of a running board. The clock and phone data
-are synthetic. No device photo or video demo is included in the repository; the images show source behavior,
-not hardware validation.
-
-![Curved happy eyes, squeezed chevrons, tilted eyes, and decorative clock eyes](docs/images/eye-expressions.png)
-
-Left to right: `arc_happy`, `squeezed`, `tilted`, and `clock_eyes`.
-
-![Decorative gauge, color-cycling glow, and outward headlight beams](docs/images/animated-moods.png)
-
-The gauge is an animation, not a speed/RPM instrument. Glow returns to the selected eye color; headlight beams grow outward
-from the eyes. These still images do not show the transitions.
-
-To generate animated previews of any face or face transition, double-click
-`tools/export-gifs.bat` on Windows. See [GIF export](docs/GIF_EXPORT.md) for setup,
-batch export and LCD/AMOLED sizes.
-Double-click `tools/export-all-gifs.bat` to export every face, one GIF per file.
-On Linux, use `./tools/export-gifs.sh` or `./tools/export-all-gifs.sh` with the same options.
 
 ## What it does
 
@@ -130,7 +92,56 @@ No enclosure design or fabrication files are supplied.
 Manual [local firmware OTA](docs/OTA.md) uses a temporary authorized LAN session
 or a temporary configuration Wi-Fi network. Artifact/release packaging does not automatically deploy firmware.
 
-## Hardware
+### See it in action
+
+![Emulator views of the desk menu, playable Pong, and analog clock](docs/images/desk-tools.png)
+
+The GIFs at the top are phone recordings of a real board mounted on a car dashboard. The images below are
+**native emulator screenshots**, not photos of a running board; their clock and phone data are synthetic.
+Neither is a hardware validation record.
+
+![Curved happy eyes, squeezed chevrons, tilted eyes, and decorative clock eyes](docs/images/eye-expressions.png)
+
+Left to right: `arc_happy`, `squeezed`, `tilted`, and `clock_eyes`.
+
+![Decorative gauge, color-cycling glow, and outward headlight beams](docs/images/animated-moods.png)
+
+The gauge is an animation, not a speed/RPM instrument. Glow returns to the selected eye color; headlight beams grow outward
+from the eyes. These still images do not show the transitions.
+
+To generate animated previews of any face or face transition, double-click
+`tools/export-gifs.bat` on Windows. See [GIF export](docs/GIF_EXPORT.md) for setup,
+batch export and LCD/AMOLED sizes.
+Double-click `tools/export-all-gifs.bat` to export every face, one GIF per file.
+On Linux, use `./tools/export-gifs.sh` or `./tools/export-all-gifs.sh` with the same options.
+
+<a id="start-here"></a>
+## Getting started
+
+- **Without a phone:** animated eyes, touch/motion reactions, Pong, Tris and local timers.
+- **With iPhone:** ANCS notifications without Chronos; select iPhone mode, SAVE,
+  restart and authorize notification access in iOS Bluetooth settings.
+- **With Wi-Fi:** saved 2.4 GHz connection, automatic NTP and city-based weather;
+  [configuration](docs/NETWORK.md) opens only when requested from Settings.
+- **With Chronos:** time synchronization, notifications/calls, weather and navigation.
+  Clocks keep time while disconnected, but need synchronization after reboot.
+- **Board:** use exactly LCD **1.69 OLD** (PSRAM disabled) or AMOLED **1.8 V2**
+  (OPI PSRAM). Other revisions are not interchangeable.
+- **Install:** download a [release](https://github.com/camiu01/OTA-Bot-Mochi/releases)
+  and follow [first installation versus update](docs/INSTALLING.md).
+  Source builds are described below.
+- **Evidence:** the user confirmed Wi-Fi, settings changes and ANCS notifications
+  working on AMOLED V2. These are functional reports, not a two-board or endurance certificate. See
+  [validation records](docs/HARDWARE_VALIDATION.md) and [release evidence](docs/CI.md).
+- **Wireless updates:** after the first OTA-capable USB installation, upload
+  your board's release `*-app.bin` through the [local OTA screen](docs/OTA.md).
+  Hardware validation of this new updater is still pending.
+- **microSD updates (AMOLED V2):** use SYSTEM → Firmware from SD with the matching
+  release application in `/mochi/update/`, then confirm on screen.
+  See [microSD installation and validation limits](docs/OTA.md#update-from-microsd-amoled-v2).
+- **Limits:** no verified battery runtime; charging configuration is unimplemented.
+
+### Hardware
 
 Choose **one** supported board. These profiles do not establish compatibility with the newer 1.69 revision,
 AMOLED V1 (SH8601), or other ESP32 display boards.
@@ -156,7 +167,7 @@ Power documentation specifies a regulated USB source, but does not establish cur
 polarity, charging limits, or measured runtime. Do not infer a battery connection from the GPIO names. Never
 connect a vehicle's 12 V supply directly. See [Boards](docs/BOARDS.md) and [Settings](docs/SETTINGS.md).
 
-## Wiring and board configuration
+### Wiring and board configuration
 
 Display, touch, IMU, and board-specific control signals are already routed on the supported boards. No
 external signal wiring is required for the documented USB-powered setup. The following are **internal profile
@@ -184,7 +195,7 @@ sketch releases the expander-controlled panel reset before display initializatio
 No local schematic or electrical pinout drawing is included; [Boards](docs/BOARDS.md) links manufacturer references.
 Do not improvise battery, speaker, or power connections from this table.
 
-## Build and flash
+### Build and flash
 
 The firmware is an Arduino C++ sketch, and two build-tool paths are configured for it. Choose **one** path,
 and use the profile matching the physical board; you do not need both workflows.
@@ -203,9 +214,9 @@ Before lending, selling or giving away the device, use **Forget Wi-Fi** and
 remove phone bonds. Credentials are stored in unencrypted flash; this firmware
 does not provide flash or NVS encryption. See [audit follow-up](docs/AUDIT_REMEDIATION.md).
 
-### Arduino CLI (CI/reference path)
+#### Arduino CLI (CI/reference path)
 
-#### 1. Prerequisites
+##### 1. Prerequisites
 
 Install **Arduino CLI 1.2.0** and put `arduino-cli` in PATH. The IDE-bundled CLI is another supported route;
 see [toolchain setup](docs/TESTING.md#arduino-cli). You also need Git. A USB data connection is required for flashing, not compilation.
@@ -218,7 +229,7 @@ see [toolchain setup](docs/TESTING.md#arduino-cli). You also need Git. A USB dat
 | ESP32Time | 2.0.6 |
 | NimBLE-Arduino | 2.5.2 |
 
-#### 2. Clone
+##### 2. Clone
 
 ```sh
 git clone https://github.com/camiu01/OTA-Bot-Mochi.git
@@ -227,7 +238,7 @@ cd OTA-Bot-Mochi
 
 Run these single-line commands from the repository root, individually, in PowerShell or a POSIX shell.
 
-#### 3. Install the core and libraries
+##### 3. Install the core and libraries
 
 ```sh
 arduino-cli core update-index --additional-urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
@@ -236,7 +247,7 @@ arduino-cli lib install "ESP32Time@2.0.6" "NimBLE-Arduino@2.5.2"
 arduino-cli lib install --no-deps "ChronosESP32@1.9.1" "GFX Library for Arduino@1.6.9"
 ```
 
-#### 4. Select a target and compile
+##### 4. Select a target and compile
 
 Compile **only the profile matching your board**. Separate build directories keep its binaries apart.
 
@@ -255,7 +266,7 @@ arduino-cli compile --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=opi,FlashSiz
 The sketch is [OTA-bot-Mochi.ino](OTA-bot-Mochi/OTA-bot-Mochi.ino); Arduino compiles its `src/` modules
 recursively. Selecting "ESP32S3 Dev Module" alone does not select the AMOLED profile.
 
-#### 5. Find the port and flash
+##### 5. Find the port and flash
 
 ```sh
 arduino-cli board list
@@ -282,7 +293,7 @@ For later updates, keep the layout unchanged; erasing flash or writing full imag
 Precompiled binaries are available. Use [installation instructions](docs/INSTALLING.md)
 for release images and [CI evidence](docs/CI.md) for their source revision and build results.
 
-#### 6. First boot
+##### 6. First boot
 
 Keep the board still in its intended desk position. The IMU restores saved calibration,
 or uses a temporary reference until SENSORS → IMU zero succeeds. Open the serial
@@ -303,7 +314,7 @@ CI run built both profiles at core **3.3.11**; earlier AMOLED device bring-up
 used **3.3.12**. Neither result identifies which binary is currently installed
 or proves hardware operation. See [OTA validation limits](docs/OTA.md#validation-and-limits).
 
-### PlatformIO (alternative path)
+#### PlatformIO (alternative path)
 
 `platformio.ini` at the repository root mirrors both board profiles with the same library pins, 16 MB flash,
 and a 115200-baud serial monitor. Its default environment is `esp32s3-lcd`, so a bare `pio run` builds only
@@ -354,7 +365,8 @@ Before the first OTA-capable installation, follow the USB partition migration in
 Never flash the AMOLED image to the LCD board or the reverse: the two profiles require
 different PSRAM configurations (see [Wiring and board configuration](#wiring-and-board-configuration)).
 
-## Controls and everyday use
+<a id="controls-and-everyday-use"></a>
+## Usage
 
 The primary carousel is: `Eyes → Clock → Music → Route → Alerts → Weather → Drive → Settings → Eyes`. Desk tools are children
 of Clock, not additional carousel pages.
@@ -444,7 +456,8 @@ a host preview does not add support for another physical panel. BLE name/metadat
 Accelerometer sampling and filter gains live in `src/eyes/eyes_imu.cpp` and `motion_filter.h`. Changing those
 requires a reviewed rebuild, not an undocumented wiring change.
 
-## Firmware architecture
+<a id="firmware-architecture"></a>
+## How it works
 
 Paths below are relative to `OTA-bot-Mochi/`.
 
@@ -474,7 +487,8 @@ saves preferences, and issues app sync requests. Optional AMOLED sound has a ded
 it does not replace the UI loop. Only accelerometer data is enabled: this is decorative motion response, not
 gyroscope fusion, attitude measurement, or autonomous movement.
 
-## Limitations and troubleshooting
+<a id="limitations-and-troubleshooting"></a>
+## Limitations
 
 | Symptom / limitation | Documented checks and boundary |
 | --- | --- |
@@ -524,7 +538,8 @@ See [Adding a face](docs/ADDING_A_FACE.md) for the compiled minimal example and 
 See [Contributing](CONTRIBUTING.md) for tabs, small cohesive functions/files, English documentation, and
 Conventional Commits. The [Code of Conduct](CODE_OF_CONDUCT.md) and [Security policy](SECURITY.md) apply.
 
-## Credits and license
+<a id="credits-and-license"></a>
+## License
 
 Copyright (c) 2026 [Camiu](https://github.com/camiu01). The repository includes the [GNU GPL v3
 license](LICENSE); firmware source headers use `SPDX-License-Identifier: GPL-3.0-or-later`.

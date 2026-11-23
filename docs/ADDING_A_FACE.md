@@ -1,5 +1,7 @@
 # Editing and adding a face
 
+[← README](../README.md) · [Docs index](README.md)
+
 Every existing expression has one file in `OTA-bot-Mochi/src/eyes/faces/`:
 254 files, named after the canonical USB names. Each file owns an immutable
 `FacePreset` and its expression-specific drawing and animation procedures.

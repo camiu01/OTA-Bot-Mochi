@@ -144,3 +144,9 @@ Do not add AI co-author trailers (`Co-Authored-By`), session links or
 UI/settings/audio behavior is documented in `docs/UI.md`, `docs/SETTINGS.md`,
 `docs/DESK.md`, and `docs/SOUND.md`. Track unverified hardware/CI work in `TODO.md`;
 do not mark physical validation complete based on native mocks.
+
+## Documentation conventions
+
+README, TODO, CHANGELOG and `docs/` follow the shared rules in
+[CONTRIBUTING.md](CONTRIBUTING.md#documentation-conventions). Read them before editing any Markdown
+file, and never add AI attribution lines to commits or pull requests.

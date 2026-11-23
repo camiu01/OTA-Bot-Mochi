@@ -1,5 +1,7 @@
 # Companion UI
 
+[← README](../README.md) · [Docs index](README.md)
+
 The living eyes remain the default screen. Utility screens use a black background,
 rounded tinted cards, eye-colored text and icons, and dimmer secondary labels.
 The eye color is the shared primary color, including controls, calls, and weather.

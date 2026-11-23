@@ -1,5 +1,7 @@
 # Local firmware updates
 
+[← README](../README.md) · [Docs index](README.md)
+
 Mochi can receive a manually downloaded GitHub release application through a
 temporary authorized LAN session or Wi-Fi access point. It does not contact GitHub, check for new versions,
 or install anything automatically. Both board profiles use the same flow.

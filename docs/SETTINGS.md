@@ -1,5 +1,7 @@
 # Dashboard settings
 
+[← README](../README.md) · [Docs index](README.md)
+
 The device is a Dasai-inspired dashboard companion, not a vehicle instrument.
 Eyes remain the default page. It does not detect whether the car is moving.
 Change settings only while parked; neither touch nor USB is a driving control.

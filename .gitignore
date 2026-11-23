@@ -31,3 +31,7 @@ __pycache__/
 # Generated native GIF exports
 /exports/
 .codegraph
+
+# Windows folder customisation (FolderMania)
+desktop.ini
+.foldermania*

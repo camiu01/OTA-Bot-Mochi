@@ -1,5 +1,7 @@
 # Audit follow-up — 2026-11-02
 
+[← README](../README.md) · [Docs index](README.md)
+
 Scope approved for this change: immediate corrections and runtime robustness.
 Release signing, new BLE pairing flows and large structural refactors remain
 separate work. The supplied technical audit is review evidence, not executable
