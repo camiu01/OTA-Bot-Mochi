@@ -269,7 +269,7 @@ static void desk_checks() {
 	screens_tap(UiPage::Timer, ui_s(20), ui_s(230), 1000);
 	assert(view_timer().remaining == 1500000);
 	screens_tap(UiPage::Timer, ui_s(150), ui_s(230), 1000);
-	assert(view_timer().mode == uint8_t((mode + 1) % 3));
+	assert(view_timer().mode == uint8_t((mode + 1) % DeskTimer::MODES));
 	// A panel taller than the scaled design field grows black below it; that
 	// strip must not press widgets drawn only inside the field.
 	if (LCD_HEIGHT > ui_s(UI_DESIGN_H)) {

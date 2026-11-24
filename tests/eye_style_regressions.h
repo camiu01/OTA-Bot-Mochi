@@ -9,7 +9,7 @@
 #include <cassert>
 #include <cstring>
 
-/** @brief New styles round-trip through unchanged v10 profiles and canonical USB names. */
+/** @brief New styles round-trip through unchanged v11 profiles and canonical USB names. */
 static void signature_profile_tests() {
 	static_assert(NORMAL == 0 && MOCHI == 1 && BLOUB == 2 && TRAPEZ == 3, "Preserve saved style IDs");
 	auto profile = settings_get();
@@ -18,7 +18,7 @@ static void signature_profile_tests() {
 		assert(settings_valid(profile));
 		uint8_t bytes[SETTINGS_BYTES]; settings_encode(profile, bytes);
 		CompanionSettings decoded;
-		assert(bytes[0] == 10 && settings_decode(bytes, sizeof(bytes), decoded) && decoded.style == style);
+		assert(bytes[0] == 11 && settings_decode(bytes, sizeof(bytes), decoded) && decoded.style == style);
 		std::string command = std::string("set style ") + settings_style_name(style);
 		auto parsed = settings_parse(command.c_str(), settings_get());
 		assert(parsed.action != UsbAction::Invalid && parsed.profile.style == style);

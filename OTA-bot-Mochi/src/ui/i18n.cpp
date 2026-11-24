@@ -106,8 +106,8 @@ const char *tr_choice(uint8_t group, uint8_t index) {
 	if (group == 3 && index < 3) { return tr(animations[index]); }
 	if (group == 4 && index < FACE_FLOW_COUNT) {
 		static const char *modes[][2] = {
-			{"Return", "Ritorno"}, {"Group of 5", "Gruppo di 5"},
-			{"Sequence", "Sequenza"}, {"Continuous", "Continua"}
+			{"RETURN", "RITORNO"}, {"GROUP OF 5", "GRUPPO DI 5"},
+			{"SEQUENCE", "SEQUENZA"}, {"CONTINUOUS", "CONTINUA"}
 		};
 		return modes[index][settings_get().language == 1 ? 1 : 0];
 	}

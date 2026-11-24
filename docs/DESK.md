@@ -30,6 +30,10 @@ Tap a tile to open it; swipe up from a tool to DRIVE TOOLS and from DRIVE TOOLS
 to Drive. Swiping down on a tool or on the menu stays there; horizontal swipes
 move relative to Drive. Every motion tool has a **ZERO / AZZERA** button that
 resets the reference, trip time, peaks and graph. Values are RAM-only.
+Shortcuts: **hold** on the Drive home or on a motion tool does the same ZERO;
+**tap** the Drive home (below the status row) to reopen the last tool opened
+from DRIVE TOOLS in this session, or DRIVE TOOLS itself the first time. The
+home also shows a lean gauge: a dot slides left/right up to 60°.
 
 The first stable reading after the page opens or after ZERO defines "up" and
 the gyroscope bias (the device must be still: under about 6°/s). Screen X
@@ -54,24 +58,31 @@ Mochi can read a **BLE** ELM327 OBD-II dongle (for example OBDLink CX, Vgate
 iCar Pro BLE, vLinker BLE). Classic-Bluetooth-only dongles cannot connect: the
 ESP32-S3 has BLE only. Wi-Fi dongles are not supported.
 
-While the Drive page is visible a priority-1 worker scans for four seconds every
-ten seconds and connects to the first device whose name contains OBD, ELM,
-VLINK, VGATE, ICAR, VEEPEAK, KONNWEI or OBDLINK, or that advertises the serial
-services FFF0, FFE0, 18F0 or E7810A71-…. It subscribes to the first notify
+While the Drive page is visible and **Settings → SYSTEM → OBD dongle scan** is on
+(default; USB `set obd-scan on|off`), a priority-1 worker scans for four seconds
+every ten seconds. Candidates are devices whose name contains OBD, ELM,
+VLINK, VGATE, ICAR, VEEPEAK, KONNWEI or OBDLINK, or that advertise the serial
+services FFF0, FFE0, 18F0 or E7810A71-…. The last dongle that completed GATT
+discovery is remembered (its address only, in the `mochi-obd` NVS namespace) and
+preferred; otherwise the strongest signal wins. With the scan off the OBD tool
+shows OBD SCAN OFF and no BLE central activity starts. It subscribes to the first notify
 characteristic and writes to the first write characteristic of that service. No
 pairing is configured. The Chronos/ANCS phone link stays as is; Mochi is central
 and peripheral at once.
 
 The session sends ATZ, ATE0, ATL0, ATS0, ATH0, ATSP0, probes 0100, then polls
 RPM (010C) and speed (010D) every round plus one of coolant (0105), throttle
-(0111), fuel level (012F) or adapter voltage (ATRV). A PID unsupported three
+(0111), fuel level (012F), adapter voltage (ATRV) or monitor status (0101).
+0101 gives the check-engine lamp and the stored-trouble-code count, shown as
+CHECK ENGINE n DTC (warm while the lamp is on) or NO STORED FAULTS; codes are
+not listed and never cleared. A PID unsupported three
 times is skipped until the next probe. Three empty engine replies mean ignition
 off: the view shows IGNITION OFF / QUADRO SPENTO and keeps reporting battery
 voltage while it re-probes. Values older than three seconds turn grey; missing
 ones show `--`.
 
 Leaving the page stops polling; the link is dropped after one minute hidden so
-the dongle can sleep. Nothing is stored. Only ELM327 text commands are sent; no
+the dongle can sleep. Only the dongle address is stored; vehicle values are not. Only ELM327 text commands are sent; no
 DTC clearing or writes to the vehicle are implemented. Motorcycles often lack
 standard OBD-II; check the bike's connector and protocol first.
 
@@ -97,7 +108,7 @@ Swipe down on Clock to open Scrivania, then select:
 | --- | --- |
 | BIG CLOCK | Large hours/minutes, seconds, AM/PM when applicable, and date |
 | DESK OVERVIEW | Time, phone connection, temperature/city, and weather freshness |
-| TIMER / POMODORO | Local 5-minute or 15-minute timer, or one 25-minute focus/5-minute rest pair |
+| TIMER / POMODORO | Local 5-minute or 15-minute timer, one 25-minute focus/5-minute rest pair, or a stopwatch |
 | DEVICE STATUS | BLE connection, backlight percentage, IMU initialization, clock sync, preference save state, sound state, battery estimate, and a charge bolt while the PMU reports charging |
 | ANALOG CLOCK | Hour, minute and second hands with synchronized digital time below |
 | PHONE TOOLS (Android only) | Find phone, camera, battery, alarms, reminders, hourly weather, contacts, QR and language association; see [Chronos](CHRONOS.md) |
@@ -188,8 +199,11 @@ appears beside the row while the AMOLED PMU reports a stable charging state.
 
 ## Local timer
 
-MODE cycles 5 minutes, 15 minutes, and Pomodoro, resetting paused. START/PAUSE
-controls the countdown; RESET resets the chosen mode paused. START/PAUSE is a
+MODE cycles 5 minutes, 15 minutes, Pomodoro and Stopwatch, resetting paused.
+Stopwatch counts up (ELAPSED / TRASCORSO), switches to H:MM:SS after an hour
+and stops at 99:59:59 as DONE. START/PAUSE
+controls the countdown; tapping the large time does the same, and a **hold**
+anywhere on the timer resets it paused, like RESET. START/PAUSE is a
 full-width 50-pixel accent button; RESET and MODE are 48-pixel buttons beside
 each other, all with matching touch zones. Pomodoro automatically
 enters a five-minute rest after the focus phase, then stops at DONE.

@@ -249,6 +249,8 @@ void toggle_quick_sound(uint32_t now) {
 	if (value.sound) { sound_request(SoundCue::Tap, now); }
 }
 
+uint32_t last_input = 0;	/**< Last touch, BOOT press or automatic page change, for the return to Eyes. */
+
 /**
  * @brief Handle parked-use taps, a utility-page mute toggle, double taps, petting
  * strokes, a hold-to-settings shortcut, contextual vertical gestures, and page swipes.
@@ -267,10 +269,11 @@ void handle_touch(uint32_t now) {
 	int16_t pet_x = 0, pet_y = 0;
 	bool pet = touch_take_pet(pet_x, pet_y);
 	int8_t scroll = touch_take_scroll();
+	if (touch_pressed() || tap || hold || dbl || pet || scroll || step) { last_input = now; }
 	UiPage boot_target = boot_button.poll(now, current_screen,
 		starting || shutting_down || touch_pressed() || screens_calling());
 	if (boot_target != current_screen) {
-		backlight_activity(now); switch_screen(boot_target, now); return;
+		last_input = now; backlight_activity(now); switch_screen(boot_target, now); return;
 	}
 	if (starting || shutting_down) { return; }
 	if (tap && y < 50 && !screens_calling() && current_screen != UiPage::Eyes &&
@@ -291,8 +294,7 @@ void handle_touch(uint32_t now) {
 		switch_screen(UiPage::Settings, now);
 		return;
 	}
-	if (hold && current_screen == UiPage::Navigation && !screens_calling()) {
-		view_route_temporary(-1);
+	if (hold && current_screen != UiPage::Settings && !screens_calling() && screens_hold(current_screen, now)) {
 		screens_invalidate();
 		return;
 	}
@@ -317,13 +319,17 @@ void handle_touch(uint32_t now) {
 	switch_screen(screens_swipe(current_screen, step), now);
 }
 
-/** @brief Follow new Chronos events without changing screens from BLE callbacks. @param now Timestamp. */
+/** @brief Follow new Chronos events without changing screens from BLE callbacks, and return idle pages to Eyes. @param now Timestamp. */
 void handle_auto_page(uint32_t now) {
 	if (starting || shutting_down) { return; }
 	UiPage target = auto_page.update(current_screen, ui_page_events(), touch_pressed(), now);
 	if (target != current_screen) {
+		last_input = now;
 		backlight_activity(now);
 		switch_screen(target, now);
+	} else if (screens_auto_home(current_screen, now - last_input)) {
+		last_input = now;
+		switch_screen(UiPage::Eyes, now);
 	}
 }
 

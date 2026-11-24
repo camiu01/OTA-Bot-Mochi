@@ -21,46 +21,6 @@ bool sound_options = false;
 bool diagnostics_open = false;
 uint8_t diagnostics_first = 0;
 uint8_t first_row = 0;
-bool grid_open = false;
-bool filter_open = false, keep_one = false;
-bool favorites_open = false, favorites_edit = false;
-uint8_t grid_first_row = 0;
-
-/** Fewer, finger-sized expressions per view instead of fifteen narrow cells. */
-constexpr uint8_t GRID_COLS = 2;
-constexpr uint8_t GRID_ROWS = 3;
-constexpr uint8_t GRID_ROW_PX = 44;
-constexpr int16_t GRID_X0 = 8;
-constexpr int16_t GRID_Y0 = 92;
-constexpr int16_t GRID_W = 108;
-constexpr int16_t GRID_H = 42;
-constexpr uint8_t GRID_ROWS_TOTAL = (EXPRESSION_COUNT + GRID_COLS - 1) / GRID_COLS;
-constexpr uint8_t GRID_MAX_FIRST = GRID_ROWS_TOTAL > GRID_ROWS ? GRID_ROWS_TOTAL - GRID_ROWS : 0;
-
-/** @brief Map a compact favorite cell to a stable catalog ID; excluded stars stay stored. */
-uint16_t grid_index(uint16_t cell) {
-	if (!favorites_open || favorites_edit) { return cell; }
-	for (uint16_t id = 0; id < EXPRESSION_COUNT; ++id) {
-		if (settings_favorites().contains(Expression(id)) && face_filter().allows(Expression(id))) {
-			if (!cell) { return id; } --cell;
-		}
-	}
-	return EXPRESSION_COUNT;
-}
-/** @brief Count selectable stars or the complete catalog in editing/ordinary grids. */
-uint8_t grid_count() {
-	if (!favorites_open || favorites_edit) { return EXPRESSION_COUNT; }
-	uint8_t count = 0;
-	for (uint16_t id = 0; id < EXPRESSION_COUNT; ++id) {
-		count += settings_favorites().contains(Expression(id)) && face_filter().allows(Expression(id)) ? 1 : 0;
-	}
-	return count;
-}
-/** @brief Bound scrolling to the actual compact list. */
-uint8_t grid_limit() {
-	uint8_t rows = (grid_count() + GRID_COLS - 1) / GRID_COLS;
-	return rows > GRID_ROWS ? rows - GRID_ROWS : 0;
-}
 enum MenuTab : uint8_t { TAB_LOOK, TAB_LIGHT, TAB_FACES, TAB_MOTION, TAB_AUDIO, TAB_SYSTEM, TAB_COUNT };
 
 /** SD sounds only appears on the board with an SD slot and codec. */
@@ -72,6 +32,8 @@ constexpr bool HAS_SD_ROW = false;
 /** Row indices in the main SOUND list, shifted on boards without SD sounds. */
 constexpr uint8_t SOUND_OPTIONS_ROW = HAS_SD_ROW ? 4 : 3;
 constexpr uint8_t SOUND_TEST_ROW = HAS_SD_ROW ? 5 : 4;
+/** Last SYSTEM row: the BLE OBD dongle scan toggle. */
+constexpr uint8_t OBD_ROW = HAS_SD_ROW ? 8 : 7;
 
 /**
  * @brief Bottom edge of the SAVE/Back band.
@@ -88,28 +50,46 @@ int16_t bottom_band_bottom() {
 	return panel > design ? panel : design;
 }
 
+/**
+ * @brief Draw the SAVE (primary, or muted once saved) and right-hand action buttons.
+ * @param gfx Canvas. @param right Label of the right button.
+ */
+void save_band(Arduino_GFX *gfx, const char *right) {
+	int16_t h = int16_t(bottom_band_bottom() - ui_s(224));
+	gfx->fillRect(0, ui_s(222), LCD_WIDTH, int16_t(LCD_HEIGHT - ui_s(222)), UI_BG);	// Hide carousel dots in the button gap.
+	bool dirty = settings_dirty();
+	ui_button(gfx, ui_s(2), ui_s(224), ui_s(116), h,
+		tr(save_failed ? Text::Failed : (dirty ? Text::Save : Text::Saved)), dirty || save_failed);
+	ui_button(gfx, ui_s(122), ui_s(224), ui_s(116), h, right);
+}
+
 /** @brief Number of rows in the current panel. */
 uint8_t row_count() {
-	static const uint8_t counts[] = {3, 7, 6, 5, 5, 7};
-	if (tab == TAB_SYSTEM && HAS_SD_ROW) { return 8; }
+	static const uint8_t counts[] = {3, 7, 6, 5, 5, OBD_ROW + 1};
 	if (tab != TAB_AUDIO) { return counts[tab]; }
 	return sound_options ? 5 : (HAS_SD_ROW ? 6 : 5);
 }
 
-/** @brief Close the grid and restore the tab rows. */
-void grid_close() {
-	grid_open = filter_open = keep_one = favorites_open = favorites_edit = false;
-	grid_first_row = 0; first_row = 0;
 }
+
+#include "settings_grid.h"
+
+namespace {
 
 /** @brief Draw one editable row. @param gfx Canvas. @param index Row. @param label Field. @param value Choice. */
 void row(Arduino_GFX *gfx, uint8_t index, const char *label, const String &value) {
 	if (index < first_row || index >= first_row + 3) { return; }
 	int16_t design_y = int16_t(90 + (index - first_row) * 44);
-	ui_card(gfx, design_y, 44);
+	ui_card(gfx, design_y + 2, 40);
 	int16_t y = ui_s(design_y);
-	ui_label(gfx, label, ui_s(24), y + ui_s(5), ui_s(192), 1, UI_MUTED);
-	ui_label(gfx, value, ui_s(24), y + ui_s(23), ui_s(192), 1, UI_ACCENT);
+	bool on = value == tr(Text::On), off = value == tr(Text::Off);
+	ui_label(gfx, label, ui_s(24), y + ui_s(7), on || off ? ui_s(156) : ui_s(192), 1, UI_MUTED);
+	if (!on && !off) { ui_label(gfx, value, ui_s(24), y + ui_s(23), ui_s(192), 1, UI_ACCENT); return; }
+	// Toggle rows show a switch instead of a yes/no word.
+	int16_t sx = ui_s(184), sy = y + ui_s(14), sw = ui_s(32), sh = ui_s(16);
+	gfx->fillRoundRect(sx, sy, sw, sh, sh / 2, on ? UI_ACCENT : UI_LINE);
+	gfx->fillCircle(on ? sx + sw - sh / 2 : sx + sh / 2, sy + sh / 2, sh / 2 - ui_s(3), on ? UI_BG : UI_MUTED);
+	ui_label(gfx, value, ui_s(24), y + ui_s(23), ui_s(120), 1, on ? UI_TEXT : UI_MUTED);
 }
 
 /** @brief Cycle to the next bounded brightness preset. @param value Current. @param night Night range. @return Next. */
@@ -178,6 +158,7 @@ void change_row(uint8_t index) {
 		if (index == 1) { p.dashboard = !p.dashboard; }
 		if (index == 2) { p.route_large = !p.route_large; }
 		if (index == 3) { p.phone_ios = !p.phone_ios; }
+		if (index == OBD_ROW) { p.obd_scan = !p.obd_scan; }
 	} else if (sound_options) {
 		if (index == 0) { p.sound_faces = !p.sound_faces; }
 		if (index == 1) { p.sound_timer = !p.sound_timer; }
@@ -235,7 +216,7 @@ void extra_rows(Arduino_GFX *gfx, const CompanionSettings &p) {
 		row(gfx, 3, tr(Text::AutoRotate), on_off(imu_orientation().enabled));
 		row(gfx, 4, tr(Text::ScreenFlip), tr(p.flipped ? Text::Flipped : Text::Normal));
 	} else if (tab == TAB_SYSTEM) {
-		row(gfx, 0, tr(Text::Language), p.language ? "Italiano" : "English");
+		row(gfx, 0, tr(Text::Language), p.language ? "ITALIANO" : "ENGLISH");
 		row(gfx, 1, tr(Text::Dashboard), on_off(p.dashboard));
 		row(gfx, 2, tr(Text::RouteDefault), tr(p.route_large ? Text::Large : Text::Details));
 			row(gfx, 3, tr(Text::PhoneMode), tr(p.phone_ios ? Text::IphoneMode : Text::AndroidMode));
@@ -245,6 +226,7 @@ void extra_rows(Arduino_GFX *gfx, const CompanionSettings &p) {
 #if MOCHI_HAS_SD_AUDIO
 		row(gfx, 7, tr(Text::SdFirmware), tr(Text::Open));
 #endif
+		row(gfx, OBD_ROW, tr(Text::ObdScan), on_off(p.obd_scan));
 	} else if (sound_options) {
 		row(gfx, 0, tr(Text::Faces), on_off(p.sound_faces));
 		row(gfx, 1, tr(Text::TimerLabel), on_off(p.sound_timer));
@@ -266,109 +248,6 @@ void extra_rows(Arduino_GFX *gfx, const CompanionSettings &p) {
 	}
 }
 
-/** @brief Draw the selection/library header and the optional Wi-Fi action. */
-void grid_header(Arduino_GFX *gfx) {
-	uint8_t first = grid_count() ? uint8_t(grid_first_row * GRID_COLS + 1) : 0;
-	uint8_t last = uint8_t(first + GRID_ROWS * GRID_COLS - 1);
-	if (last > grid_count()) { last = grid_count(); }
-	gfx->fillRoundRect(ui_s(2), ui_s(52), ui_s(236), ui_s(36), ui_s(8), UI_CARD);
-	if (filter_open) {
-		ui_label(gfx, tr(keep_one ? Text::KeepOneFace : Text::FaceLibrary), ui_s(14), ui_s(58), ui_s(146), 1, UI_ACCENT);
-		ui_label(gfx, String(face_filter().count()) + "/" + String(EXPRESSION_COUNT) + " " + tr(Text::Enabled),
-			ui_s(14), ui_s(74), ui_s(146), 1, UI_MUTED);
-		gfx->fillRoundRect(ui_s(170), ui_s(52), ui_s(68), ui_s(36), ui_s(8), UI_ACCENT);
-		ui_label(gfx, "Wi-Fi", ui_s(182), ui_s(66), ui_s(50), 1, UI_BG);
-		return;
-	}
-	ui_label(gfx, tr(favorites_open ? (favorites_edit ? Text::EditFavorites : Text::Favorites) : Text::MoodLabel),
-		ui_s(14), ui_s(66), ui_s(130), 1, UI_ACCENT);
-	ui_label(gfx, String(first) + "-" + String(last) + "/" +
-		String(grid_count()), ui_s(150), ui_s(66), ui_s(76), 1, UI_MUTED);
-}
-/** @brief Draw an enabled checkbox or a muted excluded entry without relying on color alone. */
-void grid_entry(Arduino_GFX *gfx, uint8_t index, int16_t x, int16_t y) {
-	bool allowed = face_filter().allows(Expression(index));
-	bool selected = !filter_open && !favorites_edit && allowed && index == settings_get().mood;
-	gfx->fillRoundRect(x, y, ui_s(GRID_W), ui_s(GRID_H), ui_s(6), selected ? UI_ACCENT : UI_CARD);
-	if (filter_open) {
-		gfx->drawRect(x + ui_s(3), y + ui_s(17), ui_s(8), ui_s(8), UI_TEXT);
-		if (allowed) { gfx->fillRect(x + ui_s(5), y + ui_s(19), ui_s(4), ui_s(4), UI_ACCENT); }
-	}
-	if (favorites_edit) {
-		ui_label(gfx, settings_favorites().contains(Expression(index)) ? "*" : "-",
-			x + ui_s(3), y + ui_s(17), ui_s(8), 1, UI_ACCENT);
-	}
-	int16_t pad = filter_open || favorites_edit ? 14 : 3;
-	ui_label(gfx, tr_expression(index), x + ui_s(pad), y + ui_s(17), ui_s(GRID_W - pad - 3), 1,
-		selected ? UI_BG : (allowed ? UI_TEXT : UI_MUTED));
-	if (!filter_open && !allowed) {
-		gfx->drawLine(x + ui_s(3), y + ui_s(4), x + ui_s(10), y + ui_s(20), UI_MUTED);
-	}
-}
-/** @brief Draw the expression grid overlay, replacing the tab rows. @param gfx Canvas. */
-void grid_draw(Arduino_GFX *gfx) {
-	if (grid_first_row > grid_limit()) { grid_first_row = grid_limit(); }
-	grid_header(gfx);
-	if (!grid_count()) { ui_label(gfx, tr(Text::NoFavorites), ui_s(14), ui_s(140), ui_s(212), 1, UI_MUTED); }
-	for (uint8_t cell = 0; cell < GRID_ROWS * GRID_COLS; ++cell) {
-		uint16_t index = grid_index(uint16_t(grid_first_row) * GRID_COLS + cell);
-		if (index >= EXPRESSION_COUNT) { break; }
-		int16_t x = ui_s(int16_t(GRID_X0 + (cell % GRID_COLS) * (GRID_W + 4)));
-		int16_t y = ui_s(int16_t(GRID_Y0 + (cell / GRID_COLS) * GRID_ROW_PX));
-		grid_entry(gfx, uint8_t(index), x, y);
-	}
-	if (grid_limit()) {
-		int16_t track = int16_t(GRID_ROWS * GRID_ROW_PX) - 2;
-		gfx->fillRect(ui_s(234), ui_s(GRID_Y0), ui_s(3), ui_s(track), UI_CARD);
-		gfx->fillRect(ui_s(234), ui_s(int16_t(GRID_Y0 + grid_first_row * (track - 40) / grid_limit())),
-			ui_s(3), ui_s(40), UI_ACCENT);
-	}
-	gfx->fillRoundRect(ui_s(2), ui_s(224), ui_s(116), int16_t(bottom_band_bottom() - ui_s(224)), ui_s(8), UI_ACCENT);
-	gfx->fillRoundRect(ui_s(122), ui_s(224), ui_s(116), int16_t(bottom_band_bottom() - ui_s(224)), ui_s(8), UI_CARD);
-	const int16_t grid_band_label_y = ui_s(224) + int16_t(bottom_band_bottom() - ui_s(224)) / 2 - ui_s(4);
-	ui_label(gfx, tr(save_failed ? Text::Failed : (settings_dirty() ? Text::Save : Text::Saved)),
-		ui_s(36), grid_band_label_y, ui_s(72), 1, UI_BG);
-	ui_label(gfx, tr(Text::Back), ui_s(147), grid_band_label_y, ui_s(72), 1, UI_TEXT);
-}
-
-/**
- * @brief Apply a tapped grid cell; rows are contiguous full-height targets
- * and only the thin column gutters stay inert.
- * @param x X. @param y Y. @return True when a real cell was hit.
- */
-bool grid_cell(int16_t x, int16_t y) {
-	for (uint8_t row = 0; row < GRID_ROWS; ++row) {
-		int16_t cell_y = ui_s(int16_t(GRID_Y0 + row * GRID_ROW_PX));
-		if (y < cell_y || y >= ui_s(int16_t(GRID_Y0 + (row + 1) * GRID_ROW_PX))) { continue; }
-		for (uint8_t col = 0; col < GRID_COLS; ++col) {
-			int16_t cell_x = ui_s(int16_t(GRID_X0 + col * (GRID_W + 4)));
-			if (x < cell_x || x >= cell_x + ui_s(GRID_W)) { continue; }
-			if (grid_first_row > grid_limit()) { grid_first_row = grid_limit(); }
-			uint16_t index = grid_index(uint16_t(grid_first_row + row) * GRID_COLS + col);
-			if (index >= EXPRESSION_COUNT) { return false; }
-			if (favorites_edit) {
-				FaceFavorites next = settings_favorites();
-				next.set(Expression(index), !next.contains(Expression(index)));
-				settings_favorites_update(next); save_failed = false; return true;
-			}
-			if (filter_open) {
-				FaceFilter next = face_filter();
-				keep_one = !next.set(Expression(index), !next.allows(Expression(index)));
-				if (!keep_one) { settings_faces_update(next); }
-				save_failed = false;
-				return true;
-			}
-			if (!face_filter().allows(Expression(index))) { return false; }
-			CompanionSettings p = settings_get();
-			p.mood = uint8_t(index);
-			save_failed = false;
-			settings_update(p);
-			return true;
-		}
-		return false;
-	}
-	return false;
-}
 }
 
 /** @brief Draw the diagnostic overlay or compact settings tabs. @param gfx Canvas. */
@@ -376,24 +255,19 @@ void settings_menu_draw(Arduino_GFX *gfx) {
 	if (diagnostics_open) { diagnostics_view::draw(gfx, diagnostics_first); return; }
 	if (grid_open) { grid_draw(gfx); return; }
 	const CompanionSettings &p = settings_get();
-	gfx->fillRoundRect(ui_s(2), ui_s(52), ui_s(68), ui_s(36), ui_s(8), UI_CARD);
-	gfx->fillRoundRect(ui_s(170), ui_s(52), ui_s(68), ui_s(36), ui_s(8), UI_CARD);
-	ui_label(gfx, "<", ui_s(30), ui_s(62), ui_s(24), 2, UI_TEXT);
-	ui_label(gfx, ">", ui_s(198), ui_s(62), ui_s(24), 2, UI_TEXT);
+	ui_box(gfx, ui_s(2), ui_s(52), ui_s(68), ui_s(36), UI_CARD, true);
+	ui_box(gfx, ui_s(170), ui_s(52), ui_s(68), ui_s(36), UI_CARD, true);
+	ui_label(gfx, "<", ui_s(30), ui_s(62), ui_s(24), 2, UI_ACCENT);
+	ui_label(gfx, ">", ui_s(198), ui_s(62), ui_s(24), 2, UI_ACCENT);
 	ui_label(gfx, tr_settings_tab(tab), ui_s(78), ui_s(58), ui_s(84), 1, UI_ACCENT);
 	ui_label(gfx, String(tab + 1) + "/" + String(uint8_t(TAB_COUNT)), ui_s(108), ui_s(74), ui_s(24), 1, UI_MUTED);
 	if (tab < 3) { basic_rows(gfx, p); } else { extra_rows(gfx, p); }
 	if (row_count() > 3) {
 		uint8_t max_scroll = row_count() - 3;
-		gfx->fillRect(ui_s(232), ui_s(92), ui_s(3), ui_s(128), UI_CARD);
-		gfx->fillRect(ui_s(232), ui_s(int16_t(92 + first_row * (128 - 60) / max_scroll)), ui_s(3), ui_s(60), UI_ACCENT);
+		gfx->fillRoundRect(ui_s(232), ui_s(92), ui_s(3), ui_s(128), ui_s(1), UI_LINE);
+		gfx->fillRoundRect(ui_s(232), ui_s(int16_t(92 + first_row * (128 - 60) / max_scroll)), ui_s(3), ui_s(60), ui_s(1), UI_ACCENT);
 	}
-	gfx->fillRoundRect(ui_s(2), ui_s(224), ui_s(116), int16_t(bottom_band_bottom() - ui_s(224)), ui_s(8), UI_ACCENT);
-	gfx->fillRoundRect(ui_s(122), ui_s(224), ui_s(116), int16_t(bottom_band_bottom() - ui_s(224)), ui_s(8), UI_CARD);
-	const int16_t tab_band_label_y = ui_s(224) + int16_t(bottom_band_bottom() - ui_s(224)) / 2 - ui_s(4);
-	ui_label(gfx, tr(save_failed ? Text::Failed : (settings_dirty() ? Text::Save : Text::Saved)),
-		ui_s(36), tab_band_label_y, ui_s(72), 1, UI_BG);
-	ui_label(gfx, tr(tab == 4 && sound_options ? Text::Back : Text::EyesButton), ui_s(147), tab_band_label_y, ui_s(72), 1, UI_TEXT);
+	save_band(gfx, tr(tab == 4 && sound_options ? Text::Back : Text::EyesButton));
 }
 
 /** @brief Interpret tap coordinates without conflating swipes/holds. @param x X. @param y Y. @return Action. */

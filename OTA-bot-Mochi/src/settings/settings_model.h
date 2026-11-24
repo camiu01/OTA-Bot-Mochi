@@ -11,7 +11,7 @@
 constexpr uint8_t SETTINGS_V4_BYTES = 12;	/**< Stored size of the retired version-four profile. */
 constexpr uint8_t SETTINGS_LEGACY_BYTES = 13; /**< Stored size of version-five through version-eight profiles. */
 constexpr uint8_t SETTINGS_V9_BYTES = 16;	/**< Stored size of the retired version-nine profile. */
-constexpr uint8_t SETTINGS_BYTES = 17;		/**< Stored size of the current version-ten profile. */
+constexpr uint8_t SETTINGS_BYTES = 17;		/**< Stored size of the version-ten and current version-eleven profiles. */
 
 struct CompanionSettings {
 	uint8_t style = 1;
@@ -34,6 +34,7 @@ struct CompanionSettings {
 	bool sound_night_mute = true;
 	bool sound_sd = false;
 	bool sound_charging = true;
+	bool obd_scan = true;	/**< Look for a BLE OBD dongle while Drive is visible. */
 	uint8_t sound_level = 10;
 	uint8_t animation = 1;
 	uint8_t language = 0;
@@ -84,10 +85,10 @@ inline bool settings_valid(const CompanionSettings &value) {
 /**
  * @brief Encode a versioned profile without relying on struct padding.
  * @param value Valid settings.
-	 * @param bytes Output seventeen-byte version-ten profile.
+	 * @param bytes Output seventeen-byte version-eleven profile.
  */
 inline void settings_encode(const CompanionSettings &value, uint8_t bytes[SETTINGS_BYTES]) {
-	bytes[0] = 10;
+	bytes[0] = 11;
 	bytes[1] = value.style; bytes[2] = value.color; bytes[3] = value.mood;
 	bytes[4] = value.brightness; bytes[5] = value.night_brightness;
 	bytes[6] = value.night | (value.dashboard << 1) | (value.shake << 2) | (value.dim << 3);
@@ -98,7 +99,7 @@ inline void settings_encode(const CompanionSettings &value, uint8_t bytes[SETTIN
 	bytes[8] = value.sound_level; bytes[9] = value.animation; bytes[10] = value.language;
 	bytes[11] = uint8_t(value.flipped) | (value.face_flow << 1);
 	bytes[12] = value.night_auto; bytes[13] = value.night_start; bytes[14] = value.night_end;
-	bytes[15] = value.sound_charging;
+	bytes[15] = uint8_t(value.sound_charging) | (value.obd_scan << 1);
 	bytes[16] = 0xA5;
 	for (uint8_t i = 0; i < 16; ++i) { bytes[16] ^= bytes[i]; }
 }
@@ -106,7 +107,7 @@ inline void settings_encode(const CompanionSettings &value, uint8_t bytes[SETTIN
 /**
  * @brief Validate and decode a stored profile, leaving output untouched on failure.
  * @param bytes Input profile.
-	 * @param length Actual buffer length: eight for v1-v3, twelve for v4, thirteen for v5-v8, sixteen for v9, seventeen for v10.
+	 * @param length Actual buffer length: eight for v1-v3, twelve for v4, thirteen for v5-v8, sixteen for v9, seventeen for v10-v11.
  * @param value Output settings.
  * @return Valid version, checksum, flags, and fields.
  */
@@ -117,7 +118,7 @@ inline bool settings_decode(const uint8_t *bytes, size_t length, CompanionSettin
 		(length == SETTINGS_V4_BYTES && bytes[0] != 4) ||
 		(length == SETTINGS_LEGACY_BYTES && (bytes[0] < 5 || bytes[0] > 8)) ||
 		(length == SETTINGS_V9_BYTES && bytes[0] != 9) ||
-		(length == SETTINGS_BYTES && bytes[0] != 10)) { return false; }
+		(length == SETTINGS_BYTES && bytes[0] != 10 && bytes[0] != 11)) { return false; }
 	uint8_t checksum = 0xA5;
 	for (size_t i = 0; i + 1 < length; ++i) { checksum ^= bytes[i]; }
 	if (bytes[length - 1] != checksum) { return false; }
@@ -147,9 +148,10 @@ inline bool settings_decode(const uint8_t *bytes, size_t length, CompanionSettin
 		if (bytes[12] > 1) { return false; }
 		next.night_auto = bytes[12]; next.night_start = bytes[13]; next.night_end = bytes[14];
 	}
-	if (bytes[0] == 10) {
-		if (bytes[15] > 1) { return false; }
+	if (bytes[0] >= 10) {
+		if (bytes[15] > (bytes[0] == 10 ? 1 : 3)) { return false; }
 		next.sound_charging = bytes[15] & 1;
+		if (bytes[0] == 11) { next.obd_scan = bytes[15] & 2; }
 	}
 	if (!settings_valid(next)) { return false; }
 	value = next;

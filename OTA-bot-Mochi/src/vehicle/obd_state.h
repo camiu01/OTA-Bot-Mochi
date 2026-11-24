@@ -14,12 +14,14 @@
 enum class ObdStatus : uint8_t { Idle, Scanning, Connecting, Starting, Live, NoEcu };
 
 /** @brief Field bits in VehicleData::valid. */
-enum ObdField : uint8_t { OBD_RPM = 1, OBD_SPEED = 2, OBD_COOLANT = 4, OBD_THROTTLE = 8, OBD_FUEL = 16, OBD_VOLTS = 32 };
+enum ObdField : uint8_t { OBD_RPM = 1, OBD_SPEED = 2, OBD_COOLANT = 4, OBD_THROTTLE = 8, OBD_FUEL = 16, OBD_VOLTS = 32, OBD_MIL = 64 };
 
 struct VehicleData {
 	ObdStatus status = ObdStatus::Idle;
 	uint8_t valid = 0;	/**< ObdField bits received since the link started. */
 	float rpm = 0, speed = 0, coolant = 0, throttle = 0, fuel = 0, volts = 0;	/**< rpm, km/h, C, %, %, V. */
+	bool mil = false;	/**< Check-engine lamp on (PID 01, read-only). */
+	uint8_t dtc = 0;	/**< Stored emission-related trouble codes reported by PID 01. */
 	uint32_t updated = 0;	/**< millis() of the last decoded value. */
 	char name[20] = {};	/**< Advertised dongle name, ASCII, bounded. */
 };

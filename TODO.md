@@ -25,7 +25,7 @@ recorded; measurement and tuning items stay open.
 - [ ] **BLE ELM327 client with a real dongle** — Needs hardware: on AMOLED V2 and LCD OLD: discovery by name/service, connect while Chronos (Android) and ANCS (iOS) are linked, init and 0100 search time, PID values against a phone OBD app, ignition-off/ATRV fallback, reconnection after dongle power loss, one-minute hidden disconnect, display cadence during scans and heap/stack headroom. Native tests cover only framing, PID formulas and sequencing; obd_ble.cpp has no host build and NimBLE central/peripheral coexistence is unmeasured.
 - [ ] **LCD OLD build** — compile and install the Drive/OBD build on LCD OLD (only AMOLED V2 was built and flashed).
 - [ ] **CI for Drive/OBD** — confirm the pinned Arduino CLI CI jobs for this change; only a local PlatformIO build ran.
-- [ ] **Host check for `obd_ble.cpp`** — give it a host syntax check by extending the NimBLE stub; today only the firmware build compiles it.
+- [x] **Host check for `obd_ble.cpp`** — syntax-checked by both runners against declaration-only NimBLE/FreeRTOS stubs in `tests/stubs/obd` (2026-11-24); real BLE behavior is still unverified.
 - [ ] **Gyro scale** — Needs hardware: measure against a known rotation and the first samples after power-on; LCD OLD is unchecked.
 - [ ] **Gyro noise and current** — Needs hardware: measure gyro noise, bias drift with temperature and the extra current while Drive is open.
 - [ ] **Fusion tuning** — Needs hardware: tune constants on real rides: complementary weight 0.98 (about 2.5 s), turn threshold 0.15 rad/s, tare stillness 0.1 rad/s, G smoothing 0.35, pitch smoothing 0.25.
@@ -35,12 +35,12 @@ recorded; measurement and tuning items stay open.
 - [ ] **ZERO after remounting** — decide whether a ZERO is needed after remounting, or whether to remember the reference per session.
 - [ ] **Dongle compatibility** — Needs hardware: test at least two brands (e.g. OBDLink CX, Vgate iCar Pro BLE, vLinker BLE) and record names, service UUIDs and init/search times.
 - [ ] **BLE central coexistence** — Needs hardware: measure Chronos (Android) and ANCS (iOS) stability while Mochi is also a BLE central; check heap, worker stack (6 KiB) and display cadence during 4 s scans.
-- [ ] **Dongle selection** — replace "first matching device" with a remembered dongle address or a picker; nearby unrelated devices with OBD-like names could be chosen.
+- [ ] **Dongle selection** — the last discovered dongle address is now remembered and preferred, else the strongest RSSI (2026-11-24); still needs a hardware check, and a picker or FORGET action if a wrong dongle gets remembered.
 - [ ] **Pairing/PIN dongles** — support dongles that require pairing or a PIN (no security is configured for the client).
-- [ ] **OBD scanning setting** — add a setting to disable it; today it scans whenever Drive is visible and no dongle is linked.
+- [x] **OBD scanning setting** — SYSTEM → OBD dongle scan, USB `obd-scan`, web `obd_scan`; profile v11 (2026-11-24). Native tests only.
 - [ ] **Dongle sleep** — Needs hardware: check that the one-minute hidden disconnect lets the dongle sleep and does not drain the car battery.
 - [ ] **PID values across cars** — Needs hardware: verify against a phone OBD app on petrol, diesel and hybrid cars; some ECUs answer from several modules or need ATSH/protocol hints.
-- [ ] **Trouble codes (extension)** — read and show mode 03, read-only; never clear codes without an explicit design.
+- [ ] **Trouble codes (extension)** — lamp and stored-code count from PID 0101 are shown (2026-11-24, native tests only); listing codes via mode 03 remains open. Never clear codes without an explicit design.
 - [ ] **OBD speed (extension)** — cross-check lateral G with speed × yaw rate, and a speed-based lean estimate.
 - [ ] **Wi-Fi ELM327 dongles (extension)** — TCP 192.168.0.10:35000; would replace home Wi-Fi and Internet weather while connected.
 - [ ] **Direct CAN (extension)** — via the ESP32-S3 TWAI controller with an SN65HVD230-class transceiver on OBD pins 6/14, 12 V regulation and protection; hardware design needed.
@@ -133,7 +133,7 @@ recorded; measurement and tuning items stay open.
 - [ ] **Binary hash per acceptance report** — record the exact installed binary hash, phone OS and settings for each physical acceptance report. Inspect remote CI separately; local builds do not establish pinned Arduino CLI CI success.
 - [ ] **Pinned core and NimBLE** — compile both board profiles with the shared core 3.3.12 and NimBLE 2.5.2 pins;
   inspect the new CI run, not a previous release run.
-- [ ] **Split long files** — split `src/settings/settings_menu.cpp` (415 lines) and
+- [ ] **Split long files** — `settings_menu.cpp` is split (grid in `settings_grid.h`, 2026-11-24); split
   `OTA-bot-Mochi.ino` (435 lines) to stay under the 400-line guideline in
   `CONTRIBUTING.md`.
 - [x] **Device photo or video** — the README now opens with two real-hardware GIFs recorded on a car dashboard (2026-11-23).

@@ -11,6 +11,7 @@
 #include "i18n.h"
 #include "../play/drive_meter.h"
 #include "../vehicle/obd_state.h"
+#include "../settings/settings.h"
 #include "../eyes/eyes_api.h"
 #include "../clock/clock_ui.h"
 #include "../../pin_config.h"
@@ -19,9 +20,7 @@
 
 /** @brief Centered label. @param gfx Canvas. @param text Text. @param y Top (design). @param size Font scale. @param color Ink. */
 inline void drive_center(Arduino_GFX *gfx, const String &text, int16_t y, uint8_t size, uint16_t color) {
-	int16_t width = int16_t(ui_ascii(text).length()) * 6 * ui_text_size(size);
-	if (width > LCD_WIDTH - ui_s(48)) { width = LCD_WIDTH - ui_s(48); }
-	ui_label(gfx, text, (LCD_WIDTH - width) / 2, ui_s(y), width, size, color);
+	ui_center(gfx, text, y, size, color);
 }
 /** @brief Format a signed lean as L/R degrees. @param out Buffer. @param size Capacity. @param lean Degrees, +right. */
 inline void drive_lean_text(char *out, size_t size, float lean) {
@@ -48,21 +47,26 @@ inline void drive_home_draw(Arduino_GFX *gfx, uint32_t now) {
 	char text[32], pitch[20];
 	ui_card(gfx, 62, 152);
 	bool ready = eyes_imu_ready() && m.tared;
-	ui_label(gfx, tr(ready ? Text::DriveLean : (eyes_imu_ready() ? Text::DriveHint : Text::ImuMissing)),
-		ui_s(28), ui_s(78), ui_s(184), 1, UI_ACCENT);
+	drive_center(gfx, tr(ready ? Text::DriveLean : (eyes_imu_ready() ? Text::DriveHint : Text::ImuMissing)), 76, 1, UI_MUTED);
 	if (ready) { drive_lean_text(text, sizeof(text), m.roll); } else { snprintf(text, sizeof(text), "--"); }
 	drive_center(gfx, text, 100, 5, UI_TEXT);
 	if (ready) {
 		drive_pitch_text(pitch, sizeof(pitch), m.pitch);
 		snprintf(text, sizeof(text), "%.2fG  %s", double(drive_g(m)), pitch);
-		drive_center(gfx, text, 150, 1, UI_ACCENT);
+		drive_center(gfx, text, 150, 1, drive_g(m) > 0.5f ? UI_WARM : UI_ACCENT);
+		// Lean gauge: the marker slides left/right up to 60 degrees.
+		int16_t left = ui_s(40), width = LCD_WIDTH - 2 * ui_s(40), mid = left + width / 2;
+		gfx->fillRoundRect(left, ui_s(168), width, ui_s(4), ui_s(2), UI_LINE);
+		gfx->drawFastVLine(mid, ui_s(165), ui_s(10), UI_MUTED);
+		float lean = m.roll > 60 ? 60 : (m.roll < -60 ? -60 : m.roll);
+		gfx->fillCircle(mid + int16_t(lean * (width / 2) / 60), ui_s(170), ui_s(5), UI_ACCENT);
 		snprintf(text, sizeof(text), "MAX L%d R%d", int(m.max_left), int(m.max_right));
-		drive_center(gfx, text, 172, 1, UI_TEXT);
+		drive_center(gfx, text, 180, 1, UI_MUTED);
 	}
 	const VehicleData obd = obd_snapshot();
 	if (obd.status == ObdStatus::Live && (obd.valid & OBD_SPEED) && uint32_t(now - obd.updated) <= 3000) {
-		snprintf(text, sizeof(text), "%d km/h  %d RPM", int(obd.speed), int(obd.rpm));
-		drive_center(gfx, text, 196, 1, UI_MUTED);
+		snprintf(text, sizeof(text), "%d KM/H  %d RPM", int(obd.speed), int(obd.rpm));
+		drive_center(gfx, text, 198, 1, UI_TEXT);
 	}
 	ui_label(gfx, tr(Text::DriveMore), ui_s(12), ui_s(238), ui_s(216), 1, UI_MUTED);
 }
@@ -72,7 +76,7 @@ inline void drive_big_lean(Arduino_GFX *gfx, const DriveMeter &m) {
 	ui_card(gfx, 62, 152);
 	if (!drive_ready(gfx, m)) { return; }
 	char text[24];
-	ui_label(gfx, tr(Text::DriveLean), ui_s(28), ui_s(72), ui_s(184), 1, UI_ACCENT);
+	drive_center(gfx, tr(Text::DriveLean), 70, 1, UI_MUTED);
 	drive_lean_text(text, sizeof(text), m.roll);
 	drive_center(gfx, text, 94, 7, UI_TEXT);
 	drive_pitch_text(text, sizeof(text), m.pitch);
@@ -86,9 +90,9 @@ inline void drive_g_meter(Arduino_GFX *gfx, const DriveMeter &m) {
 	if (!drive_ready(gfx, m)) { return; }
 	int16_t cx = LCD_WIDTH / 2, cy = ui_s(126), r = ui_s(56);
 	gfx->drawCircle(cx, cy, r, UI_MUTED);
-	gfx->drawCircle(cx, cy, r / 2, UI_MUTED);
-	gfx->drawFastHLine(cx - r, cy, 2 * r, UI_MUTED);
-	gfx->drawFastVLine(cx, cy - r, 2 * r, UI_MUTED);
+	gfx->drawCircle(cx, cy, r / 2, UI_LINE);
+	gfx->drawFastHLine(cx - r, cy, 2 * r, UI_LINE);
+	gfx->drawFastVLine(cx, cy - r, 2 * r, UI_LINE);
 	float x = m.lateral, y = m.longitudinal, g = drive_g(m);
 	if (g > 1.1f) { x *= 1.1f / g; y *= 1.1f / g; }
 	gfx->fillCircle(cx + int16_t(x * r), cy - int16_t(y * r), ui_s(7), g > 0.5f ? UI_WARM : UI_ACCENT);
@@ -105,7 +109,7 @@ inline void drive_graph(Arduino_GFX *gfx, const DriveMeter &m) {
 	constexpr int32_t scale = 60;	// Both traces reach the band edge at +/-60 stored units.
 	int16_t left = ui_s(18), width = ui_s(204), mid = ui_s(140), half = ui_s(58);
 	ui_label(gfx, tr(Text::DriveLegend), left, ui_s(64), width, 1, UI_MUTED);
-	gfx->drawFastHLine(left, mid, width, UI_MUTED);
+	gfx->drawFastHLine(left, mid, width, UI_LINE);
 	for (bool g : {false, true}) {
 		for (uint8_t i = 1; i < m.filled; ++i) {
 			int32_t a = m.trace(uint8_t(i - 1), g), b = m.trace(i, g);
@@ -147,17 +151,18 @@ inline String drive_field(const VehicleData &d, uint8_t bit, float value, const 
 inline void drive_obd(Arduino_GFX *gfx, uint32_t now) {
 	ui_card(gfx, 58, 196);
 	const VehicleData d = obd_snapshot();
+	if (!settings_get().obd_scan) { drive_center(gfx, tr(Text::ObdOff), 130, 1, UI_MUTED); return; }
 	static const Text status[] = {Text::ObdIdle, Text::ObdScanning, Text::ObdConnecting, Text::ObdStarting, Text::ObdLive, Text::ObdNoEcu};
 	bool stale = d.status == ObdStatus::Live && uint32_t(now - d.updated) > 3000;
 	String head = d.status == ObdStatus::Live && d.name[0] ? String(d.name) : String(tr(status[uint8_t(d.status)]));
 	ui_label(gfx, head, ui_s(24), ui_s(68), ui_s(192), 1, stale ? UI_WARM : UI_MUTED);
 	uint16_t ink = d.status == ObdStatus::Live && !stale ? UI_TEXT : UI_MUTED;
 	ui_label(gfx, drive_field(d, OBD_SPEED, d.speed, ""), ui_s(24), ui_s(88), ui_s(120), 6, ink);
-	ui_label(gfx, "km/h", ui_s(150), ui_s(118), ui_s(60), 1, UI_MUTED);
+	ui_label(gfx, "KM/H", ui_s(150), ui_s(118), ui_s(60), 1, UI_MUTED);
 	ui_label(gfx, drive_field(d, OBD_RPM, d.rpm, " RPM"), ui_s(24), ui_s(148), ui_s(192), 2, UI_ACCENT);
-	int16_t bar = ui_s(192), filled = d.valid & OBD_RPM ? int16_t(bar * (d.rpm > 8000 ? 8000 : d.rpm) / 8000) : 0;
-	gfx->drawRect(ui_s(24), ui_s(170), bar, ui_s(8), UI_MUTED);
-	gfx->fillRect(ui_s(24), ui_s(170), filled, ui_s(8), d.rpm > 6000 ? UI_WARM : UI_ACCENT);
+	ui_bar(gfx, ui_s(24), ui_s(170), ui_s(192), ui_s(8), d.valid & OBD_RPM ? int32_t(d.rpm * 1000 / 8000) : 0,
+		d.rpm > 6000 ? UI_WARM : UI_ACCENT);
+	gfx->drawFastHLine(ui_s(24), ui_s(186), ui_s(192), UI_LINE);
 	ui_label(gfx, tr(Text::ObdWater) + drive_field(d, OBD_COOLANT, d.coolant, "C"), ui_s(24), ui_s(194), ui_s(96), 1, ink);
 	ui_label(gfx, tr(Text::ObdThrottle) + drive_field(d, OBD_THROTTLE, d.throttle, "%"), ui_s(124), ui_s(194), ui_s(96), 1, ink);
 	ui_label(gfx, tr(Text::ObdFuel) + drive_field(d, OBD_FUEL, d.fuel, "%"), ui_s(24), ui_s(220), ui_s(96), 1, ink);
@@ -165,6 +170,9 @@ inline void drive_obd(Arduino_GFX *gfx, uint32_t now) {
 	snprintf(volts, sizeof(volts), "%.1fV", double(d.volts));
 	ui_label(gfx, tr(Text::ObdBattery) + (d.valid & OBD_VOLTS ? String(volts) : String("--")), ui_s(124), ui_s(220), ui_s(96), 1,
 		d.valid & OBD_VOLTS ? UI_TEXT : UI_MUTED);
+	if (!(d.valid & OBD_MIL)) { return; }
+	ui_label(gfx, d.mil || d.dtc ? tr(Text::ObdMil) + String(d.dtc) + " DTC" : String(tr(Text::ObdNoFaults)),
+		ui_s(24), ui_s(240), ui_s(192), 1, d.mil ? UI_WARM : UI_MUTED);
 }
 /** @brief Motion tools carry a ZERO button; OBD does not. @param page Tool. @return Button shown. */
 inline bool drive_has_zero(UiPage page) {
@@ -179,8 +187,7 @@ inline void drive_tool_draw(Arduino_GFX *gfx, ChronosESP32 &watch, const UiSnaps
 	else if (page == UiPage::DriveTrip) { drive_trip(gfx, watch, data, m, now); }
 	else if (page == UiPage::DriveObd) { drive_obd(gfx, now); }
 	if (!drive_has_zero(page)) { return; }
-	gfx->fillRoundRect(ui_s(6), ui_s(226), ui_s(228), ui_s(30), ui_s(8), UI_ACCENT);
-	drive_center(gfx, tr(Text::DriveZero), 237, 1, UI_BG);
+	ui_button(gfx, ui_s(6), ui_s(226), ui_s(228), ui_s(30), tr(Text::DriveZero), true);
 }
 /** @brief ZERO is the only control; gauges are read-only. @param page Tool. @param x Pixel X. @param y Pixel Y. @return Meter reset. */
 inline bool drive_tap(UiPage page, int16_t x, int16_t y) {

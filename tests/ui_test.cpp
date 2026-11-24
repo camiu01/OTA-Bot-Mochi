@@ -16,6 +16,7 @@
 #include "../OTA-bot-Mochi/src/power/brightness_policy.h"
 #include "../OTA-bot-Mochi/src/settings/settings.h"
 #include "../OTA-bot-Mochi/src/eyes/eyes_api.h"
+#include "../OTA-bot-Mochi/src/play/drive_meter.h"
 #include <assert.h>
 #include <algorithm>
 #include <iostream>
@@ -78,7 +79,7 @@ static void clock_tests(Arduino_GFX &gfx, ChronosESP32 &watch) {
 /** @brief Check missing and stale weather. @param gfx Canvas. @param watch Source. */
 static void weather_tests(Arduino_GFX &gfx, ChronosESP32 &watch) {
 	screens_draw(&gfx, watch, UiPage::Weather, 264);
-	assert(std::find(gfx.text.begin(), gfx.text.end(), "Weather not synced") != gfx.text.end());
+	assert(std::find(gfx.text.begin(), gfx.text.end(), "WEATHER NOT SYNCED") != gfx.text.end());
 	watch.weather_count = 7;
 	watch.weather[0].temp = -12;
 	test_now = 1000;
@@ -185,7 +186,7 @@ static void navigation_tests(Arduino_GFX &gfx, ChronosESP32 &watch) {
 	ui_connection(false);
 	screens_draw(&gfx, watch, UiPage::Navigation, test_now + 6165);
 	assert(!screens_keep_awake() && !ui_snapshot().navigation.active);
-	assert(std::find(gfx.text.begin(), gfx.text.end(), "No active route") != gfx.text.end());
+	assert(std::find(gfx.text.begin(), gfx.text.end(), "NO ACTIVE ROUTE") != gfx.text.end());
 	int16_t labelWidth = 18 * ui_text_size(1); // Three glyph columns at the actual panel's text scale.
 	ui_label(&gfx, "overflowing label", gfx.width() - labelWidth - 2, 12, labelWidth, 1);
 	assert(gfx.text.back() == "...");
@@ -307,6 +308,9 @@ static void context_tests(Arduino_GFX &gfx, ChronosESP32 &watch) {
 	screens_tap(UiPage::Timer, 20, 230, 1000);
 	assert(view_timer().remaining == 1500000);
 	screens_tap(UiPage::Timer, 150, 230, 1000);
+	assert(view_timer().mode == DeskTimer::STOPWATCH && view_timer().remaining == 0);
+	screens_draw(&gfx, watch, UiPage::Timer, 1000);
+	screens_tap(UiPage::Timer, 150, 230, 1000);
 	assert(view_timer().mode == 0 && view_timer().remaining == 300000);
 	view_route_temporary(0);
 	screens_draw(&gfx, watch, UiPage::Navigation, 20005000);
@@ -335,7 +339,18 @@ static void timer_tests() {
 	timer.reset(0); timer.toggle(0); timer.tick(2000000);
 	assert(timer.finished && timer.remaining == 0);
 	timer.cycle(2000001);
-	assert(timer.mode == 0 && !timer.running && timer.remaining == 300000);
+	assert(timer.mode == DeskTimer::STOPWATCH && !timer.running && timer.remaining == 0);
+	timer.reset(UINT32_MAX - 10); timer.toggle(UINT32_MAX - 10);
+	timer.tick(1990);	// Counts up across millis() rollover.
+	assert(timer.remaining == 2001 && timer.running && !timer.finished);
+	timer.toggle(2000); timer.tick(9000);
+	assert(timer.remaining == 2011 && !timer.running);
+	timer.toggle(9000); timer.tick(9000 + DeskTimer::STOPWATCH_MAX);
+	assert(timer.remaining == DeskTimer::STOPWATCH_MAX && timer.finished && !timer.running);
+	timer.toggle(9001);	// Restart after the cap clears to zero.
+	assert(timer.remaining == 0 && timer.running);
+	timer.cycle(9002);
+	assert(timer.mode == 0 && timer.remaining == 300000);
 }
 
 /** @brief Count accent pixels inside the route icon box, excluding the accent distance label. @param gfx Canvas. @return Matching pixels. */
@@ -409,8 +424,38 @@ static void locale_tests(Arduino_GFX &gfx, ChronosESP32 &watch) {
 		screens_draw(&gfx, watch, static_cast<UiPage>(page), 31000000 + page * 1000);
 	}
 	assert(std::find(gfx.text.begin(), gfx.text.end(), "IMPOSTAZIONI") != gfx.text.end());
-	assert(strcmp(tr_choice(1, 0), "bianco") == 0);
+	assert(strcmp(tr_choice(1, 0), "BIANCO") == 0);
 	assert(settings_save() && settings_init() && settings_get().language == 1);
+}
+
+/** @brief Drive tap/hold shortcuts, timer digit/hold controls and the idle return to Eyes. */
+static void usage_tests() {
+	// First tap on the Drive home opens the tool menu; later taps reopen the last tool.
+	assert(screens_tap(UiPage::Drive, 120, 150, 0) == UiPage::DriveHub);
+	assert(screens_tap(UiPage::DriveHub, 60, 80, 0) == UiPage::DriveLean);
+	assert(screens_tap(UiPage::Drive, 120, 150, 0) == UiPage::DriveLean);
+	uint32_t revision = drive_meter().revision;
+	assert(screens_hold(UiPage::Drive, 0) && drive_meter().revision != revision);
+	revision = drive_meter().revision;
+	assert(screens_hold(UiPage::DriveG, 0) && drive_meter().revision != revision);
+	assert(!screens_hold(UiPage::DriveObd, 0) && !screens_hold(UiPage::Clock, 0));
+	// Timer: the digits toggle like START/PAUSE, a hold resets paused.
+	view_timer() = DeskTimer{}; view_timer().reset(0);
+	screens_tap(UiPage::Timer, 120, 100, 0);
+	assert(view_timer().running);
+	view_timer().tick(5000);
+	assert(screens_hold(UiPage::Timer, 5000) && !view_timer().running && view_timer().remaining == 1500000);
+	// Idle return: only after a minute, never from Eyes, Drive or a running timer.
+	assert(!screens_auto_home(UiPage::Clock, SCREENS_HOME_IDLE_MS - 1));
+	assert(screens_auto_home(UiPage::Clock, SCREENS_HOME_IDLE_MS) && screens_auto_home(UiPage::Dice, SCREENS_HOME_IDLE_MS));
+	assert(!screens_auto_home(UiPage::Eyes, SCREENS_HOME_IDLE_MS * 10));
+	assert(!screens_auto_home(UiPage::Drive, SCREENS_HOME_IDLE_MS) && !screens_auto_home(UiPage::DriveObd, SCREENS_HOME_IDLE_MS));
+	view_timer().toggle(0);
+	assert(!screens_auto_home(UiPage::Timer, SCREENS_HOME_IDLE_MS));
+	view_timer().toggle(0);
+	assert(screens_auto_home(UiPage::Timer, SCREENS_HOME_IDLE_MS));
+	assert(screens_auto_home(UiPage::Settings, SCREENS_HOME_IDLE_MS) == !settings_dirty());
+	view_timer() = DeskTimer{};
 }
 
 /** @brief Run native regression checks. @return Zero on success. */
@@ -437,6 +482,7 @@ int main() {
 	route_scale_tests();
 	weather_order_tests(watch);
 	locale_tests(gfx, watch);
+	usage_tests();
 	std::cout << "UI, text layout, snapshots, and brightness tests passed\n";
 	return 0;
 }

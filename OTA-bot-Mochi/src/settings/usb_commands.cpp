@@ -105,6 +105,7 @@ bool assign(const char *field, const char *value, CompanionSettings &profile) {
 	else if (strcmp(field, "sound-ambient") == 0) { return toggle(value, profile.sound_ambient); }
 	else if (strcmp(field, "sound-charging") == 0) { return toggle(value, profile.sound_charging); }
 	else if (strcmp(field, "sound-sd") == 0) { return toggle(value, profile.sound_sd); }
+	else if (strcmp(field, "obd-scan") == 0) { return toggle(value, profile.obd_scan); }
 	else if (strcmp(field, "sound-night-mute") == 0) { return toggle(value, profile.sound_night_mute); }
 	return false;
 }
@@ -121,7 +122,7 @@ void show() {
 	Serial.printf("random=%s imu-face=%s flip=%s\n", p.random_faces ? "on" : "off",
 		p.imu_faces ? "on" : "off", p.flipped ? "on" : "off");
 	Serial.printf("face-flow=%s\n", settings_face_flow_name(p.face_flow));
-	Serial.printf("phone=%s (restart after save)\n", p.phone_ios ? "iphone" : "android");
+	Serial.printf("phone=%s (restart after save) obd-scan=%s\n", p.phone_ios ? "iphone" : "android", p.obd_scan ? "on" : "off");
 	Serial.printf("route-default=%s route-current=%s\n", p.route_large ? "large" : "details",
 		view_route_large(p.route_large) ? "large" : "details");
 	Serial.printf("animation=%s language=%s sound=%s sound-level=%u night-mute=%s\n",

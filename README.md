@@ -35,7 +35,7 @@ testing on both boards. See the validation limits below.
 | Motion reactions | Accelerometer changes relative to saved calibration (or a temporary startup reference) move the gaze; optional motion moods and shake-to-dizzy reactions |
 | Digital and analog clocks | Display Chronos- or NTP-synchronized time; continue offline, resynchronize after reboot |
 | Desk tools | Large clock, time/weather overview, device status, playable Pong and Tris, local timers, and [Android phone tools](docs/CHRONOS.md) |
-| Timer / Pomodoro | 5-minute or 15-minute timer, or one 25-minute work / 5-minute rest pair; keeps running when viewing another page |
+| Timer / Pomodoro | 5-minute or 15-minute timer, one 25-minute work / 5-minute rest pair, or a stopwatch; keeps running when viewing another page |
 | Drive dashboard | Car/moto page: gyro-fused lean, G-ball, 10 s graph, trip peaks and timer, phone next turn; optional BLE ELM327 OBD-II speed, RPM, coolant, throttle, fuel and battery ([details](docs/DESK.md#drive-dashboard)) |
 | Phone navigation | Displays received turn instructions, icon, distance, ETA, and speed when supplied |
 | Alerts and calls | Keeps eight local alerts with browsing, dismissal and message pagination; displays incoming caller information; calls must be handled on the phone |
@@ -94,7 +94,7 @@ or a temporary configuration Wi-Fi network. Artifact/release packaging does not 
 
 ### See it in action
 
-![Emulator views of the desk menu, playable Pong, and analog clock](docs/images/desk-tools.png)
+![Emulator views of the desk tools menu, timer, device status and settings in the minimal dark theme](docs/images/desk-tools.png)
 
 The GIFs at the top are phone recordings of a real board mounted on a car dashboard. The images below are
 **native emulator screenshots**, not photos of a running board; their clock and phone data are synthetic.
