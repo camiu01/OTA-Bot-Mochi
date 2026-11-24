@@ -45,12 +45,10 @@ void draw(uint32_t now) {
 		}
 	} else { line(tr(Text::SdKeepPower), 166, UI_MUTED); }
 	if (s.phase != SdUpdatePhase::Success) {
-		canvas->fillRoundRect(ui_s(2), ui_s(232), ui_s(116), ui_s(42), ui_s(8), UI_CARD);
-		line(tr(Text::Back), 247, UI_TEXT);
+		ui_button(canvas, ui_s(2), ui_s(232), ui_s(116), ui_s(42), tr(Text::Back));
 	}
 	if (s.phase == SdUpdatePhase::Ready) {
-		canvas->fillRoundRect(ui_s(122), ui_s(232), ui_s(116), ui_s(42), ui_s(8), UI_ACCENT);
-		ui_label(canvas, tr(Text::Start), ui_s(134), ui_s(247), ui_s(92), 1, UI_BG);
+		ui_button(canvas, ui_s(122), ui_s(232), ui_s(116), ui_s(42), tr(Text::Start), true);
 	}
 	canvas->flush();
 }

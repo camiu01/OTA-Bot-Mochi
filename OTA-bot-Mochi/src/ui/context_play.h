@@ -37,8 +37,7 @@ inline void desk_pong_draw(Arduino_GFX *gfx, uint32_t now) {
 		ui_s(90), ui_s(56), ui_s(90), 2, UI_ACCENT);
 	mini_pong_draw(gfx, game, ui_s(12), ui_s(82), ui_s(216), ui_s(128), UI_TEXT);
 	ui_label(gfx, tr(Text::PongHint), ui_s(16), ui_s(216), ui_s(212), 1, UI_MUTED);
-	gfx->fillRoundRect(ui_s(6), ui_s(236), ui_s(228), ui_s(22), ui_s(6), UI_CARD);
-	ui_label(gfx, tr(Text::Reset), ui_s(18), ui_s(242), ui_s(204), 1, UI_TEXT);
+	ui_button(gfx, ui_s(6), ui_s(236), ui_s(228), ui_s(22), tr(Text::Reset));
 }
 
 /** @brief Draw synchronized time or a phone-mode-appropriate setup hint. @param gfx Canvas. @param watch Chronos clock. */

@@ -19,8 +19,7 @@ inline DicePool &desk_dice() { static DicePool dice; return dice; }
 inline bool &desk_dice_details() { static bool details = false; return details; }
 /** @brief Draw one bounded count/type action. @param gfx Canvas. @param x Design left. @param y Design top. @param width Design width. @param label Label. */
 inline void dice_button(Arduino_GFX *gfx, int16_t x, int16_t y, int16_t width, const char *label) {
-	gfx->fillRoundRect(ui_s(x), ui_s(y), ui_s(width), ui_s(44), ui_s(6), UI_CARD);
-	ui_label(gfx, label, ui_s(x + 8), ui_s(y + 18), ui_s(width - 16), 1, UI_TEXT);
+	ui_button(gfx, ui_s(x), ui_s(y), ui_s(width), ui_s(44), label);
 }
 /** @brief Use the physical bottom strip for tall actions, leaving a four-pixel inert edge. */
 inline int16_t dice_footer_bottom() { return LCD_HEIGHT - 4; }
@@ -32,9 +31,7 @@ inline void dice_footer_draw(Arduino_GFX *gfx) {
 	for (bool first : {true, false}) {
 		int16_t x = ui_s(first ? 2 : 122);
 		bool roll = first != details;
-		gfx->fillRoundRect(x, ui_s(224), ui_s(116), height, ui_s(8), roll ? UI_ACCENT : UI_CARD);
-		ui_label(gfx, tr(roll ? Text::DiceRoll : (details ? Text::Back : Text::Details)),
-			x + ui_s(12), ui_s(224) + height / 2 - 4 * ui_text_size(1), ui_s(92), 1, roll ? UI_BG : UI_TEXT);
+		ui_button(gfx, x, ui_s(224), ui_s(116), height, tr(roll ? Text::DiceRoll : (details ? Text::Back : Text::Details)), roll);
 	}
 	if (eyes_imu_ready()) {
 		ui_label(gfx, tr(Text::DiceShakeRoll), ui_s(18), ui_s(214), ui_s(204), 1, UI_MUTED);

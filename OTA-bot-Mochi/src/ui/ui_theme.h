@@ -18,6 +18,7 @@ constexpr uint16_t UI_BG = 0x0000;
 constexpr int16_t UI_DESIGN_W = 240;
 constexpr int16_t UI_DESIGN_H = 280;
 extern uint16_t UI_CARD;
+extern uint16_t UI_LINE;	/**< Hairline outline of cards and secondary buttons. */
 extern uint16_t UI_TEXT;
 extern uint16_t UI_MUTED;
 extern uint16_t UI_ACCENT;
@@ -61,6 +62,35 @@ void ui_label(Arduino_GFX *gfx, const String &text, int16_t x, int16_t y,
 	int16_t width, uint8_t size = 1, uint16_t color = UI_TEXT);
 /** @brief Draw a rounded card. @param gfx Canvas. @param y Top. @param height Height. */
 void ui_card(Arduino_GFX *gfx, int16_t y, int16_t height);
+/**
+ * @brief Rounded surface in panel pixels; the radius never exceeds half the height.
+ * @param gfx Canvas. @param x Left. @param y Top. @param w Width. @param h Height.
+ * @param fill Surface color. @param outline Draw the UI_LINE hairline.
+ */
+void ui_box(Arduino_GFX *gfx, int16_t x, int16_t y, int16_t w, int16_t h, uint16_t fill, bool outline = false);
+/**
+ * @brief Button in panel pixels with a centered label: accent fill when primary, outlined card otherwise.
+ * @param gfx Canvas. @param x Left. @param y Top. @param w Width. @param h Height.
+ * @param label Text. @param primary Accent style. @param enabled Muted when false.
+ */
+void ui_button(Arduino_GFX *gfx, int16_t x, int16_t y, int16_t w, int16_t h, const String &label,
+	bool primary = false, bool enabled = true);
+/**
+ * @brief Single line centered on the panel, clipped to the card's inner width.
+ * @param gfx Canvas. @param text Text. @param y Top (design). @param size Font scale. @param color Ink.
+ */
+void ui_center(Arduino_GFX *gfx, const String &text, int16_t y, uint8_t size, uint16_t color);
+/**
+ * @brief Rounded progress track with a filled part.
+ * @param gfx Canvas. @param x Left. @param y Top. @param w Width. @param h Height (panel pixels).
+ * @param permille Filled share, 0..1000 (clamped). @param color Fill.
+ */
+void ui_bar(Arduino_GFX *gfx, int16_t x, int16_t y, int16_t w, int16_t h, int32_t permille, uint16_t color);
+/**
+ * @brief Status line with a leading dot: accent when good, muted otherwise; the text follows the dot color's weight.
+ * @param gfx Canvas. @param y Top (design). @param good State is healthy. @param text Label.
+ */
+void ui_status(Arduino_GFX *gfx, int16_t y, bool good, const String &text);
 /**
  * @brief Draw the shared header and screen position dots.
  * @param gfx Canvas.

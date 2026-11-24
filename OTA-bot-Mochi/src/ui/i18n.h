@@ -12,27 +12,27 @@
 	X(Clock, "CLOCK", "OROLOGIO") \
 	X(MusicVolume, "VOLUME", "VOLUME") \
 	X(Music, "MUSIC", "MUSICA") \
-	X(MusicConnect, "Connect your phone", "Connetti il telefono") \
-	X(MusicWaiting, "Music unavailable", "Musica non disponibile") \
-	X(MusicOpen, "Open a player on phone", "Apri un lettore sul telefono") \
-	X(MusicEmpty, "No track", "Nessun brano") \
+	X(MusicConnect, "CONNECT YOUR PHONE", "CONNETTI IL TELEFONO") \
+	X(MusicWaiting, "MUSIC UNAVAILABLE", "MUSICA NON DISPONIBILE") \
+	X(MusicOpen, "OPEN A PLAYER ON PHONE", "APRI UN LETTORE SUL TELEFONO") \
+	X(MusicEmpty, "NO TRACK", "NESSUN BRANO") \
 	X(MusicPlaying, "PLAYING", "IN RIPRODUZIONE") \
 	X(Route, "ROUTE", "NAVIGAZIONE") \
 	X(Alerts, "ALERTS", "NOTIFICHE") \
 	X(Weather, "WEATHER", "METEO") \
 	X(Settings, "SETTINGS", "IMPOSTAZIONI") \
-	X(FirmwareUpdate, "Firmware update", "Aggiorna firmware") \
-	X(SdFirmware, "Firmware from SD", "Firmware da SD") \
-	X(SdChecking, "Checking SD firmware", "Controllo firmware SD") \
-	X(SdConfirm, "Install this firmware?", "Installare firmware?") \
-	X(SdKeepPower, "Keep power and SD in", "Non spegnere / togliere SD") \
-	X(OtaWifi, "Connect to Wi-Fi:", "Connetti al Wi-Fi:") \
-	X(OtaPassword, "Wi-Fi password:", "Password Wi-Fi:") \
-	X(OtaBrowser, "Open browser:", "Apri nel browser:") \
-	X(OtaReady, "Ready / 5 min timeout", "Pronto / scade in 5 min") \
-	X(OtaWriting, "Writing / keep power on", "Scrittura / non spegnere") \
-	X(OtaRestart, "Verified / restarting", "Verificato / riavvio") \
-	X(OtaScan, "Scan to join Wi-Fi", "Scansiona per Wi-Fi") \
+	X(FirmwareUpdate, "FIRMWARE UPDATE", "AGGIORNA FIRMWARE") \
+	X(SdFirmware, "FIRMWARE FROM SD", "FIRMWARE DA SD") \
+	X(SdChecking, "CHECKING SD FIRMWARE", "CONTROLLO FIRMWARE SD") \
+	X(SdConfirm, "INSTALL THIS FIRMWARE?", "INSTALLARE FIRMWARE?") \
+	X(SdKeepPower, "KEEP POWER AND SD IN", "NON SPEGNERE / TOGLIERE SD") \
+	X(OtaWifi, "CONNECT TO WI-FI:", "CONNETTI AL WI-FI:") \
+	X(OtaPassword, "WI-FI PASSWORD:", "PASSWORD WI-FI:") \
+	X(OtaBrowser, "OPEN BROWSER:", "APRI NEL BROWSER:") \
+	X(OtaReady, "READY / 5 MIN TIMEOUT", "PRONTO / SCADE IN 5 MIN") \
+	X(OtaWriting, "WRITING / KEEP POWER ON", "SCRITTURA / NON SPEGNERE") \
+	X(OtaRestart, "VERIFIED / RESTARTING", "VERIFICATO / RIAVVIO") \
+	X(OtaScan, "SCAN TO JOIN WI-FI", "SCANSIONA PER WI-FI") \
 	X(OtaDetails, "DETAILS", "DETTAGLI") \
 	X(OtaQr, "WI-FI QR", "QR WI-FI") \
 	X(Desk, "DESK TOOLS", "SCRIVANIA") \
@@ -66,6 +66,10 @@
 	X(ObdThrottle, "GAS ", "GAS ") \
 	X(ObdFuel, "FUEL ", "BENZ. ") \
 	X(ObdBattery, "BAT ", "BAT ") \
+	X(ObdMil, "CHECK ENGINE ", "SPIA MOTORE ") \
+	X(ObdNoFaults, "NO STORED FAULTS", "NESSUN GUASTO") \
+	X(ObdOff, "OBD SCAN OFF (SETTINGS)", "OBD SPENTO (IMPOSTAZ.)") \
+	X(ObdScan, "OBD DONGLE SCAN", "RICERCA DONGLE OBD") \
 	X(DriveLegend, "LEAN / LATERAL G", "PIEGA / G LATERALE") \
 	X(DriveHint, "HOLD STILL TO ZERO", "TIENI FERMO PER AZZERARE") \
 	X(DriveZero, "ZERO", "AZZERA") \
@@ -90,32 +94,32 @@
 	X(PongHint, "TAP TO MOVE LEFT PADDLE", "TOCCA: MUOVI RACCHETTA") \
 	X(CallTitle, "PHONE CALL", "CHIAMATA") \
 	X(CallTag, "CALL", "TEL") \
-	X(Quiet, "All quiet for now", "Nessuna notifica") \
-	X(AlertHint, "Alerts appear here", "Le notifiche appaiono qui") \
+	X(Quiet, "ALL QUIET FOR NOW", "NESSUNA NOTIFICA") \
+	X(AlertHint, "ALERTS APPEAR HERE", "LE NOTIFICHE APPAIONO QUI") \
 	X(Dismiss, "CLEAR", "TOGLI") \
-	X(CalibrateImu, "IMU zero", "Zero IMU") \
-	X(Calibrating, "keep still", "fermo") \
-	X(Calibrate, "calibrate", "calibra") \
-	X(Calibrated, "ready", "pronto") \
-	X(AutoRotate, "Auto rotate", "Auto ruota") \
+	X(CalibrateImu, "IMU ZERO", "ZERO IMU") \
+	X(Calibrating, "KEEP STILL", "FERMO") \
+	X(Calibrate, "CALIBRATE", "CALIBRA") \
+	X(Calibrated, "READY", "PRONTO") \
+	X(AutoRotate, "AUTO ROTATE", "AUTO RUOTA") \
 	X(Phone, "PHONE", "TELEFONO") \
-	X(Incoming, "Incoming call", "Chiamata in arrivo") \
-	X(UnknownCaller, "Unknown caller", "Numero sconosciuto") \
-	X(AnswerPhone, "Answer on your phone", "Rispondi dal telefono") \
-	X(NoRoute, "No active route", "Nessun percorso") \
-	X(RouteHint, "Start a route on phone", "Avvia il percorso sul telefono") \
-	X(WeatherMissing, "Weather not synced", "Meteo non sincronizzato") \
-	X(WeatherHint, "Enable weather in Chronos", "Attiva meteo in Chronos") \
-	X(ForecastPending, "Forecast pending", "Previsioni in attesa") \
+	X(Incoming, "INCOMING CALL", "CHIAMATA IN ARRIVO") \
+	X(UnknownCaller, "UNKNOWN CALLER", "NUMERO SCONOSCIUTO") \
+	X(AnswerPhone, "ANSWER ON YOUR PHONE", "RISPONDI DAL TELEFONO") \
+	X(NoRoute, "NO ACTIVE ROUTE", "NESSUN PERCORSO") \
+	X(RouteHint, "START A ROUTE ON PHONE", "AVVIA IL PERCORSO SUL TELEFONO") \
+	X(WeatherMissing, "WEATHER NOT SYNCED", "METEO NON SINCRONIZZATO") \
+	X(WeatherHint, "ENABLE WEATHER IN CHRONOS", "ATTIVA METEO IN CHRONOS") \
+	X(ForecastPending, "FORECAST PENDING", "PREVISIONI IN ATTESA") \
 	X(Stale, "STALE / OPEN CHRONOS", "DATI VECCHI / APRI CHRONOS") \
 	X(Updated, "UPDATED ", "AGGIORNATO ") \
 	X(SyncWeather, "SYNC / REFRESH", "SINCRONIZZA / AGGIORNA") \
 	X(LocalTime, "LOCAL TIME", "ORA LOCALE") \
 	X(PhoneSync, "PHONE SYNC", "SYNC TELEFONO") \
 	X(Waiting, "WAITING", "IN ATTESA") \
-	X(OpenChronos, "Open Chronos", "Apri Chronos") \
+	X(OpenChronos, "OPEN CHRONOS", "APRI CHRONOS") \
 	X(OpenSync, "OPEN CHRONOS TO SYNC", "APRI CHRONOS PER SYNC") \
-	X(TimeUnavailable, "Time unavailable", "Ora non disponibile") \
+	X(TimeUnavailable, "TIME UNAVAILABLE", "ORA NON DISPONIBILE") \
 	X(Connected, "PHONE CONNECTED", "TELEFONO CONNESSO") \
 	X(Offline, "PHONE OFFLINE", "TELEFONO SCOLLEGATO") \
 	X(BackClock, "BACK TO CLOCK", "TORNA ALL'OROLOGIO") \
@@ -127,9 +131,11 @@
 	X(Pause, "PAUSE", "PAUSA") \
 	X(Start, "START", "AVVIA") \
 	X(Reset, "RESET", "AZZERA") \
-	X(Timer5, "MODE: 5 MIN", "MODO: 5 MIN") \
-	X(Timer15, "MODE: 15 MIN", "MODO: 15 MIN") \
-	X(Pomodoro, "MODE: POMODORO 25 / 5", "MODO: POMODORO 25 / 5") \
+	X(Timer5, "5 MIN", "5 MIN") \
+	X(Timer15, "15 MIN", "15 MIN") \
+	X(Pomodoro, "POMODORO 25/5", "POMODORO 25/5") \
+	X(Stopwatch, "STOPWATCH", "CRONOMETRO") \
+	X(Elapsed, "ELAPSED", "TRASCORSO") \
 	X(BleConnected, "BLE: CONNECTED", "BLE: CONNESSO") \
 	X(BleOffline, "BLE: OFFLINE", "BLE: SCOLLEGATO") \
 	X(LightPrefix, "LIGHT: ", "LUCE: ") \
@@ -148,333 +154,333 @@
 	X(DriveTab, "DRIVE", "AUTO") \
 	X(MoveTab, "MOVE", "ANIM") \
 	X(AudioTab, "AUDIO", "AUDIO") \
-	X(EyesLabel, "Eyes", "Occhi") \
-	X(ColorLabel, "Color", "Colore") \
-	X(MoodLabel, "Mood", "Espressione") \
-	X(RouteDefault, "Route default", "Nav predef.") \
-	X(Large, "large", "grande") \
-	X(Details, "details", "dettagli") \
-	X(DayLevel, "Day level", "Luce giorno") \
-	X(NightAuto, "Auto night", "Notte automatica") \
-	X(NightStart, "Night starts", "Inizio notte") \
-	X(NightEnd, "Night ends", "Fine notte") \
-	X(NightManual, "Manual night", "Notte manuale") \
-	X(Night, "Night", "Notte") \
-	X(NightLevel, "Night level", "Luce notte") \
-	X(IdleDim, "Idle dim", "Luce inattiva") \
-	X(ScreenFlip, "Screen flip", "Ruota schermo") \
-	X(Dashboard, "Dashboard", "Dashboard") \
-	X(Shake, "Shake dizzy", "Scossa") \
-	X(RandomMood, "Random mood", "Facce casuali") \
-	X(ImuMood, "IMU mood", "Facce IMU") \
-	X(Animation, "Animation", "Animazione") \
-	X(Language, "Language", "Lingua") \
-	X(MotionHint, "Dashboard/night: calmer", "Auto/notte: movimenti ridotti") \
-	X(SoundSd, "SD sounds", "Suoni da SD") \
-	X(Sound, "Sound", "Suoni") \
-	X(Level, "Level", "Livello") \
-	X(NightMute, "Night mute", "Muto notte") \
-	X(SoundOptions, "Sound options", "Opzioni suoni") \
-	X(TestSound, "Test sound", "Prova suoni") \
-	X(Test, "test", "prova") \
-	X(Open, "open", "apri") \
-	X(Faces, "Faces", "Facce") \
-	X(FaceLibrary, "Face library", "Libreria facce") \
-	X(Favorites, "Favorites", "Preferite") \
-	X(EditFavorites, "Edit favorites", "Modifica preferite") \
-	X(NoFavorites, "No favorites enabled", "Nessuna preferita attiva") \
-	X(KeepOneFace, "Keep one face", "Tieni una faccia") \
-	X(Enabled, "enabled", "attive") \
-	X(FacesWifi, "Wi-Fi settings", "Impostazioni Wi-Fi") \
-	X(FacesReady, "Settings in browser", "Modifica dal browser") \
-	X(WebSettings, "Wi-Fi settings", "Impostazioni Wi-Fi") \
-	X(WebScan, "Scan to open settings", "Scansiona per impostazioni") \
-	X(WebSameWifi, "Use the same Wi-Fi", "Usa lo stesso Wi-Fi") \
-	X(WebAuthorize, "Scan QR to authorize", "Scansiona QR per accedere") \
+	X(EyesLabel, "EYES", "OCCHI") \
+	X(ColorLabel, "COLOR", "COLORE") \
+	X(MoodLabel, "MOOD", "ESPRESSIONE") \
+	X(RouteDefault, "ROUTE DEFAULT", "NAV PREDEF.") \
+	X(Large, "LARGE", "GRANDE") \
+	X(Details, "DETAILS", "DETTAGLI") \
+	X(DayLevel, "DAY LEVEL", "LUCE GIORNO") \
+	X(NightAuto, "AUTO NIGHT", "NOTTE AUTOMATICA") \
+	X(NightStart, "NIGHT STARTS", "INIZIO NOTTE") \
+	X(NightEnd, "NIGHT ENDS", "FINE NOTTE") \
+	X(NightManual, "MANUAL NIGHT", "NOTTE MANUALE") \
+	X(Night, "NIGHT", "NOTTE") \
+	X(NightLevel, "NIGHT LEVEL", "LUCE NOTTE") \
+	X(IdleDim, "IDLE DIM", "LUCE INATTIVA") \
+	X(ScreenFlip, "SCREEN FLIP", "RUOTA SCHERMO") \
+	X(Dashboard, "DASHBOARD", "DASHBOARD") \
+	X(Shake, "SHAKE DIZZY", "SCOSSA") \
+	X(RandomMood, "RANDOM MOOD", "FACCE CASUALI") \
+	X(ImuMood, "IMU MOOD", "FACCE IMU") \
+	X(Animation, "ANIMATION", "ANIMAZIONE") \
+	X(Language, "LANGUAGE", "LINGUA") \
+	X(MotionHint, "DASHBOARD/NIGHT: CALMER", "AUTO/NOTTE: MOVIMENTI RIDOTTI") \
+	X(SoundSd, "SD SOUNDS", "SUONI DA SD") \
+	X(Sound, "SOUND", "SUONI") \
+	X(Level, "LEVEL", "LIVELLO") \
+	X(NightMute, "NIGHT MUTE", "MUTO NOTTE") \
+	X(SoundOptions, "SOUND OPTIONS", "OPZIONI SUONI") \
+	X(TestSound, "TEST SOUND", "PROVA SUONI") \
+	X(Test, "TEST", "PROVA") \
+	X(Open, "OPEN", "APRI") \
+	X(Faces, "FACES", "FACCE") \
+	X(FaceLibrary, "FACE LIBRARY", "LIBRERIA FACCE") \
+	X(Favorites, "FAVORITES", "PREFERITE") \
+	X(EditFavorites, "EDIT FAVORITES", "MODIFICA PREFERITE") \
+	X(NoFavorites, "NO FAVORITES ENABLED", "NESSUNA PREFERITA ATTIVA") \
+	X(KeepOneFace, "KEEP ONE FACE", "TIENI UNA FACCIA") \
+	X(Enabled, "ENABLED", "ATTIVE") \
+	X(FacesWifi, "WI-FI SETTINGS", "IMPOSTAZIONI WI-FI") \
+	X(FacesReady, "SETTINGS IN BROWSER", "MODIFICA DAL BROWSER") \
+	X(WebSettings, "WI-FI SETTINGS", "IMPOSTAZIONI WI-FI") \
+	X(WebScan, "SCAN TO OPEN SETTINGS", "SCANSIONA PER IMPOSTAZIONI") \
+	X(WebSameWifi, "USE THE SAME WI-FI", "USA LO STESSO WI-FI") \
+	X(WebAuthorize, "SCAN QR TO AUTHORIZE", "SCANSIONA QR PER ACCEDERE") \
 	X(WebQr, "WEB QR", "QR WEB") \
 	X(WeatherStaleWifi, "STALE / CHECK WI-FI", "DATI VECCHI / WI-FI") \
-	X(TimerLabel, "Timer", "Timer") \
-	X(CallsAlerts, "Alerts / calls", "Avvisi / tel.") \
-	X(Ambient, "Ambient", "Spontanei") \
-	X(Charging, "Charging", "Ricarica") \
-	X(On, "on", "si") \
-	X(Off, "off", "no") \
+	X(TimerLabel, "TIMER", "TIMER") \
+	X(CallsAlerts, "ALERTS / CALLS", "AVVISI / TEL.") \
+	X(Ambient, "AMBIENT", "SPONTANEI") \
+	X(Charging, "CHARGING", "RICARICA") \
+	X(On, "ON", "SI") \
+	X(Off, "OFF", "NO") \
 	X(Save, "SAVE", "SALVA") \
 	X(Saved, "SAVED", "SALVATO") \
 	X(Failed, "FAILED", "ERRORE") \
 	X(EyesButton, "EYES", "OCCHI") \
 	X(Back, "BACK", "INDIETRO") \
-	X(Normal, "normal", "normale") \
-	X(Flipped, "flipped", "girato") \
-	X(Mochi, "mochi", "mochi") \
-	X(Bloub, "bloub", "bloub") \
-	X(Trapez, "trapez", "trapez") \
-	X(Anime, "anime", "anime") \
-	X(Kitsune, "kitsune", "kitsune") \
-	X(Drl, "headlight DRL", "fari DRL") \
-	X(White, "white", "bianco") \
-	X(Mint, "mint", "menta") \
-	X(Cyan, "cyan", "ciano") \
-	X(Amber, "amber", "ambra") \
-	X(Pink, "pink", "rosa") \
-	X(Blue, "blue", "blu") \
-	X(ExprNeutral, "neutral", "neutro") \
-	X(ExprHappy, "happy", "felice") \
-	X(ExprSad, "sad", "triste") \
-	X(ExprAngry, "angry", "arrabbiato") \
-	X(ExprSurprised, "surprised", "sorpreso") \
-	X(ExprSleepy, "sleepy", "assonnato") \
-	X(ExprLove, "love", "amore") \
-	X(ExprDizzy, "dizzy", "girato") \
-	X(ExprGlee, "glee", "gioia") \
-	X(ExprWorried, "worried", "inquieto") \
-	X(ExprFocused, "focused", "attento") \
-	X(ExprAnnoyed, "annoyed", "seccato") \
-	X(ExprSkeptic, "skeptic", "scettico") \
-	X(ExprFrustrated, "frustrated", "frustrato") \
-	X(ExprUnimpressed, "unimpressed", "noioso") \
-	X(ExprSuspicious, "suspicious", "sospettoso") \
-	X(ExprSquint, "squint", "strizzata") \
-	X(ExprFurious, "furious", "furioso") \
-	X(ExprScared, "scared", "spaventato") \
-	X(ExprAwe, "awe", "stupore") \
-	X(ExprSleepyEyes, "sleepy eyes", "assonnati") \
-	X(ExprSadDown, "sad down", "triste giu") \
-	X(ExprSadUp, "sad up", "triste su") \
-	X(ExprExcited, "excited", "esaltato") \
-	X(ExprTerrified, "terrified", "terrore") \
-	X(ExprDisgusted, "disgusted", "disgustato") \
-	X(ExprShy, "shy", "timido") \
-	X(ExprProud, "proud", "orgoglioso") \
-	X(ExprTired, "tired", "stanco") \
-	X(ExprGrin, "grin", "ghigno") \
-	X(ExprPanicked, "panicked", "in panico") \
-	X(ExprGlum, "glum", "mesto") \
-	X(ExprSmug, "smug", "sdegno") \
-	X(ExprDeadpan, "deadpan", "impassibile") \
-	X(ExprZombie, "zombie", "zombie") \
-	X(ExprConfused, "confused", "confuso") \
-	X(ExprCurious, "curious", "curioso") \
-	X(ExprWink, "wink", "occhiolino") \
-	X(ExprWondering, "wondering", "perplesso") \
-	X(ExprStar, "star", "stella") \
-	X(ExprCrying, "crying", "piange") \
-	X(ExprSwirly, "swirly", "vortice") \
-	X(ExprCat, "cat", "gatto") \
-	X(ExprHalo, "halo", "aureola") \
-	X(ExprDevil, "devil", "diavolo") \
-	X(ExprFire, "fire", "fuoco") \
-	X(ExprMoon, "moon", "luna") \
-	X(ExprSparkle, "sparkle", "scintilla") \
-	X(ExprBolt, "bolt", "fulmine") \
-	X(ExprDiamond, "diamond", "diamante") \
-	X(ExprRing, "ring", "anello") \
-	X(ExprTarget, "target", "bersaglio") \
-	X(ExprMoney, "money", "soldi") \
-	X(ExprMildHappy, "mild happy", "soddisfatto") \
-	X(ExprSmirk, "smirk", "smorfia") \
-	X(ExprPout, "pout", "muso") \
-	X(ExprKiss, "kiss", "bacio") \
-	X(ExprNervous, "nervous", "nervoso") \
-	X(ExprShocked, "shocked", "sorpreso") \
-	X(ExprMelting, "melting", "scioglie") \
-	X(ExprLazy, "lazy", "pigro") \
-	X(ExprDoze, "doze", "pisolino") \
-	X(ExprGroggy, "groggy", "stordito") \
-	X(ExprDaydream, "daydream", "sognante") \
-	X(ExprGrumpy, "grumpy", "brontolo") \
-	X(ExprSassy, "sassy", "sfacciato") \
-	X(ExprCheeky, "cheeky", "birichino") \
-	X(ExprFlirt, "flirt", "lusinga") \
-	X(ExprZen, "zen", "zen") \
-	X(ExprMerciful, "merciful", "pietoso") \
-	X(ExprManic, "manic", "frenetico") \
-	X(ExprSideEye, "side eye", "di traverso") \
-	X(ExprBeaming, "beaming", "raggiante") \
-	X(ExprMusic, "music", "musica") \
-	X(ExprLowBatt, "low battery", "scarica") \
-	X(ExprPower, "power", "stand-by") \
-	X(ExprLoading, "loading", "attendi") \
-	X(ExprIdea, "idea", "idea") \
-	X(ExprHyper, "hyper", "iper") \
-	X(ExprSquish, "squish", "schiacciato") \
-	X(ExprDerp, "derp", "derp") \
-	X(ExprGlitch, "glitch", "glitch") \
-	X(ExprTwitch, "twitch", "tic") \
-	X(ExprSneeze, "sneeze", "starnuto") \
-	X(ExprJudge, "judge", "giudice") \
-	X(ExprQuestion, "question", "domanda") \
-	X(ExprCalculating, "calculating", "calcola") \
-	X(ExprCyborg, "cyborg", "cyborg") \
-	X(ExprArcHappy, "happy arcs", "archi felici") \
-	X(ExprArcSad, "sad arcs", "archi tristi") \
-	X(ExprSqueezed, "squeezed", "strizzati") \
-	X(ExprTilted, "tilted", "inclinati") \
-	X(ExprPong, "pong demo", "pong demo") \
-	X(ExprClockEyes, "clock eyes", "occhi orologio") \
-	X(ExprGauge, "gauge demo", "tachimetro demo") \
-	X(ExprGlow, "color glow", "bagliore colori") \
-	X(ExprHeadlights, "headlights", "occhi faro") \
-	X(ExprDancing, "dancing", "equalizzatore") \
-	X(ExprPolice, "red / blue", "rosso / blu") \
-	X(ExprRain, "rain", "pioggia") \
-	X(ExprGrowing, "growing", "crescita") \
-	X(ExprShrink, "shrink", "restringi") \
-	X(ExprSwinging, "swinging", "dondolio") \
-	X(ExprBlinding, "amber rays", "raggi ambra") \
-	X(ExprBuzzing, "buzzing", "ronzio") \
-	X(ExprSick, "sick", "malessere") \
-	X(ExprSplash, "splash", "onda") \
-	X(ExprSpraying, "spraying", "spruzzi") \
-	X(ExprSushi, "sushi", "sushi") \
-	X(ExprEnergetic, "turbines", "turbine") \
-	X(ExprSmoke, "smoke", "nuvole") \
-	X(ExprMenacing, "orbital rings", "anelli orbitali") \
-	X(ExprHello, "hello", "saluto") \
-	X(ExprDistracted, "distracted", "distratto") \
-	X(ExprLookLeft, "look left", "guarda sinistra") \
-	X(ExprLookRight, "look right", "guarda destra") \
-	X(ExprLookDown, "look down", "guarda giu") \
-	X(ExprStargazing, "stargazing", "cielo stellato") \
-	X(ExprMistake, "mistake", "errore") \
-	X(ExprEncouragement, "encourage", "incoraggia") \
-	X(ExprAdore, "adore", "adorare") \
-	X(ExprLaughing, "laughing", "ridere") \
-	X(ExprEnraged, "enraged", "infuriato") \
-	X(ExprTraffic, "traffic", "semaforo") \
-	X(ExprNeon, "neon", "neon") \
-	X(ExprWheels, "wheels", "ruote") \
-	X(ExprSakura, "sakura", "petali") \
-	X(ExprSamurai, "samurai", "samurai") \
-	X(ExprMecha, "mecha", "mecha") \
-	X(ExprBamboo, "bamboo", "bambu") \
-	X(ExprTitan, "titan", "titano") \
-	X(ExprUpsideDown, "upside down", "capovolto") \
-	X(ExprUwu, "uwu", "uwu") \
-	X(ExprYokai, "yokai", "yokai") \
-	X(ExprTicTacToe, "tic tac toe", "tris") \
-	X(ExprMechaMask, "mecha mask", "mecha maschera") \
-	X(ExprMechaBreak, "mecha break", "mecha pezzi") \
-	X(ExprHollowAnger, "hollow anger", "rabbia cava") \
-	X(ExprSnickering, "snickering", "risatina") \
-	X(ExprHiccup, "hiccup", "singhiozzo") \
-	X(ExprRetroTv, "retro TV", "TV retro") \
-	X(ExprMechaPilot, "mecha pilot", "mecha pilota") \
-	X(ExprComet, "comet", "cometa") \
-	X(ExprYakura, "yakura", "yakura") \
-	X(ExprChineseDragon, "red dragon", "drago rosso") \
-	X(ExprAngel, "angel", "angelo") \
-	X(ExprHacker, "hacker", "hacker") \
-	X(ExprBerserk, "berserk", "furia") \
-	X(ExprPortal, "portal", "portale") \
-	X(ExprOrigami, "origami", "origami") \
-	X(ExprGhost, "ghost", "fantasma") \
-	X(ExprEclipse, "eclipse", "eclissi") \
-	X(ExprDetective, "detective", "detective") \
-	X(ExprPixelCrash, "pixel crash", "pixel crash") \
-	X(ExprPowerUp, "power up", "potenziamento") \
-	X(ExprNinja, "ninja", "ninja") \
-	X(ExprAlchemist, "alchemist", "alchimista") \
-	X(ExprMagicalGirl, "magical girl", "maghetta") \
-	X(ExprMechaLock, "mecha lock", "mecha aggancio") \
-	X(ExprSpiritSeal, "spirit seal", "sigillo") \
-	X(ExprSweatDrop, "sweat drop", "goccia sudore") \
-	X(ExprAnimeVein, "anime vein", "vena rabbia") \
-	X(ExprChibiPanic, "chibi panic", "panico chibi") \
-	X(ExprTsundere, "tsundere", "tsundere") \
-	X(ExprMangaShock, "manga shock", "shock manga") \
-	X(ExprChibiJoy, "chibi joy", "gioia chibi") \
-	X(ExprRubberBand, "rubber band", "elastico") \
-	X(ExprPeekaboo, "peekaboo", "cucu") \
-	X(ExprPopcorn, "popcorn", "popcorn") \
-	X(ExprSpringEyes, "spring eyes", "occhi a molla") \
-	X(ExprComicGlasses, "comic glasses", "occhiali buffi") \
-	X(ExprBalloonEyes, "balloon eyes", "palloncini") \
-	X(ExprWipers, "wipers", "tergicristalli") \
-	X(ExprTurnSignal, "turn signal", "freccia") \
-	X(ExprFuelLow, "fuel low", "riserva") \
-	X(ExprDrift, "drift", "derapata") \
-	X(ExprCarWash, "car wash", "autolavaggio") \
-	X(ExprParkingSensor, "parking", "parcheggio") \
-	X(ExprTunnel, "tunnel", "galleria") \
-	X(ExprGearShift, "gear shift", "cambio marcia") \
-	X(ExprCheckEngine, "check engine", "spia motore") \
-	X(ExprYandere, "yandere", "yandere") \
-	X(ExprNapBubble, "nap bubble", "bolla pisolino") \
-	X(ExprGloom, "gloom", "nuvoletta") \
-	X(ExprDotEyes, "dot eyes", "occhi a punto") \
-	X(ExprSteamBlush, "steam blush", "vapore rosso") \
-	X(ExprSnowfall, "snowfall", "nevicata") \
-	X(ExprHeatwave, "heatwave", "afa") \
-	X(ExprRainbow, "rainbow", "arcobaleno") \
-	X(ExprThunderstorm, "thunderstorm", "temporale") \
-	X(ExprFoggy, "foggy", "nebbia") \
-	X(ExprWindy, "windy", "vento") \
-	X(ExprHail, "hail", "grandine") \
-	X(ExprSunrise, "sunrise", "alba") \
-	X(ExprTornado, "tornado", "tornado") \
-	X(ExprFrosty, "frosty", "gelo") \
-	X(ExprRamen, "ramen", "ramen") \
-	X(ExprIceCream, "ice cream", "gelato") \
-	X(ExprCoffee, "coffee", "caffe") \
-	X(ExprPizza, "pizza", "pizza") \
-	X(ExprBubbleTea, "bubble tea", "bubble tea") \
-	X(ExprDonut, "donut", "ciambella") \
-	X(ExprOnigiri, "onigiri", "onigiri") \
-	X(ExprCookie, "cookie", "biscotto") \
-	X(ExprBunny, "bunny", "coniglio") \
-	X(ExprFrog, "frog", "rana") \
-	X(ExprOwl, "owl", "gufo") \
-	X(ExprPenguin, "penguin", "pinguino") \
-	X(ExprBee, "bee", "ape") \
-	X(ExprFishBowl, "fish bowl", "acquario") \
-	X(ExprPuppy, "puppy", "cucciolo") \
-	X(ExprButterfly, "butterfly", "farfalla") \
-	X(ExprShoujoStars, "shoujo stars", "stelline") \
-	X(ExprChibiCry, "chibi cry", "pianto chibi") \
-	X(ExprDetermined, "determined", "determinato") \
-	X(ExprFaint, "faint", "svenuto") \
-	X(ExprKawaiiWink, "kawaii wink", "occhiolino") \
-	X(ExprSneaky, "sneaky", "furtivo") \
-	X(ExprHypnotized, "hypnotized", "ipnotizzato") \
-	X(ExprBrainFreeze, "brain freeze", "gelo testa") \
-	X(ExprDj, "dj", "dj") \
-	X(ExprKaraoke, "karaoke", "karaoke") \
-	X(ExprDisco, "disco", "discoteca") \
-	X(ExprDrumRoll, "drum roll", "rullo tamburi") \
-	X(ExprPartyPopper, "party popper", "coriandoli") \
-	X(ExprBirthday, "birthday", "compleanno") \
-	X(ExprFireworks, "fireworks", "fuochi") \
-	X(ExprMaracas, "maracas", "maracas") \
-	X(ExprWifiSearch, "wifi search", "cerca wifi") \
-	X(ExprDownload, "download", "download") \
-	X(ExprPairing, "pairing", "abbinamento") \
-	X(ExprCursor, "cursor", "cursore") \
-	X(ExprErrorSign, "error sign", "errore") \
-	X(ExprSyncSpin, "sync spin", "sincronia") \
-	X(ExprCharging, "charging", "ricarica") \
-	X(ExprTyping, "typing", "digitazione") \
-	X(ExprSoccer, "soccer", "calcio") \
-	X(ExprBasketball, "basketball", "basket") \
-	X(ExprBowling, "bowling", "bowling") \
-	X(ExprDiceRoll, "dice roll", "dadi") \
-	X(ExprFishing, "fishing", "pesca") \
-	X(ExprYoyo, "yoyo", "yo-yo") \
-	X(ExprJuggling, "juggling", "giocoliere") \
-	X(ExprTennis, "tennis", "tennis") \
-	X(ExprUfo, "ufo", "ufo") \
-	X(ExprRocket, "rocket", "razzo") \
-	X(ExprPlanetRing, "planet ring", "pianeta") \
-	X(ExprBlackHole, "black hole", "buco nero") \
-	X(ExprCrystalBall, "crystal ball", "sfera") \
-	X(ExprWizard, "wizard", "mago") \
-	X(ExprDragonEgg, "dragon egg", "uovo drago") \
-	X(ExprVampire, "vampire", "vampiro") \
-	X(ExprPumpkin, "pumpkin", "zucca") \
-	X(ExprAstronaut, "astronaut", "astronauta") \
-	X(Calm, "calm", "calmo") \
-	X(Dasai, "normal", "normale") \
-	X(Playful, "playful", "vivace") \
+	X(Normal, "NORMAL", "NORMALE") \
+	X(Flipped, "FLIPPED", "GIRATO") \
+	X(Mochi, "MOCHI", "MOCHI") \
+	X(Bloub, "BLOUB", "BLOUB") \
+	X(Trapez, "TRAPEZ", "TRAPEZ") \
+	X(Anime, "ANIME", "ANIME") \
+	X(Kitsune, "KITSUNE", "KITSUNE") \
+	X(Drl, "HEADLIGHT DRL", "FARI DRL") \
+	X(White, "WHITE", "BIANCO") \
+	X(Mint, "MINT", "MENTA") \
+	X(Cyan, "CYAN", "CIANO") \
+	X(Amber, "AMBER", "AMBRA") \
+	X(Pink, "PINK", "ROSA") \
+	X(Blue, "BLUE", "BLU") \
+	X(ExprNeutral, "NEUTRAL", "NEUTRO") \
+	X(ExprHappy, "HAPPY", "FELICE") \
+	X(ExprSad, "SAD", "TRISTE") \
+	X(ExprAngry, "ANGRY", "ARRABBIATO") \
+	X(ExprSurprised, "SURPRISED", "SORPRESO") \
+	X(ExprSleepy, "SLEEPY", "ASSONNATO") \
+	X(ExprLove, "LOVE", "AMORE") \
+	X(ExprDizzy, "DIZZY", "GIRATO") \
+	X(ExprGlee, "GLEE", "GIOIA") \
+	X(ExprWorried, "WORRIED", "INQUIETO") \
+	X(ExprFocused, "FOCUSED", "ATTENTO") \
+	X(ExprAnnoyed, "ANNOYED", "SECCATO") \
+	X(ExprSkeptic, "SKEPTIC", "SCETTICO") \
+	X(ExprFrustrated, "FRUSTRATED", "FRUSTRATO") \
+	X(ExprUnimpressed, "UNIMPRESSED", "NOIOSO") \
+	X(ExprSuspicious, "SUSPICIOUS", "SOSPETTOSO") \
+	X(ExprSquint, "SQUINT", "STRIZZATA") \
+	X(ExprFurious, "FURIOUS", "FURIOSO") \
+	X(ExprScared, "SCARED", "SPAVENTATO") \
+	X(ExprAwe, "AWE", "STUPORE") \
+	X(ExprSleepyEyes, "SLEEPY EYES", "ASSONNATI") \
+	X(ExprSadDown, "SAD DOWN", "TRISTE GIU") \
+	X(ExprSadUp, "SAD UP", "TRISTE SU") \
+	X(ExprExcited, "EXCITED", "ESALTATO") \
+	X(ExprTerrified, "TERRIFIED", "TERRORE") \
+	X(ExprDisgusted, "DISGUSTED", "DISGUSTATO") \
+	X(ExprShy, "SHY", "TIMIDO") \
+	X(ExprProud, "PROUD", "ORGOGLIOSO") \
+	X(ExprTired, "TIRED", "STANCO") \
+	X(ExprGrin, "GRIN", "GHIGNO") \
+	X(ExprPanicked, "PANICKED", "IN PANICO") \
+	X(ExprGlum, "GLUM", "MESTO") \
+	X(ExprSmug, "SMUG", "SDEGNO") \
+	X(ExprDeadpan, "DEADPAN", "IMPASSIBILE") \
+	X(ExprZombie, "ZOMBIE", "ZOMBIE") \
+	X(ExprConfused, "CONFUSED", "CONFUSO") \
+	X(ExprCurious, "CURIOUS", "CURIOSO") \
+	X(ExprWink, "WINK", "OCCHIOLINO") \
+	X(ExprWondering, "WONDERING", "PERPLESSO") \
+	X(ExprStar, "STAR", "STELLA") \
+	X(ExprCrying, "CRYING", "PIANGE") \
+	X(ExprSwirly, "SWIRLY", "VORTICE") \
+	X(ExprCat, "CAT", "GATTO") \
+	X(ExprHalo, "HALO", "AUREOLA") \
+	X(ExprDevil, "DEVIL", "DIAVOLO") \
+	X(ExprFire, "FIRE", "FUOCO") \
+	X(ExprMoon, "MOON", "LUNA") \
+	X(ExprSparkle, "SPARKLE", "SCINTILLA") \
+	X(ExprBolt, "BOLT", "FULMINE") \
+	X(ExprDiamond, "DIAMOND", "DIAMANTE") \
+	X(ExprRing, "RING", "ANELLO") \
+	X(ExprTarget, "TARGET", "BERSAGLIO") \
+	X(ExprMoney, "MONEY", "SOLDI") \
+	X(ExprMildHappy, "MILD HAPPY", "SODDISFATTO") \
+	X(ExprSmirk, "SMIRK", "SMORFIA") \
+	X(ExprPout, "POUT", "MUSO") \
+	X(ExprKiss, "KISS", "BACIO") \
+	X(ExprNervous, "NERVOUS", "NERVOSO") \
+	X(ExprShocked, "SHOCKED", "SORPRESO") \
+	X(ExprMelting, "MELTING", "SCIOGLIE") \
+	X(ExprLazy, "LAZY", "PIGRO") \
+	X(ExprDoze, "DOZE", "PISOLINO") \
+	X(ExprGroggy, "GROGGY", "STORDITO") \
+	X(ExprDaydream, "DAYDREAM", "SOGNANTE") \
+	X(ExprGrumpy, "GRUMPY", "BRONTOLO") \
+	X(ExprSassy, "SASSY", "SFACCIATO") \
+	X(ExprCheeky, "CHEEKY", "BIRICHINO") \
+	X(ExprFlirt, "FLIRT", "LUSINGA") \
+	X(ExprZen, "ZEN", "ZEN") \
+	X(ExprMerciful, "MERCIFUL", "PIETOSO") \
+	X(ExprManic, "MANIC", "FRENETICO") \
+	X(ExprSideEye, "SIDE EYE", "DI TRAVERSO") \
+	X(ExprBeaming, "BEAMING", "RAGGIANTE") \
+	X(ExprMusic, "MUSIC", "MUSICA") \
+	X(ExprLowBatt, "LOW BATTERY", "SCARICA") \
+	X(ExprPower, "POWER", "STAND-BY") \
+	X(ExprLoading, "LOADING", "ATTENDI") \
+	X(ExprIdea, "IDEA", "IDEA") \
+	X(ExprHyper, "HYPER", "IPER") \
+	X(ExprSquish, "SQUISH", "SCHIACCIATO") \
+	X(ExprDerp, "DERP", "DERP") \
+	X(ExprGlitch, "GLITCH", "GLITCH") \
+	X(ExprTwitch, "TWITCH", "TIC") \
+	X(ExprSneeze, "SNEEZE", "STARNUTO") \
+	X(ExprJudge, "JUDGE", "GIUDICE") \
+	X(ExprQuestion, "QUESTION", "DOMANDA") \
+	X(ExprCalculating, "CALCULATING", "CALCOLA") \
+	X(ExprCyborg, "CYBORG", "CYBORG") \
+	X(ExprArcHappy, "HAPPY ARCS", "ARCHI FELICI") \
+	X(ExprArcSad, "SAD ARCS", "ARCHI TRISTI") \
+	X(ExprSqueezed, "SQUEEZED", "STRIZZATI") \
+	X(ExprTilted, "TILTED", "INCLINATI") \
+	X(ExprPong, "PONG DEMO", "PONG DEMO") \
+	X(ExprClockEyes, "CLOCK EYES", "OCCHI OROLOGIO") \
+	X(ExprGauge, "GAUGE DEMO", "TACHIMETRO DEMO") \
+	X(ExprGlow, "COLOR GLOW", "BAGLIORE COLORI") \
+	X(ExprHeadlights, "HEADLIGHTS", "OCCHI FARO") \
+	X(ExprDancing, "DANCING", "EQUALIZZATORE") \
+	X(ExprPolice, "RED / BLUE", "ROSSO / BLU") \
+	X(ExprRain, "RAIN", "PIOGGIA") \
+	X(ExprGrowing, "GROWING", "CRESCITA") \
+	X(ExprShrink, "SHRINK", "RESTRINGI") \
+	X(ExprSwinging, "SWINGING", "DONDOLIO") \
+	X(ExprBlinding, "AMBER RAYS", "RAGGI AMBRA") \
+	X(ExprBuzzing, "BUZZING", "RONZIO") \
+	X(ExprSick, "SICK", "MALESSERE") \
+	X(ExprSplash, "SPLASH", "ONDA") \
+	X(ExprSpraying, "SPRAYING", "SPRUZZI") \
+	X(ExprSushi, "SUSHI", "SUSHI") \
+	X(ExprEnergetic, "TURBINES", "TURBINE") \
+	X(ExprSmoke, "SMOKE", "NUVOLE") \
+	X(ExprMenacing, "ORBITAL RINGS", "ANELLI ORBITALI") \
+	X(ExprHello, "HELLO", "SALUTO") \
+	X(ExprDistracted, "DISTRACTED", "DISTRATTO") \
+	X(ExprLookLeft, "LOOK LEFT", "GUARDA SINISTRA") \
+	X(ExprLookRight, "LOOK RIGHT", "GUARDA DESTRA") \
+	X(ExprLookDown, "LOOK DOWN", "GUARDA GIU") \
+	X(ExprStargazing, "STARGAZING", "CIELO STELLATO") \
+	X(ExprMistake, "MISTAKE", "ERRORE") \
+	X(ExprEncouragement, "ENCOURAGE", "INCORAGGIA") \
+	X(ExprAdore, "ADORE", "ADORARE") \
+	X(ExprLaughing, "LAUGHING", "RIDERE") \
+	X(ExprEnraged, "ENRAGED", "INFURIATO") \
+	X(ExprTraffic, "TRAFFIC", "SEMAFORO") \
+	X(ExprNeon, "NEON", "NEON") \
+	X(ExprWheels, "WHEELS", "RUOTE") \
+	X(ExprSakura, "SAKURA", "PETALI") \
+	X(ExprSamurai, "SAMURAI", "SAMURAI") \
+	X(ExprMecha, "MECHA", "MECHA") \
+	X(ExprBamboo, "BAMBOO", "BAMBU") \
+	X(ExprTitan, "TITAN", "TITANO") \
+	X(ExprUpsideDown, "UPSIDE DOWN", "CAPOVOLTO") \
+	X(ExprUwu, "UWU", "UWU") \
+	X(ExprYokai, "YOKAI", "YOKAI") \
+	X(ExprTicTacToe, "TIC TAC TOE", "TRIS") \
+	X(ExprMechaMask, "MECHA MASK", "MECHA MASCHERA") \
+	X(ExprMechaBreak, "MECHA BREAK", "MECHA PEZZI") \
+	X(ExprHollowAnger, "HOLLOW ANGER", "RABBIA CAVA") \
+	X(ExprSnickering, "SNICKERING", "RISATINA") \
+	X(ExprHiccup, "HICCUP", "SINGHIOZZO") \
+	X(ExprRetroTv, "RETRO TV", "TV RETRO") \
+	X(ExprMechaPilot, "MECHA PILOT", "MECHA PILOTA") \
+	X(ExprComet, "COMET", "COMETA") \
+	X(ExprYakura, "YAKURA", "YAKURA") \
+	X(ExprChineseDragon, "RED DRAGON", "DRAGO ROSSO") \
+	X(ExprAngel, "ANGEL", "ANGELO") \
+	X(ExprHacker, "HACKER", "HACKER") \
+	X(ExprBerserk, "BERSERK", "FURIA") \
+	X(ExprPortal, "PORTAL", "PORTALE") \
+	X(ExprOrigami, "ORIGAMI", "ORIGAMI") \
+	X(ExprGhost, "GHOST", "FANTASMA") \
+	X(ExprEclipse, "ECLIPSE", "ECLISSI") \
+	X(ExprDetective, "DETECTIVE", "DETECTIVE") \
+	X(ExprPixelCrash, "PIXEL CRASH", "PIXEL CRASH") \
+	X(ExprPowerUp, "POWER UP", "POTENZIAMENTO") \
+	X(ExprNinja, "NINJA", "NINJA") \
+	X(ExprAlchemist, "ALCHEMIST", "ALCHIMISTA") \
+	X(ExprMagicalGirl, "MAGICAL GIRL", "MAGHETTA") \
+	X(ExprMechaLock, "MECHA LOCK", "MECHA AGGANCIO") \
+	X(ExprSpiritSeal, "SPIRIT SEAL", "SIGILLO") \
+	X(ExprSweatDrop, "SWEAT DROP", "GOCCIA SUDORE") \
+	X(ExprAnimeVein, "ANIME VEIN", "VENA RABBIA") \
+	X(ExprChibiPanic, "CHIBI PANIC", "PANICO CHIBI") \
+	X(ExprTsundere, "TSUNDERE", "TSUNDERE") \
+	X(ExprMangaShock, "MANGA SHOCK", "SHOCK MANGA") \
+	X(ExprChibiJoy, "CHIBI JOY", "GIOIA CHIBI") \
+	X(ExprRubberBand, "RUBBER BAND", "ELASTICO") \
+	X(ExprPeekaboo, "PEEKABOO", "CUCU") \
+	X(ExprPopcorn, "POPCORN", "POPCORN") \
+	X(ExprSpringEyes, "SPRING EYES", "OCCHI A MOLLA") \
+	X(ExprComicGlasses, "COMIC GLASSES", "OCCHIALI BUFFI") \
+	X(ExprBalloonEyes, "BALLOON EYES", "PALLONCINI") \
+	X(ExprWipers, "WIPERS", "TERGICRISTALLI") \
+	X(ExprTurnSignal, "TURN SIGNAL", "FRECCIA") \
+	X(ExprFuelLow, "FUEL LOW", "RISERVA") \
+	X(ExprDrift, "DRIFT", "DERAPATA") \
+	X(ExprCarWash, "CAR WASH", "AUTOLAVAGGIO") \
+	X(ExprParkingSensor, "PARKING", "PARCHEGGIO") \
+	X(ExprTunnel, "TUNNEL", "GALLERIA") \
+	X(ExprGearShift, "GEAR SHIFT", "CAMBIO MARCIA") \
+	X(ExprCheckEngine, "CHECK ENGINE", "SPIA MOTORE") \
+	X(ExprYandere, "YANDERE", "YANDERE") \
+	X(ExprNapBubble, "NAP BUBBLE", "BOLLA PISOLINO") \
+	X(ExprGloom, "GLOOM", "NUVOLETTA") \
+	X(ExprDotEyes, "DOT EYES", "OCCHI A PUNTO") \
+	X(ExprSteamBlush, "STEAM BLUSH", "VAPORE ROSSO") \
+	X(ExprSnowfall, "SNOWFALL", "NEVICATA") \
+	X(ExprHeatwave, "HEATWAVE", "AFA") \
+	X(ExprRainbow, "RAINBOW", "ARCOBALENO") \
+	X(ExprThunderstorm, "THUNDERSTORM", "TEMPORALE") \
+	X(ExprFoggy, "FOGGY", "NEBBIA") \
+	X(ExprWindy, "WINDY", "VENTO") \
+	X(ExprHail, "HAIL", "GRANDINE") \
+	X(ExprSunrise, "SUNRISE", "ALBA") \
+	X(ExprTornado, "TORNADO", "TORNADO") \
+	X(ExprFrosty, "FROSTY", "GELO") \
+	X(ExprRamen, "RAMEN", "RAMEN") \
+	X(ExprIceCream, "ICE CREAM", "GELATO") \
+	X(ExprCoffee, "COFFEE", "CAFFE") \
+	X(ExprPizza, "PIZZA", "PIZZA") \
+	X(ExprBubbleTea, "BUBBLE TEA", "BUBBLE TEA") \
+	X(ExprDonut, "DONUT", "CIAMBELLA") \
+	X(ExprOnigiri, "ONIGIRI", "ONIGIRI") \
+	X(ExprCookie, "COOKIE", "BISCOTTO") \
+	X(ExprBunny, "BUNNY", "CONIGLIO") \
+	X(ExprFrog, "FROG", "RANA") \
+	X(ExprOwl, "OWL", "GUFO") \
+	X(ExprPenguin, "PENGUIN", "PINGUINO") \
+	X(ExprBee, "BEE", "APE") \
+	X(ExprFishBowl, "FISH BOWL", "ACQUARIO") \
+	X(ExprPuppy, "PUPPY", "CUCCIOLO") \
+	X(ExprButterfly, "BUTTERFLY", "FARFALLA") \
+	X(ExprShoujoStars, "SHOUJO STARS", "STELLINE") \
+	X(ExprChibiCry, "CHIBI CRY", "PIANTO CHIBI") \
+	X(ExprDetermined, "DETERMINED", "DETERMINATO") \
+	X(ExprFaint, "FAINT", "SVENUTO") \
+	X(ExprKawaiiWink, "KAWAII WINK", "OCCHIOLINO") \
+	X(ExprSneaky, "SNEAKY", "FURTIVO") \
+	X(ExprHypnotized, "HYPNOTIZED", "IPNOTIZZATO") \
+	X(ExprBrainFreeze, "BRAIN FREEZE", "GELO TESTA") \
+	X(ExprDj, "DJ", "DJ") \
+	X(ExprKaraoke, "KARAOKE", "KARAOKE") \
+	X(ExprDisco, "DISCO", "DISCOTECA") \
+	X(ExprDrumRoll, "DRUM ROLL", "RULLO TAMBURI") \
+	X(ExprPartyPopper, "PARTY POPPER", "CORIANDOLI") \
+	X(ExprBirthday, "BIRTHDAY", "COMPLEANNO") \
+	X(ExprFireworks, "FIREWORKS", "FUOCHI") \
+	X(ExprMaracas, "MARACAS", "MARACAS") \
+	X(ExprWifiSearch, "WIFI SEARCH", "CERCA WIFI") \
+	X(ExprDownload, "DOWNLOAD", "DOWNLOAD") \
+	X(ExprPairing, "PAIRING", "ABBINAMENTO") \
+	X(ExprCursor, "CURSOR", "CURSORE") \
+	X(ExprErrorSign, "ERROR SIGN", "ERRORE") \
+	X(ExprSyncSpin, "SYNC SPIN", "SINCRONIA") \
+	X(ExprCharging, "CHARGING", "RICARICA") \
+	X(ExprTyping, "TYPING", "DIGITAZIONE") \
+	X(ExprSoccer, "SOCCER", "CALCIO") \
+	X(ExprBasketball, "BASKETBALL", "BASKET") \
+	X(ExprBowling, "BOWLING", "BOWLING") \
+	X(ExprDiceRoll, "DICE ROLL", "DADI") \
+	X(ExprFishing, "FISHING", "PESCA") \
+	X(ExprYoyo, "YOYO", "YO-YO") \
+	X(ExprJuggling, "JUGGLING", "GIOCOLIERE") \
+	X(ExprTennis, "TENNIS", "TENNIS") \
+	X(ExprUfo, "UFO", "UFO") \
+	X(ExprRocket, "ROCKET", "RAZZO") \
+	X(ExprPlanetRing, "PLANET RING", "PIANETA") \
+	X(ExprBlackHole, "BLACK HOLE", "BUCO NERO") \
+	X(ExprCrystalBall, "CRYSTAL BALL", "SFERA") \
+	X(ExprWizard, "WIZARD", "MAGO") \
+	X(ExprDragonEgg, "DRAGON EGG", "UOVO DRAGO") \
+	X(ExprVampire, "VAMPIRE", "VAMPIRO") \
+	X(ExprPumpkin, "PUMPKIN", "ZUCCA") \
+	X(ExprAstronaut, "ASTRONAUT", "ASTRONAUTA") \
+	X(Calm, "CALM", "CALMO") \
+	X(Dasai, "NORMAL", "NORMALE") \
+	X(Playful, "PLAYFUL", "VIVACE") \
 	X(Sunday, "SUN", "DOM") \
 	X(Monday, "MON", "LUN") \
 	X(Tuesday, "TUE", "MAR") \
@@ -487,26 +493,26 @@
 	X(SoundArmed, "SOUND: ARMED", "SUONI: ABILITATI") \
 	X(SoundReady, "SOUND: PWM READY", "SUONI: PWM PRONTO") \
 		X(SoundError, "SOUND: PWM FAILED", "SUONI: ERRORE PWM") \
-	X(FaceFlow, "Face flow", "Ciclo facce") \
-	X(PhoneMode, "Phone mode (restart)", "Telefono (riavvio)") \
-	X(AndroidMode, "Android / Chronos", "Android / Chronos") \
-	X(IphoneMode, "iPhone / ANCS", "iPhone / ANCS") \
-	X(Diagnostics, "Diagnostics", "Diagnostica") \
-	X(DiagBoard, "Board", "Scheda") \
-	X(DiagPhone, "Phone / BLE", "Telefono / BLE") \
-	X(DiagWifi, "Wi-Fi station", "Connessione Wi-Fi") \
-	X(DiagImu, "Motion sensor", "Sensore movimento") \
-	X(DiagSd, "SD: last audio attempt", "SD: ultimo uso audio") \
-	X(DiagHeap, "Free internal RAM", "RAM interna libera") \
-	X(DiagMinimum, "Minimum free RAM", "Minimo RAM libera") \
-	X(DiagPsram, "Free PSRAM", "PSRAM libera") \
-	X(DiagUptime, "Uptime", "Tempo acceso") \
-	X(DiagReset, "Last reset reason", "Ultimo riavvio") \
-	X(DiagUnsupported, "Not supported", "Non supportata") \
-	X(DiagReady, "Ready", "Pronta") \
-	X(DiagArmed, "Enabled", "Abilitato") \
-	X(DiagMissing, "Unavailable", "Non disponibile") \
-	X(DiagUnchecked, "Not checked", "Non verificata")
+	X(FaceFlow, "FACE FLOW", "CICLO FACCE") \
+	X(PhoneMode, "PHONE MODE (RESTART)", "TELEFONO (RIAVVIO)") \
+	X(AndroidMode, "ANDROID / CHRONOS", "ANDROID / CHRONOS") \
+	X(IphoneMode, "IPHONE / ANCS", "IPHONE / ANCS") \
+	X(Diagnostics, "DIAGNOSTICS", "DIAGNOSTICA") \
+	X(DiagBoard, "BOARD", "SCHEDA") \
+	X(DiagPhone, "PHONE / BLE", "TELEFONO / BLE") \
+	X(DiagWifi, "WI-FI STATION", "CONNESSIONE WI-FI") \
+	X(DiagImu, "MOTION SENSOR", "SENSORE MOVIMENTO") \
+	X(DiagSd, "SD: LAST AUDIO ATTEMPT", "SD: ULTIMO USO AUDIO") \
+	X(DiagHeap, "FREE INTERNAL RAM", "RAM INTERNA LIBERA") \
+	X(DiagMinimum, "MINIMUM FREE RAM", "MINIMO RAM LIBERA") \
+	X(DiagPsram, "FREE PSRAM", "PSRAM LIBERA") \
+	X(DiagUptime, "UPTIME", "TEMPO ACCESO") \
+	X(DiagReset, "LAST RESET REASON", "ULTIMO RIAVVIO") \
+	X(DiagUnsupported, "NOT SUPPORTED", "NON SUPPORTATA") \
+	X(DiagReady, "READY", "PRONTA") \
+	X(DiagArmed, "ENABLED", "ABILITATO") \
+	X(DiagMissing, "UNAVAILABLE", "NON DISPONIBILE") \
+	X(DiagUnchecked, "NOT CHECKED", "NON VERIFICATA")
 enum class Text : uint16_t {
 #define UI_ENUM(key, en, it) key,
 	UI_TRANSLATIONS(UI_ENUM)

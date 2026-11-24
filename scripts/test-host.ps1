@@ -99,6 +99,9 @@ try {
 	Invoke-HostTest 'flappy' @("$root\tests\flappy_test.cpp")
 	Invoke-HostTest 'drive-meter' @("$root\tests\drive_meter_test.cpp")
 	Invoke-HostTest 'elm327' @("$root\tests\elm327_test.cpp")
+	# Device-only BLE OBD client: parse against declaration-only NimBLE/FreeRTOS stubs.
+	& g++ -std=c++17 -Wall -Wextra -Werror -I "$root\tests\stubs\obd" -I "$root\tests\stubs" -DMOCHI_BOARD_LCD_169 -fsyntax-only "$root\OTA-bot-Mochi\src\vehicle\obd_ble.cpp"
+	if ($LASTEXITCODE -ne 0) { throw 'OBD BLE syntax check failed' }
 	$ota = $runtime + @("$root\tests\ota_test.cpp", "$root\OTA-bot-Mochi\src\update\ota_update.cpp", "$root\OTA-bot-Mochi\src\update\ntp_sync.cpp", "$root\tests\stubs\imu_noop.cpp")
 	Invoke-HostTest 'ota-lcd' $ota @('-I', "$root\tests\stubs\ota")
 	Invoke-HostTest 'ota-amoled' $ota @('-I', "$root\tests\stubs\ota", '-DMOCHI_BOARD_AMOLED_18')

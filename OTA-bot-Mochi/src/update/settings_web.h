@@ -50,7 +50,8 @@ static const Field fields[] = {
 	{"language", Text::Language, 5, 0, 1, 5, &CompanionSettings::language, nullptr},
 	{"dashboard", Text::Dashboard, 5, 0, 1, -1, nullptr, &CompanionSettings::dashboard},
 	{"route_large", Text::RouteDefault, 5, 0, 1, -1, nullptr, &CompanionSettings::route_large},
-	{"phone_ios", Text::PhoneMode, 5, 0, 1, -1, nullptr, &CompanionSettings::phone_ios}
+	{"phone_ios", Text::PhoneMode, 5, 0, 1, -1, nullptr, &CompanionSettings::phone_ios},
+	{"obd_scan", Text::ObdScan, 5, 0, 1, -1, nullptr, &CompanionSettings::obd_scan}
 };
 constexpr size_t COUNT = sizeof(fields) / sizeof(fields[0]);
 /** @brief Include the session-only orientation toggle in optimistic concurrency. */

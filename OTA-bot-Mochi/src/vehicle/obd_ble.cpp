@@ -6,12 +6,15 @@
  * priority-1 worker. The notify callback only copies bounded fragments into a
  * queue. While the drive page is hidden the worker stops polling, and it drops
  * the link after a minute so the dongle does not keep the car's bus awake.
+ * The address of the last dongle that completed discovery is kept in its own
+ * NVS namespace and preferred on later scans; otherwise the strongest signal wins.
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "obd_ble.h"
 #include "elm327.h"
 #include <Arduino.h>
 #include <NimBLEDevice.h>
+#include <Preferences.h>
 #include <freertos/queue.h>
 #include <freertos/task.h>
 #include <cstring>
@@ -77,28 +80,51 @@ bool discover() {
 	return false;
 }
 
-/** @brief Scan four seconds and connect to the first likely dongle. @return Connected and discovered. */
+/** @brief Last dongle that completed GATT discovery; read once, written only on change. */
+std::string remembered;
+
+/** @brief Load the remembered dongle from its own NVS namespace (worker task, not a BLE callback). */
+void remember_load() {
+	Preferences store;
+	if (!store.begin("mochi-obd", true)) { return; }
+	char text[18] = {};	// "aa:bb:cc:dd:ee:ff"
+	size_t length = store.getBytesLength("addr");
+	if (length && length < sizeof(text) && store.getBytes("addr", text, length) == length) { remembered = text; }
+	store.end();
+}
+
+/** @brief Persist a newly linked dongle so nearby look-alikes are not preferred next time. @param address Text address. */
+void remember_save(const std::string &address) {
+	if (address == remembered || address.size() >= 18) { return; }
+	Preferences store;
+	if (!store.begin("mochi-obd", false)) { return; }
+	if (store.putBytes("addr", address.data(), address.size()) == address.size()) { remembered = address; }
+	store.end();
+}
+
+/** @brief Scan four seconds; prefer the remembered dongle, else the strongest likely one. @return Connected and discovered. */
 bool connect() {
 	publish(ObdStatus::Scanning);
 	NimBLEScan *scan = NimBLEDevice::getScan();
 	scan->setActiveScan(true);
 	NimBLEScanResults results = scan->getResults(4000, false);
-	NimBLEAddress address;
-	bool found = false;
-	for (int i = 0; i < results.getCount() && !found; ++i) {
+	const NimBLEAdvertisedDevice *best = nullptr;
+	for (int i = 0; i < results.getCount(); ++i) {
 		const NimBLEAdvertisedDevice *device = results.getDevice(i);
 		bool service = false;
 		for (const char *uuid : KNOWN) { service |= device->isAdvertisingService(NimBLEUUID(uuid)); }
 		if (!obd_name(device->getName()) && !service) { continue; }
-		address = device->getAddress();
-		strncpy(state.name, device->getName().c_str(), sizeof(state.name) - 1);
-		found = true;
+		if (device->getAddress().toString() == remembered) { best = device; break; }
+		if (!best || device->getRSSI() > best->getRSSI()) { best = device; }
 	}
+	NimBLEAddress address = best ? best->getAddress() : NimBLEAddress();
+	if (best) { strncpy(state.name, best->getName().c_str(), sizeof(state.name) - 1); }
 	scan->clearResults();
-	if (!found) { return false; }
+	if (!best) { return false; }
 	publish(ObdStatus::Connecting);
 	if (!client) { client = NimBLEDevice::createClient(); client->setConnectTimeout(5000); }
 	if (!client->connect(address) || !discover()) { client->disconnect(); tx = nullptr; return false; }
+	remember_save(address.toString());
 	session.reset();
 	publish(ObdStatus::Starting);
 	return true;
@@ -123,6 +149,7 @@ bool exchange(ElmBuffer &buffer) {
 void worker(void *) {
 	ElmBuffer buffer;
 	uint32_t hidden = 0;
+	remember_load();
 	for (;;) {
 		bool linked = client && client->isConnected() && tx;
 		if (!obd_wanted()) {

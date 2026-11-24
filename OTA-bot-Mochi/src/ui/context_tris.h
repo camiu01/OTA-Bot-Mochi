@@ -19,8 +19,7 @@ inline void desk_tris_draw(Arduino_GFX *gfx, uint32_t now) {
 		ui_s(18), ui_s(58), ui_s(204), 1, UI_ACCENT);
 	tic_tac_toe_draw(gfx, game, ui_s(48), ui_s(78), ui_s(144),
 		UI_MUTED, UI_TEXT, UI_ACCENT);
-	gfx->fillRoundRect(ui_s(6), ui_s(230), ui_s(228), ui_s(30), ui_s(6), UI_CARD);
-	ui_label(gfx, tr(Text::TrisNew), ui_s(18), ui_s(241), ui_s(204), 1, UI_TEXT);
+	ui_button(gfx, ui_s(6), ui_s(230), ui_s(228), ui_s(30), tr(Text::TrisNew));
 }
 
 /** @brief Accept a released board tap, ignoring the header, margins and occupied cells. */

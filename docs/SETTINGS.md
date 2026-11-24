@@ -341,8 +341,9 @@ tone band (see [Audio and motion](SOUND.md)).
 A hold still opens Settings and a swipe does not also trigger a random face.
 These reactions remain available in dashboard mode, which only calms idle motion.
 
-The full profile is stored as a validated seventeen-byte version-ten NVS blob
-with a checksum. Version ten appends the charging-sound category and reads the
+The full profile is stored as a validated seventeen-byte version-eleven NVS blob
+with a checksum. Version eleven keeps the version-ten length and adds the OBD
+scan flag; version ten appends the charging-sound category and reads the
 prior sixteen-byte version-nine night schedule unchanged. Version seven adds
 Phone mode while preserving the prior layout.
 Thirteen-byte version-six profiles retain Face flow and default to Android mode;
@@ -384,6 +385,14 @@ The **Charging** switch lives with the other categories under SOUND → Sound
 options and defaults on. It gates only the automatic AMOLED charge-start cue;
 Startup keeps no category switch. Enabling it does not change charger
 configuration. See [Sound](SOUND.md#startup-charging-and-reaction-rules).
+
+### Version eleven: OBD dongle scan
+
+Version 11 keeps the seventeen-byte layout and uses bit 1 of byte 15 for
+`obd_scan`; version-ten profiles (bit 1 reserved) migrate with the scan on.
+**SYSTEM → OBD dongle scan** (last row), USB `set obd-scan on|off` and the web
+form field `obd_scan` edit it in RAM; SAVE persists it. Off stops all BLE OBD
+scanning and polling on the Drive page. See [Drive](DESK.md#ble-obd-dongle).
 
 ### Startup, charging and SD reaction families
 
