@@ -8,6 +8,10 @@ Release notes on GitHub hold the full detail for each version.
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-11-24
+
+See the [release notes](https://github.com/camiu01/OTA-Bot-Mochi/releases/tag/v1.7.0).
+
 ### Added
 
 - Drive dashboard with lean/G tools and a BLE ELM327 OBD client (PR #10).
@@ -25,7 +29,6 @@ Release notes on GitHub hold the full detail for each version.
 - Expression grid split out of `settings_menu.cpp` into `settings_grid.h`.
 - Device labels are uppercase in English and Italian (settings rows, face names, OTA/SD, diagnostics), matching the rest of the UI; the web settings form shows the same labels.
 - Timer mode labels drop the `MODE:` prefix so they fit the button; STARGAZING stars are brighter.
-
 - Documentation aligned with the shared camiu01 conventions: README layout, TODO grouped by area, this changelog format and the docs/ index.
 
 ## [1.6.0] - 2026-11-17
@@ -61,6 +64,7 @@ See the [release notes](https://github.com/camiu01/OTA-Bot-Mochi/releases/tag/v.
 See the [release notes](https://github.com/camiu01/OTA-Bot-Mochi/releases/tag/v1.0).
 
 [Unreleased]: https://github.com/camiu01/OTA-Bot-Mochi/compare/v1.6.0...HEAD
+[1.7.0]: https://github.com/camiu01/OTA-Bot-Mochi/releases/tag/v1.7.0
 [1.6.0]: https://github.com/camiu01/OTA-Bot-Mochi/releases/tag/v1.6.0
 [1.5.0]: https://github.com/camiu01/OTA-Bot-Mochi/releases/tag/v1.5.0
 [1.4.0]: https://github.com/camiu01/OTA-Bot-Mochi/releases/tag/v1.4.0
