@@ -30,6 +30,7 @@ See the [release notes](https://github.com/camiu01/OTA-Bot-Mochi/releases/tag/v1
 - Settings profile version 12 (25 bytes); versions 10 and 11 migrate with defaults.
 - Desk tool menu uses a four-row grid.
 - README and AGENTS.md rewritten.
+- GIF export (`export-all-gifs`) covers all ten eye styles.
 
 ## [1.7.0] - 2026-11-24
 

@@ -12,7 +12,7 @@ import tempfile
 import uuid
 
 ROOT = Path(__file__).resolve().parents[1]
-STYLES = ("mochi", "bloub", "normal", "trapez", "anime", "kitsune", "drl")
+STYLES = ("mochi", "bloub", "normal", "trapez", "anime", "kitsune", "drl", "pixel", "round", "visor")
 SIZES = ("240x280", "368x448", "240x320", "320x480", "128x160", "160x128")
 # Same rendering runtime as scripts/test-host.ps1 and scripts/test-host.sh, without SDL.
 SOURCES = (
@@ -67,7 +67,7 @@ def parser():
 	moods.add_argument("--all", action="store_true", help="Export every face")
 	result.add_argument("--list", action="store_true", help="List all canonical face names")
 	result.add_argument("--style", choices=STYLES, default="mochi")
-	result.add_argument("--all-styles", action="store_true", help="Export all seven styles into separate subfolders")
+	result.add_argument("--all-styles", action="store_true", help="Export all ten styles into separate subfolders")
 	result.add_argument("--size", choices=SIZES, default="240x280")
 	result.add_argument("--seconds", type=bounded(1, 30), default=6)
 	result.add_argument("--fps", type=bounded(1, 30), default=30)
