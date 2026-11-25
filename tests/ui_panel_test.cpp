@@ -261,10 +261,12 @@ static void desk_checks() {
 	assert(screens_tap(UiPage::Desk, ui_s(20), ui_s(140), 0) == UiPage::Timer);
 	assert(screens_tap(UiPage::Desk, ui_s(200), ui_s(140), 0) == UiPage::Device);
 	assert(screens_tap(UiPage::Desk, ui_s(20), ui_s(180), 0) == UiPage::AnalogClock);
-	assert(screens_tap(UiPage::Desk, ui_s(200), ui_s(180), 0) == UiPage::Phone);
-	assert(screens_tap(UiPage::Desk, ui_s(20), ui_s(230), 0) == UiPage::Desk);
+	assert(screens_tap(UiPage::Desk, ui_s(200), ui_s(180), 0) == UiPage::Tally);
+	assert(screens_tap(UiPage::Desk, ui_s(20), ui_s(210), 0) == UiPage::Score);
+	assert(screens_tap(UiPage::Desk, ui_s(200), ui_s(210), 0) == UiPage::Phone);
+	assert(screens_tap(UiPage::Desk, ui_s(20), ui_s(234), 0) == UiPage::Desk);
 	assert(screens_tap(UiPage::Desk, ui_s(120), ui_s(210), 0) == UiPage::Desk);
-	assert(screens_tap(UiPage::Desk, ui_s(20), ui_s(104), 0) == UiPage::Desk);
+	assert(screens_tap(UiPage::Desk, ui_s(20), ui_s(98), 0) == UiPage::Desk);
 	uint8_t mode = view_timer().mode;
 	screens_tap(UiPage::Timer, ui_s(120), ui_s(180), 1000);
 	assert(view_timer().running);
@@ -479,7 +481,7 @@ static void settings_font_checks(Arduino_GFX &gfx, ChronosESP32 &watch) {
 	if (!ui_font::Supported) { return; }
 	const auto original = settings_get();
 	const auto legacy = test_profile;
-	assert(legacy.size() == SETTINGS_BYTES && legacy[0] == 11 && original.font == UiFont::Default);
+	assert(legacy.size() == SETTINGS_BYTES && legacy[0] == 12 && original.font == UiFont::Default);
 	assert(screens_draw(&gfx, watch, UiPage::Clock, 4000));
 	assert(!gfx.text.empty());
 	const auto default_clock = gfx.pixels;
@@ -495,7 +497,7 @@ static void settings_font_checks(Arduino_GFX &gfx, ChronosESP32 &watch) {
 	settings_menu_draw(&gfx);
 	assert(gfx.pixels != old_pixels);
 	assert(settings_menu_tap(ui_s(60), ui_s(240)) == MenuAction::Changed);
-	assert(test_profile[0] == 13 && settings_init() && settings_get().font == UiFont::Inter);
+	assert(test_profile[0] == 14 && settings_init() && settings_get().font == UiFont::Inter);
 	assert(!settings_dirty());
 	ui_font::bind(&gfx, gfx.pixels.data());
 	const UiPage pages[] = {UiPage::Music, UiPage::Clock, UiPage::Weather, UiPage::Drive, UiPage::Desk, UiPage::Games};
@@ -509,7 +511,7 @@ static void settings_font_checks(Arduino_GFX &gfx, ChronosESP32 &watch) {
 	assert(settings_menu_tap(ui_s(120), ui_s(155)) == MenuAction::Changed);
 	assert(ui_font::active() && settings_get().font == UiFont::DmSans && settings_dirty());
 	assert(settings_menu_tap(ui_s(60), ui_s(240)) == MenuAction::Changed);
-	assert(test_profile[0] == 13 && settings_init() && settings_get().font == UiFont::DmSans && !settings_dirty());
+	assert(test_profile[0] == 14 && settings_init() && settings_get().font == UiFont::DmSans && !settings_dirty());
 	gfx.text.clear();
 	assert(screens_draw(&gfx, watch, UiPage::Clock, 5500) && gfx.text.empty());
 	assert(gfx.pixels != inter_clock && gfx.pixels != default_clock);

@@ -28,6 +28,9 @@ static EyeStyle style(const std::string &name) {
 	if (name == "anime") { return ANIME; }
 	if (name == "kitsune") { return KITSUNE; }
 	if (name == "drl") { return DRL; }
+	if (name == "pixel") { return PIXEL; }
+	if (name == "round") { return ROUND; }
+	if (name == "visor") { return VISOR; }
 	throw std::runtime_error("Unknown eye style");
 }
 

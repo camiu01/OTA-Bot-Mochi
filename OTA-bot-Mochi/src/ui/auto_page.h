@@ -12,6 +12,7 @@ struct AutoPagePolicy {
 	UiPage return_page = UiPage::Eyes;
 	uint32_t notification_started = 0;
 	bool returning = false;
+	uint32_t hold_ms = 60000;	/**< Notification time before returning; set from settings. */
 
 	/**
 	 * @brief Select a page on new alerts or actual navigation starts.
@@ -34,7 +35,7 @@ struct AutoPagePolicy {
 			notification_started = now;
 			return UiPage::Notification;
 		}
-		if (returning && uint32_t(now - notification_started) >= 60000) {
+		if (returning && uint32_t(now - notification_started) >= hold_ms) {
 			returning = false;
 			return return_page;
 		}

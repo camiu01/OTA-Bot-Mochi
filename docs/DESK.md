@@ -58,7 +58,7 @@ Mochi can read a **BLE** ELM327 OBD-II dongle (for example OBDLink CX, Vgate
 iCar Pro BLE, vLinker BLE). Classic-Bluetooth-only dongles cannot connect: the
 ESP32-S3 has BLE only. Wi-Fi dongles are not supported.
 
-While the Drive page is visible and **Settings → SYSTEM → OBD dongle scan** is on
+While the Drive page is visible and **Settings → CAR / AUTO → OBD dongle scan** is on
 (default; USB `set obd-scan on|off`), a priority-1 worker scans for four seconds
 every ten seconds. Candidates are devices whose name contains OBD, ELM,
 VLINK, VGATE, ICAR, VEEPEAK, KONNWEI or OBDLINK, or that advertise the serial
@@ -71,8 +71,12 @@ pairing is configured. The Chronos/ANCS phone link stays as is; Mochi is central
 and peripheral at once.
 
 The session sends ATZ, ATE0, ATL0, ATS0, ATH0, ATSP0, probes 0100, then polls
-RPM (010C) and speed (010D) every round plus one of coolant (0105), throttle
-(0111), fuel level (012F), adapter voltage (ATRV) or monitor status (0101).
+RPM (010C) and speed (010D) every round plus, in turn, monitor status (0101)
+and only the values chosen for the four slots: coolant (0105), throttle (0111),
+fuel level (012F), adapter voltage (ATRV), intake air (010F), engine load (0104),
+manifold pressure (010B), timing advance (010E), short/long fuel trim (0106/0107),
+O2 sensor bank 1 sensor 1 voltage (0114), ECU voltage (0142), MAF (0110),
+outside temperature (0146), barometric pressure (0133) or engine run time (011F).
 0101 gives the check-engine lamp and the stored-trouble-code count, shown as
 CHECK ENGINE n DTC (warm while the lamp is on) or NO STORED FAULTS; codes are
 not listed and never cleared. A PID unsupported three
@@ -80,6 +84,13 @@ times is skipped until the next probe. Three empty engine replies mean ignition
 off: the view shows IGNITION OFF / QUADRO SPENTO and keeps reporting battery
 voltage while it re-probes. Values older than three seconds turn grey; missing
 ones show `--`.
+
+The page layout is configurable in Settings → CAR / AUTO or the browser settings:
+**RPM gauge** picks a bar, a ten-block shift light (top two warm, all blinking
+above 95 %), a dot dial beside the speed, or the number only; **Max RPM** (3000–12000)
+sets the full scale, which turns warm above 85 %; **OBD value 1–4** choose the
+four small values from the sixteen above, or hidden. Many older ECUs, such as the Fiat 1.2 Fire, do not report fuel
+level: it shows `--`; pick another value instead.
 
 Leaving the page stops polling; the link is dropped after one minute hidden so
 the dongle can sleep. Only the dongle address is stored; vehicle values are not. Only ELM327 text commands are sent; no
@@ -111,10 +122,12 @@ Swipe down on Clock to open Scrivania, then select:
 | TIMER / POMODORO | Local 5-minute or 15-minute timer, one 25-minute focus/5-minute rest pair, or a stopwatch |
 | DEVICE STATUS | BLE connection, backlight percentage, IMU initialization, clock sync, preference save state, sound state, battery estimate, and a charge bolt while the PMU reports charging |
 | ANALOG CLOCK | Hour, minute and second hands with synchronized digital time below |
+| TALLY / CONTATORE | Tap the card for +1, -1 or RESET below; hold resets |
+| SCOREBOARD / PUNTEGGIO | Two sides A and B: tap a half for +1, -1 undoes the last side changed, RESET or hold clears both |
 | PHONE TOOLS (Android only) | Find phone, camera, battery, alarms, reminders, hourly weather, contacts, QR and language association; see [Chronos](CHRONOS.md) |
 
-The hub shows six 108x44-pixel cards in Android mode and five in iPhone mode,
-in a two-column, three-row grid. Gaps between cards are
+The hub shows eight 108x40-pixel cards in Android mode and seven in iPhone mode,
+in a two-column, four-row grid. Counters are RAM-only. Gaps between cards are
 not tap targets. Coordinates scale for both the 240x280 LCD and 368x448 AMOLED.
 
 ## Games and D&D dice
@@ -199,7 +212,13 @@ appears beside the row while the AMOLED PMU reports a stable charging state.
 
 ## Local timer
 
-MODE cycles 5 minutes, 15 minutes, Pomodoro and Stopwatch, resetting paused.
+MODE cycles 5 minutes, 15 minutes, Pomodoro, Tea (3 min), Pasta (10 min),
+Break every 30, Custom and Stopwatch, resetting paused. Break every 30 repeats:
+each interval posts one local MOCHI alert (TIME FOR A BREAK / FAI UNA PAUSA)
+with the notification cue and starts the next one; a running break timer does
+not keep the page from returning to Eyes. Custom starts at 10 minutes: while
+paused, tapping the left or right third of the digits card changes it by one
+minute (1-180, shown as - and +); it is RAM-only and resets at reboot.
 Stopwatch counts up (ELAPSED / TRASCORSO), switches to H:MM:SS after an hour
 and stops at 99:59:59 as DONE. START/PAUSE
 controls the countdown; tapping the large time does the same, and a **hold**

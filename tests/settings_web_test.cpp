@@ -38,7 +38,7 @@ static void style_edits(WebServer &s) {
 		call(s, "POST /settings"); assert(s.code == 200 && settings_get().style == style);
 	}
 	form(s); s.arguments["style"] = String(uint8_t(EYE_STYLE_COUNT));
-	call(s, "POST /settings"); assert(s.code == 400 && settings_get().style == DRL);
+	call(s, "POST /settings"); assert(s.code == 400 && settings_get().style == EYE_STYLE_COUNT - 1);
 }
 static void edits(WebServer &s) {
 	style_edits(s);

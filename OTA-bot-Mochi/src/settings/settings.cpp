@@ -52,7 +52,7 @@ bool settings_init() {
 	uint8_t bytes[SETTINGS_BYTES] = {};
 	size_t length = storage_ready ? storage.getBytesLength("profile") : 0;
 	if ((length == 8 || length == SETTINGS_V4_BYTES || length == SETTINGS_LEGACY_BYTES ||
-		length == SETTINGS_V9_BYTES || length == sizeof(bytes)) &&
+		length == SETTINGS_V9_BYTES || length == SETTINGS_V10_BYTES || length == sizeof(bytes)) &&
 		storage.getBytes("profile", bytes, length) == length &&
 		settings_decode(bytes, length, profile)) {
 		memcpy(saved, bytes, sizeof(saved));

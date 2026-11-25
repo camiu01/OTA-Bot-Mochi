@@ -15,6 +15,7 @@
 #include "context_play.h"
 #include "context_tris.h"
 #include "context_hubs.h"
+#include "context_count.h"
 #include "context_dice.h"
 #include "context_flappy.h"
 #include "context_drive.h"
@@ -90,12 +91,15 @@ void timer_screen(Arduino_GFX *gfx) {
 		66, 1, timer.finished ? UI_WARM : UI_MUTED);
 	ui_center(gfx, text, 84, 4, timer.running ? UI_TEXT : UI_MUTED);
 	if (!watch) {	// Countdown share left in the current phase.
-		static const uint32_t length[] = {300000, 900000, 1500000};
-		uint32_t total = timer.resting ? 300000 : length[timer.mode];
+		uint32_t total = timer.resting ? 300000 : timer.length();
+		if (timer.mode == DeskTimer::CUSTOM && !timer.running) {	// Paused custom timer: side taps set minutes.
+			ui_label(gfx, "-", ui_s(24), ui_s(92), ui_s(20), 3, UI_ACCENT);
+			ui_label(gfx, "+", LCD_WIDTH - ui_s(42), ui_s(92), ui_s(20), 3, UI_ACCENT);
+		}
 		ui_bar(gfx, ui_s(28), ui_s(132), LCD_WIDTH - 2 * ui_s(28), ui_s(5), int32_t(uint64_t(timer.remaining) * 1000 / total), UI_ACCENT);
 	}
 	TimerRow bottom = timer_row();
-	static const Text modes[DeskTimer::MODES] = {Text::Timer5, Text::Timer15, Text::Pomodoro, Text::Stopwatch};
+	static const Text modes[DeskTimer::MODES] = {Text::Timer5, Text::Timer15, Text::Pomodoro, Text::TimerTea, Text::TimerPasta, Text::TimerBreak, Text::TimerCustom, Text::Stopwatch};
 	button(gfx, 6, 154, 228, tr(timer.running ? Text::Pause : Text::Start), 50, true);
 	button(gfx, 6, 212, bottom.reset_w, tr(Text::Reset), 48);
 	button(gfx, bottom.mode_x, 212, bottom.mode_w, tr(modes[timer.mode]), 48);
@@ -151,6 +155,7 @@ void context_route(Arduino_GFX *gfx, const UiSnapshot &data) {
 void context_draw(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, const UiSnapshot &data, uint32_t now) {
 	if (page == UiPage::Desk || page == UiPage::Games) { context_hub_draw(gfx, page); }
 	if (page == UiPage::Dice) { desk_dice_draw(gfx); }
+	if (page == UiPage::Tally || page == UiPage::Score) { desk_count_draw(gfx, page); }
 	if (page == UiPage::FlappyBird) { desk_flappy_draw(gfx, now); }
 	if (page == UiPage::BigClock) { large_clock(gfx, watch); }
 	if (page == UiPage::Overview) { overview(gfx, watch, data, now); }
@@ -181,6 +186,7 @@ UiPage screens_tap(UiPage page, int16_t x, int16_t y, uint32_t now) {
 	// The Drive home has no controls: a tap reopens the last tool (the tool menu at first).
 	if (page == UiPage::Drive && y >= ui_s(56)) { return last_drive_tool; }
 	if (page == UiPage::Dice && desk_dice_tap(x, y)) { screens_invalidate(); }
+	if ((page == UiPage::Tally || page == UiPage::Score) && desk_count_tap(page, x, y)) { screens_invalidate(); }
 	if (page == UiPage::FlappyBird && desk_flappy_tap(x, y, now)) { screens_invalidate(); }
 	if (screens_drive(page) && drive_tap(page, x, y)) { screens_invalidate(); }
 	if (page == UiPage::Phone) { phone_view_tap(x, y); return page; }
@@ -192,7 +198,10 @@ UiPage screens_tap(UiPage page, int16_t x, int16_t y, uint32_t now) {
 	}
 	if (page == UiPage::Timer) {
 		// The digits card and START/PAUSE both toggle, so the large time is a target too.
-		if (y >= ui_s(56) && y < ui_s(208)) { view_timer().toggle(now); screens_invalidate(); }
+		// A paused custom timer uses the digits card's outer thirds for -1 / +1 minute.
+		bool side = y >= ui_s(56) && y < ui_s(148) && (x < LCD_WIDTH / 3 || x >= LCD_WIDTH * 2 / 3);
+		if (side && view_timer().adjust(x < LCD_WIDTH / 3 ? -1 : 1, now)) { screens_invalidate(); }
+		else if (y >= ui_s(56) && y < ui_s(208)) { view_timer().toggle(now); screens_invalidate(); }
 		if (y >= ui_s(208) && y < ui_s(262)) {
 			int16_t split = ui_s(timer_row().split);
 			if (x < split) { view_timer().reset(now); }
@@ -206,6 +215,7 @@ UiPage screens_tap(UiPage page, int16_t x, int16_t y, uint32_t now) {
 bool screens_hold(UiPage page, uint32_t now) {
 	if (page == UiPage::Navigation) { view_route_temporary(-1); return true; }
 	if (page == UiPage::Timer) { view_timer().reset(now); return true; }
+	if (page == UiPage::Tally || page == UiPage::Score) { desk_counters().reset(page); return true; }
 	if (page == UiPage::Drive || drive_has_zero(page)) { drive_meter().zero(); return true; }
 	return false;
 }

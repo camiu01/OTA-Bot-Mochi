@@ -50,7 +50,7 @@ inline void diagnostics_panel_checks(Arduino_GFX &gfx) {
 	const auto original = settings_get();
 	for (uint8_t language = 0; language < 2; ++language) {
 		auto p = original; p.language = language; assert(settings_update(p));
-		for (uint8_t tab = 0; tab < 5; ++tab) { settings_menu_tap(ui_s(200), ui_s(70)); }
+		for (uint8_t tab = 0; tab < 6; ++tab) { settings_menu_tap(ui_s(200), ui_s(70)); }
 		for (uint8_t row = 0; row < 4; ++row) { assert(settings_menu_scroll(1)); }
 		if (ui_font::Supported) { assert(settings_menu_scroll(1)); }
 #if MOCHI_HAS_SD_AUDIO
@@ -58,11 +58,9 @@ inline void diagnostics_panel_checks(Arduino_GFX &gfx) {
 		gfx.text.clear(); settings_menu_draw(&gfx);
 		assert(std::find(gfx.text.begin(), gfx.text.end(), tr(Text::SdFirmware)) != gfx.text.end());
 		assert(settings_menu_tap(ui_s(120), ui_s(200)) == MenuAction::SdUpdate);
-		// OBD dongle scan is the last SYSTEM row, one below SD firmware.
-		assert(settings_menu_scroll(1) && !settings_menu_scroll(1) && settings_menu_scroll(-1) && settings_menu_scroll(-1));
+		assert(!settings_menu_scroll(1) && settings_menu_scroll(-1));
 #else
-		// OBD dongle scan is the last SYSTEM row, one below Diagnostics.
-		assert(settings_menu_scroll(1) && !settings_menu_scroll(1) && settings_menu_scroll(-1));
+		assert(!settings_menu_scroll(1));
 #endif
 		unsigned writes = test_flash_writes;
 		bool dirty = settings_dirty(); uint32_t revision = settings_revision();
@@ -82,7 +80,7 @@ inline void diagnostics_panel_checks(Arduino_GFX &gfx) {
 		assert(test_flash_writes == writes && settings_dirty() == dirty && settings_revision() == revision);
 		assert(settings_menu_tap(ui_s(20), ui_s(250)) == MenuAction::Changed);
 		settings_menu_draw(&gfx);
-		for (uint8_t tab = 0; tab < 5; ++tab) { settings_menu_tap(ui_s(30), ui_s(70)); }
+		for (uint8_t tab = 0; tab < 6; ++tab) { settings_menu_tap(ui_s(30), ui_s(70)); }
 	}
 	assert(settings_update(original));
 	diagnostics_value_checks();
