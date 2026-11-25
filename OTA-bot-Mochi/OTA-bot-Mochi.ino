@@ -26,6 +26,7 @@
 #include "src/ui/music_transport.h"
 #include "src/ui/auto_page.h"
 #include "src/ui/view_state.h"
+#include "src/ui/i18n.h"
 #include "src/ui/weather_sync.h"
 #include "src/sound/sound.h"
 #include "src/ui/ui_theme.h"
@@ -319,9 +320,21 @@ void handle_touch(uint32_t now) {
 	switch_screen(screens_swipe(current_screen, step), now);
 }
 
+/** @brief Turn each fired break-timer interval into one local alert with the usual notification cue. @param now Timestamp. */
+void break_reminder(uint32_t now) {
+	static uint16_t seen = 0;
+	if (view_timer().reminders == seen) { return; }
+	seen = view_timer().reminders;
+	Notification item;
+	item.app = "MOCHI"; item.title = tr(Text::BreakTitle); item.message = tr(Text::BreakHint); item.time = "";
+	ui_notification(item); backlight_activity(now);
+	sound_request(SoundCue::Notification, now);
+}
+
 /** @brief Follow new Chronos events without changing screens from BLE callbacks, and return idle pages to Eyes. @param now Timestamp. */
 void handle_auto_page(uint32_t now) {
 	if (starting || shutting_down) { return; }
+	auto_page.hold_ms = uint32_t(settings_get().alert_seconds) * 1000;
 	UiPage target = auto_page.update(current_screen, ui_page_events(), touch_pressed(), now);
 	if (target != current_screen) {
 		last_input = now;
@@ -444,6 +457,7 @@ void loop() {
 	if (charging_disconnected()) { sound_request(SoundCue::Unplugged, now); }
 	if (!ios_mode_boot) { battery_chronos_poll(watch); }
 	view_timer().tick(now);
+	break_reminder(now);
 	sound_poll(now, ui_page_events(), current_screen == UiPage::Eyes && !screens_calling(),
 		view_timer().resting, view_timer().finished);
 	update_backlight(now);

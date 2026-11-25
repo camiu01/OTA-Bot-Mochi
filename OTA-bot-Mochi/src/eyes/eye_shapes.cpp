@@ -147,7 +147,7 @@ static void signature_body(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox 
 
 /** @brief Draw the style's plain body before any expression overlay. @param gfx Canvas. @param cfg Config. @param b Eye. */
 static void base_body(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b) {
-	if (cfg.style >= ANIME && cfg.style < EYE_STYLE_COUNT) {
+	if (cfg.style >= ANIME && cfg.style <= DRL) {
 		signature_body(gfx, cfg, b);
 	} else if (cfg.style == NORMAL) {
 		gfx->fillEllipse(int16_t(b.x + b.w / 2), int16_t(b.y + b.h / 2),
@@ -156,6 +156,10 @@ static void base_body(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b) {
 		trapezoid(gfx, cfg, b);
 	} else {
 		gfx->fillRoundRect(b.x, b.y, b.w, b.h, b.radius, cfg.fgColor);
+		if (cfg.style == ROUND && b.w > 16 && b.h > 16) {	// Fixed highlight, upper outer side.
+			int16_t r = int16_t((b.w < b.h ? b.w : b.h) / 8);
+			gfx->fillCircle(int16_t(b.x + (b.left ? b.w * 3 / 10 : b.w * 7 / 10)), int16_t(b.y + b.h * 3 / 10), r, 0xFFFF);
+		}
 	}
 }
 
@@ -183,7 +187,7 @@ static bool glyph(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b, int16
 
 /** @brief Draw distinct bodies; solid styles engrave every accessory glyph. @param gfx Canvas. @param cfg Config. @param b Eye. */
 void eye_body(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox &b) {
-	bool solid = cfg.style == MOCHI || cfg.style == TRAPEZ || cfg.style == DRL;
+	bool solid = eye_style_solid(cfg.style);
 	int16_t cx = int16_t(b.x + b.w / 2), cy = int16_t(b.y + b.h / 2);
 	int16_t s = eye_limit((b.w < b.h ? b.w : b.h) / 2 - 2, 3, 60);
 	const FacePreset *p = face_preset(cfg.expression);
@@ -225,7 +229,7 @@ static void signature_pupil(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeBox
 /** @brief Draw contained pupils for non-solid styles, leaving whole symbols and clock dials unobscured. @param gfx Canvas. @param cfg Config. @param st State. @param b Eye. */
 void eye_pupils(Arduino_GFX *gfx, const EyeConfig &cfg, const EyeState &st, const EyeBox &b) {
 	const FacePreset *p = face_preset(cfg.expression);
-	if (cfg.expression == CLOCK_EYES || cfg.style == MOCHI || cfg.style == TRAPEZ || cfg.style == DRL || (p && p->wholeEye)) { return; }
+	if (cfg.expression == CLOCK_EYES || eye_style_solid(cfg.style) || (p && p->wholeEye)) { return; }
 	int16_t radius = eye_limit((b.w < b.h ? b.w : b.h) / 5, 2, 9);
 	int16_t dx = eye_limit((st.saccadeX + st.tiltX + (p ? int16_t(p->gazeX * 20) : 0)) / 3, -b.w / 6, b.w / 6);
 	int16_t dy = eye_limit((st.saccadeY + st.tiltY + (p ? int16_t(p->gazeY * 18) : 0)) / 3, -b.h / 6, b.h / 6);

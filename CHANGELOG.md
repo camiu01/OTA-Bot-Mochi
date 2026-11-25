@@ -8,6 +8,30 @@ Release notes on GitHub hold the full detail for each version.
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-11-25
+
+See the [release notes](https://github.com/camiu01/OTA-Bot-Mochi/releases/tag/v1.8.0).
+
+### Added
+
+- OBD page settings: RPM gauge style (bar, shift light, dial, number only), max RPM and four selectable values,
+  in the touch menu and browser settings.
+- OBD values: intake air, engine load, manifold pressure, timing advance, short/long fuel trim, O2 voltage,
+  ECU voltage, MAF, outside temperature, barometer and engine run time; only the selected ones are polled.
+- Adjustable alert display time and back-to-Eyes idle time (or never).
+- Desk tally counter and two-player scoreboard.
+- Timer modes: tea (3 min), pasta (10 min), a repeating 30-minute break reminder with an alert, and a
+  custom countdown set in one-minute steps (1-180 min).
+- Eye styles PIXEL, ROUND (with a highlight) and VISOR.
+- CAR / AUTO settings tab, before SYSTEM, for every OBD option.
+
+### Changed
+
+- Settings profile version 12 (25 bytes); versions 10 and 11 migrate with defaults.
+- Desk tool menu uses a four-row grid.
+- README and AGENTS.md rewritten.
+- GIF export (`export-all-gifs`) covers all ten eye styles.
+
 ## [1.7.0] - 2026-11-24
 
 See the [release notes](https://github.com/camiu01/OTA-Bot-Mochi/releases/tag/v1.7.0).

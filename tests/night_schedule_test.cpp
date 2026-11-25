@@ -59,14 +59,14 @@ void migration_checks() {
 	assert(settings_init());
 	assert(settings_get().sound_sd && settings_get().phone_ios && !settings_get().night_auto);
 	assert(settings_get().night_start == 22 && settings_get().night_end == 7);
-	assert(settings_dirty() && settings_save() && test_profile.size() == 17 && test_profile[0] == 11);
+	assert(settings_dirty() && settings_save() && test_profile.size() == SETTINGS_BYTES && test_profile[0] == 12);
 	p = settings_get(); p.night_auto = true; p.night_start = 21; p.night_end = 8;
 	assert(settings_update(p) && settings_save() && settings_init());
 	assert(settings_get().night_auto && settings_get().night_start == 21 && settings_get().night_end == 8);
 	assert(!settings_night());
 }
 
-/** @brief Seven display rows and USB setters edit the same bounded schedule without saving. */
+/** @brief Display rows and USB setters edit the same bounded schedule without saving. */
 void controls_checks() {
 	settings_defaults(); Arduino_GFX gfx;
 	unsigned writes = test_flash_writes;
@@ -75,7 +75,12 @@ void controls_checks() {
 	settings_menu_tap(20, 202); assert(settings_get().night_auto);
 	assert(settings_menu_scroll(1)); settings_menu_tap(20, 202); assert(settings_get().night_start == 23);
 	assert(settings_menu_scroll(1)); settings_menu_tap(20, 202); assert(settings_get().night_end == 8);
-	assert(!settings_menu_scroll(1)); settings_menu_draw(&gfx);
+	settings_menu_draw(&gfx);
+	assert(std::find(gfx.text.begin(), gfx.text.end(), "08:00") != gfx.text.end());
+	// Alert and back-to-Eyes timings close the Display tab.
+	assert(settings_menu_scroll(1)); settings_menu_tap(20, 202); assert(settings_get().alert_seconds == 120);
+	assert(settings_menu_scroll(1)); settings_menu_tap(20, 202); assert(settings_get().home_seconds == 120);
+	assert(!settings_menu_scroll(1)); settings_menu_scroll(-1); settings_menu_scroll(-1); settings_menu_draw(&gfx);
 	assert(std::find(gfx.text.begin(), gfx.text.end(), "23:00") != gfx.text.end());
 	assert(std::find(gfx.text.begin(), gfx.text.end(), "08:00") != gfx.text.end());
 	assert(test_flash_writes == writes && settings_dirty());

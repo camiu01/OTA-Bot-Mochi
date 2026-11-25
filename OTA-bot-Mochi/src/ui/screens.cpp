@@ -226,9 +226,10 @@ bool screens_calling() { return overlay_active; }
 
 /** @brief Inhibit dimming during routes, calls and the drive dashboard. @return Active critical data. */
 bool screens_auto_home(UiPage page, uint32_t idle) {
-	if (page == UiPage::Eyes || idle < SCREENS_HOME_IDLE_MS || screens_calling() || screens_drive(page)) { return false; }
+	uint32_t limit = uint32_t(settings_get().home_seconds) * 1000;
+	if (!limit || page == UiPage::Eyes || idle < limit || screens_calling() || screens_drive(page)) { return false; }
 	if (page == UiPage::Navigation && cached.navigation.active) { return false; }
-	if (page == UiPage::Timer && view_timer().running) { return false; }
+	if (page == UiPage::Timer && view_timer().running && view_timer().mode != DeskTimer::BREAK) { return false; }
 	return !(page == UiPage::Settings && settings_dirty());
 }
 
@@ -264,7 +265,9 @@ bool screens_draw(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, uint32_t n
 	input.pending = false;
 	bool drive = screens_drive(page);
 	drive_meter().active = drive && !overlay_active;
-	obd_want(drive && settings_get().obd_scan);
+	const CompanionSettings &prefs = settings_get();
+	obd_want(drive && prefs.obd_scan, (uint32_t(1) << prefs.obd_slot1) | (uint32_t(1) << prefs.obd_slot2) |
+		(uint32_t(1) << prefs.obd_slot3) | (uint32_t(1) << prefs.obd_slot4));
 	bool transition = page != previous_page || overlay_active != previous_call;
 	if (transition) {
 		gfx->fillScreen(UI_BG); screens_invalidate();
@@ -285,7 +288,7 @@ bool screens_draw(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, uint32_t n
 	if (invalidated || changed || transition) {
 		static const Text titles[] = {Text::Eyes, Text::Clock, Text::Music, Text::Route, Text::Alerts, Text::Weather, Text::Drive, Text::Settings,
 			Text::Desk, Text::BigClock, Text::Overview, Text::Timer, Text::Device, Text::Pong, Text::AnalogClock, Text::Tris, Text::CompanionTitle,
-			Text::Games, Text::Dice, Text::FlappyBird,
+			Text::Games, Text::Dice, Text::FlappyBird, Text::Tally, Text::Score,
 			Text::DriveHubTitle, Text::DriveBigLean, Text::DriveGMeter, Text::DriveGraphTitle, Text::DriveTrip, Text::DriveObd};
 		static_assert(sizeof(titles) / sizeof(titles[0]) == uint8_t(UiPage::Count), "Every page needs a title");
 		ui_chrome(gfx, tr(overlay_active ? Text::CallTitle : titles[uint8_t(page)]),

@@ -79,7 +79,7 @@ static void migration_tests() {
 	test_profile.assign(bytes, bytes + 8);
 	assert(settings_init() && settings_get().color == 3);
 	assert(decoded.route_large);
-	assert(settings_dirty() && settings_save() && test_profile[0] == 11 && test_profile.size() == SETTINGS_BYTES);
+	assert(settings_dirty() && settings_save() && test_profile[0] == 12 && test_profile.size() == SETTINGS_BYTES);
 	bytes[0] = 2; bytes[6] = 0x32; bytes[7] = 0xA5;
 	for (uint8_t i = 0; i < 7; ++i) { bytes[7] ^= bytes[i]; }
 	assert(settings_decode(bytes, sizeof(bytes), decoded) && decoded.random_faces && decoded.imu_faces && decoded.route_large);
@@ -94,7 +94,7 @@ static void migration_tests() {
 	assert(from_v4.style == 2 && from_v4.color == 3 && from_v4.mood == LOVE && !from_v4.flipped);
 	test_profile.assign(v4, v4 + SETTINGS_V4_BYTES);
 	assert(settings_init() && settings_get().style == 2 && !settings_get().flipped);
-	assert(settings_dirty() && settings_save() && test_profile[0] == 11 && test_profile.size() == SETTINGS_BYTES);
+	assert(settings_dirty() && settings_save() && test_profile[0] == 12 && test_profile.size() == SETTINGS_BYTES);
 	uint8_t v5[SETTINGS_BYTES];
 	CompanionSettings old; old.flipped = true;
 	settings_encode(old, v5);
@@ -128,18 +128,32 @@ static void mood_range_tests() {
 	CompanionSettings legacy; legacy.mood = LOVE;
 	uint8_t legacy_bytes[SETTINGS_BYTES];
 	settings_encode(legacy, legacy_bytes);
-	assert(legacy_bytes[0] == 11);
+	assert(legacy_bytes[0] == 12);
 	CompanionSettings decoded;
-	// Version ten shares the length; its OBD bit is reserved and the scan defaults on.
+	// Versions ten and eleven share seventeen bytes; ten reserves the OBD bit and scans by default.
 	CompanionSettings no_obd; no_obd.obd_scan = false;
-	uint8_t v11[SETTINGS_BYTES]; settings_encode(no_obd, v11);
+	uint8_t current[SETTINGS_BYTES]; settings_encode(no_obd, current);
+	uint8_t v11[SETTINGS_V10_BYTES]; memcpy(v11, current, 16);
+	v11[0] = 11; v11[16] = 0xA5;
+	for (uint8_t i = 0; i < 16; ++i) { v11[16] ^= v11[i]; }
 	assert(v11[15] == 1 && settings_decode(v11, sizeof(v11), decoded) && !decoded.obd_scan);
-	uint8_t v10[SETTINGS_BYTES]; memcpy(v10, v11, sizeof(v10));
+	assert(decoded.obd_rpm_max == 70 && decoded.obd_slot1 == 1 && decoded.alert_seconds == 60 && decoded.home_seconds == 60);
+	uint8_t v10[SETTINGS_V10_BYTES]; memcpy(v10, v11, sizeof(v10));
 	v10[0] = 10; v10[16] = 0xA5;
 	for (uint8_t i = 0; i < 16; ++i) { v10[16] ^= v10[i]; }
 	assert(settings_decode(v10, sizeof(v10), decoded) && decoded.obd_scan && decoded.sound_charging);
 	v10[15] = 3; v10[16] ^= 2;
 	assert(!settings_decode(v10, sizeof(v10), decoded));
+	// Version twelve stores tachometer scale, OBD slots and page timings.
+	CompanionSettings tuned; tuned.obd_rpm_max = 65; tuned.obd_slot3 = 5; tuned.obd_slot4 = 0;
+	tuned.alert_seconds = 10; tuned.home_seconds = 0;
+	settings_encode(tuned, current);
+	assert(settings_decode(current, sizeof(current), decoded) && decoded.obd_rpm_max == 65 && decoded.obd_slot3 == 5 &&
+		!decoded.obd_slot4 && decoded.alert_seconds == 10 && !decoded.home_seconds);
+	tuned.obd_rpm_max = 20; assert(!settings_valid(tuned)); tuned.obd_rpm_max = 65;
+	tuned.obd_slot1 = OBD_SLOT_CHOICES; assert(!settings_valid(tuned)); tuned.obd_slot1 = 1;
+	tuned.alert_seconds = 4; assert(!settings_valid(tuned)); tuned.alert_seconds = 10;
+	tuned.obd_gauge = OBD_GAUGES; assert(!settings_valid(tuned));
 	assert(!settings_parse("set obd-scan off", CompanionSettings{}).profile.obd_scan);
 	assert(settings_decode(legacy_bytes, sizeof(legacy_bytes), decoded) && decoded.mood == LOVE);
 	// The wider expression range reuses the same byte, so no new profile version is needed.
@@ -309,6 +323,7 @@ static void menu_tests() {
 	assert(settings_get().flipped);
 	settings_menu_tap(210, 65);
 	settings_menu_tap(210, 65);
+	settings_menu_tap(210, 65);
 	settings_menu_tap(20, 100);
 	assert(settings_get().language == 1 && strcmp(tr(Text::Settings), "IMPOSTAZIONI") == 0);
 	settings_menu_tap(20, 202);
@@ -325,12 +340,18 @@ static void menu_tests() {
 	assert(settings_menu_scroll(1));
 	assert(settings_menu_tap(20, 202) == MenuAction::Changed);
 	assert(settings_menu_tap(160, 240) == MenuAction::Changed);
-	// The OBD dongle scan toggle is the last SYSTEM row.
-	assert(settings_menu_scroll(1) && !settings_menu_scroll(1));
+	assert(!settings_menu_scroll(1));
+	// CAR sits before SYSTEM: OBD scan, gauge, max RPM and four values.
+	settings_menu_tap(30, 65);
 	settings_menu_draw(&gfx);
-	assert(settings_menu_tap(20, 202) == MenuAction::Changed && !settings_get().obd_scan);
-	settings_menu_tap(20, 202);
+	assert(settings_menu_tap(20, 100) == MenuAction::Changed && !settings_get().obd_scan);
+	settings_menu_tap(20, 100);
 	assert(settings_get().obd_scan);
+	for (uint8_t i = 0; i < 4; ++i) { assert(settings_menu_scroll(1)); }
+	assert(!settings_menu_scroll(1));
+	settings_menu_draw(&gfx);
+	assert(settings_menu_tap(20, 202) == MenuAction::Changed && settings_get().obd_slot4 == 5);
+	settings_menu_tap(20, 202);
 	settings_menu_draw(&gfx);
 	settings_menu_tap(30, 65);
 	settings_menu_tap(20, 100);
@@ -355,6 +376,7 @@ static void menu_tests() {
 	assert(test_flash_writes == writes);
 	assert(settings_menu_scroll(-1) && settings_menu_scroll(-1));
 	assert(settings_menu_tap(160, 240) == MenuAction::Exit);
+	settings_menu_tap(239, 52);
 	settings_menu_tap(239, 52);
 	settings_menu_tap(239, 52);
 	assert(!settings_menu_scroll(-1));

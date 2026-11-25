@@ -15,7 +15,7 @@ rows. Changes are live in RAM and do not write flash while browsing.
 
 | Tab | Row | Choices |
 | --- | --- | --- |
-| LOOK | Eyes | normal, mochi, bloub, trapez, anime, kitsune, headlight DRL |
+| LOOK | Eyes | normal, mochi, bloub, trapez, anime, kitsune, headlight DRL, pixel, round, visor |
 | LOOK | Color | white, mint, cyan, amber, pink, blue |
 | LOOK | Mood | opens a 2-column grid of all expressions/animated moods, three rows visible at a time; tap a cell, swipe to scroll |
 | DISPLAY | Day level | 5, 10, 20, 30, 50, 70, 90% |
@@ -25,6 +25,8 @@ rows. Changes are live in RAM and do not write flash while browsing.
 | DISPLAY | Auto night | off / on; requires synchronized local time |
 | DISPLAY | Night starts | 00:00-23:00, one-hour steps; default 22:00 |
 | DISPLAY | Night ends | 00:00-23:00, one-hour steps; default 07:00 |
+| DISPLAY | Alert time | 5, 10, 15, 30, 60, 120 s; default 60 |
+| DISPLAY | Back to Eyes | off, 15, 30, 60, 120, 240 s; default 60 |
 | FACES | Animation | Calm / Normal / Playful (USB values `calm` / `dasai` / `playful`) |
 | FACES | Random mood | off / on |
 | FACES | Face flow | return / group of 5 / sequence / continuous |
@@ -42,6 +44,10 @@ rows. Changes are live in RAM and do not write flash while browsing.
 | SOUND | SD sounds | on / off (AMOLED V2 only); optional recordings from the SD card |
 | SOUND | Sound options | open separate face/timer/alert/ambient/charging switches |
 | SOUND | Test sound | two short bench tones; reports off/night mute/PWM failure |
+| CAR / AUTO | OBD dongle scan | on / off; BLE ELM327 search while Drive is visible |
+| CAR / AUTO | RPM gauge | bar / shift light / dial / number only |
+| CAR / AUTO | Max RPM | 3000–12000 in 500 steps; tachometer full scale |
+| CAR / AUTO | OBD value 1–4 | hidden or one of sixteen engine values |
 | SYSTEM | Diagnostics | read-only live device status; swipe vertically to browse, BACK returns to SYSTEM |
 | SYSTEM | Language | English / Italiano |
 | SYSTEM | Dashboard | on / off |
@@ -341,8 +347,9 @@ tone band (see [Audio and motion](SOUND.md)).
 A hold still opens Settings and a swipe does not also trigger a random face.
 These reactions remain available in dashboard mode, which only calms idle motion.
 
-The full profile is stored as a validated seventeen-byte version-eleven NVS blob
-with a checksum. Version eleven keeps the version-ten length and adds the OBD
+The full profile is stored as a validated twenty-five-byte version-twelve NVS blob
+with a checksum. Version twelve adds the OBD page and page timings (below);
+seventeen-byte version eleven keeps the version-ten length and adds the OBD
 scan flag; version ten appends the charging-sound category and reads the
 prior sixteen-byte version-nine night schedule unchanged. Version seven adds
 Phone mode while preserving the prior layout.
@@ -390,9 +397,22 @@ configuration. See [Sound](SOUND.md#startup-charging-and-reaction-rules).
 
 Version 11 keeps the seventeen-byte layout and uses bit 1 of byte 15 for
 `obd_scan`; version-ten profiles (bit 1 reserved) migrate with the scan on.
-**SYSTEM → OBD dongle scan** (last row), USB `set obd-scan on|off` and the web
+**CAR / AUTO → OBD dongle scan** (first row), USB `set obd-scan on|off` and the web
 form field `obd_scan` edit it in RAM; SAVE persists it. Off stops all BLE OBD
 scanning and polling on the Drive page. See [Drive](DESK.md#ble-obd-dongle).
+
+### Version twelve: OBD page and page timings
+
+Version 12 is twenty-five bytes: the version-eleven layout, then byte 16 max RPM
+in hundreds (30–120, default 70), bytes 17–20 the four OBD values (0 hidden,
+1 coolant, 2 throttle, 3 fuel, 4 battery, 5 intake air, 6 load, 7 manifold kPa,
+8 timing, 9 short trim, 10 long trim, 11 O2 voltage, 12 ECU voltage, 13 MAF,
+14 outside temperature, 15 barometer, 16 run time; defaults 1–4), byte 21 alert time in seconds (5–120, default 60), byte 22
+back-to-Eyes time in seconds (0 = never, up to 240, default 60), byte 23 RPM
+gauge style (0 bar, 1 shift light, 2 dial, 3 number only) and byte 24 the
+checksum. Versions 10 and 11 migrate with these defaults. Display holds the two
+timings; the CAR / AUTO tab, before SYSTEM, holds OBD scan, gauge, max RPM and the four values. Web fields:
+`alert_seconds`, `home_seconds`, `obd_gauge`, `obd_rpm_max`, `obd_slot1`–`obd_slot4`.
 
 ### Startup, charging and SD reaction families
 

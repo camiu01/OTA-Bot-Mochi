@@ -9,7 +9,7 @@
 
 enum class UiPage : uint8_t {
 	Eyes, Clock, Music, Navigation, Notification, Weather, Drive, Settings,
-	Desk, BigClock, Overview, Timer, Device, Pong, AnalogClock, Tris, Phone, Games, Dice, FlappyBird,
+	Desk, BigClock, Overview, Timer, Device, Pong, AnalogClock, Tris, Phone, Games, Dice, FlappyBird, Tally, Score,
 	DriveHub, DriveLean, DriveG, DriveGraph, DriveTrip, DriveObd, Count
 };
 
@@ -36,13 +36,13 @@ UiPage screens_tap(UiPage page, int16_t x, int16_t y, uint32_t now);
  * @param page Current page. @param now Timestamp. @return Hold consumed (redraw needed).
  */
 bool screens_hold(UiPage page, uint32_t now);
-/** @brief Idle time after which secondary pages return to the Eyes home. */
+/** @brief Default idle time after which secondary pages return to Eyes (settings home_seconds). */
 constexpr uint32_t SCREENS_HOME_IDLE_MS = 60000;
 /**
  * @brief Decide whether an idle page should return to Eyes.
  *
  * Drive pages, an active route, a running timer, an incoming call and Settings
- * with unsaved changes stay put; everything else returns after SCREENS_HOME_IDLE_MS.
+ * with unsaved changes stay put; everything else returns after the configured home_seconds (0 disables).
  * @param page Current page. @param idle Milliseconds since the last touch or BOOT input.
  * @return Switch to Eyes now.
  */

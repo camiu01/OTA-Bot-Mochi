@@ -22,9 +22,9 @@ const char *tr(Text key) { return tr_language(key, settings_get().language); }
 const char *tr_settings_tab(uint8_t index) {
 	static const char *titles[][2] = {
 		{"LOOK", "ASPETTO"}, {"DISPLAY", "DISPLAY"}, {"FACES", "FACCE"},
-		{"SENSORS", "SENSORI"}, {"SOUND", "SUONI"}, {"SYSTEM", "SISTEMA"}
+		{"SENSORS", "SENSORI"}, {"SOUND", "SUONI"}, {"CAR", "AUTO"}, {"SYSTEM", "SISTEMA"}
 	};
-	return index < 6 ? titles[index][settings_get().language == 1 ? 1 : 0] : "?";
+	return index < 7 ? titles[index][settings_get().language == 1 ? 1 : 0] : "?";
 }
 
 /** @brief Expression labels kept in the same order as the Expression enum. */
@@ -97,7 +97,7 @@ const char *tr_expression(uint8_t index) {
 
 /** @brief Preset display text. @param group Preset group. @param index Choice. @return Label. */
 const char *tr_choice(uint8_t group, uint8_t index) {
-	static const Text styles[] = {Text::Normal, Text::Mochi, Text::Bloub, Text::Trapez, Text::Anime, Text::Kitsune, Text::Drl};
+	static const Text styles[] = {Text::Normal, Text::Mochi, Text::Bloub, Text::Trapez, Text::Anime, Text::Kitsune, Text::Drl, Text::Pixel, Text::Round, Text::Visor};
 	static const Text colors[] = {Text::White, Text::Mint, Text::Cyan, Text::Amber, Text::Pink, Text::Blue};
 	static const Text animations[] = {Text::Calm, Text::Dasai, Text::Playful};
 	if (group == 0 && index < EYE_STYLE_COUNT) { return tr(styles[index]); }
@@ -110,6 +110,20 @@ const char *tr_choice(uint8_t group, uint8_t index) {
 			{"SEQUENCE", "SEQUENZA"}, {"CONTINUOUS", "CONTINUA"}
 		};
 		return modes[index][settings_get().language == 1 ? 1 : 0];
+	}
+	if (group == 7 && index < OBD_GAUGES) {
+		static const char *gauges[][2] = {{"BAR", "BARRA"}, {"SHIFT LIGHT", "SHIFT LIGHT"}, {"DIAL", "QUADRANTE"}, {"NUMBER ONLY", "SOLO NUMERO"}};
+		return gauges[index][settings_get().language == 1 ? 1 : 0];
+	}
+	if (group == 6 && index < OBD_SLOT_CHOICES) {
+		static const char *slots[][2] = {
+			{"HIDDEN", "NASCOSTO"}, {"COOLANT", "ACQUA"}, {"THROTTLE", "GAS"}, {"FUEL", "BENZINA"},
+			{"BATTERY", "BATTERIA"}, {"INTAKE AIR", "ARIA ASPIRATA"}, {"ENGINE LOAD", "CARICO MOTORE"}, {"MANIFOLD KPA", "COLLETTORE KPA"},
+			{"TIMING ADVANCE", "ANTICIPO"}, {"SHORT FUEL TRIM", "CORREZ. BREVE"}, {"LONG FUEL TRIM", "CORREZ. LUNGA"},
+			{"O2 SENSOR V", "SONDA LAMBDA V"}, {"ECU VOLTAGE", "TENSIONE ECU"}, {"MAF G/S", "MAF G/S"},
+			{"OUTSIDE TEMP", "TEMP. ESTERNA"}, {"BAROMETER KPA", "BAROMETRO KPA"}, {"ENGINE RUN TIME", "MOTORE ACCESO"}
+		};
+		return slots[index][settings_get().language == 1 ? 1 : 0];
 	}
 	return "?";
 }
