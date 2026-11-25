@@ -66,6 +66,17 @@
 	X(ObdThrottle, "GAS ", "GAS ") \
 	X(ObdFuel, "FUEL ", "BENZ. ") \
 	X(ObdBattery, "BAT ", "BAT ") \
+	X(ObdIntake, "AIR ", "ARIA ") \
+	X(ObdLoad, "LOAD ", "CARICO ") \
+	X(ObdMap, "MAP ", "MAP ") \
+	X(ObdRpmMax, "MAX RPM x100", "GIRI MAX x100") \
+	X(ObdSlot1, "OBD VALUE 1", "VALORE OBD 1") \
+	X(ObdSlot2, "OBD VALUE 2", "VALORE OBD 2") \
+	X(ObdSlot3, "OBD VALUE 3", "VALORE OBD 3") \
+	X(ObdSlot4, "OBD VALUE 4", "VALORE OBD 4") \
+	X(ObdGauge, "RPM GAUGE", "STILE CONTAGIRI") \
+	X(AlertSeconds, "ALERT TIME (S)", "DURATA AVVISI (S)") \
+	X(HomeSeconds, "BACK TO EYES (S, 0=OFF)", "TORNA AGLI OCCHI (S, 0=MAI)") \
 	X(ObdMil, "CHECK ENGINE ", "SPIA MOTORE ") \
 	X(ObdNoFaults, "NO STORED FAULTS", "NESSUN GUASTO") \
 	X(ObdOff, "OBD SCAN OFF (SETTINGS)", "OBD SPENTO (IMPOSTAZ.)") \
@@ -131,9 +142,18 @@
 	X(Pause, "PAUSE", "PAUSA") \
 	X(Start, "START", "AVVIA") \
 	X(Reset, "RESET", "AZZERA") \
+	X(Tally, "TALLY", "CONTATORE") \
+	X(Score, "SCOREBOARD", "PUNTEGGIO") \
+	X(TallyHint, "TAP TO COUNT", "TOCCA PER CONTARE") \
 	X(Timer5, "5 MIN", "5 MIN") \
 	X(Timer15, "15 MIN", "15 MIN") \
 	X(Pomodoro, "POMODORO 25/5", "POMODORO 25/5") \
+	X(TimerTea, "TEA 3 MIN", "TE 3 MIN") \
+	X(TimerPasta, "PASTA 10 MIN", "PASTA 10 MIN") \
+	X(TimerBreak, "BREAK EVERY 30", "PAUSA OGNI 30") \
+	X(TimerCustom, "CUSTOM", "PERSONALIZZATO") \
+	X(BreakTitle, "TIME FOR A BREAK", "FAI UNA PAUSA") \
+	X(BreakHint, "Stand up, stretch, drink some water.", "Alzati, sgranchisciti, bevi un po' d'acqua.") \
 	X(Stopwatch, "STOPWATCH", "CRONOMETRO") \
 	X(Elapsed, "ELAPSED", "TRASCORSO") \
 	X(BleConnected, "BLE: CONNECTED", "BLE: CONNESSO") \
@@ -218,6 +238,9 @@
 	X(Anime, "ANIME", "ANIME") \
 	X(Kitsune, "KITSUNE", "KITSUNE") \
 	X(Drl, "HEADLIGHT DRL", "FARI DRL") \
+	X(Pixel, "PIXEL", "PIXEL") \
+	X(Round, "ROUND", "TONDI") \
+	X(Visor, "VISOR", "VISIERA") \
 	X(White, "WHITE", "BIANCO") \
 	X(Mint, "MINT", "MENTA") \
 	X(Cyan, "CYAN", "CIANO") \

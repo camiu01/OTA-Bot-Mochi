@@ -21,7 +21,7 @@ bool sound_options = false;
 bool diagnostics_open = false;
 uint8_t diagnostics_first = 0;
 uint8_t first_row = 0;
-enum MenuTab : uint8_t { TAB_LOOK, TAB_LIGHT, TAB_FACES, TAB_MOTION, TAB_AUDIO, TAB_SYSTEM, TAB_COUNT };
+enum MenuTab : uint8_t { TAB_LOOK, TAB_LIGHT, TAB_FACES, TAB_MOTION, TAB_AUDIO, TAB_DRIVE, TAB_SYSTEM, TAB_COUNT };
 
 /** SD sounds only appears on the board with an SD slot and codec. */
 #if MOCHI_HAS_SD_AUDIO
@@ -32,8 +32,8 @@ constexpr bool HAS_SD_ROW = false;
 /** Row indices in the main SOUND list, shifted on boards without SD sounds. */
 constexpr uint8_t SOUND_OPTIONS_ROW = HAS_SD_ROW ? 4 : 3;
 constexpr uint8_t SOUND_TEST_ROW = HAS_SD_ROW ? 5 : 4;
-/** Last SYSTEM row: the BLE OBD dongle scan toggle. */
-constexpr uint8_t OBD_ROW = HAS_SD_ROW ? 8 : 7;
+/** SYSTEM row count: Diagnostics, or Firmware from SD on boards with an SD slot, is last. */
+constexpr uint8_t SYSTEM_ROWS = HAS_SD_ROW ? 8 : 7;
 
 /**
  * @brief Bottom edge of the SAVE/Back band.
@@ -65,7 +65,7 @@ void save_band(Arduino_GFX *gfx, const char *right) {
 
 /** @brief Number of rows in the current panel. */
 uint8_t row_count() {
-	static const uint8_t counts[] = {3, 7, 6, 5, 5, OBD_ROW + 1};
+	static const uint8_t counts[] = {3, 9, 6, 5, 5, 7, SYSTEM_ROWS};
 	if (tab != TAB_AUDIO) { return counts[tab]; }
 	return sound_options ? 5 : (HAS_SD_ROW ? 6 : 5);
 }
@@ -107,6 +107,11 @@ uint8_t next_hour(uint8_t current, uint8_t other) {
 	uint8_t next = (current + 1) % 24;
 	return next == other ? (next + 1) % 24 : next;
 }
+/** @brief Next value in a six-step cycle, wrapping; unknown values restart it. @param steps Ascending values. @param value Current. @return Next. */
+uint8_t next_step(const uint8_t (&steps)[6], uint8_t value) {
+	for (uint8_t step : steps) { if (step > value) { return step; } }
+	return steps[0];
+}
 /** @brief Edit display comfort and schedule fields in RAM. @param p Candidate. @param index Row. */
 void change_light(CompanionSettings &p, uint8_t index) {
 	if (index == 0) { p.brightness = next_brightness(p.brightness, false); }
@@ -116,6 +121,9 @@ void change_light(CompanionSettings &p, uint8_t index) {
 	if (index == 4) { p.night_auto = !p.night_auto; }
 	if (index == 5) { p.night_start = next_hour(p.night_start, p.night_end); }
 	if (index == 6) { p.night_end = next_hour(p.night_end, p.night_start); }
+	static const uint8_t alerts[] = {5, 10, 15, 30, 60, 120}, homes[] = {0, 15, 30, 60, 120, 240};
+	if (index == 7) { p.alert_seconds = next_step(alerts, p.alert_seconds); }
+	if (index == 8) { p.home_seconds = next_step(homes, p.home_seconds); }
 }
 /** @brief Format a schedule endpoint with room for the full parameter range. @param hour 24-hour value. @return HH:00. */
 String schedule_hour(uint8_t hour) {
@@ -158,7 +166,12 @@ void change_row(uint8_t index) {
 		if (index == 1) { p.dashboard = !p.dashboard; }
 		if (index == 2) { p.route_large = !p.route_large; }
 		if (index == 3) { p.phone_ios = !p.phone_ios; }
-		if (index == OBD_ROW) { p.obd_scan = !p.obd_scan; }
+	} else if (tab == TAB_DRIVE) {
+		if (index == 0) { p.obd_scan = !p.obd_scan; }
+		if (index == 1) { p.obd_gauge = uint8_t((p.obd_gauge + 1) % OBD_GAUGES); }
+		if (index == 2) { p.obd_rpm_max = uint8_t(p.obd_rpm_max >= 120 ? 30 : p.obd_rpm_max + 5); }
+		uint8_t *slots[] = {&p.obd_slot1, &p.obd_slot2, &p.obd_slot3, &p.obd_slot4};
+		if (index >= 3 && index < 7) { uint8_t &slot = *slots[index - 3]; slot = uint8_t((slot + 1) % OBD_SLOT_CHOICES); }
 	} else if (sound_options) {
 		if (index == 0) { p.sound_faces = !p.sound_faces; }
 		if (index == 1) { p.sound_timer = !p.sound_timer; }
@@ -194,6 +207,8 @@ void basic_rows(Arduino_GFX *gfx, const CompanionSettings &p) {
 		row(gfx, 4, tr(Text::NightAuto), on_off(p.night_auto));
 		row(gfx, 5, tr(Text::NightStart), schedule_hour(p.night_start));
 		row(gfx, 6, tr(Text::NightEnd), schedule_hour(p.night_end));
+		row(gfx, 7, tr(Text::AlertSeconds), String(p.alert_seconds) + "S");
+		row(gfx, 8, tr(Text::HomeSeconds), p.home_seconds ? String(p.home_seconds) + "S" : String(tr(Text::Off)));
 	} else {
 		row(gfx, 0, tr(Text::Animation), tr_choice(3, p.animation));
 		row(gfx, 1, tr(Text::RandomMood), on_off(p.random_faces));
@@ -226,7 +241,13 @@ void extra_rows(Arduino_GFX *gfx, const CompanionSettings &p) {
 #if MOCHI_HAS_SD_AUDIO
 		row(gfx, 7, tr(Text::SdFirmware), tr(Text::Open));
 #endif
-		row(gfx, OBD_ROW, tr(Text::ObdScan), on_off(p.obd_scan));
+	} else if (tab == TAB_DRIVE) {
+		row(gfx, 0, tr(Text::ObdScan), on_off(p.obd_scan));
+		row(gfx, 1, tr(Text::ObdGauge), tr_choice(7, p.obd_gauge));
+		row(gfx, 2, tr(Text::ObdRpmMax), String(unsigned(p.obd_rpm_max) * 100));
+		const uint8_t slots[] = {p.obd_slot1, p.obd_slot2, p.obd_slot3, p.obd_slot4};
+		static const Text names[] = {Text::ObdSlot1, Text::ObdSlot2, Text::ObdSlot3, Text::ObdSlot4};
+		for (uint8_t i = 0; i < 4; ++i) { row(gfx, 3 + i, tr(names[i]), tr_choice(6, slots[i])); }
 	} else if (sound_options) {
 		row(gfx, 0, tr(Text::Faces), on_off(p.sound_faces));
 		row(gfx, 1, tr(Text::TimerLabel), on_off(p.sound_timer));

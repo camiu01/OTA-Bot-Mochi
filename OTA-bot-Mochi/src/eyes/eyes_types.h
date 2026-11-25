@@ -41,8 +41,14 @@ enum EyeStyle : uint8_t {
 	ANIME = 4,	/**< Tall ovals with large reflective irises. */
 	KITSUNE = 5,	/**< Normal-size ovals with feline slit pupils. */
 	DRL = 6,	/**< Filled angular headlights with a white rim, without pupils. */
-	EYE_STYLE_COUNT = 7	/**< Number of persistent styles; existing IDs never change. */
+	PIXEL = 7,	/**< Solid near-square retro blocks, without pupils. */
+	ROUND = 8,	/**< Solid circles with a small white highlight, without pupils. */
+	VISOR = 9,	/**< Two wide flat bars that read as one visor strip, without pupils. */
+	EYE_STYLE_COUNT = 10	/**< Number of persistent styles; existing IDs never change. */
 };
+
+/** @brief Pupil-free styles that engrave accessories into a solid body. @param style Style. @return Solid. */
+constexpr bool eye_style_solid(uint8_t style) { return style == MOCHI || style == TRAPEZ || style >= DRL; }
 
 /**
  * @brief Emotional expression shown by the eyes.

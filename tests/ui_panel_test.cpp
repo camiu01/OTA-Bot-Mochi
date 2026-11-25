@@ -257,10 +257,12 @@ static void desk_checks() {
 	assert(screens_tap(UiPage::Desk, ui_s(20), ui_s(140), 0) == UiPage::Timer);
 	assert(screens_tap(UiPage::Desk, ui_s(200), ui_s(140), 0) == UiPage::Device);
 	assert(screens_tap(UiPage::Desk, ui_s(20), ui_s(180), 0) == UiPage::AnalogClock);
-	assert(screens_tap(UiPage::Desk, ui_s(200), ui_s(180), 0) == UiPage::Phone);
-	assert(screens_tap(UiPage::Desk, ui_s(20), ui_s(230), 0) == UiPage::Desk);
+	assert(screens_tap(UiPage::Desk, ui_s(200), ui_s(180), 0) == UiPage::Tally);
+	assert(screens_tap(UiPage::Desk, ui_s(20), ui_s(210), 0) == UiPage::Score);
+	assert(screens_tap(UiPage::Desk, ui_s(200), ui_s(210), 0) == UiPage::Phone);
+	assert(screens_tap(UiPage::Desk, ui_s(20), ui_s(234), 0) == UiPage::Desk);
 	assert(screens_tap(UiPage::Desk, ui_s(120), ui_s(210), 0) == UiPage::Desk);
-	assert(screens_tap(UiPage::Desk, ui_s(20), ui_s(104), 0) == UiPage::Desk);
+	assert(screens_tap(UiPage::Desk, ui_s(20), ui_s(98), 0) == UiPage::Desk);
 	uint8_t mode = view_timer().mode;
 	screens_tap(UiPage::Timer, ui_s(120), ui_s(180), 1000);
 	assert(view_timer().running);

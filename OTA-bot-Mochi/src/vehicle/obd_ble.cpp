@@ -165,6 +165,7 @@ void worker(void *) {
 			if (!connect()) { publish(ObdStatus::Scanning); vTaskDelay(pdMS_TO_TICKS(6000)); }
 			continue;
 		}
+		session.want(obd_wanted_values());
 		bool framed = exchange(buffer);
 		ObdStatus status = session.reply(framed ? buffer.text : "", state);
 		if (framed && status == ObdStatus::Live) { state.updated = millis(); }

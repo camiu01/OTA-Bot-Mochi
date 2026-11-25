@@ -27,7 +27,7 @@ static void style_tests() {
 		eyes_set_expression(NEUTRAL);
 		eyes_state().dirtyInit = false;
 		eyes_draw();
-		bool solid = style == MOCHI || style == TRAPEZ || style == DRL;
+		bool solid = eye_style_solid(style);
 		assert((std::count(gfx.pixels.begin(), gfx.pixels.end(), 0xF800) == 0) == solid);
 		if (solid) { assert(std::count(gfx.pixels.begin(), gfx.pixels.end(), 0x07E0) == 0); }
 		if (style == MOCHI) { mochi = gfx.pixels; assert(eyes_config().eyeH > eyes_config().eyeW * 2); }
