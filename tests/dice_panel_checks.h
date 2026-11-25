@@ -21,7 +21,7 @@ inline void games_navigation_checks() {
 		assert(screens_swipe(games[i], 1) == UiPage::Music);
 		assert(screens_swipe(games[i], -1) == UiPage::Eyes);
 	}
-	for (auto point : {std::pair<int, int>{120, 70}, {20, 104}, {200, 170}, {20, 240}}) {
+	for (auto point : {std::pair<int, int>{120, 70}, {20, 98}, {200, 170}, {20, 240}}) {
 		assert(screens_tap(UiPage::Games, ui_s(point.first), ui_s(point.second), 0) == UiPage::Games);
 	}
 }

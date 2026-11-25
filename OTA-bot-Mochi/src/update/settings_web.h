@@ -29,6 +29,8 @@ static const Field fields[] = {
 	{"night_start", Text::NightStart, 1, 0, 23, -1, &CompanionSettings::night_start, nullptr},
 	{"night_end", Text::NightEnd, 1, 0, 23, -1, &CompanionSettings::night_end, nullptr},
 	{"dim", Text::IdleDim, 1, 0, 1, -1, nullptr, &CompanionSettings::dim},
+	{"alert_seconds", Text::AlertSeconds, 1, 5, 120, -1, &CompanionSettings::alert_seconds, nullptr},
+	{"home_seconds", Text::HomeSeconds, 1, 0, 240, -1, &CompanionSettings::home_seconds, nullptr},
 	{"animation", Text::Animation, 2, 0, 2, 3, &CompanionSettings::animation, nullptr},
 	{"random_faces", Text::RandomMood, 2, 0, 1, -1, nullptr, &CompanionSettings::random_faces},
 	{"face_flow", Text::FaceFlow, 2, 0, FACE_FLOW_COUNT - 1, 4, &CompanionSettings::face_flow, nullptr},
@@ -47,11 +49,17 @@ static const Field fields[] = {
 	{"sound_alerts", Text::CallsAlerts, 4, 0, 1, -1, nullptr, &CompanionSettings::sound_alerts},
 	{"sound_ambient", Text::Ambient, 4, 0, 1, -1, nullptr, &CompanionSettings::sound_ambient},
 	{"sound_charging", Text::Charging, 4, 0, 1, -1, nullptr, &CompanionSettings::sound_charging},
-	{"language", Text::Language, 5, 0, 1, 5, &CompanionSettings::language, nullptr},
-	{"dashboard", Text::Dashboard, 5, 0, 1, -1, nullptr, &CompanionSettings::dashboard},
-	{"route_large", Text::RouteDefault, 5, 0, 1, -1, nullptr, &CompanionSettings::route_large},
-	{"phone_ios", Text::PhoneMode, 5, 0, 1, -1, nullptr, &CompanionSettings::phone_ios},
-	{"obd_scan", Text::ObdScan, 5, 0, 1, -1, nullptr, &CompanionSettings::obd_scan}
+	{"obd_scan", Text::ObdScan, 5, 0, 1, -1, nullptr, &CompanionSettings::obd_scan},
+	{"obd_gauge", Text::ObdGauge, 5, 0, OBD_GAUGES - 1, 7, &CompanionSettings::obd_gauge, nullptr},
+	{"obd_rpm_max", Text::ObdRpmMax, 5, 30, 120, -1, &CompanionSettings::obd_rpm_max, nullptr},
+	{"obd_slot1", Text::ObdSlot1, 5, 0, OBD_SLOT_CHOICES - 1, 6, &CompanionSettings::obd_slot1, nullptr},
+	{"obd_slot2", Text::ObdSlot2, 5, 0, OBD_SLOT_CHOICES - 1, 6, &CompanionSettings::obd_slot2, nullptr},
+	{"obd_slot3", Text::ObdSlot3, 5, 0, OBD_SLOT_CHOICES - 1, 6, &CompanionSettings::obd_slot3, nullptr},
+	{"obd_slot4", Text::ObdSlot4, 5, 0, OBD_SLOT_CHOICES - 1, 6, &CompanionSettings::obd_slot4, nullptr},
+	{"language", Text::Language, 6, 0, 1, 5, &CompanionSettings::language, nullptr},
+	{"dashboard", Text::Dashboard, 6, 0, 1, -1, nullptr, &CompanionSettings::dashboard},
+	{"route_large", Text::RouteDefault, 6, 0, 1, -1, nullptr, &CompanionSettings::route_large},
+	{"phone_ios", Text::PhoneMode, 6, 0, 1, -1, nullptr, &CompanionSettings::phone_ios}
 };
 constexpr size_t COUNT = sizeof(fields) / sizeof(fields[0]);
 /** @brief Include the session-only orientation toggle in optimistic concurrency. */

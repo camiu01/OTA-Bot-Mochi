@@ -201,6 +201,15 @@ void eyes_set_style(EyeStyle style) {
 		s_cfg.radius = 0;
 		s_cfg.slant = 0;
 		s_cfg.asym = 0;
+	} else if (style >= PIXEL) {
+		static const uint8_t w[] = {60, 66, 92}, h[] = {60, 66, 30}, gap[] = {34, 30, 6}, r[] = {5, 33, 14};
+		uint8_t i = uint8_t(style - PIXEL);
+		s_cfg.eyeW = w[i];
+		s_cfg.eyeH = h[i];
+		s_cfg.eyeGap = gap[i];
+		s_cfg.radius = r[i];
+		s_cfg.slant = 0;
+		s_cfg.asym = 0;
 	} else {
 		s_cfg.eyeW = 76;
 		s_cfg.eyeH = 60;

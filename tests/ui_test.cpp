@@ -283,10 +283,10 @@ static void context_tests(Arduino_GFX &gfx, ChronosESP32 &watch) {
 	assert(screens_scroll(UiPage::Desk, 1) == UiPage::Clock);
 	assert(screens_scroll(UiPage::Desk, -1) == UiPage::Games);
 	assert(screens_scroll(UiPage::Games, 1) == UiPage::Desk);
-	const UiPage tools[] = {UiPage::BigClock, UiPage::Overview, UiPage::Timer, UiPage::Device, UiPage::AnalogClock, UiPage::Phone};
-	for (uint8_t i = 0; i < 6; ++i) {
+	const UiPage tools[] = {UiPage::BigClock, UiPage::Overview, UiPage::Timer, UiPage::Device, UiPage::AnalogClock, UiPage::Tally, UiPage::Score, UiPage::Phone};
+	for (uint8_t i = 0; i < 8; ++i) {
 		UiPage page = tools[i];
-		assert(screens_tap(UiPage::Desk, i % 2 ? 200 : 20, 60 + (i / 2) * 50, 0) == page);
+		assert(screens_tap(UiPage::Desk, i % 2 ? 200 : 20, 60 + (i / 2) * 45, 0) == page);
 		assert(screens_parent(page) == UiPage::Clock);
 		assert(screens_swipe(page, 1) == UiPage::Music);
 		assert(screens_swipe(page, -1) == UiPage::Eyes);
@@ -294,7 +294,8 @@ static void context_tests(Arduino_GFX &gfx, ChronosESP32 &watch) {
 		assert(screens_draw(&gfx, watch, page, 20000000 + i * 1000));
 	}
 	assert(screens_tap(UiPage::Desk, 20, 70, 0) == UiPage::BigClock);
-	assert(screens_tap(UiPage::Desk, 200, 98, 0) == UiPage::Overview);
+	assert(screens_tap(UiPage::Desk, 200, 95, 0) == UiPage::Overview);
+	assert(screens_tap(UiPage::Desk, 200, 98, 0) == UiPage::Desk);
 	assert(screens_tap(UiPage::Desk, 239, 211, 0) == UiPage::Desk);
 	assert(screens_tap(UiPage::Desk, 240, 98, 0) == UiPage::Desk);
 	assert(screens_tap(UiPage::Desk, 20, 252, 0) == UiPage::Desk);
@@ -307,7 +308,7 @@ static void context_tests(Arduino_GFX &gfx, ChronosESP32 &watch) {
 	assert(!view_timer().running && view_timer().remaining == 1499000);
 	screens_tap(UiPage::Timer, 20, 230, 1000);
 	assert(view_timer().remaining == 1500000);
-	screens_tap(UiPage::Timer, 150, 230, 1000);
+	for (uint8_t mode = 3; mode <= DeskTimer::STOPWATCH; ++mode) { screens_tap(UiPage::Timer, 150, 230, 1000); }
 	assert(view_timer().mode == DeskTimer::STOPWATCH && view_timer().remaining == 0);
 	screens_draw(&gfx, watch, UiPage::Timer, 1000);
 	screens_tap(UiPage::Timer, 150, 230, 1000);
@@ -338,6 +339,17 @@ static void timer_tests() {
 	assert(timer.finished && !timer.running);
 	timer.reset(0); timer.toggle(0); timer.tick(2000000);
 	assert(timer.finished && timer.remaining == 0);
+	timer.cycle(2000001);
+	assert(timer.mode == 3 && timer.remaining == 180000);
+	timer.mode = DeskTimer::BREAK; timer.reset(0); timer.toggle(0); timer.tick(1800000);
+	assert(timer.reminders == 1 && timer.running && !timer.finished && timer.remaining == 1800000);
+	timer.tick(1800000 + 3 * 1800000 + 5);	// A long stall fires once, not three times.
+	assert(timer.reminders == 2 && timer.running && timer.remaining == 1799995);
+	timer.cycle(2000001);
+	assert(timer.mode == DeskTimer::CUSTOM && timer.remaining == 600000);
+	assert(timer.adjust(-20, 0) && timer.custom == DeskTimer::MINUTE);
+	assert(timer.adjust(500, 0) && timer.remaining == DeskTimer::CUSTOM_MAX);
+	timer.toggle(0); assert(!timer.adjust(1, 0) && timer.running);
 	timer.cycle(2000001);
 	assert(timer.mode == DeskTimer::STOPWATCH && !timer.running && timer.remaining == 0);
 	timer.reset(UINT32_MAX - 10); timer.toggle(UINT32_MAX - 10);

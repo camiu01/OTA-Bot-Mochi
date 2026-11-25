@@ -30,12 +30,19 @@ static void decode_checks() {
 	VehicleData d;
 	assert(elm_decode(0x0C, "410C1AF8", d) && d.rpm == 1726 && (d.valid & OBD_RPM));
 	assert(elm_decode(0x0D, "SEARCHING... 41 0D 3C", d) && d.speed == 60);
-	assert(elm_decode(0x05, "41057B", d) && d.coolant == 83);
-	assert(elm_decode(0x11, "4111FF", d) && d.throttle == 100);
-	assert(elm_decode(0x2F, "412F80", d) && fabsf(d.fuel - 50.2f) < 0.1f);
+	assert(elm_decode(0x05, "41057B", d) && d.value[OBD_V_COOLANT] == 83 && (d.valid & obd_bit(OBD_V_COOLANT)));
+	assert(elm_decode(0x11, "4111FF", d) && d.value[OBD_V_THROTTLE] == 100);
+	assert(elm_decode(0x2F, "412F80", d) && fabsf(d.value[OBD_V_FUEL] - 50.2f) < 0.1f);
+	assert(elm_decode(0x0E, "410E8C", d) && d.value[OBD_V_TIMING] == 6);
+	assert(elm_decode(0x06, "410680", d) && d.value[OBD_V_STFT] == 0 && elm_decode(0x07, "41079A", d) && fabsf(d.value[OBD_V_LTFT] - 20.3f) < 0.1f);
+	assert(elm_decode(0x14, "41149680", d) && fabsf(d.value[OBD_V_O2] - 0.75f) < 0.001f);
+	assert(elm_decode(0x42, "414236B0", d) && fabsf(d.value[OBD_V_ECU] - 14.0f) < 0.01f && !elm_decode(0x42, "414236", d));
+	assert(elm_decode(0x10, "411001F4", d) && d.value[OBD_V_MAF] == 5 && elm_decode(0x1F, "411F0E10", d) && d.value[OBD_V_RUNTIME] == 60);
+	assert(elm_decode(0x46, "41463C", d) && d.value[OBD_V_AMBIENT] == 20 && elm_decode(0x33, "413364", d) && d.value[OBD_V_BARO] == 100);
+	assert(elm_decode(0x0F, "410F41", d) && d.value[OBD_V_INTAKE] == 25 && elm_decode(0x0B, "410B64", d) && d.value[OBD_V_MAP] == 100);
 	assert(!elm_decode(0x0C, "410C1A", d));	// RPM needs two data bytes.
 	assert(!elm_decode(0x0D, "NO DATA", d) && !elm_decode(0x0D, "410C1AF8", d));
-	assert(elm_volts("12.6V", d) && fabsf(d.volts - 12.6f) < 0.01f);
+	assert(elm_volts("12.6V", d) && fabsf(d.value[OBD_V_BATTERY] - 12.6f) < 0.01f);
 	assert(elm_decode(0x01, "41 01 00 07 E5 00", d) && !d.mil && d.dtc == 0 && (d.valid & OBD_MIL));
 	assert(!elm_volts("?", d) && !elm_volts("0.2V", d));
 }
@@ -48,11 +55,11 @@ static void session_checks() {
 	}
 	assert(s.timeout_ms() == 8000);
 	assert(step(s, d, "0100", "SEARCHING...UNABLE TO CONNECT") == ObdStatus::NoEcu);
-	assert(step(s, d, "ATRV", "12.4V") == ObdStatus::NoEcu && fabsf(d.volts - 12.4f) < 0.01f);
+	assert(step(s, d, "ATRV", "12.4V") == ObdStatus::NoEcu && fabsf(d.value[OBD_V_BATTERY] - 12.4f) < 0.01f);
 	assert(step(s, d, "0100", "4100BE3EB811") == ObdStatus::Live && s.started());
 	assert(step(s, d, "010C", "410C0FA0") == ObdStatus::Live && d.rpm == 1000);
 	assert(step(s, d, "010D", "410D32") == ObdStatus::Live && d.speed == 50);
-	assert(step(s, d, "0105", "410550") == ObdStatus::Live && d.coolant == 40);
+	assert(step(s, d, "0105", "410550") == ObdStatus::Live && d.value[OBD_V_COOLANT] == 40);
 	step(s, d, "010C", "410C0FA0"); step(s, d, "010D", "410D32");
 	assert(step(s, d, "0111", "NO DATA") == ObdStatus::Live);
 	for (int round = 0; round < 2; ++round) {	// Throttle unsupported: dropped after three misses.
@@ -66,6 +73,19 @@ static void session_checks() {
 	}
 	step(s, d, "010C", "410C0FA0"); step(s, d, "010D", "410D32");
 	assert(std::string(s.command()) != "0111");
+	// Selected values: only the chosen PIDs and the status poll remain in the slow turn.
+	ElmSession pick; VehicleData p;
+	pick.want((uint32_t(1) << OBD_V_TIMING) | (uint32_t(1) << OBD_V_MAF));
+	for (const char *cmd : {"ATZ", "ATE0", "ATL0", "ATS0", "ATH0", "ATSP0"}) { step(pick, p, cmd, "OK"); }
+	step(pick, p, "0100", "4100BE3EB811");
+	step(pick, p, "010C", "410C0FA0"); step(pick, p, "010D", "410D32");
+	assert(step(pick, p, "010E", "410E8C") == ObdStatus::Live && (p.valid & obd_bit(OBD_V_TIMING)));
+	step(pick, p, "010C", "410C0FA0"); step(pick, p, "010D", "410D32");
+	assert(step(pick, p, "0110", "411001F4") == ObdStatus::Live && p.value[OBD_V_MAF] == 5);
+	step(pick, p, "010C", "410C0FA0"); step(pick, p, "010D", "410D32");
+	step(pick, p, "0101", "41010000");
+	step(pick, p, "010C", "410C0FA0"); step(pick, p, "010D", "410D32");
+	assert(std::string(pick.command()) == "010E");
 	ElmSession off; VehicleData e;
 	for (const char *cmd : {"ATZ", "ATE0", "ATL0", "ATS0", "ATH0", "ATSP0"}) { step(off, e, cmd, "OK"); }
 	step(off, e, "0100", "4100BE3EB811");
