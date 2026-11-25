@@ -7,6 +7,7 @@
 #include "ota_update.h"
 #include "ota_qr.h"
 #include "../ui/ui_theme.h"
+#include "../ui/ui_font.h"
 #include "../ui/i18n.h"
 #include "../touch/touch.h"
 #include "../power/backlight.h"
@@ -48,10 +49,12 @@ void details(const OtaStatus &s) {
 		return;
 	}
 	// Technical recovery detail is shared with the browser's English diagnostics.
-	String detail(s.error);
-	uint16_t columns = ui_s(216) / (6 * ui_text_size(1));
-	for (uint8_t row = 0; row < 3; ++row) {
-		line(detail.substring(row * columns, (row + 1) * columns), 190 + row * 14, UI_MUTED);
+	const String detail = ui_ascii(s.error);
+	unsigned start = 0;
+	for (uint8_t row = 0; row < 3 && start < detail.length(); ++row) {
+		const unsigned end = ui_font::line_end(detail, start, ui_s(216), 1);
+		line(detail.substring(start, end), 190 + row * 14, UI_MUTED);
+		start = end;
 	}
 }
 

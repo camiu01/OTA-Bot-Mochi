@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "ui_theme.h"
+#include "ui_font.h"
 #include "../../pin_config.h"
 #include "../power/backlight.h"
 #include "../power/battery.h"
@@ -79,6 +80,7 @@ String ui_ascii(const String &text) {
  */
 void ui_label(Arduino_GFX *gfx, const String &text, int16_t x, int16_t y,
 	int16_t width, uint8_t size, uint16_t color) {
+	if (ui_font::draw(gfx, text, x, y, width, size, color)) { return; }
 	size = ui_text_size(size);
 	if (size == 0 || width < 6 * size) { return; }
 	String safe = ui_ascii(text);
@@ -148,8 +150,9 @@ void ui_charge_badge(Arduino_GFX *gfx, int16_t x, int16_t y) {
  * @param title Screen title.
  * @param connected Bluetooth flag.
  * @param page Screen index.
+ * @param settings_page True when the settings footer occupies the carousel indicator area.
  */
-void ui_chrome(Arduino_GFX *gfx, const char *title, bool connected, uint8_t page) {
+void ui_chrome(Arduino_GFX *gfx, const char *title, bool connected, uint8_t page, bool settings_page) {
 	gfx->fillRect(0, 0, LCD_WIDTH, ui_s(52), UI_BG);
 	ui_label(gfx, "MOCHI / COMPANION", ui_s(16), ui_s(12), ui_s(180), 1, UI_MUTED);
 	uint8_t charge = battery_percent();
@@ -160,11 +163,12 @@ void ui_chrome(Arduino_GFX *gfx, const char *title, bool connected, uint8_t page
 	gfx->fillCircle(ui_s(220), ui_s(16), 3, connected ? UI_ACCENT : UI_MUTED);
 	// Doubled header text ends later on scaled panels, so the badge steps aside instead of colliding.
 	int16_t badge_x = ui_s(150);
-	int16_t title_right = int16_t(ui_s(16) + 17 * 6 * ui_text_size(1));
+	int16_t title_right = ui_s(16) + ui_font::width("MOCHI / COMPANION", 1);
 	if (badge_x < title_right + 8) { badge_x = int16_t(title_right + 8); }
 	ui_sound_badge(gfx, badge_x, ui_s(11));
 	ui_label(gfx, title, ui_s(16), ui_s(30), ui_s(208), 2, UI_TEXT);
 	gfx->fillRect(0, ui_s(258), LCD_WIDTH, ui_s(22), UI_BG);
+	if (settings_page && ui_font::Supported) { return; }
 	for (uint8_t i = 0; i < 8; ++i) {
 		gfx->fillCircle(ui_s(78) + i * ui_s(12), ui_s(267), i == page ? 3 : 2,
 			i == page ? UI_ACCENT : UI_MUTED);

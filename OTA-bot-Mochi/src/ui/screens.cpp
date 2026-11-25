@@ -4,8 +4,12 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "screens.h"
+#include "alert_layout.h"
+#include "fonts/classic_bitmap.h"
 #include "music_view.h"
 #include "ui_theme.h"
+#include "save_glow.h"
+#include "settings_effects.h"
 #include "text_layout.h"
 #include "context_views.h"
 #include "view_state.h"
@@ -33,6 +37,7 @@ uint32_t last_refresh = 0;
 bool invalidated = true;
 bool previous_call = false;
 bool overlay_active = false;
+bool save_glow_painted = false;
 uint32_t preferences_revision = UINT32_MAX;
 uint32_t presentation_revision = UINT32_MAX;
 uint8_t previous_brightness = 255;
@@ -54,6 +59,30 @@ void invalidate_status() {
 	}
 }
 
+/** @brief Draw compact notification text while keeping the selected face. */
+void message_line(Arduino_GFX *gfx, const String &text, int16_t x, int16_t y,
+	int16_t width, uint8_t size, uint16_t color, uint16_t zoom) {
+	if (zoom == 256) { ui_label(gfx, text, x, y, width, size, color); return; }
+	if (ui_font::draw(gfx, text, x, y, width, size, color, UI_CARD, false, zoom)) { return; }
+	const int16_t factor = ui_text_size(size) * zoom;
+	const int16_t advance = ui_font::advance('M', size, false, zoom);
+	String ascii = ui_ascii(text);
+	ascii.replace('\n', ' ');
+	const String fitted = ui_font::fit(ascii, width, size, false, zoom);
+	for (unsigned i = 0; i < fitted.length(); ++i) {
+		const auto *glyph = bitmap_font5x7 + uint8_t(fitted[i]) * 5;
+		for (int16_t col = 0; col < 5; ++col) {
+			const int16_t x0 = x + col * factor / 256, x1 = x + (col + 1) * factor / 256;
+			for (int16_t row = 0; row < 8; ++row) {
+				if (!(glyph[col] & (1 << row))) { continue; }
+				const int16_t y0 = y + row * factor / 256, y1 = y + (row + 1) * factor / 256;
+				gfx->fillRect(x0, y0, x1 - x0, y1 - y0, color);
+			}
+		}
+		x += advance;
+	}
+}
+
 /**
  * @brief Draw bounded wrapped text.
  * @param gfx Canvas.
@@ -63,52 +92,68 @@ void invalidate_status() {
  * @param color Foreground.
  * @param size Font scale.
  * @param columns Wrap width in characters for the chosen scale.
+ * @param zoom Font scale as a fraction of 256.
+ * @return Number of lines painted.
  */
-void paragraph(Arduino_GFX *gfx, const String &text, int16_t y,
-	uint8_t count, uint16_t color, uint8_t size = 1, uint8_t columns = 30) {
-	uint8_t fit = uint8_t((ui_s(184) - 4) / (6 * ui_text_size(size)));
+uint8_t paragraph(Arduino_GFX *gfx, const String &text, int16_t y,
+	uint8_t count, uint16_t color, uint8_t size = 1, uint8_t columns = 30, uint16_t zoom = 256) {
+	const int16_t cell = 6 * ui_text_size(size) * zoom / 256;
+	uint8_t fit = uint8_t((ui_s(184) - 4) / cell);
 	if (columns > fit) { columns = fit; }
-	TextLines lines = wrap_text(ui_ascii(text).c_str(), columns);
+	TextLines lines = wrap_text(ui_ascii(text).c_str(), columns, ui_s(184) - 4, size, zoom);
 	int16_t pitch = ui_s(int16_t(7 * size + 7));
 	for (uint8_t i = 0; i < lines.count && i < count; ++i) {
 		String line = lines.line[i];
-		if (i + 1 == count && lines.count > count) { line = line.substring(0, columns - 3) + "..."; }
-		ui_label(gfx, line, ui_s(28), ui_s(y) + i * pitch, ui_s(184), size, color);
+		if (i + 1 == count && lines.count > count) {
+			line = (ui_font::active() ? line : line.substring(0, columns - 3)) + "...";
+		}
+		message_line(gfx, line, ui_s(28), ui_s(y) + i * pitch, ui_s(184), size, color, zoom);
 	}
+	return lines.count < count ? lines.count : count;
 }
 
-/**
- * @brief Draw the latest notification with automatic message pagination.
- * @param gfx Canvas.
- * @param now Millisecond timestamp.
- */
+/** @brief Align a short alert label in a bounded timestamp, counter or button area. */
+void alert_label(Arduino_GFX *gfx, const String &text, int16_t x, int16_t y,
+	int16_t width, uint16_t color, bool centered = false) {
+	const String fitted = ui_font::fit(ui_ascii(text), width, 1);
+	const int16_t used = ui_font::width(fitted, 1);
+	const int16_t space = width - used;
+	ui_label(gfx, fitted, x + (centered ? space / 2 : space), y, used, 1, color);
+}
+
+/** @brief Draw the latest notification with automatic message pagination. */
 void notification_screen(Arduino_GFX *gfx, uint32_t now) {
 	if (!cached.has_notification) {
 		ui_empty(gfx, tr(Text::Quiet), tr(Text::AlertHint));
 		return;
 	}
-	ui_card(gfx, 62, 152);
+	ui_card(gfx, 58, 160);
 	const Notification &n = cached.notification;
-	ui_label(gfx, n.app.length() ? n.app : tr(Text::Phone), ui_s(28), ui_s(70), ui_s(126), 2, UI_ACCENT);
-	ui_label(gfx, n.time, ui_s(164), ui_s(74), ui_s(48), 1, UI_MUTED);
-	paragraph(gfx, n.title, 90, 2, UI_TEXT, 2, 15);
-	gfx->drawFastHLine(ui_s(28), ui_s(134), ui_s(184), UI_MUTED);
-	uint8_t columns = uint8_t((ui_s(184) - 4) / (6 * ui_text_size(2)));
-	TextLines lines = wrap_text(ui_ascii(n.message).c_str(), columns);
-	uint8_t pages = lines.count ? (lines.count + 2) / 3 : 1;
+	constexpr uint16_t zoom = ui_font::Supported ? 224 : 256;
+	message_line(gfx, n.app.length() ? n.app : tr(Text::Phone), ui_s(28), ui_s(66), ui_s(126), 2, UI_ACCENT, zoom);
+	alert_label(gfx, n.time, ui_s(164), ui_s(70), ui_s(48), UI_MUTED);
+	const uint8_t title_lines = paragraph(gfx, n.title, 90, 2, UI_TEXT, 2, 18, zoom);
+	const int16_t divider = 94 + 20 * title_lines;
+	gfx->drawFastHLine(ui_s(28), ui_s(divider), ui_s(184), UI_MUTED);
+	const uint8_t columns = uint8_t((ui_s(184) - 4) / (6 * ui_text_size(2) * zoom / 256));
+	TextLines lines = wrap_text(ui_ascii(n.message).c_str(), columns, ui_s(184) - 4, 2, zoom);
+	const uint8_t per_page = 5 - title_lines;
+	uint8_t pages = lines.count ? (lines.count + per_page - 1) / per_page : 1;
 	uint8_t page = ((uint32_t)(now - cached.notification_received) / 6000) % pages;
-	for (uint8_t i = 0; i < 3 && page * 3 + i < lines.count; ++i) {
-		ui_label(gfx, lines.line[page * 3 + i], ui_s(28), ui_s(142) + i * ui_s(21), ui_s(184), 2, UI_TEXT);
+	const uint8_t first = page * per_page;
+	for (uint8_t i = 0; i < per_page && first + i < lines.count; ++i) {
+		message_line(gfx, lines.line[first + i], ui_s(28), ui_s(divider + 8 + 19 * i), ui_s(184), 2, UI_TEXT, zoom);
 	}
-	ui_label(gfx, String(cached.notification_index + 1) + "/" + String(cached.notification_count),
-		ui_s(166), ui_s(210), ui_s(48), 1, UI_MUTED);
+	alert_label(gfx, String(cached.notification_index + 1) + "/" + String(cached.notification_count),
+		ui_s(166), ui_s(202), ui_s(46), UI_MUTED);
 	static const char *arrows[] = {"<", nullptr, ">"};
 	for (uint8_t i = 0; i < 3; ++i) {
-		int16_t x = ui_s(12 + i * 74);
-		gfx->fillRoundRect(x, ui_s(224), ui_s(68), ui_s(32), ui_s(6), UI_CARD);
-		ui_label(gfx, arrows[i] ? arrows[i] : tr(Text::Dismiss), x + ui_s(6), ui_s(235), ui_s(56), 1, UI_TEXT);
+		const int16_t x = alert_layout::button_left(i);
+		gfx->fillRoundRect(x, alert_layout::button_top(), alert_layout::button_width(), alert_layout::button_height(), ui_s(6), UI_CARD);
+		const int16_t y = alert_layout::button_top() + (alert_layout::button_height() - ui_font::height(1)) / 2;
+		alert_label(gfx, arrows[i] ? arrows[i] : tr(Text::Dismiss), x + ui_s(6), y, ui_s(56), UI_TEXT, true);
 	}
-	ui_label(gfx, String(page + 1) + " / " + String(pages), ui_s(28), ui_s(210), ui_s(100), 1, UI_MUTED);
+	ui_label(gfx, String(page + 1) + " / " + String(pages), ui_s(28), ui_s(202), ui_s(100), 1, UI_MUTED);
 }
 
 /**
@@ -193,7 +238,8 @@ void weather_screen(Arduino_GFX *gfx, uint32_t now) {
 
 /** @brief Paint non-clock utility content. @param gfx Canvas. @param watch Clock. @param page Page. @param now Time. */
 void content(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, uint32_t now) {
-	gfx->fillRect(0, ui_s(52), LCD_WIDTH, ui_s(206), UI_BG);
+	const int16_t height = page == UiPage::Notification ? alert_layout::button_bottom() - ui_s(52) : ui_s(206);
+	gfx->fillRect(0, ui_s(52), LCD_WIDTH, height, UI_BG);
 	if (overlay_active) { call_screen(gfx); }
 	else if (page == UiPage::Notification) { notification_screen(gfx, now); }
 	else if (page == UiPage::Navigation) { navigation_screen(gfx); }
@@ -232,7 +278,8 @@ bool screens_keep_awake() { return overlay_active || cached.navigation.active ||
  * @param now Millisecond timestamp.
  * @return Whether a frame needs flushing.
  */
-bool screens_draw(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, uint32_t now) {
+bool screens_draw(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, uint32_t now,
+	uint16_t *pixels, bool flipped) {
 	if (page == UiPage::Phone && settings_get().phone_ios) { page = UiPage::Desk; }
 	view_timer().tick(now);
 	invalidate_status();
@@ -256,8 +303,15 @@ bool screens_draw(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, uint32_t n
 	drive_meter().active = drive && !overlay_active;
 	obd_want(drive);
 	bool transition = page != previous_page || overlay_active != previous_call;
-	if (transition) {
+	const bool settings_visible = page == UiPage::Settings && !overlay_active;
+	const bool slide_frame = settings_menu_animate(now, settings_visible);
+	const uint32_t save_elapsed = settings_menu_save_elapsed(now, pixels && settings_visible);
+	const bool paint_glow = save_elapsed < save_glow::Duration;
+	if (transition || paint_glow || save_glow_painted) {
 		gfx->fillScreen(UI_BG); screens_invalidate();
+	}
+	save_glow_painted = paint_glow;
+	if (transition) {
 		if (page == UiPage::Pong) { desk_pong().last = now; }
 		if (page == UiPage::FlappyBird) { desk_flappy().resume(now); }
 	}
@@ -271,7 +325,7 @@ bool screens_draw(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, uint32_t n
 	bool timer = (uint32_t)(now - last_refresh) >=
 		((page == UiPage::Pong || page == UiPage::Tris || page == UiPage::FlappyBird) && !overlay_active ? 33U :
 		(drive && !overlay_active ? 100U : 1000U));
-	if (!invalidated && !changed && !timer && page != UiPage::Clock) { return false; }
+	if (!invalidated && !changed && !timer && !slide_frame && page != UiPage::Clock) { return false; }
 	if (invalidated || changed || transition) {
 		static const Text titles[] = {Text::Eyes, Text::Clock, Text::Music, Text::Route, Text::Alerts, Text::Weather, Text::Drive, Text::Settings,
 			Text::Desk, Text::BigClock, Text::Overview, Text::Timer, Text::Device, Text::Pong, Text::AnalogClock, Text::Tris, Text::CompanionTitle,
@@ -279,7 +333,7 @@ bool screens_draw(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, uint32_t n
 			Text::DriveHubTitle, Text::DriveBigLean, Text::DriveGMeter, Text::DriveGraphTitle, Text::DriveTrip, Text::DriveObd};
 		static_assert(sizeof(titles) / sizeof(titles[0]) == uint8_t(UiPage::Count), "Every page needs a title");
 		ui_chrome(gfx, tr(overlay_active ? Text::CallTitle : titles[uint8_t(page)]),
-			cached.connected, uint8_t(screens_parent(page)));
+			cached.connected, uint8_t(screens_parent(page)), settings_visible);
 		clock_invalidate();
 	}
 	if (page == UiPage::Clock && !overlay_active) {
@@ -289,6 +343,10 @@ bool screens_draw(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, uint32_t n
 		return frame;
 	}
 	content(gfx, watch, page, now);
+	if (paint_glow) {
+		settings_effects::saved_toast(gfx, pixels, flipped, save_elapsed);
+		save_glow::draw(pixels, flipped, save_elapsed);
+	}
 	last_refresh = now;
 	invalidated = false;
 	return true;

@@ -34,7 +34,7 @@ inline void dice_footer_draw(Arduino_GFX *gfx) {
 		bool roll = first != details;
 		gfx->fillRoundRect(x, ui_s(224), ui_s(116), height, ui_s(8), roll ? UI_ACCENT : UI_CARD);
 		ui_label(gfx, tr(roll ? Text::DiceRoll : (details ? Text::Back : Text::Details)),
-			x + ui_s(12), ui_s(224) + height / 2 - 4 * ui_text_size(1), ui_s(92), 1, roll ? UI_BG : UI_TEXT);
+			x + ui_s(12), ui_s(224) + height / 2 - ui_font::height(1) / 2, ui_s(92), 1, roll ? UI_BG : UI_TEXT);
 	}
 	if (eyes_imu_ready()) {
 		ui_label(gfx, tr(Text::DiceShakeRoll), ui_s(18), ui_s(214), ui_s(204), 1, UI_MUTED);

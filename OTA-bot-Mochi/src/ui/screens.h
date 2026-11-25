@@ -47,7 +47,8 @@ void screens_alert_action(int8_t action);
  * @param now Millisecond timestamp.
  * @return True when the canvas changed.
  */
-bool screens_draw(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, uint32_t now);
+bool screens_draw(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, uint32_t now,
+	uint16_t *pixels = nullptr, bool flipped = false);
 /** @brief Check for an explicitly displayed call view. @return Visible call overlay. */
 bool screens_calling();
 /** @brief Keep routes and incoming calls readable. @return Whether idle dimming is inhibited. */

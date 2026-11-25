@@ -172,6 +172,7 @@ Gesture take_gesture() {
 void handle_touch(uint32_t now) {
 	eyes_follow(finger_x, finger_y, finger && page == UiPage::Eyes && !screens_calling(), now);
 	const Gesture g = take_gesture();
+	if (g.tap) { dismiss_notification_glow(); }
 	if (g.tap && g.y < 50 && !screens_calling() && page != UiPage::Eyes && page != UiPage::Settings) {
 		toggle_quick_sound(now);
 		return;
@@ -209,7 +210,7 @@ void handle_touch(uint32_t now) {
 		}
 	}
 	if (!g.step) { return; }
-	switch_screen(screens_swipe(page, g.step), now);
+	switch_screen(screens_swipe(page, g.step), now, g.step);
 }
 
 void handle_event(const SDL_Event &event, SDL_Renderer *, bool &running) {

@@ -202,6 +202,10 @@ actions. Calm disables them; dashboard/night reduce their intensity.
   shutdown, a visible call overlay or a held touch are discarded. Holding BOOT
   during reset still selects the chip's firmware download mode.
 - New notifications automatically open Alerts, including while a route is active.
+  On AMOLED V2 a colored perimeter light stays visible for 10 seconds, then
+  fades over 650 ms. A tap clears the light immediately and still performs its
+  usual action. Another arrival restarts the effect independently of the alert's
+  display timeout or browsing history.
   After 60 seconds from the latest notification, the previous page returns.
   Leaving Alerts manually cancels this return; opening Alerts manually does not
   start a timeout. The return also waits for a held finger to be released.

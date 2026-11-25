@@ -41,13 +41,16 @@ const char *page_name(UiPage value);
 bool page_from_name(const std::string &name, UiPage &out);
 
 /** @brief Switch pages exactly like the firmware helper: clear and repaint. @param next Target. @param now Millisecond timestamp. */
-void switch_screen(UiPage next, uint32_t now);
+void switch_screen(UiPage next, uint32_t now, int8_t direction = 0);
 
 /** @brief Toggle master sound from the status strip; RAM-only until SAVE. @param now Millisecond timestamp. */
 void toggle_quick_sound(uint32_t now);
 
 /** @brief Push a fresh notification so the auto page policy jumps to Alerts. */
 void inject_notification();
+
+/** @brief Hide the perimeter alert on a released tap. */
+void dismiss_notification_glow();
 
 /** @brief Start or stop a navigation session through the normal Chronos path. */
 void toggle_route();

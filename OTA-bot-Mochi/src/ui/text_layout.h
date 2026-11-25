@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
+#include "ui_font.h"
 
 struct TextLines {
 	char line[40][35] = {};
@@ -18,20 +19,33 @@ struct TextLines {
  * @brief Wrap ASCII text at word boundaries, splitting oversized words.
  * @param text Null-terminated, sanitized input.
  * @param columns Maximum visible columns, from 1 to 34.
+ * @param max_pixels Optional pixel budget when the proportional font is active.
+ * @param size Font size for the pixel budget.
+ * @param zoom Font scale as a fraction of 256.
  * @return Bounded lines, including an ellipsis when the buffer is exhausted.
  */
-inline TextLines wrap_text(const char *text, uint8_t columns) {
+inline TextLines wrap_text(const char *text, uint8_t columns, int16_t max_pixels = 0, uint8_t size = 1, uint16_t zoom = 256) {
 	TextLines result;
 	if (!text || columns == 0 || columns > 34) {
 		return result;
 	}
+	const bool by_pixels = max_pixels > 0 && ui_font::active();
+	if (by_pixels) { columns = 34; }
 	while (*text && result.count < 40) {
 		while (*text == ' ' || *text == '\r') { ++text; }
 		if (!*text) { break; }
 		size_t length = 0;
-		while (text[length] && text[length] != '\n' && length < columns) { ++length; }
+		int16_t remaining = max_pixels;
+		while (text[length] && text[length] != '\n' && length < columns) {
+			if (by_pixels) {
+				const int16_t next = ui_font::advance(text[length], size, false, zoom);
+				if (length && next > remaining) { break; }
+				remaining -= next;
+			}
+			++length;
+		}
 		size_t used = length;
-		if (length == columns && text[length] && text[length] != ' ' &&
+		if ((length == columns || by_pixels) && text[length] && text[length] != ' ' &&
 			text[length] != '\n') {
 			for (size_t i = length; i > 0; --i) {
 				if (text[i - 1] == ' ') { used = i - 1; break; }

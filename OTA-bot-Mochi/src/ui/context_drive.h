@@ -8,6 +8,7 @@
 #include "screens.h"
 #include "ui_state.h"
 #include "ui_theme.h"
+#include "ui_font.h"
 #include "i18n.h"
 #include "../play/drive_meter.h"
 #include "../vehicle/obd_state.h"
@@ -19,7 +20,7 @@
 
 /** @brief Centered label. @param gfx Canvas. @param text Text. @param y Top (design). @param size Font scale. @param color Ink. */
 inline void drive_center(Arduino_GFX *gfx, const String &text, int16_t y, uint8_t size, uint16_t color) {
-	int16_t width = int16_t(ui_ascii(text).length()) * 6 * ui_text_size(size);
+	int16_t width = ui_font::width(ui_ascii(text), size);
 	if (width > LCD_WIDTH - ui_s(48)) { width = LCD_WIDTH - ui_s(48); }
 	ui_label(gfx, text, (LCD_WIDTH - width) / 2, ui_s(y), width, size, color);
 }

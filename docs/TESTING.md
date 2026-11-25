@@ -255,6 +255,9 @@ From the repository root in PowerShell:
 .\tools\run-emulator.ps1 -Size 368x448 -Page settings
 ```
 
+Add `-LeftDisplay -Minimized` to start minimized on the leftmost monitor.
+When restored, the window fits within that monitor's work area.
+
 The script uses `g++.exe` from PATH, or looks in `C:\msys64\ucrt64\bin`
 and `C:\msys64\mingw64\bin`. Select another compiler explicitly if needed:
 

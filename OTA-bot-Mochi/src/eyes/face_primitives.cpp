@@ -1,4 +1,5 @@
 #include "face_support.h"
+#include "../ui/ui_font.h"
 
 /** @brief Shared eye_mix animation primitive. */
 uint16_t eye_mix(uint16_t ink, uint16_t bg, uint8_t amount) {
@@ -97,6 +98,15 @@ void eye_extra_text(Arduino_GFX *gfx, const EyeConfig &cfg, const char *text,
 	uint8_t length = uint8_t(strlen(text));
 	int16_t size = cfg.screenW / (6 * length + 6);
 	if (size < 1) { size = 1; }
+#if MOCHI_DISPLAY_CO5300 && LCD_WIDTH == 368 && LCD_HEIGHT == 448
+	if (ui_font::active()) {
+		const int16_t width = eye_limit(ui_font::width(text, size, true), 0, cfg.screenW);
+		const int16_t left = eye_limit(int16_t(x - width / 2), 0, cfg.screenW - width);
+		const int16_t top = eye_limit(y, 0, cfg.screenH - ui_font::height(size, true));
+		ui_font::draw(gfx, text, left, top, width, size, color, cfg.bgColor, true);
+		return;
+	}
+#endif
 	int16_t left = eye_limit(int16_t(x - length * 3 * size), 0, cfg.screenW - length * 6 * size);
 	gfx->setFont(nullptr);
 	gfx->setTextWrap(false);

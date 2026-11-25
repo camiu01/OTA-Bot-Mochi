@@ -7,6 +7,7 @@
 #include "sd_update.h"
 #include "../../pin_config.h"
 #include "../ui/ui_theme.h"
+#include "../ui/ui_font.h"
 #include "../ui/i18n.h"
 #include "../touch/touch.h"
 #include "../power/backlight.h"
@@ -38,10 +39,12 @@ void draw(uint32_t now) {
 	size_t progress = s.phase == SdUpdatePhase::Writing ? s.written : s.checked;
 	line(String(s.total ? progress * 100 / s.total : 0) + "%", 124, UI_ACCENT);
 	if (s.error) {
-		String detail(s.error);
-		uint16_t columns = ui_s(216) / (6 * ui_text_size(1));
-		for (uint8_t row = 0; row < 4; ++row) {
-			line(detail.substring(row * columns, (row + 1) * columns), 150 + row * 14, UI_MUTED);
+		const String detail = ui_ascii(s.error);
+		unsigned start = 0;
+		for (uint8_t row = 0; row < 4 && start < detail.length(); ++row) {
+			const unsigned end = ui_font::line_end(detail, start, ui_s(216), 1);
+			line(detail.substring(start, end), 150 + row * 14, UI_MUTED);
+			start = end;
 		}
 	} else { line(tr(Text::SdKeepPower), 166, UI_MUTED); }
 	if (s.phase != SdUpdatePhase::Success) {

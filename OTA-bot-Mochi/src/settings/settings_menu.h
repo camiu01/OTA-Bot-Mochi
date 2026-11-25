@@ -15,3 +15,7 @@ MenuAction settings_menu_tap(int16_t x, int16_t y);
 bool settings_menu_scroll(int8_t direction);
 /** @brief Report whether the expression grid overlay currently replaces the tabs. @return Grid visible. */
 bool settings_menu_grid_open();
+/** @brief Return elapsed save animation time, or its duration when hidden or finished. */
+uint32_t settings_menu_save_elapsed(uint32_t now, bool visible);
+/** @brief Advance the row slide and request a fresh frame, including at its end. */
+bool settings_menu_animate(uint32_t now, bool visible);

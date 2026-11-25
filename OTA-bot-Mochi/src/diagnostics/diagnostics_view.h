@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #pragma once
+#include "../ui/ui_font.h"
 #include "device_status.h"
 #include "../ui/ui_theme.h"
 #include "../ui/i18n.h"
@@ -60,19 +61,21 @@ inline void draw(Arduino_GFX *gfx, uint8_t first) {
 	const auto state = device_status::snapshot();
 	const bool connected = ui_snapshot().connected;
 	gfx->fillRoundRect(ui_s(2), ui_s(52), ui_s(236), ui_s(36), ui_s(8), UI_CARD);
-	ui_label(gfx, tr(Text::Diagnostics), ui_s(14), ui_s(60), ui_s(212), 1, UI_ACCENT);
-	ui_label(gfx, String(first + 1) + "-" + String(first + 3) + "/" + String(ROWS), ui_s(14), ui_s(75), ui_s(212), 1, UI_MUTED);
+	ui_font::label(gfx, tr(Text::Diagnostics), ui_s(14), ui_s(60), ui_s(212), 1, UI_ACCENT, UI_CARD);
+	ui_font::label(gfx, String(first + 1) + "-" + String(first + 3) + "/" + String(ROWS),
+		ui_s(14), ui_s(75), ui_s(212), 1, UI_MUTED, UI_CARD);
 	for (uint8_t slot = 0; slot < 3 && first + slot < ROWS; ++slot) {
 		uint8_t index = first + slot;
 		int16_t y = 90 + slot * 44;
 		ui_card(gfx, y, 40);
-		ui_label(gfx, tr(labels[index]), ui_s(24), ui_s(y + 5), ui_s(192), 1, UI_MUTED);
-		ui_label(gfx, value(index, state, connected), ui_s(24), ui_s(y + 23), ui_s(192), 1, UI_TEXT);
+		ui_font::label(gfx, tr(labels[index]), ui_s(24), ui_s(y + 5), ui_s(192), 1, UI_MUTED, UI_CARD);
+		ui_font::label(gfx, value(index, state, connected), ui_s(24), ui_s(y + 23), ui_s(192), 1, UI_TEXT, UI_CARD);
 	}
 	gfx->fillRect(ui_s(232), ui_s(92), ui_s(3), ui_s(128), UI_CARD);
 	gfx->fillRect(ui_s(232), ui_s(92 + first * 88 / (ROWS - 3)), ui_s(3), ui_s(40), UI_ACCENT);
 	const int16_t band_bottom = (int16_t(LCD_HEIGHT - 4) > ui_s(280)) ? int16_t(LCD_HEIGHT - 4) : ui_s(280);
 	gfx->fillRoundRect(ui_s(2), ui_s(224), ui_s(236), int16_t(band_bottom - ui_s(224)), ui_s(8), UI_CARD);
-	ui_label(gfx, tr(Text::Back), ui_s(24), ui_s(224) + int16_t(band_bottom - ui_s(224)) / 2 - ui_s(4), ui_s(192), 1, UI_TEXT);
+	ui_font::label(gfx, tr(Text::Back), ui_s(24), ui_s(224) + int16_t(band_bottom - ui_s(224)) / 2 - ui_s(4),
+		ui_s(192), 1, UI_TEXT, UI_CARD);
 }
 }

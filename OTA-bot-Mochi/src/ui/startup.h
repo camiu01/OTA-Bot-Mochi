@@ -6,6 +6,7 @@
 #pragma once
 #include <Arduino_GFX_Library.h>
 #include "../power/power_button.h"
+#include "ui_font.h"
 
 /** @brief Main-task startup animation with unsigned rollover-safe timing. */
 class StartupAnimation {
@@ -22,6 +23,13 @@ class StartupAnimation {
 	/** @brief Center fixed-font ASCII text. @param gfx Canvas. @param text Label. @param count Characters. @param y Top. @param size Font size. @param ink Color. */
 	static void label(Arduino_GFX *gfx, const char *text, uint8_t count,
 			int16_t y, uint8_t size, uint16_t ink) {
+#if MOCHI_DISPLAY_CO5300 && LCD_WIDTH == 368 && LCD_HEIGHT == 448
+		if (ui_font::active()) {
+			const int16_t width = ui_font::width(text, size, true);
+			ui_font::draw(gfx, text, (gfx->width() - width) / 2, y, width, size, ink, UI_BG, true);
+			return;
+		}
+#endif
 		gfx->setTextSize(size); gfx->setTextColor(ink);
 		gfx->setCursor((gfx->width() - count * 6 * size) / 2, y);
 		gfx->print(text);

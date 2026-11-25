@@ -9,6 +9,7 @@
 #include "../eyes/eye_life.h"
 #include "../power/backlight.h"
 #include "../ui/ui_theme.h"
+#include "../ui/ui_font.h"
 #include <Preferences.h>
 
 namespace {
@@ -58,6 +59,7 @@ bool settings_init() {
 		has_saved = true;
 	}
 	profile.mood = uint8_t(face_filter().resolve(Expression(profile.mood)));
+	ui_font::select(profile.font);
 	++revision;
 	return storage_ready;
 }
@@ -69,6 +71,7 @@ const CompanionSettings &settings_get() { return profile; }
 void settings_apply() {
 	static const uint16_t colors[] = {0xFFFF, 0x6FBA, 0x07FF, 0xFD6C, 0xF9D6, 0x4D7F};
 	ui_theme_color(colors[profile.color]);
+	ui_font::select(profile.font);
 	eyes_set_style(static_cast<EyeStyle>(profile.style));
 	if (!profile.shake || !face_filter().allows(DIZZY)) { eyes_state().dizzyUntilMs = 0; }
 	eyes_set_expression(static_cast<Expression>(profile.mood));

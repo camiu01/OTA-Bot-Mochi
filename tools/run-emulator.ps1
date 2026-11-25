@@ -13,6 +13,8 @@ param(
 	[switch] $Headless,
 	[switch] $Rebuild,
 	[switch] $TestInput,
+	[switch] $LeftDisplay,
+	[switch] $Minimized,
 	[string] $Compiler
 )
 
@@ -133,6 +135,8 @@ try {
 	if ($Frames) { $launchArgs += @('--frames', "$Frames") }
 	if ($Command) { $launchArgs += @('--command', $Command) }
 	if ($Screenshot) { $launchArgs += @('--screenshot', $Screenshot) }
+	if ($LeftDisplay) { $launchArgs += '--left-display' }
+	if ($Minimized) { $launchArgs += '--minimized' }
 	if ($Headless) { $env:SDL_VIDEODRIVER = 'dummy' }
 	& $binary @launchArgs
 	if ($LASTEXITCODE -ne 0) { throw "LCD emulator exited with code $LASTEXITCODE." }
