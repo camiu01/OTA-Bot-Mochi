@@ -1,5 +1,7 @@
 # Face library
 
+[← README](../README.md) · [Docs index](README.md)
+
 The allow-list applies to manual selection, automatic playback, taps, double taps,
 petting, startup greetings, IMU reactions and shake-to-dizzy. At least one face
 must remain enabled. Removing the selected face selects the first enabled ID.

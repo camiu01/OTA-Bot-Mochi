@@ -1,5 +1,7 @@
 # Local display and network settings
 
+[← README](../README.md) · [Docs index](README.md)
+
 Open **Settings → SYSTEM → Wi-Fi settings** (sixth row, after Phone mode and Firmware update), or the face library's
 **Wi-Fi** button. When connected to a saved network, scan the display's web QR
 while your phone is on the same network. Otherwise join Mochi's displayed

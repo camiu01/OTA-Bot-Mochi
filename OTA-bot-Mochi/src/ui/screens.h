@@ -31,6 +31,22 @@ inline UiPage screens_swipe(UiPage page, int8_t step) {
 }
 /** @brief Dispatch short parked-use utility taps. @param page Page. @param x X. @param y Y. @param now Time. @return Target. */
 UiPage screens_tap(UiPage page, int16_t x, int16_t y, uint32_t now);
+/**
+ * @brief Apply a stationary hold: Route restores its default layout, Timer resets, Drive pages ZERO.
+ * @param page Current page. @param now Timestamp. @return Hold consumed (redraw needed).
+ */
+bool screens_hold(UiPage page, uint32_t now);
+/** @brief Idle time after which secondary pages return to the Eyes home. */
+constexpr uint32_t SCREENS_HOME_IDLE_MS = 60000;
+/**
+ * @brief Decide whether an idle page should return to Eyes.
+ *
+ * Drive pages, an active route, a running timer, an incoming call and Settings
+ * with unsaved changes stay put; everything else returns after SCREENS_HOME_IDLE_MS.
+ * @param page Current page. @param idle Milliseconds since the last touch or BOOT input.
+ * @return Switch to Eyes now.
+ */
+bool screens_auto_home(UiPage page, uint32_t idle);
 
 /** @brief Dispatch vertical gestures through the contextual layers. @param page Page. @param scroll +1 up, -1 down. @return Target. */
 UiPage screens_scroll(UiPage page, int8_t scroll);

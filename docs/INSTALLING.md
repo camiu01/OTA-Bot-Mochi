@@ -1,5 +1,7 @@
 # Install a release safely
 
+[← README](../README.md) · [Docs index](README.md)
+
 These are user-operated USB flashing instructions. After the first OTA-capable
 USB installation, use [local wireless updates](OTA.md) with the matching
 `*-app.bin` downloaded from a release. No firmware is uploaded by tests or builds.

@@ -30,7 +30,7 @@ static void form(WebServer &s) {
 /** @brief The schema exposes all permanent styles and saves only valid IDs. */
 static void style_edits(WebServer &s) {
 	call(s, "GET /settings"); assert(s.code == 200);
-	for (const char *label : {"anime", "kitsune", "headlight DRL"}) {
+	for (const char *label : {"ANIME", "KITSUNE", "HEADLIGHT DRL"}) {
 		assert(std::string(s.body.c_str()).find(label) != std::string::npos);
 	}
 	for (uint8_t style = ANIME; style < EYE_STYLE_COUNT; ++style) {

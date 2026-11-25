@@ -11,11 +11,12 @@
 #include "../power/charging.h"
 #include "../sound/sound.h"
 
-uint16_t UI_CARD = 0x18C3;
-uint16_t UI_TEXT = 0xFFFF;
-uint16_t UI_MUTED = 0xA514;
+uint16_t UI_CARD = 0x1082;
+uint16_t UI_LINE = 0x2945;
+uint16_t UI_TEXT = 0xEF5D;
+uint16_t UI_MUTED = 0x8C51;
 uint16_t UI_ACCENT = 0xFFFF;
-uint16_t UI_WARM = 0xFFFF;
+uint16_t UI_WARM = 0xFD20;
 
 int16_t ui_scale() {
 	int16_t sx = int16_t(LCD_WIDTH) * 100 / UI_DESIGN_W;
@@ -24,17 +25,37 @@ int16_t ui_scale() {
 	return base < 100 ? 100 : (base > 200 ? 200 : base);
 }
 
-/** @brief Scale RGB565 components independently, preserving their hue. */
-static uint16_t shade(uint16_t color, uint8_t percent) {
-	return (((color >> 11) * percent / 100) << 11) |
-		((((color >> 5) & 63) * percent / 100) << 5) |
-		((color & 31) * percent / 100);
+/**
+ * @brief Minimal dark palette: neutral ink and surfaces, the eye color only as accent.
+ *
+ * Text stays near-white and secondary text neutral grey on every eye color, so
+ * contrast no longer depends on the selected hue. Surfaces are neutral grey;
+ * warnings use a fixed amber.
+ * @param color Selected eye color (RGB565).
+ */
+void ui_theme_color(uint16_t color) {
+	UI_ACCENT = color;
+	UI_TEXT = 0xEF5D;	// RGB565 greys keep green at exactly twice red/blue: no green cast.
+	UI_MUTED = 0x8C51;
+	UI_WARM = color == 0xFD6C ? 0xF9D6 : 0xFD20;	// Amber eyes warn in pink.
+	UI_CARD = 0x1082;	// Neutral surfaces: no accent tint, so no hue cast on large areas.
+	UI_LINE = 0x2945;
 }
 
-void ui_theme_color(uint16_t color) {
-	UI_TEXT = UI_ACCENT = UI_WARM = color;
-	UI_MUTED = shade(color, 65);
-	UI_CARD = shade(color, 10);
+void ui_box(Arduino_GFX *gfx, int16_t x, int16_t y, int16_t w, int16_t h, uint16_t fill, bool outline) {
+	int16_t r = ui_s(12) < h / 2 ? ui_s(12) : h / 2;
+	gfx->fillRoundRect(x, y, w, h, r, fill);
+	if (outline) { gfx->drawRoundRect(x, y, w, h, r, UI_LINE); }
+}
+
+void ui_button(Arduino_GFX *gfx, int16_t x, int16_t y, int16_t w, int16_t h, const String &label, bool primary, bool enabled) {
+	const uint16_t fill = primary && enabled ? UI_ACCENT : UI_CARD;
+	ui_box(gfx, x, y, w, h, fill, !primary || !enabled);
+	const int16_t room = w - ui_s(12);
+	const String text = ui_font::fit(ui_ascii(label), room, 1);
+	const int16_t width = ui_font::width(text, 1);
+	ui_font::label(gfx, text, x + (w - width) / 2, y + (h - ui_font::height(1)) / 2, room, 1,
+		!enabled ? UI_MUTED : (primary ? UI_BG : UI_TEXT), fill);
 }
 
 /**
@@ -98,9 +119,29 @@ void ui_label(Arduino_GFX *gfx, const String &text, int16_t x, int16_t y,
 	gfx->print(safe);
 }
 
+void ui_center(Arduino_GFX *gfx, const String &text, int16_t y, uint8_t size, uint16_t color) {
+	const int16_t room = LCD_WIDTH - ui_s(48);
+	const String clipped = ui_font::fit(ui_ascii(text), room, size);
+	const int16_t width = ui_font::width(clipped, size);
+	ui_label(gfx, clipped, (LCD_WIDTH - width) / 2, ui_s(y), room, size, color);
+}
+
+void ui_bar(Arduino_GFX *gfx, int16_t x, int16_t y, int16_t w, int16_t h, int32_t permille, uint16_t color) {
+	permille = permille < 0 ? 0 : (permille > 1000 ? 1000 : permille);
+	gfx->fillRoundRect(x, y, w, h, h / 2, UI_LINE);
+	int16_t filled = int16_t(int32_t(w) * permille / 1000);
+	if (filled >= h) { gfx->fillRoundRect(x, y, filled, h, h / 2, color); }
+}
+
+void ui_status(Arduino_GFX *gfx, int16_t y, bool good, const String &text) {
+	int16_t r = ui_s(3) < 2 ? 2 : ui_s(3);
+	gfx->fillCircle(ui_s(32), ui_s(y) + 7 * ui_text_size(1) / 2, r, good ? UI_ACCENT : UI_LINE);
+	ui_label(gfx, text, ui_s(44), ui_s(y), ui_s(168), 1, good ? UI_TEXT : UI_MUTED);
+}
+
 /** @brief Draw a content card. @param gfx Canvas. @param y Top (design space). @param height Height (design space). */
 void ui_card(Arduino_GFX *gfx, int16_t y, int16_t height) {
-	gfx->fillRoundRect(ui_s(12), ui_s(y), LCD_WIDTH - 2 * ui_s(12), ui_s(height), ui_s(14), UI_CARD);
+	ui_box(gfx, ui_s(12), ui_s(y), LCD_WIDTH - 2 * ui_s(12), ui_s(height), UI_CARD, true);
 }
 
 /**
@@ -166,12 +207,21 @@ void ui_chrome(Arduino_GFX *gfx, const char *title, bool connected, uint8_t page
 	int16_t title_right = ui_s(16) + ui_font::width("MOCHI / COMPANION", 1);
 	if (badge_x < title_right + 8) { badge_x = int16_t(title_right + 8); }
 	ui_sound_badge(gfx, badge_x, ui_s(11));
+	gfx->fillRoundRect(ui_s(6), ui_s(30), ui_s(4), ui_s(16), ui_s(2), UI_ACCENT);
 	ui_label(gfx, title, ui_s(16), ui_s(30), ui_s(208), 2, UI_TEXT);
 	gfx->fillRect(0, ui_s(258), LCD_WIDTH, ui_s(22), UI_BG);
 	if (settings_page && ui_font::Supported) { return; }
+	// Pagination: a short accent pill marks the current page between small dots.
+	const int16_t step = ui_s(12), pill = ui_s(16), dot = ui_s(2) < 2 ? 2 : ui_s(2);
+	int16_t x = int16_t((LCD_WIDTH - (7 * step + pill)) / 2), y = ui_s(267);
 	for (uint8_t i = 0; i < 8; ++i) {
-		gfx->fillCircle(ui_s(78) + i * ui_s(12), ui_s(267), i == page ? 3 : 2,
-			i == page ? UI_ACCENT : UI_MUTED);
+		if (i == page) {
+			gfx->fillRoundRect(x, y - dot - 1, pill, 2 * dot + 3, dot + 1, UI_ACCENT);
+			x += pill + step - 2 * dot;
+		} else {
+			gfx->fillCircle(x + dot, y, dot, UI_MUTED);
+			x += step;
+		}
 	}
 }
 

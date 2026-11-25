@@ -1,5 +1,7 @@
 # Build and test
 
+[← README](../README.md) · [Docs index](README.md)
+
 ## Native regression tests
 
 The runners require Python 3 (`python` on Windows, `python3` on Unix) for

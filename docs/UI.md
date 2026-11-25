@@ -1,5 +1,7 @@
 # Companion UI
 
+[← README](../README.md) · [Docs index](README.md)
+
 The living eyes remain the default screen. Utility screens use a black background,
 rounded tinted cards, eye-colored text and icons, and dimmer secondary labels.
 The eye color is the shared primary color, including controls, calls, and weather.
@@ -135,6 +137,10 @@ actions. Calm disables them; dashboard/night reduce their intensity.
   toggles the large/details layout and swipe **down** on Weather requests a
   phone sync and a configured Internet weather refresh. Downward swipes on Games
   and Dice stay there; other utility pages retain the quick return to Eyes.
+- After 60 seconds without touch or BOOT input, any page returns to Eyes, the
+  home page. Drive pages, an active route, a running timer, an incoming call and
+  Settings with unsaved changes stay where they are. Automatic page changes for
+  new alerts restart the minute.
   Vertical strokes still pet Mochi on Eyes and still scroll rows inside
   Settings.
 - Tap the top status strip, above the page title, on Clock, Music, Route, Alerts,
@@ -219,7 +225,7 @@ actions. Calm disables them; dashboard/night reduce their intensity.
   in a two-column, three-row grid (design coordinates). Games lives one layer below;
   Dice supports 1–100 D4/D6/D8/D10/D12/D20/D100 with individual results and a total.
   The
-  local timer uses a full-width 50-pixel START/PAUSE accent button with
+  local timer also toggles from its large digits and resets on a hold; it uses a full-width 50-pixel START/PAUSE accent button with
   48-pixel RESET and MODE buttons, so every desk control is a comfortable
   parked-use target.
 - Use settings only while parked. The firmware cannot determine whether the

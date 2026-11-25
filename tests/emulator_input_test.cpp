@@ -93,7 +93,7 @@ static void alert_footer_bounds() {
 	for (int y = ui_s(214); y < alert_layout::button_top(); ++y) {
 		for (int x = ui_s(24); x < LCD_W - ui_s(24); ++x) {
 			const auto pixel = gfx.pixels[y * LCD_W + x];
-			assert(pixel == UI_BG || (y < ui_s(218) && pixel == UI_CARD));
+			assert(pixel == UI_BG || (y < ui_s(218) && (pixel == UI_CARD || pixel == UI_LINE)));
 		}
 	}
 }
@@ -128,7 +128,7 @@ static void notification_key() {
 	assert(paint(start + notification_glow::DurationMs - 250) == notification_glow::Supported);
 	assert(!paint(start + notification_glow::DurationMs) && page == UiPage::Notification);
 	alert_footer_bounds();
-	assert(gfx.pixels[ui_s(114) * LCD_W + ui_s(28)] == UI_MUTED);
+	assert(gfx.pixels[ui_s(114) * LCD_W + ui_s(28)] == UI_LINE);
 	Notification long_note;
 	long_note.app = "A long notification application name";
 	long_note.title = "A long title takes two lines and may need to be shortened";
@@ -139,7 +139,7 @@ static void notification_key() {
 	const uint32_t second = start + notification_glow::DurationMs + 30;
 	paint(second);
 	alert_footer_bounds();
-	assert(gfx.pixels[ui_s(134) * LCD_W + ui_s(28)] == UI_MUTED);
+	assert(gfx.pixels[ui_s(134) * LCD_W + ui_s(28)] == UI_LINE);
 	assert(paint(second + 500) == notification_glow::Supported);
 	const auto retained = ui_snapshot().notification_count;
 	mouse(SDL_MOUSEBUTTONDOWN, LCD_W / 2, LCD_H / 2);

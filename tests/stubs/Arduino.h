@@ -69,6 +69,7 @@ public:
 	String(T number) : value(std::to_string(number)) {}
 	unsigned int length() const { return value.length(); }
 	const char *c_str() const { return value.c_str(); }
+	long toInt() const { return atol(value.c_str()); }
 	char operator[](unsigned int index) const { return value[index]; }
 	void reserve(unsigned int length) { value.reserve(length); }
 	String substring(unsigned int start, unsigned int end) const {

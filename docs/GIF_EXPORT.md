@@ -1,5 +1,7 @@
 # Export bot animations as GIFs
 
+[← README](../README.md) · [Docs index](README.md)
+
 The exporter runs Mochi's real eye renderer and animation update loop on the PC.
 It uses the native test raster, not copied artwork or prerecorded GIFs. No board,
 Arduino CLI, SDL, firmware compilation or upload is needed. These exports are

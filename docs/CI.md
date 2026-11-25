@@ -1,5 +1,7 @@
 # GitHub Actions firmware workflow
 
+[← README](../README.md) · [Docs index](README.md)
+
 The workflow is `.github/workflows/checks.yml`. It runs on pushes, pull requests,
 published releases (including prereleases), and
 **Actions → Firmware and host checks → Run workflow**.

@@ -1,5 +1,7 @@
 # Direct dependency and provenance inventory
 
+[← README](../README.md) · [Docs index](README.md)
+
 This is a bounded inventory, checked against `platformio.ini`,
 `.github/workflows/checks.yml` and installed package files on 2026-10-27.
 Build pins were updated on 2026-11-02: `versions.ini` now feeds both CI and

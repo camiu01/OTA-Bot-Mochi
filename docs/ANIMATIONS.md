@@ -1,5 +1,7 @@
 # Original colored animations
 
+[← README](../README.md) · [Docs index](README.md)
+
 The additions here are original procedural drawings. They preserve broad themes
 such as rain, a visualizer, or shrinking eyes, not the source choreography.
 Mouths, complete cartoon faces, source text and logos are omitted. Similar

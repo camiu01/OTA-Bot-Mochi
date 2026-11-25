@@ -79,7 +79,7 @@ static void migration_tests() {
 	test_profile.assign(bytes, bytes + 8);
 	assert(settings_init() && settings_get().color == 3);
 	assert(decoded.route_large);
-	assert(settings_dirty() && settings_save() && test_profile[0] == 10 && test_profile.size() == SETTINGS_BYTES);
+	assert(settings_dirty() && settings_save() && test_profile[0] == 11 && test_profile.size() == SETTINGS_BYTES);
 	bytes[0] = 2; bytes[6] = 0x32; bytes[7] = 0xA5;
 	for (uint8_t i = 0; i < 7; ++i) { bytes[7] ^= bytes[i]; }
 	assert(settings_decode(bytes, sizeof(bytes), decoded) && decoded.random_faces && decoded.imu_faces && decoded.route_large);
@@ -94,7 +94,7 @@ static void migration_tests() {
 	assert(from_v4.style == 2 && from_v4.color == 3 && from_v4.mood == LOVE && !from_v4.flipped);
 	test_profile.assign(v4, v4 + SETTINGS_V4_BYTES);
 	assert(settings_init() && settings_get().style == 2 && !settings_get().flipped);
-	assert(settings_dirty() && settings_save() && test_profile[0] == 10 && test_profile.size() == SETTINGS_BYTES);
+	assert(settings_dirty() && settings_save() && test_profile[0] == 11 && test_profile.size() == SETTINGS_BYTES);
 	uint8_t v5[SETTINGS_BYTES];
 	CompanionSettings old; old.flipped = true;
 	settings_encode(old, v5);
@@ -128,8 +128,27 @@ static void mood_range_tests() {
 	CompanionSettings legacy; legacy.mood = LOVE;
 	uint8_t legacy_bytes[SETTINGS_BYTES];
 	settings_encode(legacy, legacy_bytes);
-	assert(legacy_bytes[0] == 10);
+	assert(legacy_bytes[0] == 11);
 	CompanionSettings decoded;
+	// Version ten shares the length; its OBD bit is reserved and the scan defaults on.
+	CompanionSettings no_obd; no_obd.obd_scan = false;
+	uint8_t v11[SETTINGS_BYTES]; settings_encode(no_obd, v11);
+	assert(v11[15] == 1 && settings_decode(v11, sizeof(v11), decoded) && !decoded.obd_scan);
+	uint8_t v10[SETTINGS_BYTES]; memcpy(v10, v11, sizeof(v10));
+	v10[0] = 10; v10[16] = 0xA5;
+	for (uint8_t i = 0; i < 16; ++i) { v10[16] ^= v10[i]; }
+	assert(settings_decode(v10, sizeof(v10), decoded) && decoded.obd_scan && decoded.sound_charging);
+	v10[15] = 3; v10[16] ^= 2;
+	assert(!settings_decode(v10, sizeof(v10), decoded));
+	no_obd.font = UiFont::DmSans;
+	uint8_t v13[SETTINGS_BYTES]; settings_encode(no_obd, v13);
+	assert(v13[0] == 13 && settings_decode(v13, sizeof(v13), decoded));
+	assert(decoded.font == UiFont::DmSans && !decoded.obd_scan && decoded.sound_charging);
+	uint8_t v12[SETTINGS_BYTES]; memcpy(v12, v13, sizeof(v12));
+	v12[0] = 12; v12[15] = 5; v12[16] = 0xA5;
+	for (uint8_t i = 0; i < 16; ++i) { v12[16] ^= v12[i]; }
+	assert(settings_decode(v12, sizeof(v12), decoded) && decoded.font == UiFont::DmSans && decoded.obd_scan);
+	assert(!settings_parse("set obd-scan off", CompanionSettings{}).profile.obd_scan);
 	assert(settings_decode(legacy_bytes, sizeof(legacy_bytes), decoded) && decoded.mood == LOVE);
 	// The wider expression range reuses the same byte, so no new profile version is needed.
 	CompanionSettings wide; wide.mood = CAT;
@@ -253,7 +272,8 @@ static void menu_tests() {
 	assert(settings_get().style == 2);
 	assert(settings_menu_tap(20, 150) == MenuAction::Changed);
 	assert(settings_get().color == 1);
-	assert(UI_ACCENT == 0x6FBA && UI_TEXT == UI_ACCENT && UI_WARM == UI_ACCENT);
+	// Minimal dark: the eye color is only the accent; ink and warnings stay neutral/amber.
+	assert(UI_ACCENT == 0x6FBA && UI_TEXT == 0xEF5D && UI_WARM == 0xFD20);
 	assert(UI_CARD != UI_BG && UI_MUTED != UI_TEXT);
 	assert(!settings_menu_scroll(-1));
 	assert(settings_menu_tap(210, 65) == MenuAction::Changed);
@@ -310,9 +330,15 @@ static void menu_tests() {
 	assert(test_flash_writes == ota_writes);
 	assert(settings_menu_scroll(1));
 	assert(settings_menu_tap(20, 202) == MenuAction::FacesWeb);
-	assert(settings_menu_scroll(1) && !settings_menu_scroll(1));
+	assert(settings_menu_scroll(1));
 	assert(settings_menu_tap(20, 202) == MenuAction::Changed);
 	assert(settings_menu_tap(160, 240) == MenuAction::Changed);
+	// The OBD dongle scan toggle is the last SYSTEM row.
+	assert(settings_menu_scroll(1) && !settings_menu_scroll(1));
+	settings_menu_draw(&gfx);
+	assert(settings_menu_tap(20, 202) == MenuAction::Changed && !settings_get().obd_scan);
+	settings_menu_tap(20, 202);
+	assert(settings_get().obd_scan);
 	settings_menu_draw(&gfx);
 	settings_menu_tap(30, 65);
 	settings_menu_tap(20, 100);
@@ -331,7 +357,7 @@ static void menu_tests() {
 	assert(settings_menu_scroll(1) && settings_menu_scroll(1));
 	assert(!settings_menu_scroll(1));
 	settings_menu_draw(&gfx);
-	assert(std::find(gfx.text.begin(), gfx.text.end(), "Prova suoni") != gfx.text.end());
+	assert(std::find(gfx.text.begin(), gfx.text.end(), "PROVA SUONI") != gfx.text.end());
 	unsigned int writes = test_flash_writes;
 	assert(settings_menu_tap(20, 200) == MenuAction::Changed);
 	assert(test_flash_writes == writes);
@@ -348,7 +374,7 @@ static void menu_tests() {
 	assert(settings_menu_tap(239, 221) == MenuAction::Changed);
 	assert(settings_menu_grid_open());
 	settings_menu_draw(&gfx);
-	assert(std::find(gfx.text.begin(), gfx.text.end(), "neutro") != gfx.text.end());
+	assert(std::find(gfx.text.begin(), gfx.text.end(), "NEUTRO") != gfx.text.end());
 	// Column gutters and out-of-range columns stay inert.
 	assert(settings_menu_tap(118, 103) == MenuAction::None);
 	assert(settings_menu_tap(238, 100) == MenuAction::None);
@@ -393,12 +419,13 @@ static void menu_tests() {
 	assert(!settings_menu_scroll(-1));
 	settings_defaults();
 	settings_apply();
-	assert(UI_TEXT == 0xFFFF && UI_ACCENT == 0xFFFF);
+	assert(UI_TEXT == 0xEF5D && UI_ACCENT == 0xFFFF);
 	static const uint16_t colors[] = {0xFFFF, 0x6FBA, 0x07FF, 0xFD6C, 0xF9D6, 0x4D7F};
 	for (uint8_t color = 0; color < 6; ++color) {
 		CompanionSettings profile = settings_get(); profile.color = color;
 		assert(settings_update(profile));
-		assert(UI_TEXT == colors[color] && UI_ACCENT == colors[color] && UI_WARM == colors[color]);
+		assert(UI_TEXT == 0xEF5D && UI_ACCENT == colors[color] && UI_MUTED == 0x8C51);
+		assert(UI_WARM != UI_ACCENT && UI_CARD != UI_BG && UI_LINE != UI_CARD);
 	}
 }
 

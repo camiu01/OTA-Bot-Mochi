@@ -4,7 +4,8 @@
  *
  * The session resets the adapter, disables echo/linefeeds/spaces/headers, lets
  * it auto-detect the protocol, probes 0100, then polls RPM and speed every round
- * plus one slower value (coolant, throttle, fuel, adapter voltage). Three
+ * plus one slower value (coolant, throttle, fuel, adapter voltage, check-engine
+ * lamp and stored trouble-code count; codes are never read in detail or cleared). Three
  * consecutive empty engine replies mean ignition off: the session returns to
  * probing while ATRV keeps reporting battery voltage.
  * SPDX-License-Identifier: GPL-3.0-or-later
@@ -57,6 +58,7 @@ inline bool elm_decode(uint8_t pid, const char *reply, VehicleData &d) {
 	else if (pid == 0x05) { d.coolant = a - 40; d.valid |= OBD_COOLANT; }
 	else if (pid == 0x11) { d.throttle = a * 100 / 255; d.valid |= OBD_THROTTLE; }
 	else if (pid == 0x2F) { d.fuel = a * 100 / 255; d.valid |= OBD_FUEL; }
+	else if (pid == 0x01) { d.mil = bytes[0] & 0x80; d.dtc = bytes[0] & 0x7F; d.valid |= OBD_MIL; }
 	else { return false; }
 	return true;
 }
@@ -73,12 +75,12 @@ inline bool elm_volts(const char *reply, VehicleData &d) {
 
 /** @brief Command order and reply handling; the transport writes command() + '\r' and returns the framed reply. */
 class ElmSession {
-	static constexpr uint8_t INIT_STEPS = 6, SLOW = 4;
+	static constexpr uint8_t INIT_STEPS = 6, SLOW = 5;
 	uint8_t step = 0, round = 0, slow = 0, empty = 0;
 	bool volts_turn = false;	/**< While probing a sleeping ECU, alternate with ATRV. */
 	uint8_t misses[SLOW] = {};
 	/** @brief Slow PID for the current round, or 0 for ATRV. */
-	uint8_t slow_pid() const { static const uint8_t pids[SLOW] = {0x05, 0x11, 0x2F, 0}; return pids[slow]; }
+	uint8_t slow_pid() const { static const uint8_t pids[SLOW] = {0x05, 0x11, 0x2F, 0, 0x01}; return pids[slow]; }
 	void next_slow() { for (uint8_t i = 0; i < SLOW; ++i) { slow = uint8_t((slow + 1) % SLOW); if (misses[slow] < 3) { return; } } }
 
 public:
@@ -93,7 +95,7 @@ public:
 		if (step <= INIT_STEPS) { return init[step]; }
 		if (round == 0) { return "010C"; }
 		if (round == 1) { return "010D"; }
-		static const char *slow_text[SLOW] = {"0105", "0111", "012F", "ATRV"};
+		static const char *slow_text[SLOW] = {"0105", "0111", "012F", "ATRV", "0101"};
 		return slow_text[slow];
 	}
 	/** @brief Reply budget: reset and protocol search are slow. @return Milliseconds. */

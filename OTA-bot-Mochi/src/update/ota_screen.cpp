@@ -71,12 +71,10 @@ void draw() {
 	bool idle = !s.receiving && !s.success && !s.error;
 	if (idle && qr_visible) { connection(s); } else { details(s); }
 	if (!s.receiving && !s.success) {
-		canvas->fillRoundRect(ui_s(2), ui_s(232), ui_s(116), ui_s(42), ui_s(8), UI_CARD);
-		line(tr(Text::Back), 247, UI_TEXT);
+		ui_button(canvas, ui_s(2), ui_s(232), ui_s(116), ui_s(42), tr(Text::Back));
 		if (idle && qr_ready) {
-			canvas->fillRoundRect(ui_s(122), ui_s(232), ui_s(116), ui_s(42), ui_s(8), UI_CARD);
-			ui_label(canvas, tr(qr_visible ? Text::OtaDetails : (s.lan ? Text::WebQr : Text::OtaQr)),
-				ui_s(134), ui_s(247), ui_s(92), 1, UI_TEXT);
+			ui_button(canvas, ui_s(122), ui_s(232), ui_s(116), ui_s(42),
+				tr(qr_visible ? Text::OtaDetails : (s.lan ? Text::WebQr : Text::OtaQr)));
 		}
 	}
 	canvas->flush();

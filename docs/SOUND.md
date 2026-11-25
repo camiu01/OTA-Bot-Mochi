@@ -1,5 +1,7 @@
 # Audio, expressive motion, and language
 
+[← README](../README.md) · [Docs index](README.md)
+
 ## Optional buzzer
 
 The `BUZZER` pin is GPIO33, the `Buzz` net of the OLD board revision, matching the

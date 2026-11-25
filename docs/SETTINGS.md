@@ -1,5 +1,7 @@
 # Dashboard settings
 
+[← README](../README.md) · [Docs index](README.md)
+
 The device is a Dasai-inspired dashboard companion, not a vehicle instrument.
 Eyes remain the default page. It does not detect whether the car is moving.
 Change settings only while parked; neither touch nor USB is a driving control.
@@ -341,9 +343,12 @@ A hold still opens Settings and a swipe does not also trigger a random face.
 These reactions remain available in dashboard mode, which only calms idle motion.
 
 The full profile is stored as a validated seventeen-byte NVS blob with a
-checksum. Default uses version 10, Inter version 11, and DM Sans version 12.
-Older profiles retain their choices.
-Version 10 appends the charging-sound category and reads the
+checksum. The default font uses version eleven, which adds the OBD scan flag.
+Inter and DM Sans use version thirteen, which stores the font and OBD flag
+separately. Version twelve profiles retain their font and default to enabling
+OBD scanning. An older Inter build used the same version-eleven flag as OBD
+scanning, so its font selection falls back to Default and can be set again.
+Version ten appends the charging-sound category and reads the
 prior sixteen-byte version-nine night schedule unchanged. Version seven adds
 Phone mode while preserving the prior layout.
 Thirteen-byte version-six profiles retain Face flow and default to Android mode;
@@ -395,6 +400,14 @@ With Pillow installed, run `python tools/export-settings-font.py` with the Inter
 release's `extras/otf` directory or pass `--dm-sans` followed by the DM Sans
 variable TTF. The [Inter license](../OTA-bot-Mochi/src/ui/fonts/OFL-Inter.txt)
 and [DM Sans license](../OTA-bot-Mochi/src/ui/fonts/OFL-DM-Sans.txt) are included.
+
+### Version eleven: OBD dongle scan
+
+Version 11 keeps the seventeen-byte layout and uses bit 1 of byte 15 for
+`obd_scan`; version-ten profiles (bit 1 reserved) migrate with the scan on.
+**SYSTEM → OBD dongle scan** (last row), USB `set obd-scan on|off` and the web
+form field `obd_scan` edit it in RAM; SAVE persists it. Off stops all BLE OBD
+scanning and polling on the Drive page. See [Drive](DESK.md#ble-obd-dongle).
 
 ### Startup, charging and SD reaction families
 

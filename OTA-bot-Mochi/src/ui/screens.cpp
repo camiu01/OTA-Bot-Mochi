@@ -134,7 +134,7 @@ void notification_screen(Arduino_GFX *gfx, uint32_t now) {
 	alert_label(gfx, n.time, ui_s(164), ui_s(70), ui_s(48), UI_MUTED);
 	const uint8_t title_lines = paragraph(gfx, n.title, 90, 2, UI_TEXT, 2, 18, zoom);
 	const int16_t divider = 94 + 20 * title_lines;
-	gfx->drawFastHLine(ui_s(28), ui_s(divider), ui_s(184), UI_MUTED);
+	gfx->drawFastHLine(ui_s(28), ui_s(divider), ui_s(184), UI_LINE);
 	const uint8_t columns = uint8_t((ui_s(184) - 4) / (6 * ui_text_size(2) * zoom / 256));
 	TextLines lines = wrap_text(ui_ascii(n.message).c_str(), columns, ui_s(184) - 4, 2, zoom);
 	const uint8_t per_page = 5 - title_lines;
@@ -149,9 +149,7 @@ void notification_screen(Arduino_GFX *gfx, uint32_t now) {
 	static const char *arrows[] = {"<", nullptr, ">"};
 	for (uint8_t i = 0; i < 3; ++i) {
 		const int16_t x = alert_layout::button_left(i);
-		gfx->fillRoundRect(x, alert_layout::button_top(), alert_layout::button_width(), alert_layout::button_height(), ui_s(6), UI_CARD);
-		const int16_t y = alert_layout::button_top() + (alert_layout::button_height() - ui_font::height(1)) / 2;
-		alert_label(gfx, arrows[i] ? arrows[i] : tr(Text::Dismiss), x + ui_s(6), y, ui_s(56), UI_TEXT, true);
+		ui_button(gfx, x, alert_layout::button_top(), alert_layout::button_width(), alert_layout::button_height(), arrows[i] ? arrows[i] : tr(Text::Dismiss));
 	}
 	ui_label(gfx, String(page + 1) + " / " + String(pages), ui_s(28), ui_s(202), ui_s(100), 1, UI_MUTED);
 }
@@ -162,11 +160,12 @@ void notification_screen(Arduino_GFX *gfx, uint32_t now) {
  */
 void call_screen(Arduino_GFX *gfx) {
 	ui_card(gfx, 62, 152);
-	gfx->drawCircle(ui_s(120), ui_s(95), ui_s(22), UI_WARM);
-	ui_label(gfx, tr(Text::CallTag), ui_s(96), ui_s(92), ui_s(48), 1, UI_WARM);
-	ui_label(gfx, tr(Text::Incoming), ui_s(28), ui_s(137), ui_s(184), 2, UI_TEXT);
+	gfx->drawCircle(ui_s(120), ui_s(98), ui_s(28), UI_LINE);
+	gfx->fillCircle(ui_s(120), ui_s(98), ui_s(22), UI_WARM);
+	ui_center(gfx, tr(Text::CallTag), 95, 1, UI_BG);
+	ui_center(gfx, tr(Text::Incoming), 137, 2, UI_TEXT);
 	paragraph(gfx, cached.caller.length() ? cached.caller : tr(Text::UnknownCaller), 172, 3, UI_WARM);
-	ui_label(gfx, tr(Text::AnswerPhone), ui_s(28), ui_s(226), ui_s(184), 1, UI_MUTED);
+	ui_center(gfx, tr(Text::AnswerPhone), 226, 1, UI_MUTED);
 }
 
 /**
@@ -184,7 +183,7 @@ void navigation_screen(Arduino_GFX *gfx) {
 	if (nav.hasIcon && cached.has_icon && cached.icon_crc == nav.iconCRC) {
 		gfx->drawBitmap(ui_s(28), ui_s(80), cached.icon, 48, 48, UI_ACCENT);
 	} else {
-		gfx->drawRoundRect(ui_s(28), ui_s(80), ui_s(48), ui_s(48), ui_s(10), UI_MUTED);
+		gfx->drawRoundRect(ui_s(28), ui_s(80), ui_s(48), ui_s(48), ui_s(10), UI_LINE);
 		ui_label(gfx, "...", ui_s(42), ui_s(101), ui_s(24), 1, UI_MUTED);
 	}
 	ui_label(gfx, nav.title, ui_s(88), ui_s(80), ui_s(124), 2, UI_TEXT);
@@ -220,9 +219,10 @@ void weather_screen(Arduino_GFX *gfx, uint32_t now) {
 	ui_label(gfx, cached.city.length() ? cached.city : tr(Text::Weather), ui_s(28), ui_s(76), ui_s(184), 1, UI_ACCENT);
 	ui_label(gfx, String(w.temp) + "C", ui_s(28), ui_s(105), ui_s(132), 4, UI_TEXT);
 	ui_weather_icon(gfx, w.icon, ui_s(184), ui_s(124));
-	ui_label(gfx, weather_stale(now, cached.weather_received) ? tr(cached.weather_internet ? Text::WeatherStaleWifi : Text::Stale) :
+	bool stale = weather_stale(now, cached.weather_received);
+	ui_label(gfx, stale ? tr(cached.weather_internet ? Text::WeatherStaleWifi : Text::Stale) :
 		(cached.weather_internet ? String("Open-Meteo ") : String(tr(Text::Updated))) + cached.weather_time,
-		ui_s(28), ui_s(151), ui_s(184), 1, UI_MUTED);
+		ui_s(28), ui_s(151), ui_s(184), 1, stale ? UI_WARM : UI_MUTED);
 	ui_card(gfx, 176, 50);
 	if (!cached.has_forecast) {
 		ui_label(gfx, tr(Text::ForecastPending), ui_s(28), ui_s(190), ui_s(184), 1, UI_MUTED);
@@ -231,8 +231,10 @@ void weather_screen(Arduino_GFX *gfx, uint32_t now) {
 	for (uint8_t i = 0; i < cached.weather_count; ++i) {
 		const Weather &day = cached.weather[i];
 		int16_t x = ui_s(int16_t(26 + i * 66));
-		ui_label(gfx, weekday(day.day), x, ui_s(186), ui_s(60), 1, UI_MUTED);
-		ui_label(gfx, String(day.high) + "/" + String(day.low), x, ui_s(206), ui_s(60), 1, UI_TEXT);
+		if (i) { gfx->drawFastVLine(x - ui_s(5), ui_s(184), ui_s(34), UI_LINE); }
+		ui_label(gfx, weekday(day.day), x, ui_s(186), ui_s(60), 1, i ? UI_MUTED : UI_ACCENT);
+		ui_label(gfx, String(day.high), x, ui_s(206), ui_s(24), 1, UI_TEXT);
+		ui_label(gfx, String(day.low), x + ui_s(26), ui_s(206), ui_s(30), 1, UI_MUTED);
 	}
 }
 
@@ -268,6 +270,13 @@ void screens_alert_action(int8_t action) {
 bool screens_calling() { return overlay_active; }
 
 /** @brief Inhibit dimming during routes, calls and the drive dashboard. @return Active critical data. */
+bool screens_auto_home(UiPage page, uint32_t idle) {
+	if (page == UiPage::Eyes || idle < SCREENS_HOME_IDLE_MS || screens_calling() || screens_drive(page)) { return false; }
+	if (page == UiPage::Navigation && cached.navigation.active) { return false; }
+	if (page == UiPage::Timer && view_timer().running) { return false; }
+	return !(page == UiPage::Settings && settings_dirty());
+}
+
 bool screens_keep_awake() { return overlay_active || cached.navigation.active || drive_meter().active; }
 
 /**
@@ -301,7 +310,7 @@ bool screens_draw(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, uint32_t n
 	input.pending = false;
 	bool drive = screens_drive(page);
 	drive_meter().active = drive && !overlay_active;
-	obd_want(drive);
+	obd_want(drive && settings_get().obd_scan);
 	bool transition = page != previous_page || overlay_active != previous_call;
 	const bool settings_visible = page == UiPage::Settings && !overlay_active;
 	const bool slide_frame = settings_menu_animate(now, settings_visible);

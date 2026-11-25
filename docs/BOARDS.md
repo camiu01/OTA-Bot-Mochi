@@ -1,5 +1,7 @@
 # Boards and panels
 
+[← README](../README.md) · [Docs index](README.md)
+
 One codebase drives two Waveshare boards. The build selects the profile through
 `pin_config.h`. Existing CLI flags are unchanged; without a flag, Arduino IDE
 keeps its existing AMOLED V2 selection. Native runners explicitly select LCD.

@@ -18,8 +18,7 @@ bool camera_hint = false;
 bool paged() { return panel == Panel::Alarms || panel == Panel::Hours || panel == Panel::Contacts || panel == Panel::Qr; }
 /** @brief Draw a localized button in design coordinates. @param gfx Canvas. @param x Left. @param y Top. @param width Width. @param label Text. @param height Height. */
 void button(Arduino_GFX *gfx, int16_t x, int16_t y, int16_t width, Text label, int16_t height = 34) {
-	gfx->fillRoundRect(ui_s(x), ui_s(y), ui_s(width), ui_s(height), ui_s(6), UI_CARD);
-	ui_label(gfx, tr(label), ui_s(x + 6), ui_s(y + 12), ui_s(width - 12), 1, UI_TEXT);
+	ui_button(gfx, ui_s(x), ui_s(y), ui_s(width), ui_s(height), tr(label));
 }
 /** @brief Format minute-accurate schedules with explicit disabled state. @param window Schedule. @return Label. */
 String window_text(const CompanionWindow &window) {

@@ -273,7 +273,7 @@ static void desk_checks() {
 	screens_tap(UiPage::Timer, ui_s(20), ui_s(230), 1000);
 	assert(view_timer().remaining == 1500000);
 	screens_tap(UiPage::Timer, ui_s(150), ui_s(230), 1000);
-	assert(view_timer().mode == uint8_t((mode + 1) % 3));
+	assert(view_timer().mode == uint8_t((mode + 1) % DeskTimer::MODES));
 	// A panel taller than the scaled design field grows black below it; that
 	// strip must not press widgets drawn only inside the field.
 	if (LCD_HEIGHT > ui_s(UI_DESIGN_H)) {
@@ -479,7 +479,7 @@ static void settings_font_checks(Arduino_GFX &gfx, ChronosESP32 &watch) {
 	if (!ui_font::Supported) { return; }
 	const auto original = settings_get();
 	const auto legacy = test_profile;
-	assert(legacy.size() == SETTINGS_BYTES && legacy[0] == 10 && original.font == UiFont::Default);
+	assert(legacy.size() == SETTINGS_BYTES && legacy[0] == 11 && original.font == UiFont::Default);
 	assert(screens_draw(&gfx, watch, UiPage::Clock, 4000));
 	assert(!gfx.text.empty());
 	const auto default_clock = gfx.pixels;
@@ -495,7 +495,7 @@ static void settings_font_checks(Arduino_GFX &gfx, ChronosESP32 &watch) {
 	settings_menu_draw(&gfx);
 	assert(gfx.pixels != old_pixels);
 	assert(settings_menu_tap(ui_s(60), ui_s(240)) == MenuAction::Changed);
-	assert(test_profile[0] == 11 && settings_init() && settings_get().font == UiFont::Inter);
+	assert(test_profile[0] == 13 && settings_init() && settings_get().font == UiFont::Inter);
 	assert(!settings_dirty());
 	ui_font::bind(&gfx, gfx.pixels.data());
 	const UiPage pages[] = {UiPage::Music, UiPage::Clock, UiPage::Weather, UiPage::Drive, UiPage::Desk, UiPage::Games};
@@ -509,7 +509,7 @@ static void settings_font_checks(Arduino_GFX &gfx, ChronosESP32 &watch) {
 	assert(settings_menu_tap(ui_s(120), ui_s(155)) == MenuAction::Changed);
 	assert(ui_font::active() && settings_get().font == UiFont::DmSans && settings_dirty());
 	assert(settings_menu_tap(ui_s(60), ui_s(240)) == MenuAction::Changed);
-	assert(test_profile[0] == 12 && settings_init() && settings_get().font == UiFont::DmSans && !settings_dirty());
+	assert(test_profile[0] == 13 && settings_init() && settings_get().font == UiFont::DmSans && !settings_dirty());
 	gfx.text.clear();
 	assert(screens_draw(&gfx, watch, UiPage::Clock, 5500) && gfx.text.empty());
 	assert(gfx.pixels != inter_clock && gfx.pixels != default_clock);

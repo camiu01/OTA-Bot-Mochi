@@ -6,21 +6,30 @@
 #pragma once
 #include <stdint.h>
 
+/** @brief Countdowns (5 min, 15 min, Pomodoro 25/5) plus a count-up stopwatch. */
 class DeskTimer {
 	uint32_t last = 0;
 public:
+	static constexpr uint8_t STOPWATCH = 3, MODES = 4;
+	static constexpr uint32_t STOPWATCH_MAX = 359999000;	/**< 99:59:59, then the stopwatch stops. */
 	uint8_t mode = 2;
-	uint32_t remaining = 1500000;
+	uint32_t remaining = 1500000;	/**< Countdown left, or elapsed time in stopwatch mode (ms). */
 	bool running = false, finished = false, resting = false;
 	/** @brief Reset without starting. @param now Timestamp. */
 	void reset(uint32_t now) {
-		remaining = mode == 0 ? 300000 : (mode == 1 ? 900000 : 1500000);
+		static const uint32_t length[MODES] = {300000, 900000, 1500000, 0};
+		remaining = length[mode];
 		last = now; running = finished = resting = false;
 	}
 	/** @brief Advance across rollover, pause, and one Pomodoro work/rest pair. @param now Timestamp. */
 	void tick(uint32_t now) {
 		uint32_t delta = now - last; last = now;
 		if (!running) { return; }
+		if (mode == STOPWATCH) {
+			remaining = delta < STOPWATCH_MAX - remaining ? remaining + delta : STOPWATCH_MAX;
+			if (remaining == STOPWATCH_MAX) { running = false; finished = true; }
+			return;
+		}
 		if (delta < remaining) { remaining -= delta; return; }
 		delta -= remaining;
 		if (mode == 2 && !resting) {
@@ -35,8 +44,8 @@ public:
 		if (finished) { reset(now); }
 		running = !running; last = now;
 	}
-	/** @brief Select 5min, 15min, or Pomodoro; reset paused. @param now Timestamp. */
-	void cycle(uint32_t now) { mode = (mode + 1) % 3; reset(now); }
+	/** @brief Select 5min, 15min, Pomodoro or stopwatch; reset paused. @param now Timestamp. */
+	void cycle(uint32_t now) { mode = (mode + 1) % MODES; reset(now); }
 };
 
 /** @brief Resolve temporary override or default. @param preference Saved/RAM default. @return Large layout. */

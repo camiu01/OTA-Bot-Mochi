@@ -45,7 +45,7 @@ inline void music_volume(Arduino_GFX *gfx, const UiMusic &music) {
 		int16_t x = i ? 160 : 12;
 		MusicAction action = i ? MusicAction::VolumeUp : MusicAction::VolumeDown;
 		uint16_t ink = music.commands & (1U << uint8_t(action)) ? UI_TEXT : UI_MUTED;
-		gfx->fillRoundRect(ui_s(x), ui_s(162), ui_s(68), ui_s(38), ui_s(8), UI_CARD);
+		ui_box(gfx, ui_s(x), ui_s(162), ui_s(68), ui_s(38), UI_CARD, true);
 		gfx->fillRect(ui_s(x + 24), ui_s(180), ui_s(20), ui_s(3), ink);
 		if (i) { gfx->fillRect(ui_s(x + 33), ui_s(172), ui_s(3), ui_s(20), ink); }
 	}
@@ -59,7 +59,7 @@ inline void music_draw(Arduino_GFX *gfx, const UiSnapshot &data, uint32_t now) {
 	const UiMusic &music = data.music;
 	if (!music.available) { ui_empty(gfx, tr(Text::MusicWaiting), tr(Text::MusicOpen)); return; }
 	ui_card(gfx, 62, 92);
-	ui_label(gfx, tr(music.playing ? Text::MusicPlaying : Text::Pause), ui_s(28), ui_s(76), ui_s(184), 1, UI_MUTED);
+	ui_status(gfx, 76, music.playing, tr(music.playing ? Text::MusicPlaying : Text::Pause));
 	if (music.title.length()) { music_line(gfx, music.title, 98, 2, now); }
 	else { ui_label(gfx, tr(Text::MusicEmpty), ui_s(28), ui_s(98), ui_s(184), 1, UI_TEXT); }
 	music_line(gfx, music.artist, 132, 1, now);
@@ -67,8 +67,7 @@ inline void music_draw(Arduino_GFX *gfx, const UiSnapshot &data, uint32_t now) {
 	const MusicAction actions[] = {MusicAction::Previous, MusicAction::Toggle, MusicAction::Next};
 	for (uint8_t i = 0; i < 3; ++i) {
 		bool enabled = music.commands & (1U << uint8_t(actions[i]));
-		gfx->fillRoundRect(ui_s(12 + i * 74), ui_s(206), ui_s(68), ui_s(48), ui_s(8),
-			i == 1 && enabled ? UI_ACCENT : UI_CARD);
+		ui_box(gfx, ui_s(12 + i * 74), ui_s(206), ui_s(68), ui_s(48), i == 1 && enabled ? UI_ACCENT : UI_CARD, !(i == 1 && enabled));
 		music_symbol(gfx, i, music.playing, !enabled ? UI_MUTED : (i == 1 ? UI_BG : UI_TEXT));
 	}
 }

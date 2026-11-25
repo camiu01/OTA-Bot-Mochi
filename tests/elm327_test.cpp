@@ -36,6 +36,7 @@ static void decode_checks() {
 	assert(!elm_decode(0x0C, "410C1A", d));	// RPM needs two data bytes.
 	assert(!elm_decode(0x0D, "NO DATA", d) && !elm_decode(0x0D, "410C1AF8", d));
 	assert(elm_volts("12.6V", d) && fabsf(d.volts - 12.6f) < 0.01f);
+	assert(elm_decode(0x01, "41 01 00 07 E5 00", d) && !d.mil && d.dtc == 0 && (d.valid & OBD_MIL));
 	assert(!elm_volts("?", d) && !elm_volts("0.2V", d));
 }
 
@@ -58,6 +59,8 @@ static void session_checks() {
 		step(s, d, "010C", "410C0FA0"); step(s, d, "010D", "410D32");
 		step(s, d, "012F", "NO DATA"); step(s, d, "010C", "410C0FA0"); step(s, d, "010D", "410D32");
 		step(s, d, "ATRV", "13.9V"); step(s, d, "010C", "410C0FA0"); step(s, d, "010D", "410D32");
+		step(s, d, "0101", "41018300"); step(s, d, "010C", "410C0FA0"); step(s, d, "010D", "410D32");
+		assert(d.mil && d.dtc == 3 && (d.valid & OBD_MIL));
 		step(s, d, "0105", "410550"); step(s, d, "010C", "410C0FA0"); step(s, d, "010D", "410D32");
 		step(s, d, "0111", "NO DATA");
 	}
