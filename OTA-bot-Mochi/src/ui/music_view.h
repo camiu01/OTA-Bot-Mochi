@@ -5,12 +5,19 @@
  */
 #pragma once
 #include "ui_theme.h"
+#include "text_layout.h"
 #include "ui_state.h"
 #include "i18n.h"
 
 /** @brief Render long metadata in readable overlapping windows. @param gfx Canvas. @param text Metadata. @param y Top. @param size Font size. @param now Time. */
 inline void music_line(Arduino_GFX *gfx, const String &text, int16_t y, uint8_t size, uint32_t now) {
 	String safe = ui_ascii(text);
+	if (ui_font::active()) {
+		const TextLines lines = wrap_text(safe.c_str(), 34, ui_s(184), size);
+		const char *line = lines.count ? lines.line[(now / 2000) % lines.count] : "";
+		ui_label(gfx, line, ui_s(28), ui_s(y), ui_s(184), size, UI_TEXT);
+		return;
+	}
 	unsigned int columns = ui_s(184) / (6 * ui_text_size(size));
 	unsigned int offset = 0;
 	if (safe.length() > columns) { offset = ((now / 2000) % ((safe.length() - 1) / columns + 2)) * columns; }

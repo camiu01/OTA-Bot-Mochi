@@ -144,6 +144,17 @@ static void mood_range_tests() {
 	assert(settings_decode(v10, sizeof(v10), decoded) && decoded.obd_scan && decoded.sound_charging);
 	v10[15] = 3; v10[16] ^= 2;
 	assert(!settings_decode(v10, sizeof(v10), decoded));
+	no_obd.font = UiFont::DmSans;
+	uint8_t v14[SETTINGS_BYTES]; settings_encode(no_obd, v14);
+	assert(v14[0] == 14 && settings_decode(v14, sizeof(v14), decoded));
+	assert(decoded.font == UiFont::DmSans && !decoded.obd_scan && decoded.sound_charging);
+	uint8_t v12[SETTINGS_V10_BYTES]; memcpy(v12, v14, sizeof(v12));
+	v12[0] = 13; v12[15] = 9; v12[16] = 0xA5;
+	for (uint8_t i = 0; i < 16; ++i) { v12[16] ^= v12[i]; }
+	assert(settings_decode(v12, sizeof(v12), decoded) && decoded.font == UiFont::DmSans && !decoded.obd_scan);
+	v12[0] = 12; v12[15] = 5; v12[16] = 0xA5;
+	for (uint8_t i = 0; i < 16; ++i) { v12[16] ^= v12[i]; }
+	assert(settings_decode(v12, sizeof(v12), decoded) && decoded.font == UiFont::DmSans && decoded.obd_scan);
 	// Version twelve stores tachometer scale, OBD slots and page timings.
 	CompanionSettings tuned; tuned.obd_rpm_max = 65; tuned.obd_slot3 = 5; tuned.obd_slot4 = 0;
 	tuned.alert_seconds = 10; tuned.home_seconds = 0;

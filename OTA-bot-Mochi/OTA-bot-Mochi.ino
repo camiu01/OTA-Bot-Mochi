@@ -23,6 +23,8 @@
 #include "src/touch/touch.h"
 #include "src/clock/clock_ui.h"
 #include "src/ui/screens.h"
+#include "src/ui/page_slide.h"
+#include "src/ui/notification_glow.h"
 #include "src/ui/music_transport.h"
 #include "src/ui/auto_page.h"
 #include "src/ui/view_state.h"
@@ -30,6 +32,7 @@
 #include "src/ui/weather_sync.h"
 #include "src/sound/sound.h"
 #include "src/ui/ui_theme.h"
+#include "src/ui/ui_font.h"
 #include "src/ui/startup.h"
 #include "src/ui/boot_button.h"
 #include "src/power/backlight.h"
@@ -69,8 +72,10 @@ Arduino_DataBus *bus = new Arduino_ESP32QSPI(
 Arduino_CO5300 *display = new Arduino_CO5300(bus, LCD_RST, 0,
 	LCD_WIDTH, LCD_HEIGHT, MOCHI_PANEL_OFFSET_X, MOCHI_PANEL_OFFSET_Y, 0, 0);
 #endif
-Arduino_GFX *gfx = new Arduino_Canvas(LCD_WIDTH, LCD_HEIGHT, display);
+Arduino_Canvas *gfx = new Arduino_Canvas(LCD_WIDTH, LCD_HEIGHT, display);
 UiPage current_screen = UiPage::Eyes;
+PageSlide page_slide(ps_malloc);
+notification_glow::Pulse notification_pulse;
 AutoPagePolicy auto_page;
 bool screen_ready = false;
 bool boot_ready = false;
@@ -207,6 +212,7 @@ void init_screen() {
 	applied_flip = settings_get().flipped;
 	imu_orientation().applied = applied_flip;
 	gfx->setRotation(applied_flip ? 2 : 0);
+	ui_font::bind(gfx, gfx->getFramebuffer(), applied_flip);
 	touch_set_flipped(applied_flip);
 	gfx->fillScreen(UI_BG);
 	gfx->flush();
@@ -218,7 +224,12 @@ void init_screen() {
  * @param page Next page.
  * @param now Millisecond timestamp.
  */
-void switch_screen(UiPage page, uint32_t now) {
+void switch_screen(UiPage page, uint32_t now, int8_t direction = 0);
+void switch_screen(UiPage page, uint32_t now, int8_t direction) {
+	if (page != current_screen && !screens_calling()) {
+		if (!direction) { direction = uint8_t(page) > uint8_t(current_screen) ? 1 : -1; }
+		page_slide.request(gfx->getFramebuffer(), direction);
+	} else { page_slide.reset(); }
 	current_screen = page;
 	gfx->fillScreen(UI_BG);
 	screens_invalidate();
@@ -235,6 +246,7 @@ void apply_display_flip(bool flip, uint32_t now) {
 	applied_flip = flip;
 	imu_orientation().applied = flip;
 	gfx->setRotation(flip ? 2 : 0);
+	ui_font::bind(gfx, gfx->getFramebuffer(), flip);
 	touch_set_flipped(flip);
 	switch_screen(current_screen, now);
 }
@@ -266,6 +278,7 @@ void handle_touch(uint32_t now) {
 	bool hold = touch_take_hold();
 	int16_t x, y;
 	bool tap = touch_take_tap(x, y);
+	if (tap && notification_glow::Supported) { notification_pulse.dismiss(ui_page_events().notifications); }
 	bool dbl = touch_take_double();
 	int16_t pet_x = 0, pet_y = 0;
 	bool pet = touch_take_pet(pet_x, pet_y);
@@ -317,7 +330,7 @@ void handle_touch(uint32_t now) {
 		}
 	}
 	if (step == 0) { return; }
-	switch_screen(screens_swipe(current_screen, step), now);
+	switch_screen(screens_swipe(current_screen, step), now, step);
 }
 
 /** @brief Turn each fired break-timer interval into one local alert with the usual notification cue. @param now Timestamp. */
@@ -337,6 +350,7 @@ void handle_auto_page(uint32_t now) {
 	auto_page.hold_ms = uint32_t(settings_get().alert_seconds) * 1000;
 	UiPage target = auto_page.update(current_screen, ui_page_events(), touch_pressed(), now);
 	if (target != current_screen) {
+		page_slide.reset();
 		last_input = now;
 		backlight_activity(now);
 		switch_screen(target, now);
@@ -398,12 +412,28 @@ void update_backlight(uint32_t now) {
 	backlight_update(now, touch_pressed(), screens_keep_awake() || shutting_down);
 }
 
+/** @brief Present the alert ring without contaminating the canvas used for partial redraws. */
+void flush_ui(uint16_t *pixels, const notification_glow::Frame &alert) {
+	static uint16_t *backup = nullptr;
+	if (alert.opacity && pixels) {
+		if (!backup) { backup = static_cast<uint16_t *>(ps_malloc(notification_glow::BackupPixels * sizeof(uint16_t))); }
+		if (backup) {
+			notification_glow::draw(pixels, applied_flip, alert.elapsed, alert.opacity, backup);
+			gfx->flush();
+			notification_glow::restore(pixels, applied_flip, backup);
+			return;
+		}
+	}
+	gfx->flush();
+}
+
 /** @brief Service BLE, battery telemetry and touch, observe OTA boot health, and render complete changed frames. */
 void loop() {
 	ota_boot_poll(millis(), boot_ready && screen_ready);
 	network_poll(millis(), !sd_update_status().active && (!ota_status().active || ota_status().faces));
 	settings_clock(clock_ready(), uint8_t(watch.getHour(true)));
 	if (sd_update_status().active) {
+		page_slide.reset();
 		sd_update_screen_poll(millis());
 		if (!sd_update_status().active) {
 			sound_init(millis());
@@ -413,6 +443,7 @@ void loop() {
 		return;
 	}
 	if (ota_status().active) {
+		page_slide.reset();
 		// Automatic setup must not hide the existing trusted USB recovery terminal.
 		if (ota_status().faces) { settings_usb_poll(); }
 		ota_screen_poll(millis());
@@ -458,7 +489,8 @@ void loop() {
 	if (!ios_mode_boot) { battery_chronos_poll(watch); }
 	view_timer().tick(now);
 	break_reminder(now);
-	sound_poll(now, ui_page_events(), current_screen == UiPage::Eyes && !screens_calling(),
+	const auto events = ui_page_events();
+	sound_poll(now, events, current_screen == UiPage::Eyes && !screens_calling(),
 		view_timer().resting, view_timer().finished);
 	update_backlight(now);
 	if ((uint32_t)(now - last_frame_ms) < FRAME_INTERVAL_MS) { return; }
@@ -478,17 +510,24 @@ void loop() {
 #if MOCHI_RUNTIME_DIAGNOSTICS
 	uint32_t draw_started = micros();
 #endif
-	bool changed = screens_draw(gfx, watch, current_screen, now);
-	if (current_screen == UiPage::Eyes && !screens_calling()) {
-		if (changed) { eyes_state().dirtyInit = false; }
-		eyes_update(now);
-		changed = true;
+	auto *pixels = gfx->getFramebuffer();
+	const auto alert = notification_pulse.update(events.notifications, now);
+	bool changed = page_slide.paint(pixels, now, applied_flip);
+	if (!changed) {
+		changed = screens_draw(gfx, watch, current_screen, now, pixels, applied_flip);
+		if (current_screen == UiPage::Eyes && !screens_calling()) {
+			if (changed) { eyes_state().dirtyInit = false; }
+			eyes_update(now);
+			changed = true;
+		}
+		if (changed) { page_slide.after_draw(pixels, now, applied_flip); }
 	}
 #if MOCHI_RUNTIME_DIAGNOSTICS
 	uint32_t draw_finished = micros();
 #endif
-	if (changed) { gfx->flush(); }
+	const bool present = changed || alert.refresh;
+	if (present) { flush_ui(pixels, alert); }
 #if MOCHI_RUNTIME_DIAGNOSTICS
-	runtime_diagnostics::metrics.record(draw_started, draw_finished, changed ? micros() : draw_finished);
+	runtime_diagnostics::metrics.record(draw_started, draw_finished, present ? micros() : draw_finished);
 #endif
 }

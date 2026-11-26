@@ -19,11 +19,15 @@
 #include "../OTA-bot-Mochi/src/settings/usb_commands.h"
 #include "../OTA-bot-Mochi/src/sound/sound.h"
 #include "../OTA-bot-Mochi/src/ui/ui_state.h"
+#include "../OTA-bot-Mochi/src/ui/page_slide.h"
+#include "../OTA-bot-Mochi/src/ui/notification_glow.h"
 #include "../OTA-bot-Mochi/src/ui/ui_theme.h"
+#include "../OTA-bot-Mochi/src/ui/ui_font.h"
 #include "../OTA-bot-Mochi/src/ui/view_state.h"
 #include "../OTA-bot-Mochi/src/companion/companion_state.h"
 #include "../OTA-bot-Mochi/src/companion/companion_service.h"
 #include "../OTA-bot-Mochi/src/companion/companion_language.h"
+#include <algorithm>
 #include <cctype>
 #include <cstdio>
 #include <cstdlib>
@@ -47,9 +51,13 @@ bool console_prompt = false;
 
 namespace {
 AutoPagePolicy auto_policy;
+PageSlide page_slide(std::malloc);
+notification_glow::Pulse notification_pulse;
+notification_glow::Frame alert_frame;
 uint32_t limit_frames = 0, rendered = 0;
 UiPage start_page = UiPage::Eyes;
 std::string boot_command;
+bool start_left = false, start_minimized = false;
 }
 
 const char *page_name(UiPage value) {
@@ -67,7 +75,11 @@ bool page_from_name(const std::string &name, UiPage &out) {
 	return false;
 }
 
-void switch_screen(UiPage next, uint32_t now) {
+void switch_screen(UiPage next, uint32_t now, int8_t direction) {
+	if (next != page && !screens_calling()) {
+		if (!direction) { direction = uint8_t(next) > uint8_t(page) ? 1 : -1; }
+		page_slide.request(gfx.pixels.data(), direction);
+	} else { page_slide.reset(); }
 	page = next;
 	gfx.fillScreen(UI_BG);
 	screens_invalidate();
@@ -91,6 +103,10 @@ void inject_notification() {
 	note.message = "The emulator received a synthetic alert";
 	++count;
 	ui_notification(note);
+}
+
+void dismiss_notification_glow() {
+	if (notification_glow::Supported) { notification_pulse.dismiss(ui_page_events().notifications); }
 }
 
 void toggle_route() {
@@ -143,14 +159,24 @@ void seed_demo_data() {
 /** @brief Follow alert/route events without switching pages while a finger is down. @param now Millisecond timestamp. */
 void handle_auto_page(uint32_t now) {
 	UiPage target = auto_policy.update(page, ui_page_events(), finger, now);
-	if (target != page) { backlight_activity(now); switch_screen(target, now); }
+	if (target != page) { page_slide.reset(); backlight_activity(now); switch_screen(target, now); }
+}
+
+/** @brief Composite alerts without affecting the canvas used for screen rendering. */
+const std::vector<uint16_t> &visible_pixels() {
+	if (!alert_frame.opacity) { return gfx.pixels; }
+	static std::vector<uint16_t> output;
+	output = gfx.pixels;
+	notification_glow::draw(output.data(), false, alert_frame.elapsed, alert_frame.opacity);
+	return output;
 }
 
 /** @brief Convert the RGB565 canvas to RGBA and present it scaled. @param renderer Renderer. @param texture Frame texture. */
 void present(SDL_Renderer *renderer, SDL_Texture *texture) {
 	static std::vector<uint32_t> frame(size_t(LCD_W) * LCD_H);
+	const auto &pixels = visible_pixels();
 	for (size_t i = 0; i < frame.size(); ++i) {
-		uint16_t p = gfx.pixels[i];
+		uint16_t p = pixels[i];
 		uint32_t r = (p >> 11) & 0x1F, g = (p >> 5) & 0x3F, b = p & 0x1F;
 		frame[i] = 0xFF000000u | ((((r << 3) | (r >> 2)) & 0xFF) << 16)
 			| ((((g << 2) | (g >> 4)) & 0xFF) << 8) | (((b << 3) | (b >> 2)) & 0xFF);
@@ -162,7 +188,7 @@ void present(SDL_Renderer *renderer, SDL_Texture *texture) {
 }
 
 /** @brief Draw one scheduled frame, mirroring the firmware loop's render stage. @param renderer Renderer. @param texture Frame texture. @param window Window for the title. */
-void render_frame(SDL_Renderer *renderer, SDL_Texture *texture, SDL_Window *window) {
+void render_frame(SDL_Renderer *renderer, SDL_Texture *texture, SDL_Window *window, uint32_t notifications) {
 	MusicAction action = ui_music_take();
 	if (action == MusicAction::Toggle) {
 		watch.music.state = watch.music.state ? 0 : 1;
@@ -170,14 +196,17 @@ void render_frame(SDL_Renderer *renderer, SDL_Texture *texture, SDL_Window *wind
 	}
 	settings_clock(clock_ready(), uint8_t(watch.getHour(true)));
 	companion_poll(watch, test_now, clock_ready());
-	bool changed = screens_draw(&gfx, watch, page, test_now);
+	SDL_SetWindowTitle(window, (std::string("Mochi LCD — ") + page_name(page)).c_str());
+	alert_frame = notification_pulse.update(notifications, test_now);
+	if (page_slide.paint(gfx.pixels.data(), test_now)) { present(renderer, texture); return; }
+	bool changed = screens_draw(&gfx, watch, page, test_now, gfx.pixels.data());
 	if (page == UiPage::Eyes && !screens_calling()) {
 		if (changed) { eyes_state().dirtyInit = false; }
 		eyes_update(test_now);
 		changed = true;
 	}
-	if (changed) { present(renderer, texture); }
-	SDL_SetWindowTitle(window, (std::string("Mochi LCD — ") + page_name(page)).c_str());
+	if (changed) { page_slide.after_draw(gfx.pixels.data(), test_now); }
+	if (changed || alert_frame.refresh) { present(renderer, texture); }
 }
 
 bool write_ppm(const std::string &path) {
@@ -185,9 +214,10 @@ bool write_ppm(const std::string &path) {
 	if (!file) { return false; }
 	std::fprintf(file, "P6\n%d %d\n255\n", LCD_W, LCD_H);
 	std::vector<uint8_t> row(size_t(LCD_W) * 3);
+	const auto &pixels = visible_pixels();
 	for (int y = 0; y < LCD_H; ++y) {
 		for (int x = 0; x < LCD_W; ++x) {
-			uint16_t p = gfx.pixels[size_t(y) * LCD_W + x];
+			uint16_t p = pixels[size_t(y) * LCD_W + x];
 			uint32_t r = (p >> 11) & 0x1F, g = (p >> 5) & 0x3F, b = p & 0x1F;
 			row[size_t(x) * 3] = uint8_t((r << 3) | (r >> 2));
 			row[size_t(x) * 3 + 1] = uint8_t((g << 2) | (g >> 4));
@@ -203,6 +233,7 @@ bool write_ppm(const std::string &path) {
 void boot_firmware() {
 	test_now = 0;
 	settings_init();
+	ui_font::bind(&gfx, gfx.pixels.data());
 	backlight_init(0);
 	ui_state_init();
 	companion_init(); companion_language_init();
@@ -251,12 +282,13 @@ int event_loop(SDL_Renderer *renderer, SDL_Texture *texture, SDL_Window *window)
 		handle_auto_page(test_now);
 		battery_sample(test_now);
 		view_timer().tick(test_now);
-		sound_poll(test_now, ui_page_events(), page == UiPage::Eyes && !screens_calling(),
+		const auto events = ui_page_events();
+		sound_poll(test_now, events, page == UiPage::Eyes && !screens_calling(),
 			view_timer().resting, view_timer().finished);
 		update_backlight(test_now);
 		if (uint32_t(test_now - last_frame) >= FRAME_MS) {
 			last_frame = test_now;
-			render_frame(renderer, texture, window);
+			render_frame(renderer, texture, window, events.notifications);
 			if (limit_frames && ++rendered >= limit_frames) { running = false; }
 		}
 		SDL_Delay(1);
@@ -266,12 +298,14 @@ int event_loop(SDL_Renderer *renderer, SDL_Texture *texture, SDL_Window *window)
 
 /** @brief Print the supported command-line switches. @param program Program name. */
 void usage(const char *program) {
-	std::printf("Usage: %s [--frames N] [--page name] [--command line] [--screenshot path.ppm]\n", program);
+	std::printf("Usage: %s [--frames N] [--page name] [--command line] [--screenshot path.ppm] [--left-display] [--minimized]\n", program);
 	std::printf("  --frames N       render N frames then exit (headless smoke run)\n");
 	std::printf("  --page name      start on a page: eyes clock music route alerts weather\n");
 	std::printf("                   settings desk bigclock overview timer device pong analogclock\n");
 	std::printf("  --command line   run one USB console command at startup\n");
 	std::printf("  --screenshot P   write the final canvas to a PPM image\n");
+	std::printf("  --left-display   center on the leftmost monitor and fit its work area\n");
+	std::printf("  --minimized      start minimized\n");
 	std::printf("Mouse: click tap, drag swipe/scroll, hold 1.2s settings, wheel pages\n");
 	std::printf("Keys:  0..7 pages/tools, n alert, r route, u pickup wake, p snapshot, q/ESC quit\n");
 	std::printf("Terminal: type a USB command and press Enter (try: mood names, mood glow, help)\n");
@@ -288,6 +322,8 @@ bool parse_args(int argc, char **argv) {
 			continue;
 		}
 		if (arg == "--screenshot" && i + 1 < argc) { shot_path = argv[++i]; continue; }
+		if (arg == "--left-display") { start_left = true; continue; }
+		if (arg == "--minimized") { start_minimized = true; continue; }
 		if (arg == "--page" && i + 1 < argc) {
 			std::string name = argv[++i];
 			for (char &c : name) { c = char(std::tolower(char(c))); }
@@ -327,12 +363,42 @@ void emulator_close_display(SDL_Window *window, SDL_Renderer *renderer, SDL_Text
 }
 
 #ifndef MOCHI_EMULATOR_INPUT_TEST
+/** @brief Pick the physical monitor farthest left, independent of SDL numbering. */
+static int startup_display() {
+	if (!start_left) { return 0; }
+	int selected = 0;
+	SDL_Rect bounds{};
+	if (SDL_GetDisplayBounds(0, &bounds) != 0) { return 0; }
+	for (int i = 1; i < SDL_GetNumVideoDisplays(); ++i) {
+		SDL_Rect candidate{};
+		if (SDL_GetDisplayBounds(i, &candidate) == 0 && candidate.x < bounds.x) {
+			selected = i;
+			bounds = candidate;
+		}
+	}
+	return selected;
+}
+
+/** @brief Keep the full emulator visible after restoring it on a smaller monitor. */
+static SDL_Window *startup_window() {
+	const int display = startup_display();
+	int scale = SCALE;
+	SDL_Rect usable{};
+	if (start_left && SDL_GetDisplayUsableBounds(display, &usable) == 0) {
+		const int fit = std::min(usable.w / LCD_W, (usable.h - 48) / LCD_H);
+		scale = std::max(1, std::min(scale, fit));
+	}
+	const int position = SDL_WINDOWPOS_CENTERED_DISPLAY(display);
+	uint32_t flags = SDL_WINDOW_RESIZABLE;
+	if (start_minimized) { flags |= SDL_WINDOW_MINIMIZED; }
+	return SDL_CreateWindow("Mochi LCD emulator", position, position, LCD_W * scale, LCD_H * scale, flags);
+}
+
 int main(int argc, char **argv) {
 	if (!parse_args(argc, argv)) { usage(argv[0]); return 2; }
 	std::srand(unsigned(std::time(nullptr)));
 	if (SDL_Init(SDL_INIT_VIDEO) != 0) { std::fprintf(stderr, "SDL_Init: %s\n", SDL_GetError()); return 1; }
-	SDL_Window *window = SDL_CreateWindow("Mochi LCD emulator", SDL_WINDOWPOS_CENTERED,
-		SDL_WINDOWPOS_CENTERED, LCD_W * SCALE, LCD_H * SCALE, SDL_WINDOW_RESIZABLE);
+	SDL_Window *window = startup_window();
 	if (!window && limit_frames) {
 		// Headless runs have no display server; the dummy driver still renders frames.
 		SDL_setenv("SDL_VIDEODRIVER", "dummy", 1);

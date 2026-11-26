@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "context_views.h"
+#include "alert_layout.h"
 #include "../companion/phone_view.h"
 #include "music_view.h"
 #include "view_state.h"
@@ -141,10 +142,11 @@ void context_route(Arduino_GFX *gfx, const UiSnapshot &data) {
 	String distance = nav.distance.length() ? nav.distance : "--";
 	ui_label(gfx, distance, ui_s(28), ui_s(164), ui_s(184), ui_ascii(distance).length() <= 10 ? 3 : 2, UI_ACCENT);
 	uint8_t columns = uint8_t((ui_s(184) - 4) / (6 * ui_text_size(2)));
-	TextLines lines = wrap_text(ui_ascii(nav.directions.length() ? nav.directions : nav.title).c_str(), columns);
+	TextLines lines = wrap_text(ui_ascii(nav.directions.length() ? nav.directions : nav.title).c_str(),
+		columns, ui_s(184) - 4, 2);
 	for (uint8_t i = 0; i < lines.count && i < 2; ++i) {
 		String line = lines.line[i];
-		if (i == 1 && lines.count > 2) { line = line.substring(0, columns - 3) + "..."; }
+		if (i == 1 && lines.count > 2) { line = (ui_font::active() ? line : line.substring(0, columns - 3)) + "..."; }
 		ui_label(gfx, line, ui_s(28), ui_s(194) + i * ui_s(18), ui_s(184), 2, UI_TEXT);
 	}
 }
@@ -168,10 +170,10 @@ void context_draw(Arduino_GFX *gfx, ChronosESP32 &watch, UiPage page, const UiSn
 /** @brief Dispatch short parked-use utility taps without persisting session choices. @param page Page. @param x X. @param y Y. @param now Time. @return Target. */
 UiPage screens_tap(UiPage page, int16_t x, int16_t y, uint32_t now) {
 	if (x < 0 || x >= LCD_WIDTH || y < 0 || y >= LCD_HEIGHT) { return page; }
-	if (page == UiPage::Notification && y >= ui_s(224) && y < ui_s(256)) {
+	if (page == UiPage::Notification && y >= alert_layout::button_top() && y < alert_layout::button_bottom()) {
 		for (uint8_t i = 0; i < 3; ++i) {
-			int16_t left = ui_s(12 + i * 74);
-			if (x < left || x >= left + ui_s(68)) { continue; }
+			const int16_t left = alert_layout::button_left(i);
+			if (x < left || x >= left + alert_layout::button_width()) { continue; }
 			screens_alert_action(int8_t(i) - 1);
 		}
 	}

@@ -88,8 +88,8 @@ void grid_entry(Arduino_GFX *gfx, uint8_t index, int16_t x, int16_t y) {
 			x + ui_s(3), y + ui_s(17), ui_s(8), 1, UI_ACCENT);
 	}
 	int16_t pad = filter_open || favorites_edit ? 14 : 3;
-	ui_label(gfx, tr_expression(index), x + ui_s(pad), y + ui_s(17), ui_s(GRID_W - pad - 3), 1,
-		selected ? UI_BG : (allowed ? UI_TEXT : UI_MUTED));
+	ui_font::label(gfx, tr_expression(index), x + ui_s(pad), y + ui_s(17), ui_s(GRID_W - pad - 3), 1,
+		selected ? UI_BG : (allowed ? UI_TEXT : UI_MUTED), selected ? UI_ACCENT : UI_CARD);
 	if (!filter_open && !allowed) {
 		gfx->drawLine(x + ui_s(3), y + ui_s(4), x + ui_s(10), y + ui_s(20), UI_MUTED);
 	}

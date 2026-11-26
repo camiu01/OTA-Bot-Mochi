@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #pragma once
+#include "ui_font.h"
 #include "../play/dice_geometry.h"
 #include "ui_theme.h"
 #include <math.h>
@@ -59,7 +60,7 @@ inline void dice_shape_draw(Arduino_GFX *gfx, uint8_t sides, int16_t cx, int16_t
 	const auto &face = mesh.faces[front]; int32_t tx = 0, ty = 0;
 	for (uint8_t j = 0; j < face.count; ++j) { tx += x[face.vertex[j]]; ty += y[face.vertex[j]]; }
 	constexpr uint8_t size = 2;
-	int16_t width = int16_t(result.length()) * 6 * ui_text_size(size);
+	int16_t width = ui_font::width(result, size);
 	ui_label(gfx, result, int16_t(tx / face.count - width / 2),
-		int16_t(ty / face.count - 4 * ui_text_size(size)), width + 4, size, UI_TEXT);
+		int16_t(ty / face.count - ui_font::height(size) / 2), width + 4, size, UI_TEXT);
 }

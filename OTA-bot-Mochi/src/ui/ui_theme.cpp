@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "ui_theme.h"
+#include "ui_font.h"
 #include "../../pin_config.h"
 #include "../power/backlight.h"
 #include "../power/battery.h"
@@ -48,13 +49,13 @@ void ui_box(Arduino_GFX *gfx, int16_t x, int16_t y, int16_t w, int16_t h, uint16
 }
 
 void ui_button(Arduino_GFX *gfx, int16_t x, int16_t y, int16_t w, int16_t h, const String &label, bool primary, bool enabled) {
-	ui_box(gfx, x, y, w, h, primary && enabled ? UI_ACCENT : UI_CARD, !primary || !enabled);
-	uint8_t size = ui_text_size(1);
-	int16_t room = int16_t(w - ui_s(12));
-	int16_t width = int16_t(ui_ascii(label).length()) * 6 * size;
-	if (width > room) { width = room; }
-	ui_label(gfx, label, int16_t(x + (w - width) / 2), int16_t(y + (h - 7 * size) / 2), room, 1,
-		!enabled ? UI_MUTED : (primary ? UI_BG : UI_TEXT));
+	const uint16_t fill = primary && enabled ? UI_ACCENT : UI_CARD;
+	ui_box(gfx, x, y, w, h, fill, !primary || !enabled);
+	const int16_t room = w - ui_s(12);
+	const String text = ui_font::fit(ui_ascii(label), room, 1);
+	const int16_t width = ui_font::width(text, 1);
+	ui_font::label(gfx, text, x + (w - width) / 2, y + (h - ui_font::height(1)) / 2, room, 1,
+		!enabled ? UI_MUTED : (primary ? UI_BG : UI_TEXT), fill);
 }
 
 /**
@@ -100,6 +101,7 @@ String ui_ascii(const String &text) {
  */
 void ui_label(Arduino_GFX *gfx, const String &text, int16_t x, int16_t y,
 	int16_t width, uint8_t size, uint16_t color) {
+	if (ui_font::draw(gfx, text, x, y, width, size, color)) { return; }
 	size = ui_text_size(size);
 	if (size == 0 || width < 6 * size) { return; }
 	String safe = ui_ascii(text);
@@ -118,9 +120,10 @@ void ui_label(Arduino_GFX *gfx, const String &text, int16_t x, int16_t y,
 }
 
 void ui_center(Arduino_GFX *gfx, const String &text, int16_t y, uint8_t size, uint16_t color) {
-	int16_t width = int16_t(ui_ascii(text).length()) * 6 * ui_text_size(size);
-	if (width > LCD_WIDTH - ui_s(48)) { width = LCD_WIDTH - ui_s(48); }
-	ui_label(gfx, text, (LCD_WIDTH - width) / 2, ui_s(y), width, size, color);
+	const int16_t room = LCD_WIDTH - ui_s(48);
+	const String clipped = ui_font::fit(ui_ascii(text), room, size);
+	const int16_t width = ui_font::width(clipped, size);
+	ui_label(gfx, clipped, (LCD_WIDTH - width) / 2, ui_s(y), room, size, color);
 }
 
 void ui_bar(Arduino_GFX *gfx, int16_t x, int16_t y, int16_t w, int16_t h, int32_t permille, uint16_t color) {
@@ -188,8 +191,9 @@ void ui_charge_badge(Arduino_GFX *gfx, int16_t x, int16_t y) {
  * @param title Screen title.
  * @param connected Bluetooth flag.
  * @param page Screen index.
+ * @param settings_page True when the settings footer occupies the carousel indicator area.
  */
-void ui_chrome(Arduino_GFX *gfx, const char *title, bool connected, uint8_t page) {
+void ui_chrome(Arduino_GFX *gfx, const char *title, bool connected, uint8_t page, bool settings_page) {
 	gfx->fillRect(0, 0, LCD_WIDTH, ui_s(52), UI_BG);
 	ui_label(gfx, "MOCHI / COMPANION", ui_s(16), ui_s(12), ui_s(180), 1, UI_MUTED);
 	uint8_t charge = battery_percent();
@@ -200,12 +204,13 @@ void ui_chrome(Arduino_GFX *gfx, const char *title, bool connected, uint8_t page
 	gfx->fillCircle(ui_s(220), ui_s(16), 3, connected ? UI_ACCENT : UI_MUTED);
 	// Doubled header text ends later on scaled panels, so the badge steps aside instead of colliding.
 	int16_t badge_x = ui_s(150);
-	int16_t title_right = int16_t(ui_s(16) + 17 * 6 * ui_text_size(1));
+	int16_t title_right = ui_s(16) + ui_font::width("MOCHI / COMPANION", 1);
 	if (badge_x < title_right + 8) { badge_x = int16_t(title_right + 8); }
 	ui_sound_badge(gfx, badge_x, ui_s(11));
 	gfx->fillRoundRect(ui_s(6), ui_s(30), ui_s(4), ui_s(16), ui_s(2), UI_ACCENT);
 	ui_label(gfx, title, ui_s(16), ui_s(30), ui_s(208), 2, UI_TEXT);
 	gfx->fillRect(0, ui_s(258), LCD_WIDTH, ui_s(22), UI_BG);
+	if (settings_page && ui_font::Supported) { return; }
 	// Pagination: a short accent pill marks the current page between small dots.
 	const int16_t step = ui_s(12), pill = ui_s(16), dot = ui_s(2) < 2 ? 2 : ui_s(2);
 	int16_t x = int16_t((LCD_WIDTH - (7 * step + pill)) / 2), y = ui_s(267);

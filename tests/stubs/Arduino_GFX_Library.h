@@ -8,7 +8,7 @@
 #include <vector>
 #include <assert.h>
 #include "raster.h"
-#include "bitmap_font.h"
+#include "../../OTA-bot-Mochi/src/ui/fonts/classic_bitmap.h"
 #define RGB565_BLACK 0x0000
 #define RGB565_WHITE 0xFFFF
 

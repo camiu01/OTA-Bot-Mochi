@@ -7,6 +7,14 @@
 #include <Arduino_GFX_Library.h>
 
 constexpr uint16_t UI_BG = 0x0000;
+/** @brief Blend RGB565 colors with opacity in the range 0–256. */
+inline uint16_t ui_mix(uint16_t base, uint16_t ink, uint16_t opacity) {
+	const uint32_t keep = 256 - opacity;
+	const uint32_t r = ((base >> 11) * keep + (ink >> 11) * opacity + 128) >> 8;
+	const uint32_t g = (((base >> 5) & 63) * keep + ((ink >> 5) & 63) * opacity + 128) >> 8;
+	const uint32_t b = ((base & 31) * keep + (ink & 31) * opacity + 128) >> 8;
+	return uint16_t((r << 11) | (g << 5) | b);
+}
 /**
  * @brief Design space of the menu, desk, and tool widgets.
  *
@@ -98,7 +106,7 @@ void ui_status(Arduino_GFX *gfx, int16_t y, bool good, const String &text);
  * @param connected Bluetooth flag.
  * @param page Selected screen index.
  */
-void ui_chrome(Arduino_GFX *gfx, const char *title, bool connected, uint8_t page);
+void ui_chrome(Arduino_GFX *gfx, const char *title, bool connected, uint8_t page, bool settings_page = false);
 /**
  * @brief Draw a compact speaker glyph showing whether audio can sound.
  * @param gfx Canvas.

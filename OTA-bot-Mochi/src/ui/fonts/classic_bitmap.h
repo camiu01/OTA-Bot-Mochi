@@ -1,6 +1,6 @@
 /**
- * @file bitmap_font.h
- * @brief Classic fixed 5x7 bitmap font for the native display mock.
+ * @file classic_bitmap.h
+ * @brief Classic fixed 5x7 bitmap font for the native display mock and scaled alert text.
  *
  * The same built-in font the firmware renders on the ST7789 through
  * Arduino_GFX, so host previews match the device's text metrics (6x8 cell).

@@ -5,6 +5,7 @@
  */
 #include "clock_ui.h"
 #include "../ui/ui_theme.h"
+#include "../ui/ui_font.h"
 #include "../ui/i18n.h"
 #include "../settings/settings.h"
 #include "../../pin_config.h"
@@ -29,9 +30,12 @@ String previous[4];
 bool field(Arduino_GFX *gfx, const String &text, uint8_t index, int16_t y,
 	uint8_t size, uint16_t color) {
 	if (!invalidated && previous[index] == text) { return false; }
-	uint8_t eff = ui_text_size(size);
-	int16_t width = int16_t(text.length()) * 6 * eff;
-	gfx->fillRect(ui_s(24), ui_s(y), LCD_WIDTH - ui_s(48), ui_s(int16_t(8 * eff + 4)), UI_CARD);
+	const int16_t available = LCD_WIDTH - ui_s(48);
+	int16_t width = ui_font::width(ui_ascii(text), size);
+	const bool proportional = ui_font::active();
+	if (proportional && width > available) { width = available; }
+	const int16_t height = ui_font::height(size);
+	gfx->fillRect(ui_s(24), ui_s(y), available, proportional ? height + ui_s(4) : ui_s(height + 4), UI_CARD);
 	ui_label(gfx, text, (LCD_WIDTH - width) / 2, ui_s(y), width, size, color);
 	previous[index] = text;
 	return true;

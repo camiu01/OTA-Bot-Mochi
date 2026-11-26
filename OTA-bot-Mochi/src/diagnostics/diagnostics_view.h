@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #pragma once
+#include "../ui/ui_font.h"
 #include "device_status.h"
 #include "../ui/ui_theme.h"
 #include "../ui/i18n.h"
@@ -66,8 +67,8 @@ inline void draw(Arduino_GFX *gfx, uint8_t first) {
 		uint8_t index = first + slot;
 		int16_t y = 90 + slot * 44;
 		ui_card(gfx, y, 40);
-		ui_label(gfx, tr(labels[index]), ui_s(24), ui_s(y + 5), ui_s(192), 1, UI_MUTED);
-		ui_label(gfx, value(index, state, connected), ui_s(24), ui_s(y + 23), ui_s(192), 1, UI_TEXT);
+		ui_font::label(gfx, tr(labels[index]), ui_s(24), ui_s(y + 5), ui_s(192), 1, UI_MUTED, UI_CARD);
+		ui_font::label(gfx, value(index, state, connected), ui_s(24), ui_s(y + 23), ui_s(192), 1, UI_TEXT, UI_CARD);
 	}
 	gfx->fillRoundRect(ui_s(232), ui_s(92), ui_s(3), ui_s(128), ui_s(1), UI_LINE);
 	gfx->fillRect(ui_s(232), ui_s(92 + first * 88 / (ROWS - 3)), ui_s(3), ui_s(40), UI_ACCENT);

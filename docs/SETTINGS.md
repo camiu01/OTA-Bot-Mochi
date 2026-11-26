@@ -50,6 +50,7 @@ rows. Changes are live in RAM and do not write flash while browsing.
 | CAR / AUTO | OBD value 1–4 | hidden or one of sixteen engine values |
 | SYSTEM | Diagnostics | read-only live device status; swipe vertically to browse, BACK returns to SYSTEM |
 | SYSTEM | Language | English / Italiano |
+| SYSTEM | Font | AMOLED V2 only; Default bitmap, Inter, or DM Sans across the on-device interface. Applies immediately and persists on SAVE. |
 | SYSTEM | Dashboard | on / off |
 | SYSTEM | Route default | large / details |
 | SYSTEM | Phone mode | Android/Chronos (default) or iPhone/ANCS; SAVE and restart to switch |
@@ -347,10 +348,12 @@ tone band (see [Audio and motion](SOUND.md)).
 A hold still opens Settings and a swipe does not also trigger a random face.
 These reactions remain available in dashboard mode, which only calms idle motion.
 
-The full profile is stored as a validated twenty-five-byte version-twelve NVS blob
-with a checksum. Version twelve adds the OBD page and page timings (below);
-seventeen-byte version eleven keeps the version-ten length and adds the OBD
-scan flag; version ten appends the charging-sound category and reads the
+The full profile is stored as a validated twenty-five-byte NVS blob with a
+checksum. Version twelve stores the OBD page settings and page timings with the
+default font. Version fourteen also stores Inter or DM Sans. Older seventeen-byte
+fork profiles retain the font from versions twelve and thirteen. An older Inter
+build shared its version-eleven flag with OBD scanning, so those profiles use
+the default font. Version ten appends the charging-sound category and reads the
 prior sixteen-byte version-nine night schedule unchanged. Version seven adds
 Phone mode while preserving the prior layout.
 Thirteen-byte version-six profiles retain Face flow and default to Android mode;
@@ -392,6 +395,16 @@ The **Charging** switch lives with the other categories under SOUND → Sound
 options and defaults on. It gates only the automatic AMOLED charge-start cue;
 Startup keeps no category switch. Enabling it does not change charger
 configuration. See [Sound](SOUND.md#startup-charging-and-reaction-rules).
+
+### Interface font
+
+Inter uses the Medium and SemiBold faces from [Inter 4.1](https://github.com/rsms/inter/releases/tag/v4.1).
+DM Sans uses the Medium and SemiBold weights from [Google Fonts](https://github.com/google/fonts/tree/6ebe737e44fd64ee736bbc6feed6136a6dbfd222/ofl/dmsans).
+The firmware embeds compact raster glyphs and needs no font files at runtime.
+With Pillow installed, run `python tools/export-settings-font.py` with the Inter
+release's `extras/otf` directory or pass `--dm-sans` followed by the DM Sans
+variable TTF. The [Inter license](../OTA-bot-Mochi/src/ui/fonts/OFL-Inter.txt)
+and [DM Sans license](../OTA-bot-Mochi/src/ui/fonts/OFL-DM-Sans.txt) are included.
 
 ### Version eleven: OBD dongle scan
 

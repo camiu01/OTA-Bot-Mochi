@@ -8,6 +8,7 @@
 #include "screens.h"
 #include "ui_state.h"
 #include "ui_theme.h"
+#include "ui_font.h"
 #include "i18n.h"
 #include "../play/drive_meter.h"
 #include "../vehicle/obd_state.h"

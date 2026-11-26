@@ -227,6 +227,8 @@
 	X(Off, "OFF", "NO") \
 	X(Save, "SAVE", "SALVA") \
 	X(Saved, "SAVED", "SALVATO") \
+	X(ChangesSaved, "Changes saved", "Modifiche salvate") \
+	X(Font, "Font", "Font") \
 	X(Failed, "FAILED", "ERRORE") \
 	X(EyesButton, "EYES", "OCCHI") \
 	X(Back, "BACK", "INDIETRO") \

@@ -40,7 +40,7 @@ inline void context_hub_draw(Arduino_GFX *gfx, UiPage page) {
 		int16_t x = ui_s(i % 2 ? 126 : 6), y = ui_s(56 + (i / 2) * 45);
 		ui_box(gfx, x, y, ui_s(108), ui_s(40), UI_CARD, true);
 		gfx->fillRoundRect(x + ui_s(6), y + ui_s(12), ui_s(3), ui_s(16), ui_s(1), UI_ACCENT);
-		TextLines lines = wrap_text(tr(hub.tiles[i].label), columns);
+		TextLines lines = wrap_text(tr(hub.tiles[i].label), columns, ui_s(88) - 4);
 		int16_t top = y + ui_s(22) - int16_t(lines.count ? lines.count : 1) * ui_s(8);
 		for (uint8_t l = 0; l < lines.count && l < 2; ++l) {
 			ui_label(gfx, lines.line[l], x + ui_s(15), top + l * ui_s(16), ui_s(86), 1, UI_TEXT);

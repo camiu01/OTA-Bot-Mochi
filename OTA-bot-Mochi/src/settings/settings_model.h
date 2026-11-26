@@ -8,11 +8,12 @@
 #include <string.h>
 #include "../eyes/eyes_types.h"
 #include "../eyes/face_flow.h"
+#include "../ui/font_choice.h"
 constexpr uint8_t SETTINGS_V4_BYTES = 12;	/**< Stored size of the retired version-four profile. */
 constexpr uint8_t SETTINGS_LEGACY_BYTES = 13; /**< Stored size of version-five through version-eight profiles. */
 constexpr uint8_t SETTINGS_V9_BYTES = 16;	/**< Stored size of the retired version-nine profile. */
-constexpr uint8_t SETTINGS_V10_BYTES = 17;	/**< Stored size of the retired version-ten and version-eleven profiles. */
-constexpr uint8_t SETTINGS_BYTES = 25;		/**< Stored size of the current version-twelve profile. */
+constexpr uint8_t SETTINGS_V10_BYTES = 17;	/**< Stored size of the legacy 17-byte profiles. */
+constexpr uint8_t SETTINGS_BYTES = 25;		/**< Stored size of the 25-byte profiles. */
 constexpr uint8_t OBD_SLOTS = 4;			/**< Configurable small values on the OBD page. */
 constexpr uint8_t OBD_GAUGES = 4;			/**< Tachometer styles: bar, shift light, dial, number only. */
 constexpr uint8_t OBD_SLOT_CHOICES = 17;		/**< Hidden plus the sixteen ObdValue readings (vehicle/obd_state.h). */
@@ -47,6 +48,7 @@ struct CompanionSettings {
 	uint8_t sound_level = 10;
 	uint8_t animation = 1;
 	uint8_t language = 0;
+	UiFont font = UiFont::Default;
 	bool flipped = false;
 	bool phone_ios = false;
 };
@@ -87,6 +89,7 @@ inline bool settings_valid(const CompanionSettings &value) {
 		value.brightness >= 5 && value.brightness <= 90 &&
 		value.night_brightness >= 1 && value.night_brightness <= 20 &&
 		value.sound_level >= 1 && value.sound_level <= 30 && value.animation < 3 && value.language < 2 &&
+		value.font < UiFont::Count &&
 		value.face_flow < FACE_FLOW_COUNT && value.night_start < 24 && value.night_end < 24 &&
 		value.night_start != value.night_end && value.obd_rpm_max >= 30 && value.obd_rpm_max <= 120 &&
 		value.obd_slot1 < OBD_SLOT_CHOICES && value.obd_slot2 < OBD_SLOT_CHOICES &&
@@ -97,10 +100,10 @@ inline bool settings_valid(const CompanionSettings &value) {
 /**
  * @brief Encode a versioned profile without relying on struct padding.
  * @param value Valid settings.
-	 * @param bytes Output twenty-five-byte version-twelve profile.
+ * @param bytes Output twenty-five-byte v12 (Default) or v14 (custom font) profile.
  */
 inline void settings_encode(const CompanionSettings &value, uint8_t bytes[SETTINGS_BYTES]) {
-	bytes[0] = 12;
+	bytes[0] = value.font == UiFont::Default ? 12 : 14;
 	bytes[1] = value.style; bytes[2] = value.color; bytes[3] = value.mood;
 	bytes[4] = value.brightness; bytes[5] = value.night_brightness;
 	bytes[6] = value.night | (value.dashboard << 1) | (value.shake << 2) | (value.dim << 3);
@@ -111,7 +114,7 @@ inline void settings_encode(const CompanionSettings &value, uint8_t bytes[SETTIN
 	bytes[8] = value.sound_level; bytes[9] = value.animation; bytes[10] = value.language;
 	bytes[11] = uint8_t(value.flipped) | (value.face_flow << 1);
 	bytes[12] = value.night_auto; bytes[13] = value.night_start; bytes[14] = value.night_end;
-	bytes[15] = uint8_t(value.sound_charging) | (value.obd_scan << 1);
+	bytes[15] = uint8_t(value.sound_charging) | (value.obd_scan << 1) | (uint8_t(value.font) << 2);
 	bytes[16] = value.obd_rpm_max;
 	bytes[17] = value.obd_slot1; bytes[18] = value.obd_slot2; bytes[19] = value.obd_slot3; bytes[20] = value.obd_slot4;
 	bytes[21] = value.alert_seconds; bytes[22] = value.home_seconds;
@@ -123,7 +126,7 @@ inline void settings_encode(const CompanionSettings &value, uint8_t bytes[SETTIN
 /**
  * @brief Validate and decode a stored profile, leaving output untouched on failure.
  * @param bytes Input profile.
-	 * @param length Actual buffer length: eight for v1-v3, twelve for v4, thirteen for v5-v8, sixteen for v9, seventeen for v10-v11, twenty-five for v12.
+ * @param length Actual buffer length: eight for v1-v3, twelve for v4, thirteen for v5-v8, sixteen for v9, seventeen for v10-v13, twenty-five for v12 or v14.
  * @param value Output settings.
  * @return Valid version, checksum, flags, and fields.
  */
@@ -134,8 +137,8 @@ inline bool settings_decode(const uint8_t *bytes, size_t length, CompanionSettin
 		(length == SETTINGS_V4_BYTES && bytes[0] != 4) ||
 		(length == SETTINGS_LEGACY_BYTES && (bytes[0] < 5 || bytes[0] > 8)) ||
 		(length == SETTINGS_V9_BYTES && bytes[0] != 9) ||
-		(length == SETTINGS_V10_BYTES && bytes[0] != 10 && bytes[0] != 11) ||
-		(length == SETTINGS_BYTES && bytes[0] != 12)) { return false; }
+		(length == SETTINGS_V10_BYTES && (bytes[0] < 10 || bytes[0] > 13)) ||
+		(length == SETTINGS_BYTES && bytes[0] != 12 && bytes[0] != 14)) { return false; }
 	uint8_t checksum = 0xA5;
 	for (size_t i = 0; i + 1 < length; ++i) { checksum ^= bytes[i]; }
 	if (bytes[length - 1] != checksum) { return false; }
@@ -166,11 +169,20 @@ inline bool settings_decode(const uint8_t *bytes, size_t length, CompanionSettin
 		next.night_auto = bytes[12]; next.night_start = bytes[13]; next.night_end = bytes[14];
 	}
 	if (bytes[0] >= 10) {
-		if (bytes[15] > (bytes[0] == 10 ? 1 : 3)) { return false; }
-		next.sound_charging = bytes[15] & 1;
-		if (bytes[0] >= 11) { next.obd_scan = bytes[15] & 2; }
+		const uint8_t version = bytes[0], flags = bytes[15];
+		const bool short_font_only = length == SETTINGS_V10_BYTES && version == 12;
+		const bool has_font = short_font_only || version >= 13;
+		if (!has_font && flags > (version == 10 ? 1 : 3)) { return false; }
+		next.sound_charging = flags & 1;
+		// Legacy 17-byte v12 used bit 1 for the font and had no OBD flag.
+		if (version >= 11 && !short_font_only) { next.obd_scan = flags & 2; }
+		if (has_font) {
+			const uint8_t font = short_font_only ? flags >> 1 : flags >> 2;
+			if (font >= uint8_t(UiFont::Count)) { return false; }
+			next.font = UiFont(font);
+		}
 	}
-	if (bytes[0] >= 12) {
+	if (length == SETTINGS_BYTES) {
 		next.obd_rpm_max = bytes[16];
 		next.obd_slot1 = bytes[17]; next.obd_slot2 = bytes[18]; next.obd_slot3 = bytes[19]; next.obd_slot4 = bytes[20];
 		next.alert_seconds = bytes[21]; next.home_seconds = bytes[22];
