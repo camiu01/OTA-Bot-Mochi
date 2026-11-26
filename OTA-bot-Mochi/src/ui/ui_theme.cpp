@@ -195,18 +195,13 @@ void ui_charge_badge(Arduino_GFX *gfx, int16_t x, int16_t y) {
  */
 void ui_chrome(Arduino_GFX *gfx, const char *title, bool connected, uint8_t page, bool settings_page) {
 	gfx->fillRect(0, 0, LCD_WIDTH, ui_s(52), UI_BG);
-	ui_label(gfx, "MOCHI / COMPANION", ui_s(16), ui_s(12), ui_s(180), 1, UI_MUTED);
 	uint8_t charge = battery_percent();
 	bool charging = charging_active();
 	ui_label(gfx, charge == BATTERY_UNAVAILABLE ? String("--%") : String(charge) + "%",
 		ui_s(174), ui_s(12), ui_s(32), 1, charging ? UI_ACCENT : UI_MUTED);
 	if (charging) { ui_charge_badge(gfx, ui_s(208), ui_s(11)); }
 	gfx->fillCircle(ui_s(220), ui_s(16), 3, connected ? UI_ACCENT : UI_MUTED);
-	// Doubled header text ends later on scaled panels, so the badge steps aside instead of colliding.
-	int16_t badge_x = ui_s(150);
-	int16_t title_right = ui_s(16) + ui_font::width("MOCHI / COMPANION", 1);
-	if (badge_x < title_right + 8) { badge_x = int16_t(title_right + 8); }
-	ui_sound_badge(gfx, badge_x, ui_s(11));
+	ui_sound_badge(gfx, ui_s(150), ui_s(11));
 	gfx->fillRoundRect(ui_s(6), ui_s(30), ui_s(4), ui_s(16), ui_s(2), UI_ACCENT);
 	ui_label(gfx, title, ui_s(16), ui_s(30), ui_s(208), 2, UI_TEXT);
 	gfx->fillRect(0, ui_s(258), LCD_WIDTH, ui_s(22), UI_BG);
