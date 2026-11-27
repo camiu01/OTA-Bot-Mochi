@@ -38,7 +38,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Load shared build pins
         run: python3 scripts/build-versions.py >> "$GITHUB_ENV"
-      - uses: arduino/setup-arduino-cli@81d310742121c928ea9c8bbd407b4217b432ae02 # v2.0.0
+      - uses: arduino/setup-arduino-cli@b3cda96fddef6af6c56b4c5efb5c47e2357935db # v2.1.0
         with:
           version: ${{ env.ARDUINO_CLI_VERSION }}
       - name: Cache Arduino core and libraries
